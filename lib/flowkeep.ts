@@ -172,7 +172,9 @@ export function getSlaState(lead: FlowkeepLead, now = new Date()): SlaState {
 
   const computedDue = inboundSlaDueAt(new Date(lead.original_inquiry_at));
   if (lead.last_outreach_at && new Date(lead.last_outreach_at).getTime() >= new Date(lead.original_inquiry_at).getTime()) {
-    return { applicable: true, status: "met", dueAt: computedDue.toISOString(), label: "SLA met" };
+    const respondedAt = new Date(lead.last_outreach_at);
+    const late = respondedAt.getTime() > computedDue.getTime();
+    return { applicable: true, status: "met", dueAt: computedDue.toISOString(), label: late ? "SLA met late" : "SLA met" };
   }
 
   const due = lead.next_action_due
@@ -309,25 +311,25 @@ export function rankLead(lead: FlowkeepLead, now = new Date()): RankedLead | nul
 
   switch (kind) {
     case "reply":
-      bucket = 1000;
+      bucket = 6000;
       label = "critical";
       break;
     case "consultation":
-      bucket = 900;
+      bucket = 5000;
       label = "high";
       break;
     case "new_inbound":
-      bucket = 800;
+      bucket = 4000;
       label = sla.status === "overdue" || sla.status === "due_soon" ? "high" : "normal";
       break;
     case "follow_up":
-      bucket = 500;
+      bucket = 2000;
       break;
     case "first_outreach":
-      bucket = 300;
+      bucket = 1000;
       break;
     case "research":
-      bucket = 200;
+      bucket = 500;
       break;
     default:
       bucket = 100;

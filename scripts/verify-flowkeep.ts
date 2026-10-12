@@ -53,4 +53,10 @@ const ranked = rankLeads([
 
 assert.deepEqual(ranked.map((lead) => lead.id), ["reply", "consult", "inbound", "research"], "Ranking order must stay deterministic");
 
+const staleInboundRanking = rankLeads([
+  { ...base, id: "consult-fresh", business_name: "Fresh Consult", momentum_state: "Scheduled Consultation", next_action_kind: "consultation", last_activity_at: mondayMorning.toISOString() },
+  { ...base, id: "inbound-stale", business_name: "Stale Inbound", acquisition_type: "inbound", momentum_state: "New Inbound", next_action_kind: "new_inbound", original_inquiry_at: "2026-08-01T17:00:00.000Z", last_activity_at: "2026-08-01T17:00:00.000Z" },
+], mondayMorning);
+assert.deepEqual(staleInboundRanking.map((lead) => lead.id), ["consult-fresh", "inbound-stale"], "Tie-breakers must never let new inbound outrank consultation prep");
+
 console.log("Flowkeep verification passed: SLA, capture, outcomes, and priority order are deterministic.");

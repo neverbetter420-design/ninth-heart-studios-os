@@ -28,7 +28,7 @@ export function LeadInbox({ leads }: { leads: RankedLead[] }) {
           {leads.map((lead) => (
             <article className="lead-inbox-row" key={lead.id}>
               <div className={`priority-number priority-${lead.priorityLabel}`}>
-                {lead.priorityScore >= 1000 ? "!" : lead.priorityScore >= 800 ? "↑" : "·"}
+                {lead.priorityLabel === "critical" ? "!" : lead.priorityLabel === "high" ? "↑" : "·"}
               </div>
 
               <div className="lead-primary">
