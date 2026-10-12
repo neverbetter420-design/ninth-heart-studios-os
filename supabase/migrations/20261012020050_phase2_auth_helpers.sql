@@ -167,4 +167,3 @@ revoke all on table public.profiles, public.clients, public.client_memberships, 
 grant select, insert, update, delete on table public.profiles, public.clients, public.client_memberships,
   public.leads, public.projects, public.tasks, public.activities, public.opportunities,
   public.templates, public.files, public.approvals to authenticated;
-

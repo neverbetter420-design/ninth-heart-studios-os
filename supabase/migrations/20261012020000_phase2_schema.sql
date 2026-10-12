@@ -164,4 +164,3 @@ create index if not exists idx_activities_project_visible on public.activities(p
 create index if not exists idx_files_project_visibility on public.files(project_id, visibility);
 create index if not exists idx_approvals_project on public.approvals(project_id);
 create index if not exists idx_leads_owner on public.leads(owner_id);
-
