@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { deriveNewLead, getSlaState, inboundSlaDueAt, outcomePatch, rankLeads, type FlowkeepLead } from "../lib/flowkeep.ts";
+import { deriveNewLead, getSlaState, inboundSlaDueAt, outcomePatch, rankLeads, type FlowkeepLead } from "../lib/flowkeep";
 
 const mondayMorning = new Date("2026-10-12T17:00:00.000Z");
 const due = inboundSlaDueAt(mondayMorning);

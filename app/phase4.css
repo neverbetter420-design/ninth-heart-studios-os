@@ -1,0 +1,236 @@
+/* Phase 4 — Project Delivery: pipeline kanban + project workspace. */
+
+/* ---------- Pipeline board ---------- */
+.pipeline-board {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(248px, 300px);
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 2px 14px;
+  align-items: start;
+}
+.pipeline-column {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(18, 16, 28, 0.72), rgba(10, 9, 16, 0.6));
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+}
+.pipeline-column-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 13px 14px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.pipeline-column-head h3 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #cfc3d8;
+}
+.pipeline-count {
+  font-size: 10px;
+  color: #84798c;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.pipeline-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+.pipeline-card {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 12px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pipeline-card:hover { border-color: rgba(193, 91, 255, 0.25); }
+.pipeline-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pipeline-card-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  color: #f5eff8;
+  line-height: 1.35;
+}
+.pipeline-card-name a { color: inherit; text-decoration: none; }
+.pipeline-card-name a:hover { color: #d9a8ff; }
+.pipeline-card-client {
+  margin: 0;
+  font-size: 10px;
+  color: #84798c;
+}
+.pipeline-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  color: #84798c;
+}
+.pipeline-due-over { color: #ff9d9d; }
+.pipeline-move-form { display: flex; gap: 6px; }
+.pipeline-move-form select {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #f5eff8;
+  font: inherit;
+  font-size: 10px;
+  color-scheme: dark;
+}
+.pipeline-empty {
+  margin: 0;
+  padding: 4px 2px;
+  font-size: 10px;
+  color: #5f5666;
+  font-style: italic;
+}
+
+/* ---------- Workspace ---------- */
+.workspace-head { margin-bottom: 18px; }
+.workspace-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 14px;
+}
+.workspace-span-7 { grid-column: span 7; }
+.workspace-span-5 { grid-column: span 5; }
+.workspace-span-6 { grid-column: span 6; }
+.workspace-span-12 { grid-column: span 12; }
+@media (max-width: 900px) {
+  .workspace-span-7, .workspace-span-5, .workspace-span-6 { grid-column: span 12; }
+}
+.delivery-list { list-style: none; margin: 0; padding: 6px 14px 12px; display: flex; flex-direction: column; }
+.delivery-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+.delivery-row:last-child { border-bottom: 0; }
+.delivery-row-main { flex: 1; min-width: 0; }
+.delivery-row-title { margin: 0; font-size: 12px; color: #f5eff8; font-weight: 550; }
+.delivery-row-sub { margin: 2px 0 0; font-size: 10px; color: #84798c; }
+.delivery-pill {
+  flex: none;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+  padding: 4px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #b9abc6;
+  background: rgba(255, 255, 255, 0.03);
+}
+.delivery-pill.done { color: #9cecc6; border-color: rgba(104, 244, 181, 0.18); background: rgba(104, 244, 181, 0.05); }
+.delivery-pill.progress { color: #d9a8ff; border-color: rgba(198, 100, 255, 0.2); background: rgba(176, 70, 255, 0.06); }
+.delivery-pill.blocked { color: #ff9d9d; border-color: rgba(255, 120, 120, 0.2); background: rgba(255, 120, 120, 0.05); }
+.delivery-pill.visible { color: #9cd2ff; border-color: rgba(120, 180, 255, 0.18); background: rgba(120, 180, 255, 0.05); }
+.delivery-actions { display: flex; gap: 6px; flex: none; align-items: center; }
+.mini-form { display: flex; gap: 6px; align-items: center; }
+.mini-form select,
+.mini-form input {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #f5eff8;
+  font: inherit;
+  font-size: 10px;
+  color-scheme: dark;
+}
+.mini-button {
+  flex: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #d9cfe3;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.mini-button:hover { border-color: rgba(193, 91, 255, 0.35); color: #fff; }
+.mini-button.danger:hover { border-color: rgba(255, 120, 120, 0.4); color: #ff9d9d; }
+.mini-button.go {
+  background: linear-gradient(90deg, #7131bf, #ba44f6);
+  border-color: transparent;
+  color: #fff;
+}
+.delivery-add-form {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+}
+.delivery-add-form input,
+.delivery-add-form select {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #f5eff8;
+  font: inherit;
+  font-size: 11px;
+  color-scheme: dark;
+}
+.delivery-add-form input[type="text"] { flex: 1; min-width: 140px; }
+.stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #d9a8ff;
+  border: 1px solid rgba(198, 100, 255, 0.22);
+  background: rgba(176, 70, 255, 0.07);
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+.notes-area {
+  width: 100%;
+  min-height: 90px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #f5eff8;
+  font: inherit;
+  font-size: 11px;
+  resize: vertical;
+}
