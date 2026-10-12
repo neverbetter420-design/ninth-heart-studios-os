@@ -13,7 +13,7 @@ export const navItems: readonly NavItem[] = [
   { href: "/projects", label: "Project Pipeline", icon: "⌁", roles: ["admin"] },
   { href: "/clients", label: "Client Management", icon: "◎", roles: ["admin"] },
   { href: "/opportunities", label: "Opportunity Radar", icon: "✦", roles: ["admin"] },
-  { href: "/templates", label: "Master Templates", icon: "△", roles: ["admin"] },
+  { href: "/templates", label: "Master Templates", icon: "▱", roles: ["admin"] },
   { href: "/settings", label: "System Settings", icon: "⚙", roles: ["admin"] },
   { href: "/portal", label: "My Project Portal", icon: "◇", roles: ["client"] },
 ] as const;
