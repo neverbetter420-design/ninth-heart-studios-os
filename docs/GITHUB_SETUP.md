@@ -1,26 +1,33 @@
 # GitHub Handoff
 
-The project is already a local Git repository on the `main` branch with an initial commit.
+The private GitHub repository is live at:
 
-## Repository to create
+`neverbetter420-design/ninth-heart-studios-os`
 
-Create a **private** GitHub repository named:
+The `main` branch contains the Phase 1 foundation plus the Phase 2 Supabase/authentication/security upgrade.
 
-`ninth-heart-studios-os`
-
-Do not initialize it with a README, `.gitignore`, or license because those already exist in this project.
-
-## Connect this project to GitHub
-
-From the VS Code terminal in the project folder:
+## Clone into VS Code
 
 ```bash
-git remote add origin https://github.com/neverbetter420-design/ninth-heart-studios-os.git
-git push -u origin main
+git clone https://github.com/neverbetter420-design/ninth-heart-studios-os.git
+cd ninth-heart-studios-os
+code "Ninth Heart Studios OS.code-workspace"
 ```
 
 If GitHub asks you to authenticate, complete the normal browser/device authentication flow.
 
-## After the first push
+## Existing local copy
 
-Phase 2 is now implemented in the codebase. After the first push, connect a dedicated Supabase project and follow `docs/PHASE_2_SETUP.md` before importing any production data.
+If you already have the Phase 1 local folder, connect it to the GitHub repository before doing more development:
+
+```bash
+git remote add origin https://github.com/neverbetter420-design/ninth-heart-studios-os.git
+git fetch origin
+git switch main
+```
+
+Because Phase 2 is already committed remotely, cloning the repository fresh is the cleanest handoff.
+
+## Next infrastructure step
+
+Connect a dedicated Supabase project and follow `docs/PHASE_2_SETUP.md` before importing any production data.

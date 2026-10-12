@@ -48,7 +48,7 @@ Security architecture is documented in:
 
 ## Security verification
 
-After applying the migration and seeding the test users:
+After applying the migrations and seeding the test users:
 
 ```bash
 npm run verify:security
