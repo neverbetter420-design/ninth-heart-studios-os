@@ -3,9 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/lib/nav";
+import type { AppRole } from "@/lib/supabase/types";
 
-export function Sidebar() {
+export function Sidebar({
+  role,
+  user,
+}: {
+  role: AppRole;
+  user: { name: string; email: string };
+}) {
   const pathname = usePathname();
+  const visibleItems = navItems.filter((item) => item.roles.includes(role));
 
   return (
     <aside className="sidebar">
@@ -20,13 +28,13 @@ export function Sidebar() {
       <div className="system-status">
         <span className="status-dot" />
         <div>
-          <strong>System online</strong>
-          <span>Development environment</span>
+          <strong>Secure session</strong>
+          <span>{role === "admin" ? "NHS Admin" : "NHS Client"}</span>
         </div>
       </div>
 
       <nav className="nav-stack" aria-label="Primary navigation">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
           return (
             <Link key={item.href} href={item.href} className={`nav-link ${active ? "active" : ""}`}>
@@ -38,14 +46,28 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar-bottom">
-        <div className="muse-chip">
-          <span className="muse-orb" />
-          <div>
-            <strong>Muse</strong>
-            <span>AI copilot · prototype</span>
+        {role === "admin" ? (
+          <div className="muse-chip">
+            <span className="muse-orb" />
+            <div>
+              <strong>Muse</strong>
+              <span>AI copilot · prototype</span>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="user-chip">
+          <div className="user-avatar" aria-hidden="true">{user.name.slice(0, 1).toUpperCase()}</div>
+          <div className="user-copy">
+            <strong>{user.name}</strong>
+            <span>{user.email}</span>
           </div>
         </div>
-        <p className="tiny-copy">Custom build · Phase 1</p>
+
+        <form action="/auth/sign-out" method="post">
+          <button className="ghost-button wide sign-out-button" type="submit">Sign out</button>
+        </form>
+        <p className="tiny-copy">Custom build · Phase 2 security</p>
       </div>
     </aside>
   );

@@ -4,7 +4,7 @@
 
 The new NHS OS is not a pixel-for-pixel Softr clone. It preserves the useful workflows, removes platform constraints, and turns the operating system into software owned by Ninth Heart Studios.
 
-## Phase 1 — Foundation (current)
+## Phase 1 — Foundation (complete)
 
 - Custom Next.js/TypeScript application
 - NHS design system
@@ -14,15 +14,16 @@ The new NHS OS is not a pixel-for-pixel Softr clone. It preserves the useful wor
 - Mock data only
 - No live integrations
 
-## Phase 2 — Data + Security
+## Phase 2 — Data + Security (implemented, pending live Supabase credentials)
 
-- Create Supabase project
-- Define users, clients, leads, projects, tasks, activities, opportunities, templates, files, approvals
-- Add authentication
-- Add NHS Admin and NHS Client roles
-- Add row-level security policies
-- Seed test users and test records
-- Verify client isolation before importing production data
+- Supabase schema and migrations created
+- Users, clients, memberships, leads, projects, tasks, activities, opportunities, templates, files, approvals defined
+- Cookie-backed authentication wired
+- NHS Admin and NHS Client route permissions wired
+- Row-level security policies created
+- Private project-file storage policies created
+- Test-user seeding and cross-client verification scripts created
+- Live verification remains blocked until a Supabase project and credentials are connected
 
 ## Phase 3 — Lead Intelligence / Flowkeep Logic
 

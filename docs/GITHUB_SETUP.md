@@ -23,4 +23,4 @@ If GitHub asks you to authenticate, complete the normal browser/device authentic
 
 ## After the first push
 
-The next development step is Phase 2: Supabase authentication, database schema, NHS Admin/NHS Client roles, and row-level security using test data only.
+Phase 2 is now implemented in the codebase. After the first push, connect a dedicated Supabase project and follow `docs/PHASE_2_SETUP.md` before importing any production data.

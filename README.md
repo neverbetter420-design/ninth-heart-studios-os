@@ -1,41 +1,61 @@
 # Ninth Heart Studios OS
 
-A clean-code rebuild of the Ninth Heart Studios operating system.
+Custom operating system for Ninth Heart Studios. This codebase replaces platform-limited tooling with an owned Next.js application while the current Softr/Airtable system remains operational during migration.
 
-## Phase 1 status
+## Current state: Phase 2
 
-This repository contains the new visual shell and product foundation only. It intentionally does **not** connect to live Softr, Airtable, client data, email, or payment systems yet.
+Phase 2 adds the real security/data foundation:
 
-### Included
+- Next.js 16 + TypeScript
+- Tailwind CSS 4
+- Supabase Auth with cookie-backed SSR sessions
+- Admin/client route separation
+- `NHS Admin` and `NHS Client` application roles
+- Client memberships for multi-user client accounts
+- Postgres Row Level Security
+- Private project-file Storage policies
+- Client portal reading real Supabase project data
+- Test-user seeding script
+- Cross-client isolation verification script
 
-- Next.js App Router + TypeScript
-- Tailwind CSS v4/PostCSS setup
-- Responsive NHS dark-electric design system
-- Command Center dashboard
-- Deterministic "Next 3 Actions" UI prototype
-- Muse AI panel prototype
-- Lead Intelligence route
-- Project Pipeline route
-- Client Portal route
-- Opportunity Radar route
-- Master Templates route
-- System Settings route
-- VS Code workspace and extension recommendations
-- Environment template for future Supabase integration
+The existing dashboard modules still use mock operational data where Phase 3+ workflows have not been implemented yet.
 
-## Run locally
+## Local development
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
 Open `http://localhost:3000`.
 
-## Safety rule
+Without valid Supabase credentials, protected routes cannot authenticate.
 
-Do not add production credentials to source control. Use `.env.local` for local development and Vercel/Supabase secret management for deployed environments.
+## Supabase setup
 
-## Build order
+Follow `docs/PHASE_2_SETUP.md` before signing in.
 
-See [`docs/BLUEPRINT.md`](docs/BLUEPRINT.md).
+The database migrations are:
+
+- `supabase/migrations/20261012020000_phase2_schema.sql`
+- `supabase/migrations/20261012020050_phase2_auth_helpers.sql`
+- `supabase/migrations/20261012020100_phase2_rls.sql`
+
+Security architecture is documented in:
+
+`docs/SECURITY_MODEL.md`
+
+## Security verification
+
+After applying the migration and seeding the test users:
+
+```bash
+npm run verify:security
+```
+
+Do not import production client records until the isolation checks pass.
+
+## GitHub
+
+See `docs/GITHUB_SETUP.md` for the existing private-repository handoff instructions.

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AppShell } from "@/components/AppShell";
+import "./phase2.css";
 
 export const metadata: Metadata = {
   title: "Ninth Heart Studios OS",
@@ -13,7 +13,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <div className="ambient ambient-one" />
         <div className="ambient ambient-two" />
-        <AppShell>{children}</AppShell>
+        {children}
       </body>
     </html>
   );
