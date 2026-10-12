@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ActivityTimeline } from "@/components/projects/ActivityTimeline";
 import { ApprovalSection } from "@/components/projects/ApprovalSection";
+import { FileSection, type WorkspaceFile } from "@/components/projects/FileSection";
 import { LaunchGateSection } from "@/components/projects/LaunchGateSection";
 import { MilestoneSection } from "@/components/projects/MilestoneSection";
 import { ProjectOverview } from "@/components/projects/ProjectOverview";
@@ -39,6 +40,7 @@ export default async function ProjectWorkspacePage({
     { data: rawApprovals },
     { data: rawLaunchItems },
     { data: rawActivities },
+    { data: rawFiles },
   ] = await Promise.all([
     supabase
       .from("projects")
@@ -71,10 +73,42 @@ export default async function ProjectWorkspacePage({
       .eq("project_id", projectId)
       .order("created_at", { ascending: false })
       .limit(25),
+    supabase
+      .from("files")
+      .select("id, filename, visibility, mime_type, size_bytes, created_at, object_path")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (!rawProject) notFound();
   const project = rawProject as ProjectRow;
+
+  const files: WorkspaceFile[] = await Promise.all(
+    (rawFiles ?? []).map(
+      async (f: {
+        id: string;
+        filename: string;
+        visibility: string;
+        mime_type: string | null;
+        size_bytes: number | null;
+        created_at: string;
+        object_path: string;
+      }) => {
+        const { data } = await supabase.storage
+          .from("project-files")
+          .createSignedUrl(f.object_path, 3600);
+        return {
+          id: f.id,
+          filename: f.filename,
+          visibility: f.visibility,
+          mime_type: f.mime_type,
+          size_bytes: f.size_bytes,
+          created_at: f.created_at,
+          downloadUrl: data?.signedUrl ?? null,
+        };
+      },
+    ),
+  );
 
   return (
     <div className="content-wrap">
@@ -100,6 +134,9 @@ export default async function ProjectWorkspacePage({
           <ActivityTimeline
             activities={(rawActivities ?? []) as { id: string; event_type: string; summary: string; client_visible: boolean; created_at: string }[]}
           />
+        </div>
+        <div className="workspace-span-12">
+          <FileSection projectId={projectId} files={files} />
         </div>
       </div>
     </div>

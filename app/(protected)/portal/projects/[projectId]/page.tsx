@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { milestoneStatusLabel, stageLabel } from "@/lib/delivery";
-import { decideApproval } from "./actions";
+import { decideApproval, deleteClientFile, uploadClientFile } from "./actions";
+import { formatBytes } from "@/lib/files";
 
 type ApprovalRow = {
   id: string;
@@ -19,7 +20,7 @@ export default async function ClientProjectPage({
 }: {
   params: Promise<{ projectId: string }>;
 }) {
-  await requireUser();
+  const { user } = await requireUser();
   const { projectId } = await params;
   const supabase = await createClient();
 
@@ -51,7 +52,7 @@ export default async function ClientProjectPage({
       .order("requested_at", { ascending: false }),
     supabase
       .from("files")
-      .select("id, filename, visibility, created_at")
+      .select("id, filename, visibility, mime_type, size_bytes, created_at, object_path, uploaded_by")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
     supabase
@@ -76,6 +77,23 @@ export default async function ClientProjectPage({
 
   const pendingApprovals = ((approvals ?? []) as ApprovalRow[]).filter((a) => a.status === "pending");
   const decidedApprovals = ((approvals ?? []) as ApprovalRow[]).filter((a) => a.status !== "pending");
+
+  type PortalFile = {
+    id: string;
+    filename: string;
+    size_bytes: number | null;
+    created_at: string;
+    uploaded_by: string | null;
+    object_path: string;
+  };
+  const portalFiles = await Promise.all(
+    ((files ?? []) as PortalFile[]).map(async (f) => {
+      const { data } = await supabase.storage
+        .from("project-files")
+        .createSignedUrl(f.object_path, 3600);
+      return { ...f, downloadUrl: data?.signedUrl ?? null as string | null };
+    }),
+  );
 
   return (
     <div className="content-wrap">
@@ -174,10 +192,33 @@ export default async function ClientProjectPage({
 
         <article className="panel detail-panel">
           <h3>Files</h3>
-          {(files ?? []).length ? (files ?? []).map((file) => (
+          <form action={uploadClientFile} className="mini-form file-upload-form" style={{ marginBottom: 10 }}>
+            <input type="hidden" name="project_id" value={projectId} />
+            <input type="file" name="file" required aria-label="Choose a file to upload" />
+            <button type="submit" className="mini-button go">
+              Upload
+            </button>
+          </form>
+          {portalFiles.length ? portalFiles.map((file) => (
             <div className="simple-row" key={file.id}>
-              <strong>{file.filename}</strong>
-              <span>{file.visibility}</span>
+              <strong>
+                {file.downloadUrl ? (
+                  <a href={file.downloadUrl} download={file.filename}>{file.filename}</a>
+                ) : (
+                  file.filename
+                )}
+              </strong>
+              <span>
+                {formatBytes(file.size_bytes)}
+                {file.uploaded_by === user.id ? (
+                  <form action={deleteClientFile} className="mini-form" style={{ display: "inline", marginLeft: 8 }}>
+                    <input type="hidden" name="file_id" value={file.id} />
+                    <button type="submit" className="mini-button danger">
+                      Delete
+                    </button>
+                  </form>
+                ) : null}
+              </span>
             </div>
           )) : <p className="muted-copy">No client files uploaded yet.</p>}
         </article>
