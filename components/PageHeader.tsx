@@ -1,13 +1,17 @@
+import Link from "next/link";
+
 export function PageHeader({
   eyebrow,
   title,
   description,
   action,
+  actionHref,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   action?: string;
+  actionHref?: string;
 }) {
   return (
     <header className="page-header">
@@ -16,7 +20,9 @@ export function PageHeader({
         <h2>{title}</h2>
         <p className="page-description">{description}</p>
       </div>
-      {action ? <button className="primary-button">{action}</button> : null}
+      {action ? (
+        actionHref ? <Link className="primary-button page-header-action" href={actionHref}>{action}</Link> : <button className="primary-button">{action}</button>
+      ) : null}
     </header>
   );
 }

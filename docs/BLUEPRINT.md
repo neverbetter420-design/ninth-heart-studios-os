@@ -25,7 +25,7 @@ The new NHS OS is not a pixel-for-pixel Softr clone. It preserves the useful wor
 - Test-user seeding and cross-client verification scripts created
 - Live verification remains blocked until a Supabase project and credentials are connected
 
-## Phase 3 — Lead Intelligence / Flowkeep Logic
+## Phase 3 — Lead Intelligence / Flowkeep Logic (implemented, pending live Supabase migration)
 
 - One-field quick capture
 - Outbound default + one-tap inbound toggle
@@ -34,6 +34,11 @@ The new NHS OS is not a pixel-for-pixel Softr clone. It preserves the useful wor
 - SLA: end of next business day for inbound
 - Pacific business window: Mon–Fri, cutoff 8 PM
 - Priority engine: human reply first, consultation prep second, new inbound response third
+- Real lead inbox + lead detail route
+- Quick-log outcome server actions
+- Dual clocks: inbound SLA vs real elapsed momentum
+- Command Center Next 3 Actions now reads live lead records
+- Pure Flowkeep verification script for SLA/ranking rules
 
 ## Phase 4 — Project Delivery
 

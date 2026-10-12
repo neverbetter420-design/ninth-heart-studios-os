@@ -1,8 +1,33 @@
-import { activity, metrics, nextActions, opportunities, projects } from "@/lib/mock-data";
+import Link from "next/link";
+import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
+import { createClient } from "@/lib/supabase/server";
+import { activity, opportunities, projects } from "@/lib/mock-data";
 import { MetricCard } from "./MetricCard";
 import { PageHeader } from "./PageHeader";
 
-export function Dashboard() {
+export async function Dashboard() {
+  const supabase = await createClient();
+  const [{ data: rawLeads }, { count: projectCount }] = await Promise.all([
+    supabase
+      .from("leads")
+      .select("id, business_name, contact_name, email, phone, website, acquisition_type, momentum_state, score, status, next_action, next_action_kind, next_action_due, original_inquiry_at, last_outreach_at, last_reply_at, last_activity_at, consultation_at, last_outcome, created_at, updated_at")
+      .neq("status", "not_interested"),
+    supabase.from("projects").select("id", { count: "exact", head: true }),
+  ]);
+
+  const rankedLeads = rankLeads((rawLeads ?? []) as FlowkeepLead[]);
+  const nextActions = rankedLeads.slice(0, 3);
+  const waitingOnMe = rankedLeads.filter((lead) => lead.momentum_state === "Waiting on Me" || lead.momentum_state === "New Inbound").length;
+  const replies = rankedLeads.filter((lead) => lead.next_action_kind === "reply").length;
+  const inboundRisk = rankedLeads.filter((lead) => lead.sla.status === "overdue" || lead.sla.status === "due_soon").length;
+
+  const metrics = [
+    { label: "Active Leads", value: String(rankedLeads.length), detail: `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
+    { label: "Waiting on Me", value: String(waitingOnMe), detail: `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
+    { label: "Open Projects", value: String(projectCount ?? 0), detail: "Live Supabase count", tone: "cyan" as const },
+    { label: "Priority Engine", value: String(nextActions.length), detail: "Top actions surfaced", tone: "green" as const },
+  ];
+
   return (
     <div className="content-wrap">
       <PageHeader
@@ -10,6 +35,7 @@ export function Dashboard() {
         title="Good evening, Hailey."
         description="The studio pulse at a glance. Human replies outrank busywork, because apparently software needed to be taught manners."
         action="+ Quick capture"
+        actionHref="/leads#quick-capture"
       />
 
       <section className="metric-grid" aria-label="Studio metrics">
@@ -27,17 +53,22 @@ export function Dashboard() {
           </div>
 
           <div className="action-list">
-            {nextActions.map((item, index) => (
+            {nextActions.length ? nextActions.map((item, index) => (
               <article className="action-row" key={item.id}>
-                <div className={`priority-number priority-${item.priority}`}>{index + 1}</div>
+                <div className={`priority-number priority-${item.priorityLabel}`}>{index + 1}</div>
                 <div className="action-copy">
-                  <span className="action-title">{item.title}</span>
-                  <strong>{item.subject}</strong>
-                  <small>{item.meta}</small>
+                  <span className="action-title">{item.actionTitle}</span>
+                  <strong>{item.business_name}</strong>
+                  <small>{item.actionMeta}</small>
                 </div>
-                <button className="ghost-button">{item.action}</button>
+                <Link className="ghost-button" href={`/leads/${item.id}`}>Open lead</Link>
               </article>
-            ))}
+            )) : (
+              <div className="empty-dashboard-actions">
+                <strong>No lead actions yet.</strong>
+                <span>Capture a lead and Flowkeep will rank the next move.</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -50,14 +81,16 @@ export function Dashboard() {
             </div>
           </div>
           <p className="muse-copy">
-            Three leads need attention. One actual human replied, so naturally that comes before reorganizing a template library for the sixth time.
+            {nextActions[0]
+              ? `${nextActions[0].business_name} is the strongest next move: ${nextActions[0].actionTitle.toLowerCase()}.`
+              : "No urgent lead momentum yet. Suspiciously peaceful."}
           </p>
           <div className="muse-suggestion">
             <span>Suggested focus</span>
-            <strong>Reply to Black Diamond Tavern</strong>
-            <small>Momentum is highest right now.</small>
+            <strong>{nextActions[0]?.actionTitle ?? "Capture the next lead"}</strong>
+            <small>{nextActions[0]?.business_name ?? "Flowkeep is ready when the humans are."}</small>
           </div>
-          <button className="secondary-button wide">Open Muse</button>
+          <Link className="secondary-button wide muse-link" href="/leads">Open Lead Intelligence</Link>
         </aside>
 
         <div className="panel project-panel">
@@ -66,7 +99,7 @@ export function Dashboard() {
               <p className="eyebrow">Delivery</p>
               <h3>Project pulse</h3>
             </div>
-            <button className="text-button">View pipeline →</button>
+            <Link className="text-button" href="/projects">View pipeline →</Link>
           </div>
           <div className="project-list">
             {projects.map((project) => (

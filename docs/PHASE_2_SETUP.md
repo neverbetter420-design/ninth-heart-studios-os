@@ -23,7 +23,7 @@ supabase link --project-ref YOUR_PROJECT_REF
 supabase db push
 ```
 
-Or run the three migration files in timestamp order in the Supabase SQL editor.
+Or run the Phase 2 migration files in timestamp order in the Supabase SQL editor. After Phase 2 is applied, continue with `docs/PHASE_3_FLOWKEEP.md` and the Phase 3 Flowkeep migration.
 
 The migration creates:
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./phase2.css";
+import "./phase3.css";
 
 export const metadata: Metadata = {
   title: "Ninth Heart Studios OS",

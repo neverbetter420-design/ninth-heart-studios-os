@@ -1,6 +1,6 @@
 {
   "name": "ninth-heart-studios-os",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "seed:test-users": "node --env-file=.env.local scripts/seed-test-users.mjs",
-    "verify:security": "node --env-file=.env.local scripts/verify-security.mjs"
+    "verify:security": "node --env-file=.env.local scripts/verify-security.mjs",
+    "verify:flowkeep": "node --experimental-strip-types scripts/verify-flowkeep.ts",
+    "seed:flowkeep": "node --env-file=.env.local scripts/seed-flowkeep-scenarios.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
