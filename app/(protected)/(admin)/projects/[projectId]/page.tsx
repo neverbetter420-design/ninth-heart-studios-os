@@ -52,6 +52,7 @@ export default async function ProjectWorkspacePage({
     { data: rawDocuments },
     { data: rawRounds },
     { data: rawChangeOrders },
+    { data: rawDocTemplates },
   ] = await Promise.all([
     supabase
       .from("projects")
@@ -109,6 +110,12 @@ export default async function ProjectWorkspacePage({
       .select("id, project_id, source_pin_id, description, fee_impact, timeline_impact, status, proposed_at, decided_at, created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("templates")
+      .select("id, name")
+      .eq("category", "document")
+      .eq("active", true)
+      .order("name"),
   ]);
 
   if (!rawProject) notFound();
@@ -224,6 +231,7 @@ export default async function ProjectWorkspacePage({
           <DocumentSection
             projectId={projectId}
             documents={(rawDocuments ?? []) as ProjectDocument[]}
+            docTemplates={(rawDocTemplates ?? []) as { id: string; name: string }[]}
           />
         </div>
       </div>

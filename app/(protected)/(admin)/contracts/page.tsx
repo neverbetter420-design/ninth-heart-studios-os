@@ -21,7 +21,7 @@ export default async function ContractsPage({
   const { error: formError } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: rawContracts }, { data: rawProjects }, { data: rawOpportunities }] =
+  const [{ data: rawContracts }, { data: rawProjects }, { data: rawOpportunities }, { data: rawTemplates }] =
     await Promise.all([
       supabase
         .from("contracts")
@@ -29,6 +29,12 @@ export default async function ContractsPage({
         .order("updated_at", { ascending: false }),
       supabase.from("projects").select("id, name").order("name"),
       supabase.from("opportunities").select("id, title").order("title"),
+      supabase
+        .from("templates")
+        .select("id, name")
+        .eq("category", "contract")
+        .eq("active", true)
+        .order("name"),
     ]);
 
   const contracts = (rawContracts ?? []) as Contract[];
@@ -77,6 +83,12 @@ export default async function ContractsPage({
             <option value="">Opportunity…</option>
             {((rawOpportunities ?? []) as { id: string; title: string }[]).map((o) => (
               <option key={o.id} value={o.id}>{o.title}</option>
+            ))}
+          </select>
+          <select name="template_id" defaultValue="" aria-label="Template">
+            <option value="">Blank (no template)…</option>
+            {((rawTemplates ?? []) as { id: string; name: string }[]).map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
           <button type="submit" className="mini-button go">Draft</button>

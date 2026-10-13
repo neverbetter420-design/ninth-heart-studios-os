@@ -152,6 +152,17 @@ export type Contract = {
   updated_at: string;
 };
 
+export type Template = {
+  id: string;
+  name: string;
+  category: string;
+  content: { body?: string } | null;
+  active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type RevisionRound = {
   id: string;
   project_id: string;
