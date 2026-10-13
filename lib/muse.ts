@@ -519,3 +519,212 @@ export function buildDraftFromTarget(target: DraftTarget, draftKind: MuseDraftKi
     ].join("\n"),
   };
 }
+
+// ---------------------------------------------------------------------------
+// 8. Scope-creep guard: flag client requests that drift outside the project
+//    scope, and draft a change order from them.
+//
+// Deterministic — keyword + scope-match heuristics over data the studio
+// already has (project name, notes, milestone/task titles, shared documents).
+// No LLM, no key, no cost. Verdicts are "likely in/out of scope", never
+// certainties: the human prices and approves the change order.
+// ---------------------------------------------------------------------------
+
+export type ScopeCorpus = {
+  terms: Set<string>;
+  phrases: Set<string>;
+  sourceLabels: string[];
+};
+
+export type ScopeCreepFlag =
+  | { kind: "expansion_phrase"; detail: string }
+  | { kind: "novel_work"; detail: string; novelTerms: string[] }
+  | { kind: "scope_match"; detail: string; matchedTerms: string[] };
+
+export type ScopeCreepVerdict = {
+  requestId: string;
+  requestText: string;
+  inScope: boolean;
+  confidence: "low" | "medium" | "high";
+  flags: ScopeCreepFlag[];
+  suggestedChangeOrder: { description: string } | null;
+};
+
+const SCOPE_STOPWORDS = new Set([
+  "the", "a", "an", "and", "or", "but", "for", "with", "this", "that", "these",
+  "those", "from", "into", "out", "about", "can", "you", "your", "our", "are",
+  "was", "were", "has", "have", "had", "will", "would", "should", "could",
+  "please", "just", "also", "very", "more", "most", "some", "any", "all",
+  "new", "old", "one", "two", "get", "make", "made", "use", "used", "using",
+  "need", "needs", "want", "like", "look", "looks", "good", "great", "nice",
+  "bit", "lot", "thing", "things", "something", "everything", "nothing",
+  "its", "it's", "it", "they", "them", "their", "there", "here", "when",
+  "where", "what", "which", "who", "how", "why", "not", "don't", "doesn't",
+  "didn't", "won't", "can't", "isn't", "aren't", "wasn't", "i'm", "we're",
+  "you're", "that's", "let's", "hey", "hi", "hello", "thanks", "thank",
+  "maybe", "perhaps", "really", "quite", "still", "already", "yet", "too",
+  "so", "as", "at", "by", "on", "in", "of", "to", "be", "is", "am", "do",
+]);
+
+/** Phrases that almost always signal the request is growing. */
+const EXPANSION_PHRASES = [
+  "while you're at it",
+  "while you are at it",
+  "also can you",
+  "can you also",
+  "could you also",
+  "one more thing",
+  "another thing",
+  "what about adding",
+  "could we add",
+  "can we add",
+  "additionally",
+  "on top of that",
+  "separate from",
+  "in addition to",
+  "extra page",
+  "new page",
+  "another page",
+  "additional page",
+  "new section",
+  "extra section",
+  "start over",
+  "from scratch",
+  "complete redesign",
+  "full redesign",
+];
+
+/** Verbs that mark a request as additive work rather than a tweak. */
+const ADDITIVE_VERBS = new Set([
+  "add", "adding", "build", "building", "create", "creating", "integrate",
+  "integrating", "redesign", "redesigning", "rewrite", "rewriting", "migrate",
+  "migrating", "launch", "launching",
+]);
+
+/** Verbs that usually mark a tweak inside existing scope. */
+const TWEAK_VERBS = new Set([
+  "fix", "fixing", "tweak", "tweaking", "adjust", "adjusting", "update",
+  "updating", "change", "changing", "move", "moving", "resize", "resizing",
+  "recolor", "recoloring", "correct", "correcting", "typo", "swap", "swapping",
+]);
+
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s'-]/g, " ")
+    .split(/\s+/)
+    .map((t) => t.replace(/^['-]+|['-]+$/g, ""))
+    .filter((t) => t.length >= 3 && !SCOPE_STOPWORDS.has(t));
+}
+
+/**
+ * Builds the scope corpus from data the studio already has. The corpus is
+ * what the client paid for; anything the request introduces beyond it is
+ * suspect.
+ */
+export function buildScopeCorpus(args: {
+  projectName: string;
+  internalNotes?: string | null;
+  milestoneTitles: string[];
+  taskTitles: string[];
+  documentTitles: string[];
+}): ScopeCorpus {
+  const terms = new Set<string>();
+  const phrases = new Set<string>();
+  const sourceLabels: string[] = [];
+
+  const add = (label: string, text: string | null | undefined) => {
+    if (!text || !text.trim()) return;
+    sourceLabels.push(label);
+    const tokens = tokenize(text);
+    for (const t of tokens) terms.add(t);
+    for (let i = 0; i < tokens.length - 1; i++) {
+      phrases.add(`${tokens[i]} ${tokens[i + 1]}`);
+    }
+  };
+
+  add("project", args.projectName);
+  add("notes", args.internalNotes);
+  for (const t of args.milestoneTitles) add("milestone", t);
+  for (const t of args.taskTitles) add("task", t);
+  for (const t of args.documentTitles) add("document", t);
+
+  return { terms, phrases, sourceLabels };
+}
+
+function findExpansionPhrases(text: string): string[] {
+  const lower = text.toLowerCase();
+  return EXPANSION_PHRASES.filter((p) => lower.includes(p));
+}
+
+/**
+ * Compares one client request (portal message body or feedback pin comment)
+ * against the project scope corpus. Returns an in/out-of-scope verdict with
+ * flags explaining the reasoning, plus a change-order draft when the request
+ * looks out of scope.
+ */
+export function analyzeScopeCreep(
+  requestId: string,
+  requestText: string,
+  corpus: ScopeCorpus,
+): ScopeCreepVerdict {
+  const flags: ScopeCreepFlag[] = [];
+  const tokens = tokenize(requestText);
+
+  const expansions = findExpansionPhrases(requestText);
+  for (const phrase of expansions) {
+    flags.push({
+      kind: "expansion_phrase",
+      detail: `Uses the classic scope-grower "${phrase}" — the request is reaching beyond what was agreed.`,
+    });
+  }
+
+  const matchedTerms = tokens.filter((t) => corpus.terms.has(t));
+  const uniqueMatched = [...new Set(matchedTerms)];
+  if (uniqueMatched.length > 0) {
+    flags.push({
+      kind: "scope_match",
+      detail: `Touches scoped work (${uniqueMatched.slice(0, 5).join(", ")}${uniqueMatched.length > 5 ? "…" : ""}) — at least it names something on the plan.`,
+      matchedTerms: uniqueMatched,
+    });
+  }
+
+  const hasAdditive = tokens.some((t) => ADDITIVE_VERBS.has(t));
+  const hasTweak = tokens.some((t) => TWEAK_VERBS.has(t));
+  const novelTerms = [...new Set(tokens.filter((t) => !corpus.terms.has(t)))];
+
+  if (hasAdditive && !hasTweak && novelTerms.length >= 2) {
+    flags.push({
+      kind: "novel_work",
+      detail: `Introduces work not in the corpus (${novelTerms.slice(0, 6).join(", ")}${novelTerms.length > 6 ? "…" : ""}) with additive language — this reads like new scope, not a tweak.`,
+      novelTerms,
+    });
+  }
+
+  // Verdict: out of scope if there's an expansion phrase plus novel work,
+  // or additive work with no scope overlap at all.
+  const expansionWithNovelty = expansions.length > 0 && novelTerms.length >= 2;
+  const additiveWithNoOverlap =
+    hasAdditive && uniqueMatched.length === 0 && novelTerms.length >= 3;
+  const outOfScope = expansionWithNovelty || additiveWithNoOverlap;
+
+  let confidence: ScopeCreepVerdict["confidence"] = "low";
+  if (outOfScope && expansions.length > 0 && novelTerms.length >= 4) confidence = "high";
+  else if (outOfScope) confidence = "medium";
+  else if (uniqueMatched.length >= 3) confidence = "high";
+
+  const suggestedChangeOrder = outOfScope
+    ? {
+        description: `Client request flagged as out of scope (${confidence} confidence): "${requestText.slice(0, 220)}${requestText.length > 220 ? "…" : ""}" — price the fee and timeline impact before proceeding.`,
+      }
+    : null;
+
+  return {
+    requestId,
+    requestText,
+    inScope: !outOfScope,
+    confidence,
+    flags,
+    suggestedChangeOrder,
+  };
+}

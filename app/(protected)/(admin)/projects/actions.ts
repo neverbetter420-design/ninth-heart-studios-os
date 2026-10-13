@@ -523,3 +523,265 @@ export async function deleteDocument(formData: FormData) {
   await supabase.from("documents").delete().eq("id", documentId);
   if (doc) revalidateProject(doc.project_id);
 }
+
+/* ---------------- Revision rounds ---------------- */
+
+export async function startRevisionRound(formData: FormData) {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+  const projectId = clean(formData.get("project_id"));
+  if (!projectId) return;
+
+  const includedRaw = clean(formData.get("included_rounds"));
+  const included = includedRaw === null ? 3 : Math.max(0, Math.min(25, Number(includedRaw) || 0));
+
+  const { data: latest } = await supabase
+    .from("revision_rounds")
+    .select("round_number")
+    .eq("project_id", projectId)
+    .order("round_number", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const next = ((latest as { round_number: number } | null)?.round_number ?? 0) + 1;
+
+  await supabase.from("revision_rounds").insert({
+    project_id: projectId,
+    round_number: next,
+    status: "open",
+    included_rounds: included,
+  });
+
+  await logActivity(supabase, {
+    project_id: projectId,
+    event_type: "revision_round_started",
+    summary: `Revision round ${next} opened (${included} included in package)`,
+    client_visible: true,
+  });
+  void user;
+  revalidateProject(projectId);
+}
+
+export async function closeRevisionRound(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const roundId = clean(formData.get("round_id"));
+  if (!roundId) return;
+
+  const { data: round } = await supabase
+    .from("revision_rounds")
+    .select("id, project_id, round_number")
+    .eq("id", roundId)
+    .single();
+  if (!round) return;
+
+  await supabase
+    .from("revision_rounds")
+    .update({ status: "closed", closed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("id", roundId);
+
+  await logActivity(supabase, {
+    project_id: round.project_id,
+    event_type: "revision_round_closed",
+    summary: `Revision round ${round.round_number} closed`,
+    client_visible: true,
+  });
+  revalidateProject(round.project_id);
+}
+
+/* ---------------- Feedback pins ---------------- */
+
+function clampCoord(value: string | null): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 50;
+  return Math.max(0, Math.min(100, n));
+}
+
+export async function createFeedbackPin(formData: FormData) {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+  const roundId = clean(formData.get("round_id"));
+  const comment = clean(formData.get("comment"));
+  if (!roundId || !comment || comment.length > 2000) return;
+
+  const pageUrl = clean(formData.get("page_url")) ?? "";
+  const x = clampCoord(clean(formData.get("x")));
+  const y = clampCoord(clean(formData.get("y")));
+
+  const { data: pin } = await supabase
+    .from("feedback_pins")
+    .insert({
+      round_id: roundId,
+      page_url: pageUrl.slice(0, 500),
+      x,
+      y,
+      comment,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+  void pin;
+
+  const { data: round } = await supabase
+    .from("revision_rounds")
+    .select("project_id")
+    .eq("id", roundId)
+    .single();
+  if (round) revalidateProject(round.project_id);
+}
+
+export async function resolveFeedbackPin(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const pinId = clean(formData.get("pin_id"));
+  const resolved = formData.get("resolved") === "true";
+  if (!pinId) return;
+
+  await supabase
+    .from("feedback_pins")
+    .update({ resolved, resolved_at: resolved ? new Date().toISOString() : null })
+    .eq("id", pinId);
+
+  const { data: pin } = await supabase
+    .from("feedback_pins")
+    .select("round_id")
+    .eq("id", pinId)
+    .single();
+  const { data: round } = pin
+    ? await supabase
+        .from("revision_rounds")
+        .select("project_id")
+        .eq("id", (pin as { round_id: string }).round_id)
+        .single()
+    : { data: null };
+  if (round) revalidateProject((round as { project_id: string }).project_id);
+}
+
+/* ---------------- Change orders ---------------- */
+
+function cleanMoney(value: string | null): number | null {
+  if (value === null) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(n * 100) / 100;
+}
+
+export async function createChangeOrder(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const projectId = clean(formData.get("project_id"));
+  const description = clean(formData.get("description"));
+  if (!projectId || !description || description.length > 4000) return;
+
+  const { data: order } = await supabase
+    .from("change_orders")
+    .insert({
+      project_id: projectId,
+      source_pin_id: clean(formData.get("source_pin_id")),
+      description,
+      fee_impact: cleanMoney(clean(formData.get("fee_impact"))),
+      timeline_impact: clean(formData.get("timeline_impact")),
+      status: "draft",
+    })
+    .select("id")
+    .single();
+
+  if (order) {
+    await logActivity(supabase, {
+      project_id: projectId,
+      event_type: "change_order_drafted",
+      summary: `Change order drafted: ${description.slice(0, 80)}`,
+      client_visible: false,
+    });
+  }
+  revalidateProject(projectId);
+}
+
+export async function convertPinToChangeOrder(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const pinId = clean(formData.get("pin_id"));
+  if (!pinId) return;
+
+  const { data: pin } = await supabase
+    .from("feedback_pins")
+    .select("id, comment, round_id, revision_rounds(project_id, round_number)")
+    .eq("id", pinId)
+    .single();
+  if (!pin) return;
+
+  const round = Array.isArray(pin.revision_rounds) ? pin.revision_rounds[0] : pin.revision_rounds;
+  if (!round?.project_id) return;
+
+  await supabase.from("change_orders").insert({
+    project_id: round.project_id,
+    source_pin_id: pin.id,
+    description: `From revision round ${round.round_number} feedback: "${pin.comment.slice(0, 300)}${pin.comment.length > 300 ? "…" : ""}" — price the fee and timeline impact.`,
+    status: "draft",
+  });
+
+  await logActivity(supabase, {
+    project_id: round.project_id,
+    event_type: "change_order_drafted",
+    summary: `Feedback pin converted to change order draft`,
+    client_visible: false,
+  });
+  revalidateProject(round.project_id);
+}
+
+export async function proposeChangeOrder(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const orderId = clean(formData.get("change_order_id"));
+  if (!orderId) return;
+
+  const { data: order } = await supabase
+    .from("change_orders")
+    .update({
+      status: "proposed",
+      proposed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .eq("status", "draft")
+    .select("project_id")
+    .single();
+  if (order) {
+    await logActivity(supabase, {
+      project_id: order.project_id,
+      event_type: "change_order_proposed",
+      summary: `Change order proposed to client`,
+      client_visible: true,
+    });
+    revalidateProject(order.project_id);
+  }
+}
+
+export async function decideChangeOrder(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const orderId = clean(formData.get("change_order_id"));
+  const decision = clean(formData.get("decision"));
+  if (!orderId || (decision !== "approved" && decision !== "declined")) return;
+
+  const { data: order } = await supabase
+    .from("change_orders")
+    .update({
+      status: decision,
+      decided_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .in("status", ["draft", "proposed"])
+    .select("project_id")
+    .single();
+  if (order) {
+    await logActivity(supabase, {
+      project_id: order.project_id,
+      event_type: "change_order_decided",
+      summary: `Change order ${decision}`,
+      client_visible: true,
+    });
+    revalidateProject(order.project_id);
+  }
+}

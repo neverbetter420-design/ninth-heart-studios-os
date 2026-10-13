@@ -157,3 +157,44 @@ export async function sendPortalMessage(formData: FormData) {
   revalidatePath(`/portal/projects/${projectId}`);
   revalidatePath("/portal");
 }
+
+/**
+ * Client-side feedback pin from the portal.
+ * RLS ("Clients add project pins") enforces the boundary: only on the
+ * client's own projects. The action additionally requires the round to be
+ * open — closed rounds are read-only history.
+ */
+export async function addPortalFeedbackPin(formData: FormData) {
+  const { user } = await requireUser();
+  const supabase = await createClient();
+
+  const roundId = cleanPortal(formData.get("round_id"));
+  const comment = cleanPortal(formData.get("body")) ?? cleanPortal(formData.get("comment"));
+  if (!roundId || !comment || comment.length > 2000) return;
+
+  const pageUrl = (cleanPortal(formData.get("page_url")) ?? "").slice(0, 500);
+  const xRaw = Number(cleanPortal(formData.get("x")));
+  const yRaw = Number(cleanPortal(formData.get("y")));
+  const x = Number.isFinite(xRaw) ? Math.max(0, Math.min(100, xRaw)) : 50;
+  const y = Number.isFinite(yRaw) ? Math.max(0, Math.min(100, yRaw)) : 50;
+
+  const { data: round } = await supabase
+    .from("revision_rounds")
+    .select("id, project_id, status")
+    .eq("id", roundId)
+    .maybeSingle();
+  if (!round || round.status !== "open") return;
+
+  const { error } = await supabase.from("feedback_pins").insert({
+    round_id: roundId,
+    page_url: pageUrl,
+    x,
+    y,
+    comment,
+    created_by: user.id,
+  });
+  if (error) return;
+
+  revalidatePath(`/portal/projects/${round.project_id}`);
+  revalidatePath("/portal");
+}

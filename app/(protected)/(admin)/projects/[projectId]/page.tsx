@@ -7,11 +7,13 @@ import { LaunchGateSection } from "@/components/projects/LaunchGateSection";
 import { MessageThread } from "@/components/projects/MessageThread";
 import { MilestoneSection } from "@/components/projects/MilestoneSection";
 import { ProjectOverview } from "@/components/projects/ProjectOverview";
+import { RevisionSection } from "@/components/projects/RevisionSection";
 import { TaskSection } from "@/components/projects/TaskSection";
 import { sendProjectMessage } from "../actions";
 import { requireAdmin } from "@/lib/auth";
+import { analyzeScopeCreep, buildScopeCorpus, type ScopeCreepVerdict } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
-import type { LaunchItem, Milestone, ProjectDocument, ProjectMessage, ProjectTask } from "@/lib/supabase/types";
+import type { ChangeOrder, FeedbackPin, LaunchItem, Milestone, ProjectDocument, ProjectMessage, ProjectTask, RevisionRound } from "@/lib/supabase/types";
 
 type ProjectRow = {
   id: string;
@@ -48,6 +50,8 @@ export default async function ProjectWorkspacePage({
     { data: rawFiles },
     { data: rawMessages },
     { data: rawDocuments },
+    { data: rawRounds },
+    { data: rawChangeOrders },
   ] = await Promise.all([
     supabase
       .from("projects")
@@ -95,10 +99,51 @@ export default async function ProjectWorkspacePage({
       .select("id, project_id, title, kind, file_id, external_url, notes, created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("revision_rounds")
+      .select("id, project_id, round_number, status, included_rounds, started_at, closed_at, created_at")
+      .eq("project_id", projectId)
+      .order("round_number", { ascending: true }),
+    supabase
+      .from("change_orders")
+      .select("id, project_id, source_pin_id, description, fee_impact, timeline_impact, status, proposed_at, decided_at, created_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (!rawProject) notFound();
   const project = rawProject as ProjectRow;
+
+  const rounds = (rawRounds ?? []) as RevisionRound[];
+  const activeRound =
+    rounds.find((r) => r.status === "open") ?? rounds[rounds.length - 1] ?? null;
+
+  const { data: rawPins } = activeRound
+    ? await supabase
+        .from("feedback_pins")
+        .select("id, round_id, page_url, x, y, comment, resolved, resolved_at, created_by, created_at")
+        .eq("round_id", activeRound.id)
+        .order("created_at", { ascending: true })
+    : { data: [] };
+  const pins = (rawPins ?? []) as FeedbackPin[];
+  const changeOrders = (rawChangeOrders ?? []) as ChangeOrder[];
+
+  // Phase 9 — deterministic scope-creep guard over recent client requests.
+  const corpus = buildScopeCorpus({
+    projectName: project.name,
+    internalNotes: project.internal_notes,
+    milestoneTitles: ((rawMilestones ?? []) as { title: string }[]).map((m) => m.title),
+    taskTitles: ((rawTasks ?? []) as { title: string }[]).map((t) => t.title),
+    documentTitles: ((rawDocuments ?? []) as { title: string }[]).map((d) => d.title),
+  });
+  const scopeVerdicts: ScopeCreepVerdict[] = [
+    ...(((rawMessages ?? []) as { id: string; body: string }[])
+      .slice(-10)
+      .map((m) => analyzeScopeCreep(`message:${m.id}`, m.body, corpus))),
+    ...(pins
+      .filter((p) => !p.resolved)
+      .map((p) => analyzeScopeCreep(`pin:${p.id}`, p.comment, corpus))),
+  ];
 
   const files: WorkspaceFile[] = await Promise.all(
     (rawFiles ?? []).map(
@@ -143,6 +188,16 @@ export default async function ProjectWorkspacePage({
         </div>
         <div className="workspace-span-12">
           <TaskSection projectId={projectId} tasks={(rawTasks ?? []) as ProjectTask[]} />
+        </div>
+        <div className="workspace-span-12">
+          <RevisionSection
+            projectId={projectId}
+            rounds={rounds}
+            activeRound={activeRound}
+            pins={pins}
+            changeOrders={changeOrders}
+            scopeVerdicts={scopeVerdicts}
+          />
         </div>
         <div className="workspace-span-6">
           <LaunchGateSection projectId={projectId} items={(rawLaunchItems ?? []) as LaunchItem[]} />

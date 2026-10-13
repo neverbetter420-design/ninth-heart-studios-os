@@ -126,3 +126,40 @@ export type Notification = {
   read: boolean;
   created_at: string;
 };
+
+export type RevisionRound = {
+  id: string;
+  project_id: string;
+  round_number: number;
+  status: "open" | "closed";
+  included_rounds: number;
+  started_at: string;
+  closed_at: string | null;
+  created_at: string;
+};
+
+export type FeedbackPin = {
+  id: string;
+  round_id: string;
+  page_url: string;
+  x: number;
+  y: number;
+  comment: string;
+  resolved: boolean;
+  resolved_at: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type ChangeOrder = {
+  id: string;
+  project_id: string;
+  source_pin_id: string | null;
+  description: string;
+  fee_impact: number | null;
+  timeline_impact: string | null;
+  status: "draft" | "proposed" | "approved" | "declined";
+  proposed_at: string | null;
+  decided_at: string | null;
+  created_at: string;
+};

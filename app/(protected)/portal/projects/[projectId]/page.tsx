@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { milestoneStatusLabel, stageLabel } from "@/lib/delivery";
-import { decideApproval, deleteClientFile, sendPortalMessage, uploadClientFile } from "./actions";
+import { addPortalFeedbackPin, decideApproval, deleteClientFile, sendPortalMessage, uploadClientFile } from "./actions";
 import { MessageThread } from "@/components/projects/MessageThread";
+import { PortalRevisionSection } from "@/components/projects/PortalRevisionSection";
 import { formatBytes } from "@/lib/files";
-import type { ProjectDocument, ProjectMessage } from "@/lib/supabase/types";
+import type { ChangeOrder, FeedbackPin, ProjectDocument, ProjectMessage, RevisionRound } from "@/lib/supabase/types";
 
 type ApprovalRow = {
   id: string;
@@ -43,6 +44,8 @@ export default async function ClientProjectPage({
     { data: updates },
     { data: messages },
     { data: documents },
+    { data: rounds },
+    { data: changeOrders },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -87,10 +90,32 @@ export default async function ClientProjectPage({
       .select("id, project_id, title, kind, file_id, external_url, notes, created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("revision_rounds")
+      .select("id, project_id, round_number, status, included_rounds, started_at, closed_at, created_at")
+      .eq("project_id", projectId)
+      .order("round_number", { ascending: true }),
+    supabase
+      .from("change_orders")
+      .select("id, project_id, source_pin_id, description, fee_impact, timeline_impact, status, proposed_at, decided_at, created_at")
+      .eq("project_id", projectId)
+      .in("status", ["proposed", "approved"])
+      .order("created_at", { ascending: false }),
   ]);
 
   const pendingApprovals = ((approvals ?? []) as ApprovalRow[]).filter((a) => a.status === "pending");
   const decidedApprovals = ((approvals ?? []) as ApprovalRow[]).filter((a) => a.status !== "pending");
+
+  const revisionRounds = (rounds ?? []) as RevisionRound[];
+  const activeRevisionRound =
+    revisionRounds.find((r) => r.status === "open") ?? revisionRounds[revisionRounds.length - 1] ?? null;
+  const { data: pins } = activeRevisionRound
+    ? await supabase
+        .from("feedback_pins")
+        .select("id, round_id, page_url, x, y, comment, resolved, resolved_at, created_by, created_at")
+        .eq("round_id", activeRevisionRound.id)
+        .order("created_at", { ascending: true })
+    : { data: [] };
 
   type PortalFile = {
     id: string;
@@ -248,8 +273,7 @@ export default async function ClientProjectPage({
         </article>
 
         <article className="panel detail-panel">
-          <h3>Documents</h3>
-          {(documents ?? []).length ? ((documents ?? []) as ProjectDocument[]).map((doc) => (
+          <h3>Documents</h3>          {(documents ?? []).length ? ((documents ?? []) as ProjectDocument[]).map((doc) => (
             <div className="simple-row" key={doc.id}>
               <strong>{doc.title}</strong>
               <span>
@@ -260,6 +284,15 @@ export default async function ClientProjectPage({
             </div>
           )) : <p className="muted-copy">No documents shared yet.</p>}
         </article>
+
+        <PortalRevisionSection
+          projectId={projectId}
+          rounds={revisionRounds}
+          activeRound={activeRevisionRound}
+          pins={(pins ?? []) as FeedbackPin[]}
+          changeOrders={(changeOrders ?? []) as ChangeOrder[]}
+          addPinAction={addPortalFeedbackPin}
+        />
       </section>
 
       <div style={{ marginTop: 14 }}>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import {
   runApprovalNudge,
+  runChangeOrderWatch,
   runProjectRiskScan,
   runSlaWatch,
   runStaleLeadDigest,
@@ -194,6 +195,28 @@ async function executeAutomation(supabase: any, key: string, config: Record<stri
       requested_at: a.requested_at,
     }));
     return runApprovalNudge(inputs, pendingDays, now);
+  }
+
+  if (key === "change_order_watch") {
+    const proposedDays = Number(config.proposed_days) || 3;
+    const { data: orders } = await supabase
+      .from("change_orders")
+      .select("id, description, project_id, proposed_at, projects(name)")
+      .eq("status", "proposed");
+    const inputs = ((orders ?? []) as {
+      id: string;
+      description: string;
+      project_id: string;
+      proposed_at: string | null;
+      projects: { name: string } | { name: string }[] | null;
+    }[]).map((o) => ({
+      id: o.id,
+      description: o.description,
+      project_id: o.project_id,
+      project_name: Array.isArray(o.projects) ? (o.projects[0]?.name ?? "Unknown") : (o.projects?.name ?? "Unknown"),
+      proposed_at: o.proposed_at,
+    }));
+    return runChangeOrderWatch(inputs, proposedDays, now);
   }
 
   return { notifications: [], summary: `Unknown automation key: ${key}`, details: {} };

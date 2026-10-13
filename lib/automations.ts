@@ -180,3 +180,48 @@ export function runApprovalNudge(
     },
   };
 }
+
+export type PendingChangeOrderInput = {
+  id: string;
+  description: string;
+  project_id: string;
+  project_name: string;
+  proposed_at: string | null;
+};
+
+/** change_order_watch: notifies when proposed change orders sit past N days. */
+export function runChangeOrderWatch(
+  orders: PendingChangeOrderInput[],
+  proposedDays = 3,
+  now = new Date(),
+): AutomationResult {
+  const cutoff = now.getTime() - proposedDays * 86_400_000;
+  const stale = orders.filter((o) => {
+    const proposed = o.proposed_at ? new Date(o.proposed_at).getTime() : NaN;
+    return !Number.isNaN(proposed) && proposed < cutoff;
+  });
+
+  if (stale.length === 0) {
+    return {
+      notifications: [],
+      summary: "No proposed change orders past the watch threshold.",
+      details: { proposed: orders.length, stale: 0, proposed_days: proposedDays },
+    };
+  }
+
+  return {
+    notifications: [
+      {
+        title: `${stale.length} change order${stale.length === 1 ? "" : "s"} awaiting a decision`,
+        body: stale.map((o) => `${o.description.slice(0, 60)} (${o.project_name})`).join(" · "),
+        href: "/projects",
+        kind: "warning",
+      },
+    ],
+    summary: `${stale.length} proposed change order${stale.length === 1 ? "" : "s"} sitting ${proposedDays}+ days.`,
+    details: {
+      proposed_days: proposedDays,
+      orders: stale.map((o) => ({ id: o.id, project: o.project_name })),
+    },
+  };
+}
