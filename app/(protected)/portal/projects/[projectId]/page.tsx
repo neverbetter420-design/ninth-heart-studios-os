@@ -4,11 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { milestoneStatusLabel, stageLabel } from "@/lib/delivery";
 import { addPortalFeedbackPin, decideApproval, deleteClientFile, sendPortalMessage, uploadClientFile } from "./actions";
+import { submitForm } from "@/app/(protected)/portal/forms/actions";
 import { MessageThread } from "@/components/projects/MessageThread";
 import { PortalRevisionSection } from "@/components/projects/PortalRevisionSection";
 import { ContractSign } from "@/components/portal/ContractSign";
+import { FormFill } from "@/components/portal/FormFill";
 import { formatBytes } from "@/lib/files";
-import type { ChangeOrder, Contract, FeedbackPin, ProjectDocument, ProjectMessage, RevisionRound } from "@/lib/supabase/types";
+import type { ChangeOrder, Contract, FeedbackPin, FormSubmission, FormTemplate, ProjectDocument, ProjectMessage, RevisionRound } from "@/lib/supabase/types";
 
 type ApprovalRow = {
   id: string;
@@ -48,6 +50,7 @@ export default async function ClientProjectPage({
     { data: rounds },
     { data: changeOrders },
     { data: contracts },
+    { data: formSubmissions },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -108,10 +111,29 @@ export default async function ClientProjectPage({
       .select("id, project_id, title, body, status, signed_at, signer_name, created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("form_submissions")
+      .select("id, template_id, project_id, status, values, total_cents, submitted_at, signer_name, signer_email, signature_hash, signer_ip, created_at, updated_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false }),
   ]);
 
   const pendingApprovals = ((approvals ?? []) as ApprovalRow[]).filter((a) => a.status === "pending");
   const decidedApprovals = ((approvals ?? []) as ApprovalRow[]).filter((a) => a.status !== "pending");
+
+  // Join form submissions with their templates (RLS: clients read templates sent to their projects).
+  const submissionRows = (formSubmissions ?? []) as FormSubmission[];
+  const templateIds = [...new Set(submissionRows.map((s) => s.template_id))];
+  const { data: rawFormTemplates } = templateIds.length > 0
+    ? await supabase
+        .from("form_templates")
+        .select("id, name, category, description, fields, active, created_at, updated_at")
+        .in("id", templateIds)
+    : { data: [] };
+  const templateById = new Map(((rawFormTemplates ?? []) as FormTemplate[]).map((t) => [t.id, t]));
+  const submissionsWithTemplates = submissionRows
+    .filter((s) => templateById.has(s.template_id))
+    .map((s) => ({ ...s, template: templateById.get(s.template_id)! }));
 
   const revisionRounds = (rounds ?? []) as RevisionRound[];
   const activeRevisionRound =
@@ -302,6 +324,8 @@ export default async function ClientProjectPage({
         />
 
         <ContractSign contracts={(contracts ?? []) as Contract[]} />
+
+        <FormFill submissions={submissionsWithTemplates} submitAction={submitForm} />
       </section>
 
       <div style={{ marginTop: 14 }}>
