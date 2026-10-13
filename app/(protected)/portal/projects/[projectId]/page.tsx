@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { milestoneStatusLabel, stageLabel } from "@/lib/delivery";
-import { decideApproval, deleteClientFile, uploadClientFile } from "./actions";
+import { decideApproval, deleteClientFile, sendPortalMessage, uploadClientFile } from "./actions";
+import { MessageThread } from "@/components/projects/MessageThread";
 import { formatBytes } from "@/lib/files";
+import type { ProjectDocument, ProjectMessage } from "@/lib/supabase/types";
 
 type ApprovalRow = {
   id: string;
@@ -39,6 +41,8 @@ export default async function ClientProjectPage({
     { data: milestones },
     { data: followups },
     { data: updates },
+    { data: messages },
+    { data: documents },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -73,6 +77,16 @@ export default async function ClientProjectPage({
       .eq("client_visible", true)
       .order("created_at", { ascending: false })
       .limit(10),
+    supabase
+      .from("messages")
+      .select("id, project_id, sender_id, body, created_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("documents")
+      .select("id, project_id, title, kind, file_id, external_url, notes, created_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false }),
   ]);
 
   const pendingApprovals = ((approvals ?? []) as ApprovalRow[]).filter((a) => a.status === "pending");
@@ -232,7 +246,32 @@ export default async function ClientProjectPage({
             </div>
           )) : <p className="muted-copy">No updates yet.</p>}
         </article>
+
+        <article className="panel detail-panel">
+          <h3>Documents</h3>
+          {(documents ?? []).length ? ((documents ?? []) as ProjectDocument[]).map((doc) => (
+            <div className="simple-row" key={doc.id}>
+              <strong>{doc.title}</strong>
+              <span>
+                {doc.external_url ? (
+                  <a href={doc.external_url} target="_blank" rel="noopener noreferrer" className="mini-button">Open</a>
+                ) : doc.kind}
+              </span>
+            </div>
+          )) : <p className="muted-copy">No documents shared yet.</p>}
+        </article>
       </section>
+
+      <div style={{ marginTop: 14 }}>
+        <MessageThread
+          projectId={projectId}
+          messages={((messages ?? []) as ProjectMessage[])}
+          currentUserId={user.id}
+          sendAction={sendPortalMessage}
+          otherLabel="Ninth Heart Studios"
+          title="Messages"
+        />
+      </div>
     </div>
   );
 }

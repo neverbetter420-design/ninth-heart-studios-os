@@ -1,13 +1,17 @@
 import { notFound } from "next/navigation";
 import { ActivityTimeline } from "@/components/projects/ActivityTimeline";
 import { ApprovalSection } from "@/components/projects/ApprovalSection";
+import { DocumentSection } from "@/components/projects/DocumentSection";
 import { FileSection, type WorkspaceFile } from "@/components/projects/FileSection";
 import { LaunchGateSection } from "@/components/projects/LaunchGateSection";
+import { MessageThread } from "@/components/projects/MessageThread";
 import { MilestoneSection } from "@/components/projects/MilestoneSection";
 import { ProjectOverview } from "@/components/projects/ProjectOverview";
 import { TaskSection } from "@/components/projects/TaskSection";
+import { sendProjectMessage } from "../actions";
+import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import type { LaunchItem, Milestone, ProjectTask } from "@/lib/supabase/types";
+import type { LaunchItem, Milestone, ProjectDocument, ProjectMessage, ProjectTask } from "@/lib/supabase/types";
 
 type ProjectRow = {
   id: string;
@@ -31,6 +35,7 @@ export default async function ProjectWorkspacePage({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
+  const { user } = await requireAdmin();
   const supabase = await createClient();
 
   const [
@@ -41,6 +46,8 @@ export default async function ProjectWorkspacePage({
     { data: rawLaunchItems },
     { data: rawActivities },
     { data: rawFiles },
+    { data: rawMessages },
+    { data: rawDocuments },
   ] = await Promise.all([
     supabase
       .from("projects")
@@ -76,6 +83,16 @@ export default async function ProjectWorkspacePage({
     supabase
       .from("files")
       .select("id, filename, visibility, mime_type, size_bytes, created_at, object_path")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("messages")
+      .select("id, project_id, sender_id, body, created_at")
+      .eq("project_id", projectId)
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("documents")
+      .select("id, project_id, title, kind, file_id, external_url, notes, created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
   ]);
@@ -137,6 +154,22 @@ export default async function ProjectWorkspacePage({
         </div>
         <div className="workspace-span-12">
           <FileSection projectId={projectId} files={files} />
+        </div>
+        <div className="workspace-span-6">
+          <MessageThread
+            projectId={projectId}
+            messages={(rawMessages ?? []) as ProjectMessage[]}
+            currentUserId={user.id}
+            sendAction={sendProjectMessage}
+            otherLabel="Client"
+            title="Messages"
+          />
+        </div>
+        <div className="workspace-span-6">
+          <DocumentSection
+            projectId={projectId}
+            documents={(rawDocuments ?? []) as ProjectDocument[]}
+          />
         </div>
       </div>
     </div>

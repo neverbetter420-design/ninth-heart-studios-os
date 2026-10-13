@@ -124,3 +124,36 @@ export async function deleteClientFile(formData: FormData) {
   revalidatePath(`/portal/projects/${file.project_id}`);
   revalidatePath("/portal");
 }
+
+function cleanPortal(value: FormDataEntryValue | null) {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+/**
+ * Client-side message send from the portal.
+ * RLS ("Clients send project messages") enforces the boundary:
+ * only on the client's own projects.
+ */
+export async function sendPortalMessage(formData: FormData) {
+  const { user } = await requireUser();
+  const supabase = await createClient();
+
+  const projectId = cleanPortal(formData.get("project_id"));
+  const body = cleanPortal(formData.get("body"));
+  if (!projectId || !body || body.length > 2000) return;
+
+  const { data: message, error } = await supabase
+    .from("messages")
+    .insert({
+      project_id: projectId,
+      sender_id: user.id,
+      body,
+    })
+    .select("id")
+    .single();
+
+  if (error || !message) return;
+  revalidatePath(`/portal/projects/${projectId}`);
+  revalidatePath("/portal");
+}

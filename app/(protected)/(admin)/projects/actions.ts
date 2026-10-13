@@ -452,3 +452,74 @@ export async function deleteProjectFile(formData: FormData) {
 
   revalidateProject(file.project_id);
 }
+
+/* ---------------- Messages ---------------- */
+
+const VALID_DOCUMENT_KINDS = new Set(["contract", "proposal", "invoice", "handoff", "other"]);
+
+export async function sendProjectMessage(formData: FormData) {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+  const projectId = clean(formData.get("project_id"));
+  const body = clean(formData.get("body"));
+  if (!projectId || !body || body.length > 2000) return;
+
+  await supabase.from("messages").insert({
+    project_id: projectId,
+    sender_id: user.id,
+    body,
+  });
+
+  await logActivity(supabase, {
+    project_id: projectId,
+    event_type: "message_sent",
+    summary: "New message from the studio",
+    client_visible: true,
+  });
+  revalidateProject(projectId);
+}
+
+/* ---------------- Documents ---------------- */
+
+export async function createDocument(formData: FormData) {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+  const projectId = clean(formData.get("project_id"));
+  const title = clean(formData.get("title"));
+  const kind = clean(formData.get("kind"));
+  if (!projectId || !title || !kind || !VALID_DOCUMENT_KINDS.has(kind)) return;
+
+  const externalUrl = clean(formData.get("external_url"));
+  const notes = clean(formData.get("notes"));
+
+  await supabase.from("documents").insert({
+    project_id: projectId,
+    title,
+    kind,
+    external_url: externalUrl,
+    notes,
+    created_by: user.id,
+  });
+
+  await logActivity(supabase, {
+    project_id: projectId,
+    event_type: "document_shared",
+    summary: `Document shared: ${title}`,
+    client_visible: true,
+  });
+  revalidateProject(projectId);
+}
+
+export async function deleteDocument(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const documentId = clean(formData.get("document_id"));
+  if (!documentId) return;
+  const { data: doc } = await supabase
+    .from("documents")
+    .select("project_id")
+    .eq("id", documentId)
+    .single();
+  await supabase.from("documents").delete().eq("id", documentId);
+  if (doc) revalidateProject(doc.project_id);
+}

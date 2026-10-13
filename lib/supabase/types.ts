@@ -49,3 +49,22 @@ export type ProjectTask = {
   due_at: string | null;
   client_visible: boolean;
 };
+
+export type ProjectMessage = {
+  id: string;
+  project_id: string;
+  sender_id: string | null;
+  body: string;
+  created_at: string;
+};
+
+export type ProjectDocument = {
+  id: string;
+  project_id: string;
+  title: string;
+  kind: "contract" | "proposal" | "invoice" | "handoff" | "other";
+  file_id: string | null;
+  external_url: string | null;
+  notes: string | null;
+  created_at: string;
+};
