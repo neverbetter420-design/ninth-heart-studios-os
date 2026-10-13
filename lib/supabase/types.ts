@@ -68,3 +68,27 @@ export type ProjectDocument = {
   notes: string | null;
   created_at: string;
 };
+
+export type Opportunity = {
+  id: string;
+  source: string;
+  external_id: string | null;
+  title: string;
+  url: string | null;
+  score: number | null;
+  fit: string | null;
+  status: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Proposal = {
+  id: string;
+  opportunity_id: string;
+  title: string;
+  content: string;
+  status: "draft" | "sent";
+  created_at: string;
+  updated_at: string;
+};
