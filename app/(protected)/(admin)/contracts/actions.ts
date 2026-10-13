@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { templateBody } from "@/lib/templates";
 
 function clean(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -24,17 +25,32 @@ export async function createContract(formData: FormData) {
   const body = clean(formData.get("body")) ?? "";
   const projectId = clean(formData.get("project_id"));
   const opportunityId = clean(formData.get("opportunity_id"));
+  const templateId = clean(formData.get("template_id"));
   if (!title || (!projectId && !opportunityId)) {
     redirect("/contracts?error=Title+and+a+project+or+opportunity+are+required.");
+  }
+
+  // A chosen template supplies the body; template_id is recorded for traceability.
+  let finalBody = body;
+  if (templateId) {
+    const { data: template } = await supabase
+      .from("templates")
+      .select("content")
+      .eq("id", templateId)
+      .eq("category", "contract")
+      .eq("active", true)
+      .maybeSingle();
+    if (template) finalBody = templateBody(template.content);
   }
 
   const { data, error } = await supabase
     .from("contracts")
     .insert({
       title,
-      body,
+      body: finalBody,
       project_id: projectId,
       opportunity_id: opportunityId,
+      template_id: templateId,
       status: "draft",
       created_by: user.id,
     })
@@ -59,6 +75,38 @@ export async function updateContractBody(formData: FormData) {
   if (body !== null) patch.body = String(body);
 
   await supabase.from("contracts").update(patch).eq("id", id).eq("status", "draft");
+  revalidateContracts(id);
+}
+
+/**
+ * Apply a contract template's body to a DRAFT contract, replacing its body.
+ * Sent contracts are locked — the update is scoped to status = 'draft'.
+ */
+export async function applyTemplateToContract(formData: FormData) {
+  await requireAdmin();
+  const supabase = await createClient();
+  const id = clean(formData.get("contract_id"));
+  const templateId = clean(formData.get("template_id"));
+  if (!id || !templateId) return;
+
+  const { data: template } = await supabase
+    .from("templates")
+    .select("content")
+    .eq("id", templateId)
+    .eq("category", "contract")
+    .eq("active", true)
+    .maybeSingle();
+  if (!template) return;
+
+  await supabase
+    .from("contracts")
+    .update({
+      body: templateBody(template.content),
+      template_id: templateId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("status", "draft");
   revalidateContracts(id);
 }
 

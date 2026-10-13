@@ -14,6 +14,7 @@
     "verify:automations": "node --experimental-strip-types scripts/verify-automations.ts",
     "verify:email": "node --experimental-strip-types scripts/verify-email.ts",
     "verify:contracts": "node --experimental-strip-types scripts/verify-contracts.ts",
+    "verify:templates": "node --experimental-strip-types scripts/verify-templates.ts",
     "seed:flowkeep": "node --env-file=.env.local scripts/seed-flowkeep-scenarios.mjs"
   },
   "dependencies": {

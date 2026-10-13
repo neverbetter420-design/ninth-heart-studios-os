@@ -8,6 +8,7 @@ import {
   stageLabel,
 } from "@/lib/delivery";
 import { createClient } from "@/lib/supabase/server";
+import { templateBody } from "@/lib/templates";
 import {
   MAX_UPLOAD_BYTES,
   PROJECT_FILES_BUCKET,
@@ -490,7 +491,20 @@ export async function createDocument(formData: FormData) {
   if (!projectId || !title || !kind || !VALID_DOCUMENT_KINDS.has(kind)) return;
 
   const externalUrl = clean(formData.get("external_url"));
-  const notes = clean(formData.get("notes"));
+  const templateId = clean(formData.get("template_id"));
+  let notes = clean(formData.get("notes"));
+
+  // A chosen document template fills the notes unless the user wrote their own.
+  if (templateId && !notes) {
+    const { data: template } = await supabase
+      .from("templates")
+      .select("content")
+      .eq("id", templateId)
+      .eq("category", "document")
+      .eq("active", true)
+      .maybeSingle();
+    if (template) notes = templateBody(template.content) || null;
+  }
 
   await supabase.from("documents").insert({
     project_id: projectId,

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { deleteContract, sendContract, updateContractBody, voidContract } from "../actions";
+import { applyTemplateToContract, deleteContract, sendContract, updateContractBody, voidContract } from "../actions";
 import { createClient } from "@/lib/supabase/server";
 import type { Contract } from "@/lib/supabase/types";
 
@@ -31,6 +31,15 @@ export default async function ContractDetailPage({
   if (!raw) notFound();
   const contract = raw as Contract;
   const editable = contract.status === "draft";
+
+  const { data: rawTemplates } = editable
+    ? await supabase
+        .from("templates")
+        .select("id, name")
+        .eq("category", "contract")
+        .eq("active", true)
+        .order("name")
+    : { data: null };
 
   return (
     <div className="content-wrap">
@@ -87,6 +96,18 @@ export default async function ContractDetailPage({
           <h3>Terms</h3>
           {!editable ? <span className="pipeline-count">Locked — {contract.status}</span> : null}
         </div>
+        {editable && (rawTemplates ?? []).length > 0 ? (
+          <form action={applyTemplateToContract} className="delivery-add-form" style={{ borderBottom: "1px solid var(--line)" }}>
+            <input type="hidden" name="contract_id" value={contract.id} />
+            <select name="template_id" required defaultValue="" aria-label="Apply template" style={{ flex: 1 }}>
+              <option value="" disabled>Apply a template…</option>
+              {((rawTemplates ?? []) as { id: string; name: string }[]).map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+            <button type="submit" className="mini-button">Replace body</button>
+          </form>
+        ) : null}
         {editable ? (
           <form action={updateContractBody} style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
             <input type="hidden" name="contract_id" value={contract.id} />

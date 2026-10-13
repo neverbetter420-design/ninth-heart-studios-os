@@ -19,9 +19,11 @@ function kindLabel(kind: string) {
 export function DocumentSection({
   projectId,
   documents,
+  docTemplates = [],
 }: {
   projectId: string;
   documents: ProjectDocument[];
+  docTemplates?: { id: string; name: string }[];
 }) {
   return (
     <section className="panel" aria-label="Documents">
@@ -72,8 +74,16 @@ export function DocumentSection({
             <option key={k.value} value={k.value}>{k.label}</option>
           ))}
         </select>
+        {docTemplates.length > 0 ? (
+          <select name="template_id" defaultValue="" aria-label="Template">
+            <option value="">No template…</option>
+            {docTemplates.map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        ) : null}
         <input type="url" name="external_url" placeholder="Link (optional)…" maxLength={500} />
-        <input type="text" name="notes" placeholder="Notes (optional)…" maxLength={280} />
+        <input type="text" name="notes" placeholder="Notes (optional — template fills this)…" maxLength={280} />
         <button type="submit" className="mini-button go">Share</button>
       </form>
     </section>
