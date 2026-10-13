@@ -6,6 +6,7 @@ import {
   buildDraftFromTarget,
   draftFollowUp,
   draftProposal,
+  explainFitScore,
   explainPriority,
   findStaleLeads,
   recommendNextAction,
@@ -120,5 +121,30 @@ const built = buildDraftFromTarget(
 );
 assert.equal(built.kind, "check_in");
 assert.match(built.body, /^Hi Sam,/m, "Project check-in greets the client by first name");
+
+
+// 10. Fit explainer: strengths and concerns narrate the breakdown
+const fitExp = explainFitScore({
+  opportunityId: "opp-1",
+  score: 72,
+  fitNotes: "Owner seems motivated, replied fast.",
+  breakdown: { project_fit: 16, budget: 6, platform: 18, niche: 14, clarity: 12 },
+});
+assert.match(fitExp.verdict, /proposal/i, "72 should read as proposal-worthy");
+assert.ok(fitExp.strengths.some((s) => /Platform 18\/20/.test(s)), "Top dimension must be called out as a strength");
+assert.ok(fitExp.concerns.some((c) => /Budget 6\/20/.test(c)), "Weak dimension must be called out as a concern");
+assert.match(fitExp.notes ?? "", /motivated/, "Human fit notes must survive into the explanation");
+assert.ok(fitExp.nudge, "A mid-range score should carry a nudge");
+
+// 11. Fit explainer: unscored dimensions don't invent praise
+const thinExp = explainFitScore({
+  opportunityId: "opp-2",
+  score: 30,
+  fitNotes: null,
+  breakdown: {},
+});
+assert.equal(thinExp.strengths.length, 0, "No breakdown means no invented strengths");
+assert.equal(thinExp.concerns.length, 0, "No breakdown means no invented concerns");
+assert.match(thinExp.nudge ?? "", /pass/i, "Low score without breakdown should advise passing");
 
 console.log("verify:muse — all checks passed.");

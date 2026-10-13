@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FitScorer } from "@/components/opportunities/FitScorer";
+import { FitExplanation } from "@/components/opportunities/FitExplanation";
 import { ProposalSection } from "@/components/opportunities/ProposalSection";
 import { deleteOpportunity, updateOpportunityStatus } from "../actions";
 import {
@@ -85,14 +86,12 @@ export default async function OpportunityDetailPage({
         </div>
       </header>
 
-      {opportunity.fit ? (
-        <section className="panel" style={{ padding: "14px 18px", marginBottom: 14 }}>
-          <p className="delivery-row-sub" style={{ textTransform: "uppercase", letterSpacing: ".08em", fontSize: 9, marginBottom: 6 }}>
-            Fit notes
-          </p>
-          <p style={{ margin: 0, fontSize: 13 }}>{opportunity.fit}</p>
-        </section>
-      ) : null}
+      <FitExplanation
+        opportunityId={opportunity.id}
+        score={opportunity.score}
+        fit={opportunity.fit}
+        breakdown={breakdown}
+      />
 
       <div className="workspace-grid">
         <div className="workspace-span-6">

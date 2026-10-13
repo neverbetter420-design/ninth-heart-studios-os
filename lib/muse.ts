@@ -9,6 +9,7 @@
 // sending happens manually or arrives with Phase 8 integrations.
 
 import type { FlowkeepLead, RankedLead } from "./flowkeep";
+import { FIT_DIMENSIONS, fitVerdict, type FitBreakdown, type FitDimensionKey } from "./radar.ts";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -314,7 +315,92 @@ export function recommendNextAction(args: {
 }
 
 // ---------------------------------------------------------------------------
-// 5. Draft follow-ups and proposals (saved as drafts — never sent)
+// 6. Explain an opportunity's fit score
+// ---------------------------------------------------------------------------
+
+export type FitScoreExplanation = {
+  opportunityId: string;
+  score: number;
+  verdict: string;
+  strengths: string[];
+  concerns: string[];
+  notes: string | null;
+  nudge: string | null;
+};
+
+const DIMENSION_LABELS: Record<FitDimensionKey, string> = Object.fromEntries(
+  FIT_DIMENSIONS.map((d) => [d.key, d.label] as const),
+) as Record<FitDimensionKey, string>;
+
+const DIMENSION_HINTS: Record<FitDimensionKey, string> = Object.fromEntries(
+  FIT_DIMENSIONS.map((d) => [d.key, d.hint] as const),
+) as Record<FitDimensionKey, string>;
+
+/**
+ * Explains WHY an opportunity scored what it did, from the stored 5-dimension
+ * breakdown and the human's fit notes. Deterministic — the explanation is the
+ * breakdown, narrated. No LLM, no key, no cost.
+ */
+export function explainFitScore(args: {
+  opportunityId: string;
+  score: number;
+  fitNotes: string | null;
+  breakdown: Partial<FitBreakdown>;
+}): FitScoreExplanation {
+  const { opportunityId, score, fitNotes, breakdown } = args;
+  const verdict = fitVerdict(score);
+
+  const ranked = FIT_DIMENSIONS.map((d) => ({
+    key: d.key as FitDimensionKey,
+    score: Math.max(0, Math.min(20, Number(breakdown[d.key]) || 0)),
+  })).sort((a, b) => b.score - a.score);
+
+  const hasBreakdown = ranked.some((d) => d.score > 0);
+
+  const strengths: string[] = [];
+  const concerns: string[] = [];
+
+  if (hasBreakdown) {
+    for (const dim of ranked) {
+      const label = DIMENSION_LABELS[dim.key];
+      const hint = DIMENSION_HINTS[dim.key].toLowerCase();
+      if (dim.score >= 15) {
+        strengths.push(`${label} ${dim.score}/20 — ${hint}, and it shows.`);
+      } else if (dim.score <= 8) {
+        concerns.push(`${label} ${dim.score}/20 — ${hint}, which is the weak spot.`);
+      }
+    }
+  }
+
+  let nudge: string | null = null;
+  if (score >= 80) {
+    nudge = "Strong enough to bid — don't overthink it, just draft the proposal.";
+  } else if (score >= 60) {
+    nudge = "Proposal-worthy. Lead with the strengths above and price the concerns in.";
+  } else if (score >= 40) {
+    const weakest = ranked[ranked.length - 1];
+    if (hasBreakdown && weakest) {
+      nudge = `One conversation could fix this — ${DIMENSION_LABELS[weakest.key].toLowerCase()} is the only thing keeping it marginal.`;
+    }
+  } else {
+    nudge = hasBreakdown
+      ? "The numbers say pass. Trust them unless something material changes."
+      : "Low score with no breakdown to learn from — pass unless your notes say otherwise.";
+  }
+
+  return {
+    opportunityId,
+    score,
+    verdict,
+    strengths,
+    concerns,
+    notes: fitNotes && fitNotes.trim() ? fitNotes.trim() : null,
+    nudge,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 7. Draft follow-ups and proposals (saved as drafts — never sent)
 // ---------------------------------------------------------------------------
 
 const SIGNATURE = "Hailey\nNinth Heart Studios";
