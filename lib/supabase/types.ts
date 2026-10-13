@@ -134,6 +134,24 @@ export type SentEmail = {
   created_at: string;
 };
 
+export type Contract = {
+  id: string;
+  project_id: string | null;
+  opportunity_id: string | null;
+  template_id: string | null;
+  title: string;
+  body: string;
+  status: "draft" | "sent" | "signed" | "voided";
+  sent_at: string | null;
+  signed_at: string | null;
+  signer_name: string | null;
+  signer_email: string | null;
+  signature_hash: string | null;
+  signer_ip: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type RevisionRound = {
   id: string;
   project_id: string;

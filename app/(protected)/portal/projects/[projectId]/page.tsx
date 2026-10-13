@@ -6,8 +6,9 @@ import { milestoneStatusLabel, stageLabel } from "@/lib/delivery";
 import { addPortalFeedbackPin, decideApproval, deleteClientFile, sendPortalMessage, uploadClientFile } from "./actions";
 import { MessageThread } from "@/components/projects/MessageThread";
 import { PortalRevisionSection } from "@/components/projects/PortalRevisionSection";
+import { ContractSign } from "@/components/portal/ContractSign";
 import { formatBytes } from "@/lib/files";
-import type { ChangeOrder, FeedbackPin, ProjectDocument, ProjectMessage, RevisionRound } from "@/lib/supabase/types";
+import type { ChangeOrder, Contract, FeedbackPin, ProjectDocument, ProjectMessage, RevisionRound } from "@/lib/supabase/types";
 
 type ApprovalRow = {
   id: string;
@@ -46,6 +47,7 @@ export default async function ClientProjectPage({
     { data: documents },
     { data: rounds },
     { data: changeOrders },
+    { data: contracts },
   ] = await Promise.all([
     supabase
       .from("tasks")
@@ -100,6 +102,11 @@ export default async function ClientProjectPage({
       .select("id, project_id, source_pin_id, description, fee_impact, timeline_impact, status, proposed_at, decided_at, created_at")
       .eq("project_id", projectId)
       .in("status", ["proposed", "approved"])
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("contracts")
+      .select("id, project_id, title, body, status, signed_at, signer_name, created_at")
+      .eq("project_id", projectId)
       .order("created_at", { ascending: false }),
   ]);
 
@@ -293,6 +300,8 @@ export default async function ClientProjectPage({
           changeOrders={(changeOrders ?? []) as ChangeOrder[]}
           addPinAction={addPortalFeedbackPin}
         />
+
+        <ContractSign contracts={(contracts ?? []) as Contract[]} />
       </section>
 
       <div style={{ marginTop: 14 }}>

@@ -15,6 +15,7 @@ export const navItems: readonly NavItem[] = [
   { href: "/opportunities", label: "Opportunity Radar", icon: "✦", roles: ["admin"] },
   { href: "/muse", label: "Muse", icon: "✧", roles: ["admin"] },
   { href: "/automations", label: "Automations", icon: "⚡", roles: ["admin"] },
+  { href: "/contracts", label: "Contracts", icon: "✒", roles: ["admin"] },
   { href: "/templates", label: "Master Templates", icon: "▱", roles: ["admin"] },
   { href: "/settings", label: "System Settings", icon: "⚙", roles: ["admin"] },
   { href: "/portal", label: "My Project Portal", icon: "◇", roles: ["client"] },

@@ -13,6 +13,7 @@
     "verify:muse": "node --experimental-strip-types scripts/verify-muse.ts",
     "verify:automations": "node --experimental-strip-types scripts/verify-automations.ts",
     "verify:email": "node --experimental-strip-types scripts/verify-email.ts",
+    "verify:contracts": "node --experimental-strip-types scripts/verify-contracts.ts",
     "seed:flowkeep": "node --env-file=.env.local scripts/seed-flowkeep-scenarios.mjs"
   },
   "dependencies": {
