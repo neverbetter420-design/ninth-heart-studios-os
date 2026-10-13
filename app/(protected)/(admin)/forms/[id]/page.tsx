@@ -34,6 +34,14 @@ export default async function FormDetailPage({
   const fields = parseFields(template.fields);
   const submissions = (rawSubmissions ?? []) as FormSubmission[];
 
+  let sourceUrl: string | null = null;
+  if (template.source_file_path) {
+    const { data: signed } = await supabase.storage
+      .from("form-sources")
+      .createSignedUrl(template.source_file_path, 3600);
+    sourceUrl = signed?.signedUrl ?? null;
+  }
+
   return (
     <div className="content-wrap">
       <div className="lead-detail-backline" style={{ marginBottom: 10 }}>
@@ -61,7 +69,15 @@ export default async function FormDetailPage({
       </header>
 
       <section className="panel" aria-label="Form details" style={{ marginBottom: 14 }}>
-        <form action={updateFormTemplate} style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+        {template.source_file_name && sourceUrl ? (
+          <p style={{ padding: "14px 18px 0", fontSize: 13, margin: 0 }}>
+            Source PDF:{" "}
+            <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+              {template.source_file_name}
+            </a>{" "}
+            <span className="muted-copy">— your branded original, kept as reference.</span>
+          </p>
+        ) : null}        <form action={updateFormTemplate} style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
           <input type="hidden" name="template_id" value={template.id} />
           <div className="delivery-add-form" style={{ padding: 0 }}>
             <input type="text" name="name" defaultValue={template.name} required maxLength={160} />

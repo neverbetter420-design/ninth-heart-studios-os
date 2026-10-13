@@ -170,6 +170,8 @@ export type FormTemplate = {
   description: string;
   fields: unknown;
   active: boolean;
+  source_file_path: string | null;
+  source_file_name: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;

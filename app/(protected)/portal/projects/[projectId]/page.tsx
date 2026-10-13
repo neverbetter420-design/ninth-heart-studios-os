@@ -127,13 +127,25 @@ export default async function ClientProjectPage({
   const { data: rawFormTemplates } = templateIds.length > 0
     ? await supabase
         .from("form_templates")
-        .select("id, name, category, description, fields, active, created_at, updated_at")
+        .select("id, name, category, description, fields, active, source_file_path, source_file_name, created_at, updated_at")
         .in("id", templateIds)
     : { data: [] };
   const templateById = new Map(((rawFormTemplates ?? []) as FormTemplate[]).map((t) => [t.id, t]));
-  const submissionsWithTemplates = submissionRows
-    .filter((s) => templateById.has(s.template_id))
-    .map((s) => ({ ...s, template: templateById.get(s.template_id)! }));
+  const submissionsWithTemplates = await Promise.all(
+    submissionRows
+      .filter((s) => templateById.has(s.template_id))
+      .map(async (s) => {
+        const template = templateById.get(s.template_id)!;
+        let sourceUrl: string | null = null;
+        if (template.source_file_path) {
+          const { data: signed } = await supabase.storage
+            .from("form-sources")
+            .createSignedUrl(template.source_file_path, 3600);
+          sourceUrl = signed?.signedUrl ?? null;
+        }
+        return { ...s, template, sourceUrl };
+      })
+  );
 
   const revisionRounds = (rounds ?? []) as RevisionRound[];
   const activeRevisionRound =

@@ -1,5 +1,5 @@
-// Fillable Forms verification: field parsing, totals, required checks.
-// No database, no network.
+// Fillable Forms verification: field parsing, totals, required checks,
+// PDF field-name cleaning. No database, no network.
 import assert from "node:assert/strict";
 import {
   categoryLabel,
@@ -11,6 +11,7 @@ import {
   parseLineItems,
   submissionTotal,
 } from "../lib/forms.ts";
+import { cleanFieldName } from "../lib/pdf-import.ts";
 
 // 1. parseFields keeps valid fields, drops junk
 const fields = parseFields([
@@ -53,5 +54,11 @@ assert.deepEqual(missingRequired(req, { n: "Hailey", c: true }), [], "filled for
 assert.equal(categoryLabel("invoice"), "Invoice");
 assert.equal(fieldTypeLabel("line_items"), "Line items (invoice)");
 assert.equal(formatCents(90000), "$900.00");
+
+// 6. PDF field-name cleaning (AcroForm names → human labels)
+assert.equal(cleanFieldName("form1[0].#subform[0].FullName[0]"), "Full Name");
+assert.equal(cleanFieldName("email_address"), "Email Address");
+assert.equal(cleanFieldName("phoneNumber"), "Phone Number");
+assert.equal(cleanFieldName("sign"), "Sign");
 
 console.log("verify:forms — all checks passed.");

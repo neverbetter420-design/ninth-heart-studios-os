@@ -12,7 +12,7 @@ import {
 } from "@/lib/forms";
 import type { FormSubmission, FormTemplate } from "@/lib/supabase/types";
 
-type SubmissionView = FormSubmission & { template: FormTemplate };
+type SubmissionView = FormSubmission & { template: FormTemplate; sourceUrl: string | null };
 
 function LineItemsEditor({
   field,
@@ -85,11 +85,18 @@ function LineItemsEditor({
   );
 }
 
-function ReadOnlySubmission({ submission }: { submission: SubmissionView }) {
+function ReadOnlySubmission({ submission, sourceUrl }: { submission: SubmissionView; sourceUrl: string | null }) {
   const fields = (Array.isArray(submission.template.fields) ? submission.template.fields : []) as FormField[];
   const values = parseValues(submission.values);
   return (
     <div style={{ padding: "0 18px 18px" }}>
+      {sourceUrl ? (
+        <p style={{ fontSize: 13, margin: "0 0 10px" }}>
+          <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+            View original document ({submission.template.source_file_name ?? "PDF"})
+          </a>
+        </p>
+      ) : null}
       {fields.map((f) => {
         const v = values[f.id];
         let display: string;
@@ -148,7 +155,7 @@ export function FormFill({
               </span>
             </summary>
             {s.status === "submitted" ? (
-              <ReadOnlySubmission submission={s} />
+              <ReadOnlySubmission submission={s} sourceUrl={s.sourceUrl} />
             ) : (
               <form action={submitAction} style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
                 <input type="hidden" name="submission_id" value={s.id} />
@@ -156,6 +163,13 @@ export function FormFill({
                   {categoryLabel(s.template.category)}
                   {s.template.description ? ` · ${s.template.description}` : ""}
                 </p>
+                {s.sourceUrl ? (
+                  <p style={{ fontSize: 13, margin: 0 }}>
+                    <a href={s.sourceUrl} target="_blank" rel="noopener noreferrer">
+                      View original document ({s.template.source_file_name ?? "PDF"})
+                    </a>
+                  </p>
+                ) : null}
                 {fields.map((f) => (
                   <label key={f.id} className="field">
                     <span>

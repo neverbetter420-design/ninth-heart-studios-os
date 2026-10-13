@@ -3,7 +3,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { categoryLabel } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import type { FormSubmission, FormTemplate } from "@/lib/supabase/types";
-import { createFormTemplate } from "./actions";
+import { createFormTemplate, importPdfForm } from "./actions";
 
 export default async function FormsPage({
   searchParams,
@@ -76,6 +76,27 @@ export default async function FormsPage({
           <input type="text" name="description" placeholder="What is this form for? (optional)" maxLength={280} />
           <button type="submit" className="mini-button go">Build</button>
         </form>
+      </section>
+
+      <section className="panel" aria-label="Import PDF" style={{ marginBottom: 14 }}>
+        <div className="panel-heading">
+          <h3>Import a PDF</h3>
+        </div>
+        <form action={importPdfForm} className="delivery-add-form" encType="multipart/form-data">
+          <input type="text" name="name" placeholder="Form name…" required maxLength={160} />
+          <select name="category" defaultValue="contract" aria-label="Category">
+            <option value="contract">Contract</option>
+            <option value="document">Document</option>
+            <option value="invoice">Invoice</option>
+          </select>
+          <input type="file" name="pdf" accept="application/pdf,.pdf" required aria-label="PDF file" />
+          <button type="submit" className="mini-button go">Import</button>
+        </form>
+        <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>
+          Google Docs → Download as PDF. Canva → Download as PDF. Real form
+          fields import exactly; flat PDFs get best-effort detected fields
+          for you to review before activating.
+        </p>
       </section>
 
       <section className="panel" aria-label="Forms">

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isFormCategory, parseFields, type FormField } from "@/lib/forms";
+import { importPdfFields } from "@/lib/pdf-import";
+import { sanitizeFilename } from "@/lib/files";
 
 function clean(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -148,8 +150,7 @@ export async function deleteFormTemplate(formData: FormData) {
   redirect("/forms");
 }
 
-/** Admin sends a form to a project — creates a pending submission for the client. */
-export async function sendFormToProject(formData: FormData) {
+/** Admin sends a form to a project — creates a pending submission for the client. */export async function sendFormToProject(formData: FormData) {
   const { user } = await requireAdmin();
   const supabase = await createClient();
 
@@ -174,4 +175,68 @@ export async function sendFormToProject(formData: FormData) {
   });
   revalidateForms(templateId);
   revalidatePath(`/projects/${projectId}`);
+}
+
+/**
+ * Import a PDF as a form template.
+ *
+ * Parses AcroForm fields (exact) or falls back to text heuristics
+ * (best-effort). The template is created INACTIVE — the admin reviews
+ * the imported fields in the builder and clicks Restore to activate.
+ * The source PDF is stored in the form-sources bucket as the branded
+ * reference and linked from the template.
+ */
+export async function importPdfForm(formData: FormData) {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+
+  const name = clean(formData.get("name"));
+  const category = formData.get("category");
+  const file = formData.get("pdf");
+  if (!name || !isFormCategory(category)) {
+    redirect("/forms?error=Name+and+a+valid+category+are+required.");
+  }
+  if (!(file instanceof File) || file.size === 0) {
+    redirect("/forms?error=Choose+a+PDF+to+import.");
+  }
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    redirect("/forms?error=Only+PDF+files+can+be+imported.");
+  }
+  if (file.size > 25 * 1024 * 1024) {
+    redirect("/forms?error=PDF+must+be+under+25MB.");
+  }
+
+  const buffer = await file.arrayBuffer();
+  const parsed = await importPdfFields(buffer);
+
+  const { data, error } = await supabase
+    .from("form_templates")
+    .insert({
+      name,
+      category,
+      description: parsed.title
+        ? `Imported from ${sanitizeFilename(file.name)} — “${parsed.title}”. Review fields before activating.`
+        : `Imported from ${sanitizeFilename(file.name)}. Review fields before activating.`,
+      fields: parsed.fields,
+      active: false,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+  if (error || !data) redirect("/forms?error=Could+not+import+the+PDF.");
+
+  // Store the source PDF as the branded reference (best-effort — the
+  // imported fields stand on their own if storage fails).
+  const objectPath = `templates/${data.id}/${sanitizeFilename(file.name)}`;
+  const { error: uploadError } = await supabase.storage
+    .from("form-sources")
+    .upload(objectPath, file, { contentType: "application/pdf", upsert: false });
+  if (!uploadError) {
+    await supabase
+      .from("form_templates")
+      .update({ source_file_path: objectPath, source_file_name: sanitizeFilename(file.name) })
+      .eq("id", data.id);
+  }
+
+  redirect(`/forms/${data.id}`);
 }
