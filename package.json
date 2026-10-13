@@ -11,6 +11,7 @@
     "verify:security": "node --env-file=.env.local scripts/verify-security.mjs",
     "verify:flowkeep": "node --experimental-strip-types scripts/verify-flowkeep.ts",
     "verify:muse": "node --experimental-strip-types scripts/verify-muse.ts",
+    "verify:automations": "node --experimental-strip-types scripts/verify-automations.ts",
     "seed:flowkeep": "node --env-file=.env.local scripts/seed-flowkeep-scenarios.mjs"
   },
   "dependencies": {

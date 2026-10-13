@@ -92,3 +92,37 @@ export type Proposal = {
   created_at: string;
   updated_at: string;
 };
+
+export type Automation = {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  kind: "internal" | "email" | "calendar" | "payments" | "lead_source";
+  enabled: boolean;
+  config: Record<string, unknown>;
+  last_run_at: string | null;
+  last_status: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AutomationRun = {
+  id: string;
+  automation_id: string;
+  started_at: string;
+  finished_at: string | null;
+  status: "ok" | "error" | "skipped";
+  summary: string;
+  details: Record<string, unknown>;
+};
+
+export type Notification = {
+  id: string;
+  title: string;
+  body: string;
+  href: string | null;
+  kind: "info" | "warning" | "action";
+  read: boolean;
+  created_at: string;
+};
