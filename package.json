@@ -5,6 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "seed:test-users": "node --env-file=.env.local scripts/seed-test-users.mjs",
@@ -25,6 +29,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.10",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^22.0.0",
     "@types/nodemailer": "^8.0.2",
@@ -32,7 +37,8 @@
     "@types/react-dom": "^19.0.0",
     "postcss": "^8.0.0",
     "tailwindcss": "^4.3.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "wrangler": "^4.149.0"
   },
   "engines": {
     "node": ">=22.0.0"
