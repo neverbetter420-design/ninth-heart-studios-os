@@ -10,6 +10,7 @@
     "seed:test-users": "node --env-file=.env.local scripts/seed-test-users.mjs",
     "verify:security": "node --env-file=.env.local scripts/verify-security.mjs",
     "verify:flowkeep": "node --experimental-strip-types scripts/verify-flowkeep.ts",
+    "verify:muse": "node --experimental-strip-types scripts/verify-muse.ts",
     "seed:flowkeep": "node --env-file=.env.local scripts/seed-flowkeep-scenarios.mjs"
   },
   "dependencies": {

@@ -47,13 +47,13 @@ export function Sidebar({
 
       <div className="sidebar-bottom">
         {role === "admin" ? (
-          <div className="muse-chip">
+          <Link className="muse-chip muse-chip-link" href="/muse">
             <span className="muse-orb" />
             <div>
               <strong>Muse</strong>
-              <span>AI copilot · prototype</span>
+              <span>Studio intelligence</span>
             </div>
-          </div>
+          </Link>
         ) : null}
 
         <div className="user-chip">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
+import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import { activity, opportunities, projects } from "@/lib/mock-data";
 import { MetricCard } from "./MetricCard";
@@ -17,6 +18,10 @@ export async function Dashboard() {
 
   const rankedLeads = rankLeads((rawLeads ?? []) as FlowkeepLead[]);
   const nextActions = rankedLeads.slice(0, 3);
+  const recommendation = recommendNextAction({
+    topLead: nextActions[0],
+    staleCount: findStaleLeads(rankedLeads).length,
+  });
   const waitingOnMe = rankedLeads.filter((lead) => lead.momentum_state === "Waiting on Me" || lead.momentum_state === "New Inbound").length;
   const replies = rankedLeads.filter((lead) => lead.next_action_kind === "reply").length;
   const inboundRisk = rankedLeads.filter((lead) => lead.sla.status === "overdue" || lead.sla.status === "due_soon").length;
@@ -80,17 +85,15 @@ export async function Dashboard() {
               <h3>Studio intelligence</h3>
             </div>
           </div>
-          <p className="muse-copy">
-            {nextActions[0]
-              ? `${nextActions[0].business_name} is the strongest next move: ${nextActions[0].actionTitle.toLowerCase()}.`
-              : "No urgent lead momentum yet. Suspiciously peaceful."}
-          </p>
+          <p className="muse-copy">{recommendation.detail}</p>
           <div className="muse-suggestion">
-            <span>Suggested focus</span>
-            <strong>{nextActions[0]?.actionTitle ?? "Capture the next lead"}</strong>
-            <small>{nextActions[0]?.business_name ?? "Flowkeep is ready when the humans are."}</small>
+            <span>The one thing</span>
+            <strong>{recommendation.title}</strong>
+            <small>{recommendation.why}</small>
           </div>
-          <Link className="secondary-button wide muse-link" href="/leads">Open Lead Intelligence</Link>
+          <Link className="secondary-button wide muse-link" href="/muse">
+            Open Muse
+          </Link>
         </aside>
 
         <div className="panel project-panel">

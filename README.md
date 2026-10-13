@@ -2,9 +2,9 @@
 
 Custom operating system for Ninth Heart Studios. This codebase replaces platform-limited tooling with an owned Next.js application while the current Softr/Airtable system remains operational during migration.
 
-## Current state: Phase 5
+## Current state: Phase 7
 
-Phase 2 established the security/data foundation. Phase 3 added the Flowkeep lead engine. Phase 4 delivered the Project Delivery system, and Phase 5 built the Client Portal (per-project message threads + shared documents):
+Phase 2 established the security/data foundation. Phase 3 added the Flowkeep lead engine. Phase 4 delivered the Project Delivery system. Phase 5 built the Client Portal (per-project message threads + shared documents). Phase 6 built Opportunity Radar (opportunity table, approved-source import, duplicate detection, 5-dimension fit scoring, bid tracker, proposal drafting workspace). Phase 7 makes Muse the intelligence layer across the OS:
 
 - Next.js 16 + TypeScript
 - Tailwind CSS 4
@@ -26,7 +26,14 @@ Phase 2 established the security/data foundation. Phase 3 added the Flowkeep lea
 - Project pipeline, workspace, milestones, tasks, approvals, launch gates, files
 - Client portal message threads + shared documents
 
-Opportunity Radar (Phase 6) and Muse intelligence (Phase 7) are next.
+Muse (Phase 7) adds a deterministic intelligence layer — no external AI calls, no sending:
+- Explains why each lead/action is prioritized (SLA state, reply recency, momentum, fit)
+- Summarizes project risk (overdue milestones/tasks, pending approvals, stalled work)
+- Surfaces stale leads before they rot
+- Recommends the single next studio action
+- Drafts follow-ups, proposals, and check-ins in Hailey's voice — saved as drafts, never sent
+
+Phase 8 (Automations + Integrations) is next — the final phase.
 
 - Next.js 16 + TypeScript
 - Tailwind CSS 4
@@ -73,6 +80,8 @@ The database migrations are:
 - `supabase/migrations/20261012040000_phase4_delivery.sql`
 - `supabase/migrations/20261012040001_phase4_client_approvals.sql`
 - `supabase/migrations/20261012050000_phase5_portal.sql`
+- `supabase/migrations/20261012060000_phase6_radar.sql`
+- `supabase/migrations/20261012070000_phase7_muse.sql`
 
 Security architecture is documented in:
 
