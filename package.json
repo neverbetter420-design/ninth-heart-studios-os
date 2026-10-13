@@ -12,18 +12,21 @@
     "verify:flowkeep": "node --experimental-strip-types scripts/verify-flowkeep.ts",
     "verify:muse": "node --experimental-strip-types scripts/verify-muse.ts",
     "verify:automations": "node --experimental-strip-types scripts/verify-automations.ts",
+    "verify:email": "node --experimental-strip-types scripts/verify-email.ts",
     "seed:flowkeep": "node --env-file=.env.local scripts/seed-flowkeep-scenarios.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "next": "^16.0.0",
+    "nodemailer": "^10.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^22.0.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "postcss": "^8.0.0",

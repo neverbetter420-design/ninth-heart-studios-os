@@ -16,6 +16,8 @@ import {
 } from "@/lib/muse";
 import { PageHeader } from "@/components/PageHeader";
 import { CopyButton } from "@/components/CopyButton";
+import { isEmailConfigured } from "@/lib/email";
+import { sendDraftEmail } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +104,7 @@ export default async function MusePage({ searchParams }: { searchParams: Promise
   const ranked = rankLeads((rawLeads ?? []) as FlowkeepLead[]);
   const explanations = ranked.slice(0, 3).map((lead) => explainPriority(lead));
   const stale = findStaleLeads(ranked);
+  const emailConfigured = isEmailConfigured();
 
   const projects = (rawProjects ?? []) as {
     id: string;
@@ -398,6 +401,25 @@ export default async function MusePage({ searchParams }: { searchParams: Promise
                 </div>
                 <div className="muse-stale-actions">
                   <CopyButton text={`${d.subject}\n\n${d.body}`} />
+                  {emailConfigured ? (
+                    <details className="muse-send-details">
+                      <summary className="mini-button go">Send via Gmail</summary>
+                      <form action={sendDraftEmail} className="muse-send-form">
+                        <input type="hidden" name="draft_id" value={d.id} />
+                        <input
+                          type="email"
+                          name="to"
+                          placeholder="recipient@example.com"
+                          required
+                          aria-label="Recipient address"
+                        />
+                        <button type="submit" className="mini-button go">
+                          Confirm send
+                        </button>
+                        <p className="muted small">You approve every send. It's logged.</p>
+                      </form>
+                    </details>
+                  ) : null}
                   <form action={archiveDraft}>
                     <input type="hidden" name="id" value={d.id} />
                     <button className="ghost-button" type="submit">

@@ -247,3 +247,34 @@ a.muse-chip-link {
 a.muse-chip-link:hover {
   border-color: rgba(255, 52, 143, 0.4);
 }
+
+/* Phase 8 — Gmail send form on drafts */
+.muse-send-details {
+  display: inline-block;
+}
+.muse-send-details summary {
+  list-style: none;
+  cursor: pointer;
+}
+.muse-send-details summary::-webkit-details-marker {
+  display: none;
+}
+.muse-send-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 10px;
+  background: rgba(11, 10, 18, 0.6);
+  min-width: 240px;
+}
+.muse-send-form input[type="email"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: inherit;
+  font-size: 13px;
+}

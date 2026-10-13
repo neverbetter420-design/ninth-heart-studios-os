@@ -6,6 +6,7 @@ import {
   toggleAutomation,
 } from "./actions";
 import { createClient } from "@/lib/supabase/server";
+import { isEmailConfigured } from "@/lib/email";
 import type { Automation, AutomationRun, Notification } from "@/lib/supabase/types";
 
 const KIND_LABELS: Record<string, string> = {
@@ -53,6 +54,8 @@ export default async function AutomationsPage() {
 
   const automationName = (id: string) =>
     automations.find((a) => a.id === id)?.name ?? "Unknown";
+
+  const emailConnected = isEmailConfigured();
 
   return (
     <div className="content-wrap">
@@ -215,8 +218,20 @@ export default async function AutomationsPage() {
             a key when you want one wired up.
           </p>
           <ul className="delivery-list">
+            <li className="delivery-row">
+              <div className="delivery-row-main">
+                <p className="delivery-row-title">Email</p>
+                <p className="delivery-row-sub">
+                  {emailConnected
+                    ? "Gmail connected — drafts can send with per-send approval. Every send is logged."
+                    : "Needs GMAIL_USER + GMAIL_APP_PASSWORD in .env.local (Google app password)."}
+                </p>
+              </div>
+              <span className={`delivery-pill ${emailConnected ? "done" : "blocked"}`}>
+                {emailConnected ? "Connected" : "Not connected"}
+              </span>
+            </li>
             {[
-              { name: "Email", note: "Needs a provider (e.g. Resend) + API key. Drafts stay drafts until then." },
               { name: "Calendar", note: "Needs Google Calendar OAuth. Consultations could auto-schedule." },
               { name: "Invoicing / payments", note: "Needs Stripe (or similar) keys. Invoices from milestones." },
               { name: "Lead sources", note: "Needs API access per source. Imports land in the Radar with dedup." },

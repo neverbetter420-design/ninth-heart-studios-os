@@ -127,6 +127,13 @@ export type Notification = {
   created_at: string;
 };
 
+export type SentEmail = {
+  id: string;
+  to_address: string;
+  subject: string;
+  created_at: string;
+};
+
 export type RevisionRound = {
   id: string;
   project_id: string;
