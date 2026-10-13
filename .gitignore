@@ -12,3 +12,8 @@ pnpm-debug.log*
 *.pem
 .vercel
 *.tsbuildinfo
+
+# Cloudflare/Next.js build output and local secrets
+.open-next/
+.wrangler/
+.dev.vars
