@@ -229,7 +229,7 @@ export function FormFill({
                     {needsSignature ? "Sign + submit" : "Submit"}
                   </button>
                 </div>
-                <p className="muted small">Your answers, timestamp, and IP are recorded with your submission.</p>
+                <p className="muted small">Your answers and submission time are saved with a tamper-evident signature record.</p>
               </form>
             )}
           </details>
