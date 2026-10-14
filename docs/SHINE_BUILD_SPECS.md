@@ -1,7 +1,10 @@
 # Shine Build Specs — Post-Roadmap Features
 
-**Status:** DRAFT specs. Oct 12: Hailey green-lit building the non-billing specs, one at a
-time — billing goes LAST (no Stripe, provider TBD, her call).
+**Status:** DRAFT specs (Oct 12) — **updated Oct 14:** specs **2** (contracts + e-signature)
+and **5** (revision rounds + change orders) have **SHIPPED**. **Square CHOSEN Oct 13** for
+payments + billing (Stripe permanently out); billing still goes LAST per her roadmap. The
+build queue is otherwise Hailey's to call — these specs are reference, not a schedule.
+Do not re-pitch; she says go.
 **Why this exists:** On Oct 12 Hailey asked NOX to research high-rated freelancer-app features
 (~40 sources: HoneyBook, Dubsado, Moxie, Bonsai, Copilot, freelancer communities — full report
 in the `nhs-os-feature-research` artifact). She then said *"choose all that makes shine."*
@@ -12,9 +15,20 @@ re-checks what exists).
 **Standing rule honored:** stability-first. These wait until the current build runs smoothly.
 Build order below is a recommendation, not a schedule — Hailey says go, one spec at a time.
 
-**What the repo already has (audited):**
-- `proposals` table: id, opportunity_id, title, content, status (`draft`/`sent`) — admin-only,
-  no contracts, no invoices, no signatures (Phase 6).
+**What the repo already has (audited Oct 12, updated Oct 14):**
+- `proposals` table: id, opportunity_id, title, content, status (`draft`/`sent`) — admin-only
+  (Phase 6).
+- **SHIPPED Oct 13 — spec 2:** `contracts` table (body, status draft/sent/signed/voided,
+  signed_at, signer_name/email, signature_hash, signer_ip), `/contracts` admin, portal
+  signing (`ContractSign`), click-to-accept e-signature (typed name + email + checkbox),
+  signature audit (timestamp + IP + SHA-256 of body::email::timestamp), document-integrity
+  DB triggers, Master Templates (`templates` table, contract|document) wired into contract
+  creation. Starter library seeded: standard agreement, welcome packet, handoff doc.
+- **SHIPPED Oct 13 — spec 5:** revision rounds + change orders (`20261013033207` migration).
+  Visual feedback pins (comment-on-the-work) NOT built.
+- **Shipped Oct 13:** fillable Forms builder (`form_templates`/`form_submissions`, 8 field
+  types incl. line_items + signature) + PDF import pipeline (AcroForm + heuristics,
+  review-before-activate).
 - Phase 4: projects, milestones, client approvals, file uploads.
 - Phase 5: per-project client portal (message threads + shared documents).
 - Phase 7: deterministic Muse engine (priority explainers, project risk, stale leads,
@@ -28,12 +42,10 @@ Build order below is a recommendation, not a schedule — Hailey says go, one sp
 
 ## Build order
 
-**Oct 12 update — Hailey reordered: billing goes LAST.** New sequence: **5** (revision
-rounds + visual feedback + change orders — zero dependencies, zero pending decisions) →
-**2** (contracts + e-signature — needs her e-sig path call; in-app/free recommended for v1) →
-**6** (white-label — gated on the productization decision) → **3 + 4** (Smart File, care-plan
-kit — both require billing first, so they follow it) → **1** (billing — payment provider
-TBD, her call, no Stripe).
+**Oct 12 update — Hailey reordered: billing goes LAST.** Sequence was: **5** → **2** →
+**6** → **3 + 4** → **1**. **Oct 13–14 update:** specs 5 and 2 have shipped (see notes).
+Remaining order when she calls it: **6** (white-label — gated on productization) →
+**3 + 4** (Smart File, care-plan kit — require billing) → **1** (billing — Square, last).
 
 ### 1. Invoicing + online payments + recurring billing — the money core
 
@@ -52,13 +64,12 @@ become real MRR without card-on-file billing. This unblocks specs 3 and 4.
 - Portal: client-facing pay view (token link, no login required) — card/ACH.
 - Automations: new registry entries — invoice reminders (due-soon/overdue), dunning
   sequence for failed subscription payments (payment provider handles retries; OS surfaces status).
-**Provider decision (Hailey's call):** Stripe is OFF the table — ruled out by Hailey on Oct 12.
-Options to evaluate instead: Square, PayPal, or another provider covering invoicing, card/ACH
-payments, subscriptions with card-on-file, and dunning. Needs her provider account +
-restricted API keys.
+**Provider decision — DECIDED Oct 13:** **Square** for payments + billing (Stripe ruled
+out Oct 12, permanently). Needs her Square account + sandbox keys when billing time comes.
+Billing goes LAST per her roadmap — do not start until she calls it.
 **Unlocks:** care-plan MRR, milestone-based billing, specs 3–4.
 
-### 2. Contracts + e-signature — the insurance policy
+### 2. Contracts + e-signature — the insurance policy — ✅ SHIPPED Oct 13
 
 **Why it shines:** "Contracts with e-signature" is a top-4 praised category across all
 competitor reviews. Verbal agreements are the freelancer's original sin.
@@ -71,11 +82,10 @@ contract object, no signing flow, no signature record.
 - Admin: `/contracts` — generate from template (reuse proposal workspace), send signing
   link, track status.
 - Portal: signing view — read, typed/drawn signature, download PDF copy.
-**Decision (Hailey's call):** two paths —
-  a) **In-app signature capture** (recommended for v1): free, no new vendor, audit trail
-     (timestamp + IP + document hash). Sufficient for most freelancer agreements.
-  b) **Embedded third-party** (DocuSign / Dropbox Sign): heavier legal weight, costs money
-     + API keys. Defer unless a client demands it.
+**Decision — DECIDED + SHIPPED Oct 13:** in-app click-to-accept (typed name + email +
+checkbox), free, no new vendor. Audit trail: timestamp + IP + SHA-256 document hash.
+Document-integrity triggers guard signed contracts at the DB layer. Third-party
+(DocuSign/Dropbox Sign) deferred unless a client demands it.
 **Unlocks:** spec 3 (the Smart File).
 
 ### 3. Smart File — proposal + contract + invoice, one doc, one signature, one payment
@@ -112,7 +122,7 @@ done, this turns Pulse/Inferno from invoices she chases into subscriptions clien
 **Depends on:** spec 1 (subscription billing).
 **Unlocks:** real MRR with near-zero admin; a packaged feature competitors don't offer.
 
-### 5. Revision rounds + visual feedback + change orders (+ AI scope-creep guard)
+### 5. Revision rounds + visual feedback + change orders (+ AI scope-creep guard) — ✅ SHIPPED Oct 13 (revision rounds + change orders; visual feedback pins NOT built)
 
 **Why it shines:** The designer moat. No CRM does this: clients comment *on the work*,
 revisions are counted, and out-of-scope requests become priced change orders in one click.
@@ -178,9 +188,9 @@ provider + API key + budget — her call, per the Oct 12 thread) or external con
 
 ## Decisions that stay with Hailey
 
-1. Build order and timing (stability-first stands — specs ≠ schedule).
-2. Payment provider + keys (spec 1) — Stripe ruled out Oct 12; money decision, hers.
-3. E-signature path: in-app (free) vs. third-party (paid) — spec 2.
+1. Build order and timing (stability-first stands — specs ≠ schedule; queue is hers to call).
+2. Payment provider: **Square chosen Oct 13**; Square account + sandbox keys needed when billing time comes (billing LAST).
+3. E-signature path: **decided + shipped** — in-app click-to-accept (spec 2).
 4. Email provider (Resend suggested on the integrations page) — needed for invoice/contract
    sending and dunning.
 5. Productization go/no-go — gates spec 6.
