@@ -19,7 +19,8 @@
     "seed:flowkeep": "node --env-file=.env.local scripts/seed-flowkeep-scenarios.mjs",
     "verify:delivery": "node --experimental-strip-types scripts/verify-delivery.ts",
     "verify:radar": "node --experimental-strip-types scripts/verify-radar.ts",
-    "verify:coverage": "node --experimental-strip-types scripts/verify-coverage.ts"
+    "verify:coverage": "node --experimental-strip-types scripts/verify-coverage.ts",
+    "verify:scanner": "node --experimental-strip-types scripts/verify-scanner.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

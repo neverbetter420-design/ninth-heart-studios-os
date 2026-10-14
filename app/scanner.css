@@ -1,0 +1,187 @@
+/* Prospect Scanner — lead discovery + outreach. NOCTURNE ELECTRIC tokens. */
+
+.notice {
+  border: 1px solid var(--line-hot);
+  background: rgba(168, 85, 247, 0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.card h3 { margin: 0 0 12px; font-size: 15px; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.form-grid input[type="text"],
+.form-grid input:not([type]),
+.form-grid select,
+.form-grid textarea {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+}
+
+.form-grid textarea { resize: vertical; min-height: 120px; }
+
+.form-grid fieldset {
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0;
+}
+
+.form-grid legend { font-size: 12px; color: var(--muted); padding: 0 6px; }
+
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 6px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.check input { accent-color: var(--violet); }
+
+.form-hint {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 12px;
+}
+
+.section-head h3 { margin: 0; font-size: 15px; }
+
+.count {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-left: 6px;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-size: 13px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.prospect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.prospect-card { margin-bottom: 0; }
+
+.prospect-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.prospect-head h4 { margin: 0 0 4px; font-size: 14px; }
+
+.muted { color: var(--muted); font-size: 12px; }
+
+.score {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  border: 1px solid var(--line);
+}
+
+.score-pink { color: var(--pink); border-color: rgba(255, 79, 216, 0.4); }
+.score-violet { color: var(--violet); border-color: rgba(168, 85, 247, 0.4); }
+.score-cyan { color: var(--cyan); border-color: rgba(67, 230, 255, 0.4); }
+
+.badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+}
+
+.badge-good { color: var(--green); border-color: rgba(110, 247, 180, 0.35); }
+.badge-warn { color: #ffd479; border-color: rgba(255, 212, 121, 0.35); }
+.badge-bad { color: #ff9d9d; border-color: rgba(255, 120, 120, 0.4); }
+
+.prospect-meta { margin-bottom: 12px; }
+.prospect-meta a { color: var(--cyan); }
+
+.prospect-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+
+.mini-button.accent {
+  border-color: rgba(168, 85, 247, 0.45);
+  color: #e9d5ff;
+}
+
+.mini-button.ghost { opacity: 0.7; }
+
+.draft-details { margin-top: 10px; }
+
+.draft-details summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--violet);
+  margin-bottom: 8px;
+}
+
+.draft-details .form-grid { grid-template-columns: 1fr; }
+
+.row { display: flex; gap: 8px; }
+
+.header-actions { display: flex; gap: 8px; align-items: center; }

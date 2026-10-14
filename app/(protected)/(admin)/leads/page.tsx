@@ -32,7 +32,10 @@ export default async function LeadsPage({
             Capture fast, rank the real next action, and keep human replies above outbound busywork. Revolutionary, apparently.
           </p>
         </div>
-        <a className="primary-button lead-capture-jump" href="#quick-capture">+ Quick capture</a>
+        <div className="header-actions">
+          <a className="mini-button" href="/leads/discover">⌖ Lead Scanner</a>
+          <a className="primary-button lead-capture-jump" href="#quick-capture">+ Quick capture</a>
+        </div>
       </header>
 
       <section className="metric-grid" aria-label="Lead metrics">
