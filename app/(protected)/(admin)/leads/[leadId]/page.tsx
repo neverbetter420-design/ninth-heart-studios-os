@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { QuickOutcomeButtons } from "@/components/leads/QuickOutcomeButtons";
 import { formatElapsed, formatPacificDateTime, getSlaState, rankLead, type FlowkeepLead } from "@/lib/flowkeep";
 import { createClient } from "@/lib/supabase/server";
-import { scheduleConsultation } from "../actions";
+import { convertLeadToProject, scheduleConsultation } from "../actions";
 
 export default async function LeadDetailPage({
   params,
@@ -55,6 +55,11 @@ export default async function LeadDetailPage({
           <span>Opportunity score</span>
           <strong>{lead.score ?? "—"}</strong>
         </div>
+        <form action={convertLeadToProject} className="delivery-add-form" style={{ marginTop: 10 }}>
+          <input type="hidden" name="lead_id" value={lead.id} />
+          <input type="text" name="project_name" placeholder="Project name (optional)…" maxLength={160} />
+          <button type="submit" className="mini-button go">Convert to project</button>
+        </form>
       </header>
 
       {formError ? <div className="lead-form-error detail-error">{formError}</div> : null}

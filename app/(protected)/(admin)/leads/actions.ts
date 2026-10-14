@@ -140,3 +140,74 @@ export async function scheduleConsultation(formData: FormData) {
   revalidatePath("/leads");
   revalidatePath(`/leads/${leadId}`);
 }
+
+/* ---------------- Lead → Project conversion ---------------- */
+
+/**
+ * Convert a won lead into a client + project.
+ * Reuses the lead's linked client when one exists; otherwise creates
+ * the client from the lead's business/contact details. Then creates
+ * the project in Discovery and links the lead to the client.
+ */
+export async function convertLeadToProject(formData: FormData) {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+
+  const leadId = clean(formData.get("lead_id"));
+  const projectName = clean(formData.get("project_name"));
+  if (!leadId) return;
+
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("id, business_name, contact_name, email, website, client_id")
+    .eq("id", leadId)
+    .single();
+  if (!lead) return;
+
+  let clientId = lead.client_id as string | null;
+  if (!clientId) {
+    const { data: client, error: clientError } = await supabase
+      .from("clients")
+      .insert({
+        name: lead.business_name,
+        website: lead.website,
+        primary_email: lead.email,
+        status: "active",
+        created_by: user.id,
+      })
+      .select("id")
+      .single();
+    if (clientError || !client) return;
+    clientId = client.id;
+    await supabase
+      .from("leads")
+      .update({ client_id: clientId })
+      .eq("id", leadId);
+  }
+
+  const { data: project, error: projectError } = await supabase
+    .from("projects")
+    .insert({
+      name: projectName || `${lead.business_name} website`,
+      client_id: clientId,
+      status: "discovery",
+      progress: 0,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+  if (projectError || !project) return;
+
+  await supabase.from("activities").insert({
+    project_id: project.id,
+    lead_id: leadId,
+    actor_id: user.id,
+    event_type: "project_created",
+    summary: `Converted from lead ${lead.business_name}`,
+    client_visible: true,
+  });
+
+  revalidatePath("/projects");
+  revalidatePath(`/leads/${leadId}`);
+  redirect(`/projects/${project.id}`);
+}

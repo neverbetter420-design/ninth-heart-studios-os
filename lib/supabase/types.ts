@@ -163,6 +163,36 @@ export type Template = {
   updated_at: string;
 };
 
+export type FormTemplate = {
+  id: string;
+  name: string;
+  category: "contract" | "document" | "invoice";
+  description: string;
+  fields: unknown;
+  active: boolean;
+  source_file_path: string | null;
+  source_file_name: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FormSubmission = {
+  id: string;
+  template_id: string;
+  project_id: string;
+  status: "pending" | "submitted";
+  values: unknown;
+  total_cents: number | null;
+  submitted_at: string | null;
+  signer_name: string | null;
+  signer_email: string | null;
+  signature_hash: string | null;
+  signer_ip: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type RevisionRound = {
   id: string;
   project_id: string;

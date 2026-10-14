@@ -30,6 +30,7 @@ export default async function SignInPage({
         </form>
 
         <p className="auth-footnote">Public registration is disabled. Client accounts are invite-only.</p>
+        <p className="auth-footnote"><a href="https://www.ninthheartstudios.com">← Back to Ninth Heart Studios</a></p>
       </section>
     </main>
   );

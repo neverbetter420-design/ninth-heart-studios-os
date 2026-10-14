@@ -13,6 +13,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // PDF imports allow up to 25 MiB plus multipart/form metadata.
+  experimental: {
+    serverActions: { bodySizeLimit: "30mb" },
+  },
   async headers() {
     return [
       {
