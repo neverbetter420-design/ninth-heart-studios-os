@@ -46,6 +46,15 @@ export function Sidebar({
       </nav>
 
       <div className="sidebar-bottom">
+        <a
+          className="nav-link"
+          href="https://www.ninthheartstudios.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span className="nav-icon" aria-hidden="true">↗</span>
+          <span>Studio Website</span>
+        </a>
         {role === "admin" ? (
           <Link className="muse-chip muse-chip-link" href="/muse">
             <span className="muse-orb" />
@@ -67,7 +76,7 @@ export function Sidebar({
         <form action="/auth/sign-out" method="post">
           <button className="ghost-button wide sign-out-button" type="submit">Sign out</button>
         </form>
-        <p className="tiny-copy">Custom build · Phase 2 security</p>
+        <p className="tiny-copy">Ninth Heart Studios · Private workspace</p>
       </div>
     </aside>
   );

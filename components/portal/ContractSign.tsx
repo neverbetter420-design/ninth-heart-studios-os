@@ -37,7 +37,7 @@ export function ContractSign({ contracts }: { contracts: Contract[] }) {
                   <span>I have read these terms and agree to them.</span>
                 </label>
                 <button type="submit" className="mini-button go">Sign contract</button>
-                <p className="muted small">Your name, email, timestamp, and IP are recorded as your signature.</p>
+                <p className="muted small">Your name, email, and signing time are saved with a tamper-evident document hash.</p>
               </form>
             ) : c.status === "signed" ? (
               <p className="muted-copy" style={{ fontSize: 13 }}>

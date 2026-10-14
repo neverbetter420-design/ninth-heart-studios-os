@@ -16,3 +16,8 @@ pnpm-debug.log*
 # IDE / workspace (local only, never committed)
 .vscode/
 *.code-workspace
+
+# Cloudflare/Next.js build output and local secrets
+.open-next/
+.wrangler/
+.dev.vars
