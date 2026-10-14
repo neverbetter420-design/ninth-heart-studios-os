@@ -16,7 +16,7 @@ export function LeadCaptureCard({ error }: { error?: string }) {
       <form action={createLead} className="lead-capture-form">
         <label className="field field-wide">
           <span>Business name *</span>
-          <input name="business_name" placeholder="Black Diamond Tavern" required />
+          <input name="business_name" placeholder="Business name" required />
         </label>
 
         <label className="field">
