@@ -12,3 +12,7 @@ pnpm-debug.log*
 *.pem
 .vercel
 *.tsbuildinfo
+
+# IDE / workspace (local only, never committed)
+.vscode/
+*.code-workspace

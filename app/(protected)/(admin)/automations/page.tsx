@@ -233,7 +233,7 @@ export default async function AutomationsPage() {
             </li>
             {[
               { name: "Calendar", note: "Needs Google Calendar OAuth. Consultations could auto-schedule." },
-              { name: "Invoicing / payments", note: "Needs Stripe (or similar) keys. Invoices from milestones." },
+              { name: "Invoicing / payments", note: "Needs a payment provider's keys. Invoices from milestones." },
               { name: "Lead sources", note: "Needs API access per source. Imports land in the Radar with dedup." },
             ].map((i) => (
               <li key={i.name} className="delivery-row">

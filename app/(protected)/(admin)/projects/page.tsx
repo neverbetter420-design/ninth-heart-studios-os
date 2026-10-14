@@ -3,6 +3,7 @@ import { PipelineBoard } from "@/components/projects/PipelineBoard";
 import { ON_HOLD_STAGE } from "@/lib/delivery";
 import { createClient } from "@/lib/supabase/server";
 import type { ProjectWithClient } from "@/lib/supabase/types";
+import { createProject } from "./actions";
 
 type ProjectRow = {
   id: string;
@@ -20,12 +21,23 @@ function clientName(rel: ProjectRow["clients"]): string | null {
   return rel.name ?? null;
 }
 
-export default async function ProjectsPage() {
+export default async function ProjectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error: formError } = await searchParams;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
     .select("id, name, status, progress, due_date, client_id, clients(name)")
     .order("updated_at", { ascending: false });
+  const { data: rawClients } = await supabase
+    .from("clients")
+    .select("id, name")
+    .eq("status", "active")
+    .order("name");
+  const clients = (rawClients ?? []) as { id: string; name: string }[];
 
   const projects: ProjectWithClient[] = ((data ?? []) as ProjectRow[]).map((p) => ({
     id: p.id,
@@ -62,12 +74,41 @@ export default async function ProjectsPage() {
         <MetricCard label="On Hold" value={String(onHold)} detail="Parked, not dead" tone="green" />
       </section>
 
+      {formError ? (
+        <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
+          <strong>Heads up.</strong>
+          <span>{decodeURIComponent(formError)}</span>
+        </section>
+      ) : null}
+
       {error ? (
         <section className="panel lead-query-error">
           <strong>Project data could not load.</strong>
           <span>{error.message}</span>
         </section>
       ) : null}
+
+      <section className="panel" aria-label="New project" style={{ marginBottom: 14 }}>
+        <div className="panel-heading">
+          <h3>New project</h3>
+        </div>
+        <form action={createProject} className="delivery-add-form">
+          <input type="text" name="name" placeholder="Project name…" required maxLength={160} />
+          <select name="client_id" required defaultValue="" aria-label="Client" style={{ flex: 1 }}>
+            <option value="" disabled>Choose a client…</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <input type="date" name="due_date" aria-label="Due date" />
+          <button type="submit" className="mini-button go">Create</button>
+        </form>
+        {clients.length === 0 ? (
+          <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>
+            No clients yet — create one on the <a href="/clients">Clients</a> page first.
+          </p>
+        ) : null}
+      </section>
 
       <PipelineBoard projects={projects} />
     </div>

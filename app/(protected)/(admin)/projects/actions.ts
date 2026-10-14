@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import {
   ON_HOLD_STAGE,
@@ -798,4 +799,49 @@ export async function decideChangeOrder(formData: FormData) {
     });
     revalidateProject(order.project_id);
   }
+}
+
+/* ---------------- Project creation ---------------- */
+
+export async function createProject(formData: FormData) {
+  const { user } = await requireAdmin();
+  const supabase = await createClient();
+
+  const name = clean(formData.get("name"));
+  const clientId = clean(formData.get("client_id"));
+  const dueDate = clean(formData.get("due_date"));
+  if (!name || !clientId) {
+    redirect("/projects?error=Project+name+and+client+are+required.");
+  }
+
+  const { data: client } = await supabase
+    .from("clients")
+    .select("id, name")
+    .eq("id", clientId)
+    .maybeSingle();
+  if (!client) redirect("/projects?error=That+client+does+not+exist.");
+
+  const { data: project, error } = await supabase
+    .from("projects")
+    .insert({
+      name,
+      client_id: clientId,
+      status: "discovery",
+      progress: 0,
+      due_date: dueDate || null,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+  if (error || !project) redirect("/projects?error=Could+not+create+the+project.");
+
+  await logActivity(supabase, {
+    project_id: project.id,
+    event_type: "project_created",
+    summary: `${name} created for ${client.name}`,
+    client_visible: true,
+  });
+
+  revalidatePath("/projects");
+  redirect(`/projects/${project.id}`);
 }
