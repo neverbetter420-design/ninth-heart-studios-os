@@ -105,8 +105,8 @@ export default async function DiscoverPage({
             Scan
           </button>
           <p className="form-hint">
-            Up to 12 businesses per scan. Data: OpenStreetMap. Be nice — scans are
-            on-demand, not continuous.
+            Up to 12 businesses per scan. Business data © OpenStreetMap
+            contributors (ODbL). Be nice — scans are on-demand, not continuous.
           </p>
         </form>
       </section>
