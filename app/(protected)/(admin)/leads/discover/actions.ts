@@ -53,6 +53,7 @@ export async function runScan(formData: FormData): Promise<never> {
     const signals = await analyzeWebsite(b.website);
     const score = scoreSignals(signals);
     const row = {
+      source_ref: b.source_ref,
       business_name: b.name,
       category: b.category,
       address: b.address,
@@ -63,15 +64,24 @@ export async function runScan(formData: FormData): Promise<never> {
       scanned_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    // Dedupe: same name (case-insensitive) already tracked?
-    const { data: existing } = await supabase
-      .from("prospects")
-      .select("id")
-      .ilike("business_name", b.name)
-      .limit(1)
-      .maybeSingle();
-    const { error } = existing
-      ? await supabase.from("prospects").update(row).eq("id", existing.id)
+    // Prefer stable OSM element identity, never overwrite a different
+    // location merely because two businesses share a name.
+    const { data: known } = await supabase.from("prospects")
+      .select("id").eq("source_ref", b.source_ref).maybeSingle();
+    let existingId: string | null = known?.id ?? null;
+
+    // Backfill legacy pre-identity records only with an additional exact
+    // website or street-address match; name by itself is insufficient.
+    if (!existingId && (b.address || b.website)) {
+      const { data: candidates } = await supabase.from("prospects")
+        .select("id, address, website").eq("business_name", b.name).is("source_ref", null).limit(20);
+      const matching = (candidates ?? []).filter((p) =>
+        Boolean((b.website && p.website === b.website) || (b.address && p.address === b.address))
+      );
+      if (matching.length === 1) existingId = matching[0].id;
+    }
+    const { error } = existingId
+      ? await supabase.from("prospects").update(row).eq("id", existingId)
       : await supabase.from("prospects").insert(row);
     if (error) skipped++;
     else inserted++;
