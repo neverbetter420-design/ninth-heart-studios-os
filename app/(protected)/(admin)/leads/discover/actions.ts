@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { deriveNewLead } from "@/lib/flowkeep";
 import {
   NICHES,
   geocode,
@@ -175,7 +176,13 @@ export async function promoteProspect(id: string) {
   const { user } = await requireAdmin();
   const supabase = await createClient();
   const { data: p } = await supabase.from("prospects").select("*").eq("id", id).single();
-  if (!p || p.status === "promoted") return;
+  if (!p || p.status === "promoted" || p.lead_id) return;
+
+  const wasSent = p.outreach_status === "sent";
+  const initial = deriveNewLead({ acquisitionType: "outbound", hasContactMethod: false });
+  const workflow = wasSent
+    ? { momentum_state: "Waiting on Them", next_action: "Follow up when appropriate", next_action_kind: "follow_up", last_activity_at: new Date().toISOString() }
+    : { ...initial, next_action: "Find business email" };
 
   const { data: lead, error } = await supabase
     .from("leads")
@@ -184,9 +191,9 @@ export async function promoteProspect(id: string) {
       phone: p.phone,
       website: p.website,
       acquisition_type: "outbound",
-      momentum_state: "Waiting on Them",
+      ...workflow,
       score: p.opportunity_score,
-      status: "prospect",
+      status: wasSent ? "contacted" : "prospect",
       owner_id: user.id,
       metadata: {
         source: "prospect_scanner",
