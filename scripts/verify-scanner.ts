@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import {
   NICHES,
+  discoverBusinesses,
   normalizeWebsite,
   scoreSignals,
   signalBadges,
@@ -88,5 +89,20 @@ const noSiteDraft = draftOutreach(
   { ...base, has_website: false }
 );
 assert.ok(noSiteDraft.body.includes("couldn't find a website linked"), "no-website finding");
+
+// Business names are not unique IDs. Two locations with one name must survive.
+const previousFetch = globalThis.fetch;
+try {
+  globalThis.fetch = async () => new Response(JSON.stringify({ elements: [
+    { type: "node", id: 101, tags: { name: "Shared Name", amenity: "bar" } },
+    { type: "way", id: 202, tags: { name: "Shared Name", amenity: "bar" } },
+    { type: "node", id: 101, tags: { name: "Shared Name", amenity: "bar" } },
+  ] }), { status: 200, headers: { "content-type": "application/json" } });
+  const found = await discoverBusinesses(47.1, -122.3, 2000, ["bars"], 12);
+  assert.equal(found.length, 2, "different OSM objects are not collapsed by name");
+  assert.deepEqual(found.map((b) => b.source_ref), ["node:101", "way:202"]);
+} finally {
+  globalThis.fetch = previousFetch;
+}
 
 console.log("verify:scanner — all checks passed.");
