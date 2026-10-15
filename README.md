@@ -43,6 +43,9 @@ The security verification uses configured test identities, not real customer acc
 
 ## Password recovery (production)
 
+**Operational recovery checklist:** [production delivery and deployment runbook](docs/AUTH_RECOVERY_PRODUCTION.md). The deployed Cloudflare Worker must be updated independently of GitHub; Supabase requires a production SMTP service for reliable email delivery.
+
+
 NHS OS is hosted on `https://app.ninthheartstudios.com`, separate from the public Wix website.
 
 1. In **Supabase > Authentication > URL Configuration**, set **Site URL** to `https://app.ninthheartstudios.com`.
