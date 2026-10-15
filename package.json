@@ -21,7 +21,11 @@
     "verify:radar": "node --experimental-strip-types scripts/verify-radar.ts",
     "verify:coverage": "node --experimental-strip-types scripts/verify-coverage.ts",
     "verify:scanner": "node --experimental-strip-types scripts/verify-scanner.ts",
-    "verify:password-recovery": "node --experimental-strip-types scripts/verify-password-recovery.mjs"
+    "verify:password-recovery": "node --experimental-strip-types scripts/verify-password-recovery.mjs",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:dry-run": "wrangler deploy --dry-run",
+    "cf:deploy": "opennextjs-cloudflare deploy",
+    "cf:preview": "opennextjs-cloudflare preview"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
