@@ -236,8 +236,8 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
 
 /** Deterministic 0-100 opportunity score. Higher = better outreach target. */
 export function scoreSignals(s: WebsiteSignals): number {
-  if (!s.has_website) return 85;
-  if (!s.reachable) return 70;
+  if (!s.has_website) return 35; // No URL listed is not proof of no website.
+  if (!s.reachable) return 25; // A temporary check failure is inconclusive.
   let score = 5;
   if (!s.https) score += 12;
   if (!s.mobile_viewport) score += 18;
@@ -306,15 +306,15 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
 /** Human-readable signal badges for the UI. */
 export function signalBadges(s: WebsiteSignals): Array<{ label: string; tone: "good" | "warn" | "bad" }> {
   const badges: Array<{ label: string; tone: "good" | "warn" | "bad" }> = [];
-  if (!s.has_website) return [{ label: "No website", tone: "bad" }];
-  if (!s.reachable) return [{ label: "Site down", tone: "bad" }];
+  if (!s.has_website) return [{ label: "No website listed (verify)", tone: "warn" }];
+  if (!s.reachable) return [{ label: "Website check inconclusive", tone: "warn" }];
   badges.push(s.https ? { label: "HTTPS", tone: "good" } : { label: "No HTTPS", tone: "warn" });
   badges.push(
-    s.mobile_viewport ? { label: "Mobile OK", tone: "good" } : { label: "Not mobile-friendly", tone: "bad" }
+    s.mobile_viewport ? { label: "Viewport tag set", tone: "good" } : { label: "Viewport tag missing", tone: "warn" }
   );
-  if (s.builder) badges.push({ label: `Built on ${s.builder}`, tone: "warn" });
+  if (s.builder) badges.push({ label: `Built on ${s.builder}`, tone: "good" });
   if (s.stale_copyright) badges.push({ label: `Stale © ${s.copyright_year}`, tone: "warn" });
-  if (!s.title_ok || !s.description_ok) badges.push({ label: "Weak SEO basics", tone: "warn" });
+  if (!s.title_ok || !s.description_ok) badges.push({ label: "Metadata to review", tone: "warn" });
   if (s.load_ms !== null && s.load_ms > 3000) badges.push({ label: "Slow load", tone: "warn" });
   return badges;
 }
