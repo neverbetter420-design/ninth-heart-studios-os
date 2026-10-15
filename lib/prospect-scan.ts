@@ -319,29 +319,25 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
 
   const findings: string[] = [];
   if (!s.has_website) {
-    findings.push(
-      `you don't seem to have a website at all right now — which means people searching for ${catWord} in ${p.areaLabel} aren't finding you.`
-    );
+    findings.push("I couldn't find a website linked in the business listing. If you already have one, I'd love to take a look.");
+  } else if (!s.reachable) {
+    findings.push("I couldn't verify the website during a quick check, so I won't guess at what's wrong.");
   } else {
-    if (!s.reachable) findings.push(`your site wouldn't load when I checked it.`);
-    if (!s.mobile_viewport) findings.push(`it doesn't display properly on phones — and most of your customers check you out on mobile first.`);
-    if (s.builder && ["Wix", "Weebly", "GoDaddy", "Duda"].includes(s.builder))
-      findings.push(`it's built on ${s.builder}, which tends to look dated and load slowly next to a custom build.`);
-    if (!s.https) findings.push(`it's not running on HTTPS, which browsers now flag as "not secure" to visitors.`);
-    if (s.stale_copyright && s.copyright_year)
-      findings.push(`the copyright still says ${s.copyright_year}, which makes the whole place look closed even when it isn't.`);
-    if (!s.title_ok || !s.description_ok)
-      findings.push(`it's missing the basics Google needs to show you properly in search results.`);
+    if (!s.mobile_viewport) findings.push("I noticed a missing viewport tag, which is worth testing on an actual phone.");
+    if (!s.https) findings.push("The page was served over HTTP rather than HTTPS.");
+    if (s.stale_copyright && s.copyright_year) findings.push(`The page still displays a ${s.copyright_year} copyright year.`);
+    if (!s.title_ok) findings.push("The page title could use another look.");
+    if (!s.description_ok) findings.push("I didn't find a standard meta description in the HTML checked.");
   }
-  if (!findings.length) findings.push(`there's a gap between how good the business is and what the website says about it.`);
+  if (!findings.length) findings.push("I'd be happy to offer a fresh perspective on your website.");
 
   const subject = `Quick thought on ${p.business_name}'s website`;
   const body = [
     `Hi ${p.business_name} team —`,
     ``,
-    `I'm Hailey, a web designer based near ${p.areaLabel}. I was looking at ${p.business_name} and noticed ${findings.join(" ")}`,
+    `I'm Hailey with Ninth Heart Studios. I was reviewing businesses around ${p.areaLabel}. ${findings.join(" ")}`,
     ``,
-    `I build custom websites for ${catWord} — no templates, no page-builder look, just a site that actually brings in business. I offer a free 15-minute consultation if you want a straight answer on what I'd change and what it'd cost.`,
+    `I design websites for ${catWord}, with clear mobile layouts and an easier path for customers. I offer a free 15-minute consultation if you'd like a second opinion and realistic options.`,
     ``,
     `Worth a conversation?`,
     ``,
