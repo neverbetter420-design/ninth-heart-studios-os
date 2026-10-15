@@ -20,8 +20,7 @@ export default async function ForgotPasswordPage({
         {error ? <div className="auth-error" role="alert">{error}</div> : null}
         {sent ? (
           <div className="auth-success" role="status">
-            If an account uses that email, a password-reset link has been sent.
-            Check your inbox and spam folder. Use the newest link if you requested more than one.
+            If the email belongs to an NHS OS account, you should receive a reset link. Check your inbox and spam folder, and use only the newest link. If none arrives, contact the studio.
           </div>
         ) : null}
 
