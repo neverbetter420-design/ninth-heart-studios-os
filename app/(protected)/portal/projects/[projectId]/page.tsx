@@ -23,11 +23,14 @@ type ApprovalRow = {
 
 export default async function ClientProjectPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams?: Promise<{ upload_error?: string; upload_ok?: string }>;
 }) {
   const { user } = await requireUser();
   const { projectId } = await params;
+  const { upload_error: uploadError, upload_ok: uploadOk } = searchParams ? await searchParams : {};
   const supabase = await createClient();
 
   const { data: project } = await supabase
@@ -177,6 +180,8 @@ export default async function ClientProjectPage({
 
   return (
     <div className="content-wrap">
+      {uploadError && <p role="alert" className="lead-form-error">{uploadError}</p>}
+      {uploadOk && <p role="status" className="notice">{uploadOk}</p>}
       <div className="lead-detail-backline" style={{ marginBottom: 10 }}>
         <Link href="/portal" className="text-button">← Client Portal</Link>
       </div>
