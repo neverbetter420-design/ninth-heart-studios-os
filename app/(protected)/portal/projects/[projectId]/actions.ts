@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import {
   MAX_UPLOAD_BYTES,
@@ -60,15 +61,20 @@ export async function uploadClientFile(formData: FormData) {
 
   const projectId = clean(formData.get("project_id"));
   const file = formData.get("file");
-  if (!projectId || !(file instanceof File) || file.size === 0) return;
-  if (file.size > MAX_UPLOAD_BYTES) return;
+  if (!projectId) return;
+  if (!(file instanceof File) || file.size === 0) {
+    redirect(`/portal/projects/${encodeURIComponent(projectId)}?upload_error=Choose%20a%20file.`);
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    redirect(`/portal/projects/${encodeURIComponent(projectId)}?upload_error=Files%20must%20be%2025%20MB%20or%20smaller.`);
+  }
 
   const { data: project } = await supabase
     .from("projects")
     .select("id, client_id")
     .eq("id", projectId)
     .maybeSingle();
-  if (!project) return;
+  if (!project) redirect(`/portal/projects/${encodeURIComponent(projectId)}?upload_error=Project%20not%20found.`);
 
   const objectPath = projectObjectPath(project.client_id, project.id, "client", file.name);
 
@@ -78,7 +84,7 @@ export async function uploadClientFile(formData: FormData) {
       contentType: file.type || undefined,
       upsert: false,
     });
-  if (uploadError) return;
+  if (uploadError) redirect(`/portal/projects/${encodeURIComponent(projectId)}?upload_error=${encodeURIComponent(uploadError.message)}`);
 
   const { error: metaError } = await supabase.from("files").insert({
     project_id: project.id,
@@ -91,11 +97,12 @@ export async function uploadClientFile(formData: FormData) {
   });
   if (metaError) {
     await supabase.storage.from(PROJECT_FILES_BUCKET).remove([objectPath]);
-    return;
+    redirect(`/portal/projects/${encodeURIComponent(projectId)}?upload_error=${encodeURIComponent(metaError.message)}`);
   }
 
   revalidatePath(`/portal/projects/${project.id}`);
   revalidatePath("/portal");
+  redirect(`/portal/projects/${encodeURIComponent(projectId)}?upload_ok=File%20uploaded%20successfully.`);
 }
 
 /**
