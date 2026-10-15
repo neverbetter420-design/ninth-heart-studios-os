@@ -243,26 +243,20 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
     load_ms: null,
     page_bytes: null,
   };
-  const url = normalizeWebsite(rawUrl);
-  if (!url) return empty;
+  if (!rawUrl) return empty;
   empty.has_website = true;
+  const url = normalizeWebsite(rawUrl);
+  if (!url) return { ...empty, error: "unsafe_url" };
 
-  const candidates = [url];
-  if (url.startsWith("https://")) candidates.push(url.replace("https://", "http://"));
-
-  for (const candidate of candidates) {
-    try {
+  try {
       const start = Date.now();
-      const res = await fetchWithTimeout(
-        candidate,
-        9000,
-        { headers: { "User-Agent": UA, Accept: "text/html" } }
-      );
+      const res = await fetchPublicSite(url);
       const load_ms = Date.now() - start;
       const ctype = res.headers.get("content-type") ?? "";
-      if (!res.ok || !ctype.includes("text/html")) continue;
-      const text = await res.text();
-      if (text.length > 1_500_000) continue; // skip monsters
+      if (!res.ok || !ctype.toLowerCase().includes("text/html")) {
+        return { ...empty, error: "unavailable_or_non_html" };
+      }
+      const { text, bytes } = await readLimitedHtml(res);
 
       const builder =
         BUILDER_MARKERS.find((b) => b.patterns.some((p) => p.test(text)))?.label ?? null;
@@ -275,7 +269,7 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
       return {
         has_website: true,
         reachable: true,
-        https: candidate.startsWith("https://"),
+        https: res.url.startsWith("https://"),
         mobile_viewport: /<meta[^>]+name=["']viewport["']/i.test(text),
         builder,
         title_ok: !!(titleMatch?.[1].trim()) && !/untitled|home\s*$/i.test(titleMatch[1].trim()),
@@ -283,13 +277,11 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
         stale_copyright: copyright_year !== null && copyright_year < currentYear - 1,
         copyright_year,
         load_ms,
-        page_bytes: text.length,
+        page_bytes: bytes,
       };
-    } catch {
-      continue;
-    }
+  } catch (error) {
+    return { ...empty, error: error instanceof Error ? error.message : "unreachable" };
   }
-  return { ...empty, error: "unreachable" };
 }
 
 /** Deterministic 0-100 opportunity score. Higher = better outreach target. */
