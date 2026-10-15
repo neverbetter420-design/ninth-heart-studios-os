@@ -22,7 +22,8 @@ export async function runScan(formData: FormData): Promise<never> {
   const supabase = await createClient();
 
   const location = String(formData.get("location") ?? "").trim() || "Puyallup, WA";
-  const radiusMi = Math.max(1, Math.min(50, Number(formData.get("radius_mi") ?? 10)));
+  const radiusValue = Number(formData.get("radius_mi") ?? 10);
+  const radiusMi = Number.isFinite(radiusValue) ? Math.max(1, Math.min(50, radiusValue)) : 10;
   const radiusM = Math.round(radiusMi * 1609.34);
   const niches = (formData.getAll("niches") as string[]).filter(
     (n): n is NicheKey => n in NICHES
