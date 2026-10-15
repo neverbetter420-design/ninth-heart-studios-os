@@ -3,9 +3,9 @@ import { signIn } from "./actions";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; reset?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, reset } = await searchParams;
 
   return (
     <main className="auth-shell">
@@ -15,7 +15,8 @@ export default async function SignInPage({
         <h1>Enter NHS OS</h1>
         <p className="auth-copy">Private studio access for NHS Admin and invited NHS Clients.</p>
 
-        {error ? <div className="auth-error">{error}</div> : null}
+        {reset === "success" ? <div className="auth-success" role="status">Password updated. Sign in with your new password.</div> : null}
+        {error ? <div className="auth-error" role="alert">{error}</div> : null}
 
         <form action={signIn} className="auth-form">
           <label>
