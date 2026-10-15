@@ -1,0 +1,44 @@
+# One-time migration helper, intentionally limited to a feature branch.
+# Commits a reproducible package-lock.json for OpenNext + Wrangler.
+name: Bootstrap Cloudflare adapter dependencies
+
+on:
+  push:
+    branches: [infra/cloudflare-opennext-20261015]
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install existing lockfile
+        run: npm ci
+      - name: Pin compatible Cloudflare adapter and Wrangler
+        run: npm install --save-dev --save-exact @opennextjs/cloudflare@1.20.11 wrangler@latest
+      - name: Commit lockfile and manifest once
+        shell: bash
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "build: lock Cloudflare OpenNext adapter and Wrangler"
+            git push origin HEAD:infra/cloudflare-opennext-20261015
+          fi
+      - name: Build OpenNext Worker
+        run: npm run cf:build
+      - name: Dry-run Cloudflare Worker deployment
+        run: npm run cf:dry-run
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://rquscwgdrqkzwjukiqtk.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7N1_IhU0_mvs6q0ppgyssA_0O6xj-L2
