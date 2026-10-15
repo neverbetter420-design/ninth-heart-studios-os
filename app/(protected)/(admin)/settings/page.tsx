@@ -35,7 +35,7 @@ export default async function SettingsPage() {
     {
       name: "Payments",
       status: "Not connected",
-      detail: "Billing goes last. Stripe is out; provider TBD.",
+      detail: "Billing goes last. Square chosen for payments + billing.",
       tone: "progress",
     },
   ] as const;
