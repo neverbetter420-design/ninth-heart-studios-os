@@ -40,3 +40,20 @@ npm run verify:forms
 ```
 
 The security verification uses configured test identities, not real customer accounts. See [security model](docs/SECURITY_MODEL.md) and [blueprint](docs/BLUEPRINT.md).
+
+## Password recovery (production)
+
+NHS OS is hosted on `https://app.ninthheartstudios.com`, separate from the public Wix website.
+
+1. In **Supabase > Authentication > URL Configuration**, set **Site URL** to `https://app.ninthheartstudios.com`.
+2. Add **Redirect URL** `https://app.ninthheartstudios.com/auth/reset-password?recovery=1`. For development, also add `http://localhost:3000/auth/reset-password?recovery=1` if needed. The production URL must be allowlisted or Supabase may fall back to the wrong Site URL.
+3. Set the Cloudflare server-side environment variable `NHS_APP_URL=https://app.ninthheartstudios.com` (optional if using the built-in production default). Do not use the marketing Wix website URL.
+4. For robust cross-device recovery, in **Supabase > Authentication > Email Templates > Reset Password**, use a token-hash link to the already supported server callback rather than the default implicit/PKCE verification link. Keep your branded email body and update the anchor only:
+
+   ```html
+   <a href="{{ .SiteURL }}/auth/callback?flow=recovery&amp;token_hash={{ .TokenHash }}&amp;type=recovery">Reset your password</a>
+   ```
+
+   This requires the Site URL above. The callback verifies the one-use recovery token on the server; it does not authenticate other users or bypass the existing roles. The default Supabase email template remains supported for same-browser recovery via the direct reset page.
+
+After deploy/configuration, test with an **isolated invited test user**: request a reset on the live hostname, open the newest email link, set a password of at least 12 characters, and sign in again. Test both an invalid/expired URL and a direct visit to `/auth/reset-password` without a link. Never use real client accounts for test resets.

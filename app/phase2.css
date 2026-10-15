@@ -17,6 +17,7 @@
 .auth-copy, .auth-footnote, .muted-copy { color: var(--muted); font-size: 12px; line-height: 1.65; }
 .auth-footnote { margin: 17px 0 0; font-size: 10px; text-align:center; }
 .auth-error { margin: 18px 0; padding: 11px 12px; border: 1px solid rgba(255,79,150,.24); border-radius: 10px; background: rgba(255,79,150,.06); color:#ffc0d9; font-size:11px; }
+.auth-success { margin:18px 0; padding:11px 12px; border:1px solid rgba(104,244,181,.28); border-radius:10px; background:rgba(104,244,181,.065); color:#9cecc6; font-size:11px; line-height:1.6; }
 .auth-form { display:flex; flex-direction:column; gap:14px; margin-top:22px; }
 .auth-form label { display:flex; flex-direction:column; gap:7px; color:#b3aabd; font-size:10px; text-transform:uppercase; letter-spacing:.08em; }
 .auth-form input { width:100%; border:1px solid var(--line); border-radius:11px; padding:12px 13px; background:rgba(255,255,255,.025); color:#fff; outline:none; }

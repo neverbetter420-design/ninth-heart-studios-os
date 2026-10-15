@@ -17,10 +17,11 @@ export default async function ForgotPasswordPage({
           Enter your account email and we&apos;ll send you a reset link.
         </p>
 
-        {error ? <div className="auth-error">{error}</div> : null}
+        {error ? <div className="auth-error" role="alert">{error}</div> : null}
         {sent ? (
-          <div className="auth-error" style={{ borderColor: "rgba(104,244,181,.25)", color: "#9cecc6" }}>
-            Check your inbox — if the email exists, a reset link is on its way.
+          <div className="auth-success" role="status">
+            If an account uses that email, a password-reset link has been sent.
+            Check your inbox and spam folder. Use the newest link if you requested more than one.
           </div>
         ) : null}
 
