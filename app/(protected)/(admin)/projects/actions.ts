@@ -382,15 +382,20 @@ export async function uploadProjectFile(formData: FormData) {
   const visibility: FileVisibility =
     clean(formData.get("visibility")) === "internal" ? "internal" : "client";
   const file = formData.get("file");
-  if (!projectId || !(file instanceof File) || file.size === 0) return;
-  if (file.size > MAX_UPLOAD_BYTES) return;
+  if (!projectId) return;
+  if (!(file instanceof File) || file.size === 0) {
+    redirect(`/projects/${encodeURIComponent(projectId)}?upload_error=Choose%20a%20file.`);
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    redirect(`/projects/${encodeURIComponent(projectId)}?upload_error=Files%20must%20be%2025%20MB%20or%20smaller.`);
+  }
 
   const { data: project } = await supabase
     .from("projects")
     .select("id, client_id")
     .eq("id", projectId)
     .maybeSingle();
-  if (!project) return;
+  if (!project) redirect(`/projects/${encodeURIComponent(projectId)}?upload_error=Project%20not%20found.`);
 
   const filename = sanitizeFilename(file.name);
   const objectPath = projectObjectPath(project.client_id, project.id, visibility, file.name);
@@ -401,7 +406,7 @@ export async function uploadProjectFile(formData: FormData) {
       contentType: file.type || undefined,
       upsert: false,
     });
-  if (uploadError) return;
+  if (uploadError) redirect(`/projects/${encodeURIComponent(projectId)}?upload_error=${encodeURIComponent(uploadError.message)}`);
 
   const { error: metaError } = await supabase.from("files").insert({
     project_id: project.id,
@@ -415,7 +420,7 @@ export async function uploadProjectFile(formData: FormData) {
   if (metaError) {
     // Don't leave an orphaned object in the bucket.
     await supabase.storage.from(PROJECT_FILES_BUCKET).remove([objectPath]);
-    return;
+    redirect(`/projects/${encodeURIComponent(projectId)}?upload_error=${encodeURIComponent(metaError.message)}`);
   }
 
   await logActivity(supabase, {
@@ -426,6 +431,7 @@ export async function uploadProjectFile(formData: FormData) {
   });
 
   revalidateProject(projectId);
+  redirect(`/projects/${encodeURIComponent(projectId)}?upload_ok=File%20uploaded%20successfully.`);
 }
 
 export async function deleteProjectFile(formData: FormData) {
