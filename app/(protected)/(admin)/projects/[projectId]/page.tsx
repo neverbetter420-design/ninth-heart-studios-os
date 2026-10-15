@@ -33,10 +33,13 @@ function clientName(rel: ProjectRow["clients"]): string | null {
 
 export default async function ProjectWorkspacePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string }>;
+  searchParams?: Promise<{ upload_error?: string; upload_ok?: string }>;
 }) {
   const { projectId } = await params;
+  const { upload_error: uploadError, upload_ok: uploadOk } = searchParams ? await searchParams : {};
   const { user } = await requireAdmin();
   const supabase = await createClient();
 
@@ -181,6 +184,8 @@ export default async function ProjectWorkspacePage({
 
   return (
     <div className="content-wrap">
+      {uploadError && <p role="alert" className="lead-form-error">{uploadError}</p>}
+      {uploadOk && <p role="status" className="notice">{uploadOk}</p>}
       <ProjectOverview project={project} clientName={clientName(project.clients)} />
 
       <div className="workspace-grid">
