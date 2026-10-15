@@ -172,6 +172,49 @@ export function normalizeWebsite(raw: string | null): string | null {
   }
 }
 
+
+/** Validate every redirect hop rather than implicitly following arbitrary URLs. */
+async function fetchPublicSite(rawUrl: string): Promise<Response> {
+  let current = normalizeWebsite(rawUrl);
+  if (!current) throw new Error("Unsafe website URL");
+  for (let redirects = 0; redirects <= 3; redirects++) {
+    const response = await fetch(current, {
+      redirect: "manual",
+      headers: { "User-Agent": UA, Accept: "text/html" },
+      signal: AbortSignal.timeout(7000),
+    });
+    if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+    const location = response.headers.get("location");
+    if (!location || redirects === 3) throw new Error("Redirect limit exceeded");
+    current = normalizeWebsite(new URL(location, current).toString());
+    if (!current) throw new Error("Unsafe website redirect");
+  }
+  throw new Error("Too many redirects");
+}
+
+/** Never buffer unlimited HTML from a remote website. */
+async function readLimitedHtml(response: Response): Promise<{ text: string; bytes: number }> {
+  if (!response.body) throw new Error("Empty response");
+  if (Number(response.headers.get("content-length")) > 1_500_000) throw new Error("Website page too large");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
+  try {
+    while (true) {
+      const next = await reader.read();
+      if (next.done) break;
+      bytes += next.value.byteLength;
+      if (bytes > 1_500_000) throw new Error("Website page too large");
+      text += decoder.decode(next.value, { stream: true });
+    }
+    text += decoder.decode();
+    return { text, bytes };
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
+}
+
 const BUILDER_MARKERS: Array<{ key: string; label: string; patterns: RegExp[] }> = [
   { key: "wix", label: "Wix", patterns: [/wix\.com/i, /generator["']\s*content=["'][^"']*wix/i] },
   { key: "squarespace", label: "Squarespace", patterns: [/squarespace/i] },
