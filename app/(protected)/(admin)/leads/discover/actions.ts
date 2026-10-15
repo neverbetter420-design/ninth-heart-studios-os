@@ -47,7 +47,8 @@ export async function runScan(formData: FormData): Promise<never> {
 
   let inserted = 0;
   let skipped = 0;
-  for (const b of found.slice(0, SCAN_CAP)) {
+  for (let i = 0; i < Math.min(found.length, SCAN_CAP); i += 3) {
+    await Promise.all(found.slice(i, i + 3).map(async (b) => {
     const signals = await analyzeWebsite(b.website);
     const score = scoreSignals(signals);
     const row = {
@@ -73,6 +74,7 @@ export async function runScan(formData: FormData): Promise<never> {
       : await supabase.from("prospects").insert(row);
     if (error) skipped++;
     else inserted++;
+    }));
   }
 
   revalidatePath("/leads/discover");
