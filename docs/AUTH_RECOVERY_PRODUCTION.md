@@ -44,20 +44,22 @@ This callback verifies the token server-side and works across devices without re
 
 **Access required:** An authorized Supabase owner/admin sign-in (in the dashboard, not in chat).
 
-## 3. Deploy the already merged source correctly
+## 3. Deploy the verified production Worker safely
 
-The GitHub `main` branch contains the first password-recovery patch and this document. Cloudflare currently has **no Workers Builds trigger or deploy hook** for the Worker; GitHub pushes won't update it.
+GitHub now contains a fully reproducible OpenNext/Cloudflare Worker build:
 
-The GitHub repository does **not** currently contain `wrangler.jsonc`, `open-next.config.ts`, or an `@opennextjs/cloudflare` dependency. Those deployment artifacts may exist only in the local VS Code environment used previously. **Do not deploy a bare `next build` result or overwrite the running Worker with raw Next.js code.**
+- `wrangler.jsonc`: correct `ninth-heart-studios-os` name, current compatibility date/flag, `ASSETS` binding and `keep_vars: true` to preserve dashboard environment values.
+- `open-next.config.ts` and locked dependencies in `package-lock.json`.
+- `npm run cf:build`: compiles the actual Cloudflare Worker bundle.
+- `npm run cf:dry-run`: validates the bundled Worker without publishing.
+- `.github/workflows/verify-cloudflare.yml`: repeats both checks on pull requests and main.
+- `.github/workflows/deploy-cloudflare.yml`: **manual dispatch only**, with a preflight; never deploys just because code is pushed.
 
-In the existing VS Code local project:
-1. Check for uncommitted changes: `git status`. Save local-only config and uncommitted application edits before pulling.
-2. `git fetch origin`, then `git pull --ff-only origin main` on a clean main branch (do not use `git reset --hard`).
-3. Verify the existing Cloudflare adapter and Wrangler configuration used for the current live deployment; confirm Worker name, `ASSETS` binding, runtime bindings, compatibility flags, and custom domain stay unchanged.
-4. Build using the **already proven local OpenNext/Cloudflare adapter** and deploy through the authenticated Wrangler CLI. Do not overwrite secret bindings or change DNS records blindly.
-5. Confirm Cloudflare's newest deployment timestamp is after this commit, then run an isolated reset test.
+**Production credential/action needed:** Create a scoped Cloudflare API token with Workers edit/deploy permissions for this account. Add it to the **production GitHub environment** as the secret `CLOUDFLARE_API_TOKEN`. The non-secret account ID is already configured in the deploy workflow.
 
-**Credentials needed only if configuring CI or reauthenticating Wrangler:** A **Cloudflare API token** limited to Workers edit/deploy for the correct account, placed in a secure CI secret named `CLOUDFLARE_API_TOKEN`. `CLOUDFLARE_ACCOUNT_ID` is a non-secret account identifier. Existing Cloudflare connection in ChatGPT can read settings but cannot compile an absent local adapter bundle.
+**Do not start the workflow until Supabase custom SMTP, URL settings and the recovery email template have been checked.** Cloudflare's deployment is a production change. Trigger **Actions > Deploy NHS OS to Cloudflare (manual) > Run workflow** using `main` only after approval. The workflow verifies TypeScript and password recovery, builds the OpenNext bundle, performs a Wrangler dry-run, and deploys the **same** Worker name and asset binding.
+
+The existing Cloudflare dashboard Worker custom domain `app.ninthheartstudios.com` must remain attached. `keep_vars` prevents the known `NEXTJS_ENV` dashboard binding from being replaced. Confirm original Cloudflare Worker settings and latest deployment timestamp immediately after release. If in doubt about runtime permissions or bindings, do not publish.
 
 ## 4. Smoke test with an invited test account only
 

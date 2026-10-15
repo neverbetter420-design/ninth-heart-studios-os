@@ -1,0 +1,59 @@
+name: Deploy NHS OS to Cloudflare (manual)
+
+# Intentionally NOT triggered by push. The live Worker and existing client
+# sessions must not be replaced until email and auth configuration are verified.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nhs-os-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: production
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://rquscwgdrqkzwjukiqtk.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7N1_IhU0_mvs6q0ppgyssA_0O6xj-L2
+      NHS_APP_URL: https://app.ninthheartstudios.com
+      CLOUDFLARE_ACCOUNT_ID: 1cab715a285ef1f9cabff977ccda18da
+    steps:
+      - name: Checkout approved main
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Preflight Cloudflare credential
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Set CLOUDFLARE_API_TOKEN in the production GitHub environment before deploying."
+            exit 1
+          fi
+      - name: Install locked packages
+        run: npm ci
+      - name: Verify TypeScript and password recovery
+        run: |
+          npm run typecheck
+          npm run verify:password-recovery
+      - name: Build Cloudflare Worker
+        run: npm run cf:build
+      - name: Check Worker output (no publish)
+        run: npm run cf:dry-run
+      - name: Deploy approved bundle
+        run: npm run cf:deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Inspect deployment in Cloudflare
+        run: npx wrangler deployments list --name ninth-heart-studios-os
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
