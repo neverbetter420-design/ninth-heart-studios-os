@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { isPasswordRecoveryReturn } from "@/lib/password-recovery";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -12,28 +13,46 @@ export default function ResetPasswordPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    let active = true;
+    const returnUrl = new URL(window.location.href);
+
+    // A normal authenticated session is NOT evidence of an email recovery.
+    if (!isPasswordRecoveryReturn(returnUrl)) {
+      setStatus("invalid");
+      return;
+    }
+
     const supabase = createClient();
-    // The browser client auto-detects the recovery session from the URL
-    // fragment (#access_token=...) that Supabase appends to the reset link.
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session?.user?.email) {
-        setEmail(data.session.user.email);
-        setStatus("ready");
-      } else {
+
+    async function checkRecoverySession() {
+      // getUser validates the authenticated identity with Supabase Auth and
+      // waits for the browser client to process PKCE codes or recovery fragments.
+      const { data, error: authError } = await supabase.auth.getUser();
+      if (!active) return;
+
+      if (authError || !data.user?.email) {
         setStatus("invalid");
+        return;
       }
+
+      setEmail(data.user.email);
+      setStatus("ready");
+
+      // Remove recovery codes/tokens from the browser URL and history.
+      window.history.replaceState(window.history.state, "", "/auth/reset-password");
+    }
+
+    void checkRecoverySession().catch(() => {
+      if (active) setStatus("invalid");
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user?.email) {
-        setEmail(session.user.email);
-        setStatus("ready");
-      }
-    });
-    return () => sub.subscription.unsubscribe();
+
+    return () => { active = false; };
   }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (saving) return;
+
     setError(null);
     const form = new FormData(e.currentTarget);
     const password = String(form.get("password") ?? "");
@@ -46,15 +65,25 @@ export default function ResetPasswordPage() {
       setError("Passwords do not match.");
       return;
     }
+
     setSaving(true);
     const supabase = createClient();
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-    setSaving(false);
-    if (updateError) {
-      setError(updateError.message);
-      return;
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+
+      // Close the short-lived recovery session. The user signs in afresh.
+      await supabase.auth.signOut();
+      router.replace("/auth/sign-in?reset=success");
+      router.refresh();
+    } catch {
+      setError("Unable to update your password. Request a new reset link and try again.");
+    } finally {
+      setSaving(false);
     }
-    router.replace("/");
   }
 
   return (
@@ -70,8 +99,8 @@ export default function ResetPasswordPage() {
 
         {status === "invalid" && (
           <>
-            <div className="auth-error">
-              This reset link is invalid or expired.
+            <div className="auth-error" role="alert">
+              This reset link is invalid, expired, or has already been used.
             </div>
             <p className="auth-footnote">
               <a href="/auth/forgot-password">Request a new reset link</a>
@@ -84,21 +113,21 @@ export default function ResetPasswordPage() {
             <p className="auth-copy">
               Setting a new password for <strong>{email}</strong>.
             </p>
-            {error ? <div className="auth-error">{error}</div> : null}
+            {error ? <div className="auth-error" role="alert">{error}</div> : null}
             <form onSubmit={onSubmit} className="auth-form">
               <label>
                 <span>New password</span>
-                <input name="password" type="password" autoComplete="new-password" required minLength={12} />
+                <input name="password" type="password" autoComplete="new-password" required minLength={12} disabled={saving} />
               </label>
               <label>
                 <span>Confirm new password</span>
-                <input name="confirm" type="password" autoComplete="new-password" required minLength={12} />
+                <input name="confirm" type="password" autoComplete="new-password" required minLength={12} disabled={saving} />
               </label>
               <button className="primary-button wide" type="submit" disabled={saving}>
                 {saving ? "Saving…" : "Set new password"}
               </button>
             </form>
-            <p className="auth-footnote">Minimum 12 characters.</p>
+            <p className="auth-footnote">Use at least 12 characters. You’ll sign in again afterward.</p>
           </>
         )}
       </section>
