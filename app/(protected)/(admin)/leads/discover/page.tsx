@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { NICHES, signalBadges, type WebsiteSignals } from "@/lib/prospect-scan";
 import {
   runScan,
@@ -101,9 +102,7 @@ export default async function DiscoverPage({
               ))}
             </div>
           </fieldset>
-          <button type="submit" className="primary-button">
-            Scan
-          </button>
+          <ScannerSubmitButton />
           <p className="form-hint">
             Up to 12 businesses per scan. Business data © OpenStreetMap
             contributors (ODbL). Be nice — scans are on-demand, not continuous.

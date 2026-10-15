@@ -44,6 +44,7 @@ export const NICHES: Record<NicheKey, { label: string; overpass: string[] }> = {
 };
 
 export type DiscoveredBusiness = {
+  source_ref: string;
   name: string;
   category: string;
   address: string | null;
@@ -125,8 +126,9 @@ export async function discoverBusinesses(
   for (const el of data.elements ?? []) {
     const tags = el.tags ?? {};
     const name = (tags.name ?? "").trim();
-    if (!name || seen.has(name.toLowerCase())) continue;
-    seen.add(name.toLowerCase());
+    const source_ref = `${el.type}:${el.id}`;
+    if (!name || seen.has(source_ref)) continue;
+    seen.add(source_ref);
     const category =
       tags.amenity ?? tags.shop ?? tags.craft ?? tags.leisure ?? tags.office ?? "business";
     const addrParts = [
@@ -136,6 +138,7 @@ export async function discoverBusinesses(
       tags["addr:postcode"],
     ].filter(Boolean);
     out.push({
+      source_ref,
       name,
       category,
       address: addrParts.length ? addrParts.join(", ") : null,
@@ -149,12 +152,70 @@ export async function discoverBusinesses(
   return out;
 }
 
+/** Validate untrusted third-party website links before any server request. */
 export function normalizeWebsite(raw: string | null): string | null {
-  if (!raw) return null;
-  const t = raw.trim();
-  if (!t) return null;
-  if (/^https?:\/\//i.test(t)) return t;
-  return `https://${t}`;
+  if (!raw || !raw.trim() || raw.length > 2048) return null;
+  try {
+    const text = raw.trim();
+    const url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
+    const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    if (url.username || url.password || (url.port && !["80", "443"].includes(url.port))) return null;
+    // IP literals, internal DNS names, and public wildcard DNS to local addresses
+    // are not valid prospect website targets.
+    if (!hostname.includes(".") || hostname.includes(":")) return null;
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) return null;
+    if (/(^|\.)(local|localhost|internal|lan|test|invalid|example)$/.test(hostname)) return null;
+    if (/(^|\.)(nip\.io|sslip\.io|localhost\.direct|home\.arpa)$/.test(hostname)) return null;
+    if (hostname.length > 253) return null;
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+
+/** Validate every redirect hop rather than implicitly following arbitrary URLs. */
+async function fetchPublicSite(rawUrl: string): Promise<Response> {
+  let current = normalizeWebsite(rawUrl);
+  if (!current) throw new Error("Unsafe website URL");
+  for (let redirects = 0; redirects <= 3; redirects++) {
+    const response = await fetch(current, {
+      redirect: "manual",
+      headers: { "User-Agent": UA, Accept: "text/html" },
+      signal: AbortSignal.timeout(7000),
+    });
+    if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+    const location = response.headers.get("location");
+    if (!location || redirects === 3) throw new Error("Redirect limit exceeded");
+    current = normalizeWebsite(new URL(location, current).toString());
+    if (!current) throw new Error("Unsafe website redirect");
+  }
+  throw new Error("Too many redirects");
+}
+
+/** Never buffer unlimited HTML from a remote website. */
+async function readLimitedHtml(response: Response): Promise<{ text: string; bytes: number }> {
+  if (!response.body) throw new Error("Empty response");
+  if (Number(response.headers.get("content-length")) > 1_500_000) throw new Error("Website page too large");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  let bytes = 0;
+  try {
+    while (true) {
+      const next = await reader.read();
+      if (next.done) break;
+      bytes += next.value.byteLength;
+      if (bytes > 1_500_000) throw new Error("Website page too large");
+      text += decoder.decode(next.value, { stream: true });
+    }
+    text += decoder.decode();
+    return { text, bytes };
+  } finally {
+    await reader.cancel().catch(() => {});
+  }
 }
 
 const BUILDER_MARKERS: Array<{ key: string; label: string; patterns: RegExp[] }> = [
@@ -185,26 +246,20 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
     load_ms: null,
     page_bytes: null,
   };
-  const url = normalizeWebsite(rawUrl);
-  if (!url) return empty;
+  if (!rawUrl) return empty;
   empty.has_website = true;
+  const url = normalizeWebsite(rawUrl);
+  if (!url) return { ...empty, error: "unsafe_url" };
 
-  const candidates = [url];
-  if (url.startsWith("https://")) candidates.push(url.replace("https://", "http://"));
-
-  for (const candidate of candidates) {
-    try {
+  try {
       const start = Date.now();
-      const res = await fetchWithTimeout(
-        candidate,
-        9000,
-        { headers: { "User-Agent": UA, Accept: "text/html" } }
-      );
+      const res = await fetchPublicSite(url);
       const load_ms = Date.now() - start;
       const ctype = res.headers.get("content-type") ?? "";
-      if (!res.ok || !ctype.includes("text/html")) continue;
-      const text = await res.text();
-      if (text.length > 1_500_000) continue; // skip monsters
+      if (!res.ok || !ctype.toLowerCase().includes("text/html")) {
+        return { ...empty, error: "unavailable_or_non_html" };
+      }
+      const { text, bytes } = await readLimitedHtml(res);
 
       const builder =
         BUILDER_MARKERS.find((b) => b.patterns.some((p) => p.test(text)))?.label ?? null;
@@ -217,7 +272,7 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
       return {
         has_website: true,
         reachable: true,
-        https: candidate.startsWith("https://"),
+        https: res.url.startsWith("https://"),
         mobile_viewport: /<meta[^>]+name=["']viewport["']/i.test(text),
         builder,
         title_ok: !!(titleMatch?.[1].trim()) && !/untitled|home\s*$/i.test(titleMatch[1].trim()),
@@ -225,19 +280,17 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
         stale_copyright: copyright_year !== null && copyright_year < currentYear - 1,
         copyright_year,
         load_ms,
-        page_bytes: text.length,
+        page_bytes: bytes,
       };
-    } catch {
-      continue;
-    }
+  } catch (error) {
+    return { ...empty, error: error instanceof Error ? error.message : "unreachable" };
   }
-  return { ...empty, error: "unreachable" };
 }
 
 /** Deterministic 0-100 opportunity score. Higher = better outreach target. */
 export function scoreSignals(s: WebsiteSignals): number {
-  if (!s.has_website) return 85;
-  if (!s.reachable) return 70;
+  if (!s.has_website) return 35; // No URL listed is not proof of no website.
+  if (!s.reachable) return 25; // A temporary check failure is inconclusive.
   let score = 5;
   if (!s.https) score += 12;
   if (!s.mobile_viewport) score += 18;
@@ -269,29 +322,25 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
 
   const findings: string[] = [];
   if (!s.has_website) {
-    findings.push(
-      `you don't seem to have a website at all right now — which means people searching for ${catWord} in ${p.areaLabel} aren't finding you.`
-    );
+    findings.push("I couldn't find a website linked in the business listing. If you already have one, I'd love to take a look.");
+  } else if (!s.reachable) {
+    findings.push("I couldn't verify the website during a quick check, so I won't guess at what's wrong.");
   } else {
-    if (!s.reachable) findings.push(`your site wouldn't load when I checked it.`);
-    if (!s.mobile_viewport) findings.push(`it doesn't display properly on phones — and most of your customers check you out on mobile first.`);
-    if (s.builder && ["Wix", "Weebly", "GoDaddy", "Duda"].includes(s.builder))
-      findings.push(`it's built on ${s.builder}, which tends to look dated and load slowly next to a custom build.`);
-    if (!s.https) findings.push(`it's not running on HTTPS, which browsers now flag as "not secure" to visitors.`);
-    if (s.stale_copyright && s.copyright_year)
-      findings.push(`the copyright still says ${s.copyright_year}, which makes the whole place look closed even when it isn't.`);
-    if (!s.title_ok || !s.description_ok)
-      findings.push(`it's missing the basics Google needs to show you properly in search results.`);
+    if (!s.mobile_viewport) findings.push("I noticed a missing viewport tag, which is worth testing on an actual phone.");
+    if (!s.https) findings.push("The page was served over HTTP rather than HTTPS.");
+    if (s.stale_copyright && s.copyright_year) findings.push(`The page still displays a ${s.copyright_year} copyright year.`);
+    if (!s.title_ok) findings.push("The page title could use another look.");
+    if (!s.description_ok) findings.push("I didn't find a standard meta description in the HTML checked.");
   }
-  if (!findings.length) findings.push(`there's a gap between how good the business is and what the website says about it.`);
+  if (!findings.length) findings.push("I'd be happy to offer a fresh perspective on your website.");
 
   const subject = `Quick thought on ${p.business_name}'s website`;
   const body = [
     `Hi ${p.business_name} team —`,
     ``,
-    `I'm Hailey, a web designer based near ${p.areaLabel}. I was looking at ${p.business_name} and noticed ${findings.join(" ")}`,
+    `I'm Hailey with Ninth Heart Studios. I was reviewing businesses around ${p.areaLabel}. ${findings.join(" ")}`,
     ``,
-    `I build custom websites for ${catWord} — no templates, no page-builder look, just a site that actually brings in business. I offer a free 15-minute consultation if you want a straight answer on what I'd change and what it'd cost.`,
+    `I design websites for ${catWord}, with clear mobile layouts and an easier path for customers. I offer a free 15-minute consultation if you'd like a second opinion and realistic options.`,
     ``,
     `Worth a conversation?`,
     ``,
@@ -306,15 +355,15 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
 /** Human-readable signal badges for the UI. */
 export function signalBadges(s: WebsiteSignals): Array<{ label: string; tone: "good" | "warn" | "bad" }> {
   const badges: Array<{ label: string; tone: "good" | "warn" | "bad" }> = [];
-  if (!s.has_website) return [{ label: "No website", tone: "bad" }];
-  if (!s.reachable) return [{ label: "Site down", tone: "bad" }];
+  if (!s.has_website) return [{ label: "No website listed (verify)", tone: "warn" }];
+  if (!s.reachable) return [{ label: "Website check inconclusive", tone: "warn" }];
   badges.push(s.https ? { label: "HTTPS", tone: "good" } : { label: "No HTTPS", tone: "warn" });
   badges.push(
-    s.mobile_viewport ? { label: "Mobile OK", tone: "good" } : { label: "Not mobile-friendly", tone: "bad" }
+    s.mobile_viewport ? { label: "Viewport tag set", tone: "good" } : { label: "Viewport tag missing", tone: "warn" }
   );
-  if (s.builder) badges.push({ label: `Built on ${s.builder}`, tone: "warn" });
+  if (s.builder) badges.push({ label: `Built on ${s.builder}`, tone: "good" });
   if (s.stale_copyright) badges.push({ label: `Stale © ${s.copyright_year}`, tone: "warn" });
-  if (!s.title_ok || !s.description_ok) badges.push({ label: "Weak SEO basics", tone: "warn" });
+  if (!s.title_ok || !s.description_ok) badges.push({ label: "Metadata to review", tone: "warn" });
   if (s.load_ms !== null && s.load_ms > 3000) badges.push({ label: "Slow load", tone: "warn" });
   return badges;
 }
