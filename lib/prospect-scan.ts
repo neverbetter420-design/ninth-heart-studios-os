@@ -44,6 +44,7 @@ export const NICHES: Record<NicheKey, { label: string; overpass: string[] }> = {
 };
 
 export type DiscoveredBusiness = {
+  source_ref: string;
   name: string;
   category: string;
   address: string | null;
@@ -125,8 +126,9 @@ export async function discoverBusinesses(
   for (const el of data.elements ?? []) {
     const tags = el.tags ?? {};
     const name = (tags.name ?? "").trim();
-    if (!name || seen.has(name.toLowerCase())) continue;
-    seen.add(name.toLowerCase());
+    const source_ref = `${el.type}:${el.id}`;
+    if (!name || seen.has(source_ref)) continue;
+    seen.add(source_ref);
     const category =
       tags.amenity ?? tags.shop ?? tags.craft ?? tags.leisure ?? tags.office ?? "business";
     const addrParts = [
@@ -136,6 +138,7 @@ export async function discoverBusinesses(
       tags["addr:postcode"],
     ].filter(Boolean);
     out.push({
+      source_ref,
       name,
       category,
       address: addrParts.length ? addrParts.join(", ") : null,
