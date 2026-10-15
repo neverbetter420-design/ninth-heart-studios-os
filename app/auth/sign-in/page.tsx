@@ -29,6 +29,7 @@ export default async function SignInPage({
           <button className="primary-button wide" type="submit">Sign in</button>
         </form>
 
+        <p className="auth-footnote"><a href="/auth/forgot-password">Forgot password?</a></p>
         <p className="auth-footnote">Public registration is disabled. Client accounts are invite-only.</p>
         <p className="auth-footnote"><a href="https://www.ninthheartstudios.com">← Back to Ninth Heart Studios</a></p>
       </section>
