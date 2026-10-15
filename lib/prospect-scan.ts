@@ -149,12 +149,27 @@ export async function discoverBusinesses(
   return out;
 }
 
+/** Validate untrusted third-party website links before any server request. */
 export function normalizeWebsite(raw: string | null): string | null {
-  if (!raw) return null;
-  const t = raw.trim();
-  if (!t) return null;
-  if (/^https?:\/\//i.test(t)) return t;
-  return `https://${t}`;
+  if (!raw || !raw.trim() || raw.length > 2048) return null;
+  try {
+    const text = raw.trim();
+    const url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
+    const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+    if (!["http:", "https:"].includes(url.protocol)) return null;
+    if (url.username || url.password || (url.port && !["80", "443"].includes(url.port))) return null;
+    // IP literals, internal DNS names, and public wildcard DNS to local addresses
+    // are not valid prospect website targets.
+    if (!hostname.includes(".") || hostname.includes(":")) return null;
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) return null;
+    if (/(^|\.)(local|localhost|internal|lan|test|invalid|example)$/.test(hostname)) return null;
+    if (/(^|\.)(nip\.io|sslip\.io|localhost\.direct|home\.arpa)$/.test(hostname)) return null;
+    if (hostname.length > 253) return null;
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
 }
 
 const BUILDER_MARKERS: Array<{ key: string; label: string; patterns: RegExp[] }> = [
