@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { passwordRecoveryRedirectUrl } from "@/lib/password-recovery";
+import { passwordRecoveryRedirectUrl, passwordResetErrorMessage } from "@/lib/password-recovery";
 
 export async function requestPasswordReset(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
@@ -26,13 +26,32 @@ export async function requestPasswordReset(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: passwordRecoveryRedirectUrl(appUrl),
-  });
+  let errorMessage: string | null = null;
 
-  if (error) {
-    // The error must not disclose whether an account exists.
-    redirect("/auth/forgot-password?error=Unable%20to%20send%20a%20reset%20link%20right%20now.%20Please%20try%20again%20later.");
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: passwordRecoveryRedirectUrl(appUrl),
+    });
+
+    if (error) {
+      // Codes/status only: do not log account emails or Supabase session data.
+      console.warn("[NHS auth] Password reset request rejected", {
+        code: error.code ?? "unknown",
+        status: error.status ?? 0,
+      });
+      errorMessage = passwordResetErrorMessage({
+        code: error.code,
+        status: error.status,
+      });
+    }
+  } catch {
+    // Network / provider outages must not become an unhandled server error.
+    console.error("[NHS auth] Password reset request failed before a response.");
+    errorMessage = passwordResetErrorMessage();
+  }
+
+  if (errorMessage) {
+    redirect(`/auth/forgot-password?error=${encodeURIComponent(errorMessage)}`);
   }
 
   // Identical message whether or not the submitted email is registered.
