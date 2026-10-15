@@ -10,8 +10,7 @@ export function isPasswordRecoveryReturn(url: URL): boolean {
   const fragment = new URLSearchParams(url.hash.slice(1));
   return (
     url.searchParams.get("recovery") === "1" ||
-    fragment.get("type") === "recovery" ||
-    url.searchParams.has("code")
+    fragment.get("type") === "recovery"
   );
 }
 
