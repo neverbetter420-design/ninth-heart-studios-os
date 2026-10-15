@@ -1,19 +1,60 @@
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { updatePassword } from "./actions";
+"use client";
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ error?: string }>;
-}) {
-  const { error } = await searchParams;
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-  // Only reachable with a valid recovery session (set by /auth/callback).
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    redirect("/auth/sign-in?error=Reset%20link%20is%20invalid%20or%20expired.%20Request%20a%20new%20one.");
+export default function ResetPasswordPage() {
+  const router = useRouter();
+  const [status, setStatus] = useState<"checking" | "ready" | "invalid">("checking");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    // The browser client auto-detects the recovery session from the URL
+    // fragment (#access_token=...) that Supabase appends to the reset link.
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user?.email) {
+        setEmail(data.session.user.email);
+        setStatus("ready");
+      } else {
+        setStatus("invalid");
+      }
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.email) {
+        setEmail(session.user.email);
+        setStatus("ready");
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    const form = new FormData(e.currentTarget);
+    const password = String(form.get("password") ?? "");
+    const confirm = String(form.get("confirm") ?? "");
+    if (password.length < 12) {
+      setError("Password must be at least 12 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setSaving(true);
+    const supabase = createClient();
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+    setSaving(false);
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    router.replace("/");
   }
 
   return (
@@ -22,25 +63,44 @@ export default async function ResetPasswordPage({
         <div className="auth-brand-mark">♥</div>
         <p className="eyebrow electric">Ninth Heart Studios</p>
         <h1>Choose a new password</h1>
-        <p className="auth-copy">
-          Setting a new password for <strong>{user.email}</strong>.
-        </p>
 
-        {error ? <div className="auth-error">{error}</div> : null}
+        {status === "checking" && (
+          <p className="auth-copy">Verifying your reset link…</p>
+        )}
 
-        <form action={updatePassword} className="auth-form">
-          <label>
-            <span>New password</span>
-            <input name="password" type="password" autoComplete="new-password" required minLength={12} />
-          </label>
-          <label>
-            <span>Confirm new password</span>
-            <input name="confirm" type="password" autoComplete="new-password" required minLength={12} />
-          </label>
-          <button className="primary-button wide" type="submit">Set new password</button>
-        </form>
+        {status === "invalid" && (
+          <>
+            <div className="auth-error">
+              This reset link is invalid or expired.
+            </div>
+            <p className="auth-footnote">
+              <a href="/auth/forgot-password">Request a new reset link</a>
+            </p>
+          </>
+        )}
 
-        <p className="auth-footnote">Minimum 12 characters.</p>
+        {status === "ready" && (
+          <>
+            <p className="auth-copy">
+              Setting a new password for <strong>{email}</strong>.
+            </p>
+            {error ? <div className="auth-error">{error}</div> : null}
+            <form onSubmit={onSubmit} className="auth-form">
+              <label>
+                <span>New password</span>
+                <input name="password" type="password" autoComplete="new-password" required minLength={12} />
+              </label>
+              <label>
+                <span>Confirm new password</span>
+                <input name="confirm" type="password" autoComplete="new-password" required minLength={12} />
+              </label>
+              <button className="primary-button wide" type="submit" disabled={saving}>
+                {saving ? "Saving…" : "Set new password"}
+              </button>
+            </form>
+            <p className="auth-footnote">Minimum 12 characters.</p>
+          </>
+        )}
       </section>
     </main>
   );
