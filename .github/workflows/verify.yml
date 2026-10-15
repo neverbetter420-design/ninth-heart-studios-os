@@ -1,0 +1,47 @@
+name: NHS OS verification
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Verify pure modules
+        run: |
+          npm run verify:scanner
+          npm run verify:flowkeep
+          npm run verify:muse
+          npm run verify:automations
+          npm run verify:email
+          npm run verify:contracts
+          npm run verify:templates
+          npm run verify:forms
+          npm run verify:delivery
+          npm run verify:radar
+          npm run verify:coverage
+      - name: Production build
+        run: npm run build
+
+# verify:security requires real isolated Supabase test identities; run it
+# in a protected manual test environment, never against live client data.
