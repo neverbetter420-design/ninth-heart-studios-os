@@ -47,7 +47,7 @@ function harness(file, expectations = [], options = {}) {
               assert.ok(expected, "unexpected storage removal");
               assert.equal(expected.table, "storage");
               assert.equal(expected.operation, "remove");
-              if (expected.paths) assert.deepEqual(paths, expected.paths);
+              if (expected.paths) assert.deepEqual(normalized(paths), expected.paths);
             } catch (error) {
               harnessErrors.push(error);
               throw error;
