@@ -12,6 +12,8 @@ This is a checklist for the owner to review authenticated provider settings. It 
 - Connected Supabase organization plan is **Free**; automatic downloadable backups are not included. The database read-only query on October 17 measured about **13 MB**, **4 auth users**, **1 Storage object**, and **22 applied migrations**. Source proposes security migration `20261017030000_phase3_client_decision_sender_guard.sql` but it is **not yet applied**.
 - Auth logs and public DNS checks alone cannot reveal the configured SMTP password, verified sender-domain state, full delivery events, or a successfully used recovery link. A Gmail search found no independent recovery message confirmation. Do not claim the email gate is complete.
 
+**Owner confirmation (October 17, 2026):** The owner reports that Resend displays **Verified** for `notify.ninthheartstudios.com`. This is a user-confirmed provider UI status, not an independent authenticated Resend API check. **Gate A is only partially complete** until the SMTP integration settings, approved From address, and controlled delivery event are checked. No credentials are needed in this document.
+
 ## Gate A: Verify Resend as sending provider (owner/provider UI)
 
 1. Open [Resend Domains](https://resend.com/domains). Open the exact **`notify.ninthheartstudios.com`** sender-domain entry and confirm that its status says **Verified**. If not, use Resend's generated DNS requirements; do not invent DKIM/SPF/MX values or alter Google's root MX records.
