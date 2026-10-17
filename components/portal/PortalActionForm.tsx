@@ -17,12 +17,14 @@ export function PortalActionForm({
   className,
   style,
   pendingMessage = "Saving…",
+  lockOnSuccess = true,
 }: {
   action: FeedbackAction;
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
   pendingMessage?: string;
+  lockOnSuccess?: boolean;
 }) {
   const [feedback, dispatch] = useActionState(action, initialPortalFeedbackState);
   const [pending, startTransition] = useTransition();
@@ -30,7 +32,7 @@ export function PortalActionForm({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending || feedback.status === "success") return;
+    if (pending || (lockOnSuccess && feedback.status === "success")) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     // HTML submit buttons aren't included by default when FormData is created
@@ -45,7 +47,7 @@ export function PortalActionForm({
 
   return (
     <form className={className} style={style} onSubmit={handleSubmit} aria-busy={pending}>
-      <fieldset className="portal-action-fields" disabled={pending || feedback.status === "success"}>
+      <fieldset className="portal-action-fields" disabled={pending || (lockOnSuccess && feedback.status === "success")}>
         {children}
       </fieldset>
       {pending ? (
