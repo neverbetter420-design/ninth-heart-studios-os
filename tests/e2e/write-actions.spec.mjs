@@ -73,7 +73,7 @@ async function portalHas(browser, baseURL, text, visible) {
 }
 
 function namedRow(section, title) {
-  return section.locator("li.delivery-row").filter({ has: section.getByText(title, { exact: true }) });
+  return section.locator("li.delivery-row").filter({ hasText: title });
 }
 
 async function safeRemove(page, sectionName, title) {
@@ -85,7 +85,7 @@ async function safeRemove(page, sectionName, title) {
   if (await row.count() !== 1) return;
   page.once("dialog", (dialog) => dialog.accept());
   await row.getByRole("button", { name: "Delete " + title, exact: true }).click();
-  await expect(row).toHaveCount(0);
+  // Server revalidation can be asynchronous; reload proves persisted deletion.
   await page.reload();
   await expect(namedRow(page.getByRole("region", { name: sectionName }), title)).toHaveCount(0);
 }
@@ -108,6 +108,7 @@ test.describe("Approved isolated live-action QA", () => {
       await form.locator('input[name="client_visible"]').check();
       attempted = true;
       await form.getByRole("button", { name: "Add", exact: true }).click();
+      await expect(form.getByRole("status")).toContainText("Task added.");
       await expect(namedRow(section, title)).toBeVisible();
       await page.reload();
       await expect(namedRow(page.getByRole("region", { name: "Tasks" }), title)).toBeVisible();
@@ -116,11 +117,13 @@ test.describe("Approved isolated live-action QA", () => {
       let row = namedRow(page.getByRole("region", { name: "Tasks" }), title);
       await row.getByRole("combobox", { name: "Status for " + title }).selectOption("in_progress");
       await row.getByRole("button", { name: "Set", exact: true }).click();
+      await expect(row.getByRole("status")).toContainText("Task status updated.");
       await page.reload();
       row = namedRow(page.getByRole("region", { name: "Tasks" }), title);
       await expect(row.getByText("In progress", { exact: true })).toBeVisible();
 
       await row.getByRole("button", { name: "Hide " + title + " from client" }).click();
+      await expect(row.getByRole("status")).toContainText("Task visibility saved.");
       await page.reload();
       await portalHas(browser, baseURL, title, false);
     } finally {
@@ -138,6 +141,7 @@ test.describe("Approved isolated live-action QA", () => {
       await form.locator('input[name="title"]').fill(title);
       attempted = true;
       await form.getByRole("button", { name: "Add", exact: true }).click();
+      await expect(form.getByRole("status")).toContainText("Milestone added.");
       await expect(namedRow(section, title)).toBeVisible();
       await page.reload();
       await portalHas(browser, baseURL, title, true);
@@ -145,6 +149,7 @@ test.describe("Approved isolated live-action QA", () => {
       let row = namedRow(page.getByRole("region", { name: "Milestones" }), title);
       await row.getByRole("combobox", { name: "Status for " + title }).selectOption("complete");
       await row.getByRole("button", { name: "Set", exact: true }).click();
+      await expect(row.getByRole("status")).toContainText("Milestone status updated.");
       await page.reload();
       row = namedRow(page.getByRole("region", { name: "Milestones" }), title);
       await expect(row.getByText("Complete", { exact: true })).toBeVisible();
@@ -164,6 +169,7 @@ test.describe("Approved isolated live-action QA", () => {
       await form.locator('input[name="external_url"]').fill("https://example.com/nhs-qa");
       attempted = true;
       await form.getByRole("button", { name: "Share" }).click();
+      await expect(form.getByRole("status")).toContainText("Document shared.");
       await expect(namedRow(section, title)).toBeVisible();
       await page.reload();
       await expect(namedRow(page.getByRole("region", { name: "Documents" }), title)).toBeVisible();
