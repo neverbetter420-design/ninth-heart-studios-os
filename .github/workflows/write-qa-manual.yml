@@ -1,0 +1,96 @@
+name: NHS OS isolated write QA (manual approval required)
+
+# Proposal only: stored on draft PR feature branch, not on main.
+# Do NOT publish this workflow to main or run it without explicit approval
+# for limited writes to the named disposable test project in live Supabase.
+on:
+  workflow_dispatch:
+    inputs:
+      approval_phrase:
+        description: 'Required explicit approval: I_APPROVE_ISOLATED_QA_WRITES'
+        type: string
+        required: true
+      test_project_id:
+        description: 'Exact preverified disposable Client A test project UUID'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nhs-live-write-qa
+  cancel-in-progress: false
+
+jobs:
+  approved-test-only:
+    if: github.ref == 'refs/heads/main' && inputs.approval_phrase == 'I_APPROVE_ISOLATED_QA_WRITES' && inputs.test_project_id == 'fdb531db-bf9c-47ee-bc6a-458b626665a2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      E2E_BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_SUPABASE_URL: https://rquscwgdrqkzwjukiqtk.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7N1_IhU0_mvs6q0ppgyssA_0O6xj-L2
+      NHS_QA_TEST_PROJECT_ID: ${{ inputs.test_project_id }}
+      NHS_QA_WRITE_APPROVAL: ${{ inputs.approval_phrase }}
+
+    steps:
+      - name: Checkout reviewed immutable write-QA code
+        uses: actions/checkout@v4
+        with:
+          ref: 383e4307cf2a085d4b7ba4eaa16707d5b7f0fd77
+          persist-credentials: false
+
+      - name: Verify immutable code
+        run: test "$(git rev-parse HEAD)" = "383e4307cf2a085d4b7ba4eaa16707d5b7f0fd77"
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install pinned dependencies
+        run: npm ci
+
+      - name: Install isolated test runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Require the six test-account secrets
+        shell: bash
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_CLIENT_A_EMAIL: ${{ secrets.E2E_CLIENT_A_EMAIL }}
+          E2E_CLIENT_A_PASSWORD: ${{ secrets.E2E_CLIENT_A_PASSWORD }}
+          E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
+          E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
+        run: |
+          for key in E2E_ADMIN_EMAIL E2E_ADMIN_PASSWORD E2E_CLIENT_A_EMAIL E2E_CLIENT_A_PASSWORD E2E_CLIENT_B_EMAIL E2E_CLIENT_B_PASSWORD; do
+            if [[ -z "${!key}" ]]; then echo "::error::Missing $key"; exit 1; fi
+          done
+
+      - name: Run only the explicitly authorized test-data mutations
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_CLIENT_A_EMAIL: ${{ secrets.E2E_CLIENT_A_EMAIL }}
+          E2E_CLIENT_A_PASSWORD: ${{ secrets.E2E_CLIENT_A_PASSWORD }}
+          E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
+          E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
+        run: npx playwright test tests/e2e/write-actions.spec.mjs
+
+      - name: Retain results for cleanup review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhs-write-qa-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
