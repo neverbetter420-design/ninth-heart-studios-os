@@ -120,10 +120,18 @@ test("client B cannot open client A's private project", async ({ browser, baseUR
     const projectLink = a.locator('a[href^="/portal/projects/"]').first();
     await expect(projectLink).toBeVisible();
     const privateHref = await projectLink.getAttribute("href");
+    const privateProjectTitle = (await projectLink.locator("xpath=ancestor::article[1]").locator("h3").innerText()).trim();
+    expect(privateHref).toBeTruthy();
+    expect(privateProjectTitle).toBeTruthy();
+
     const b = await contextB.newPage();
     await signIn(b, users.clientB);
     await b.goto(privateHref);
-    await expect(b.getByRole("heading", { name: /404|not found/i }).first()).toBeVisible();
+    // Our protected not-found screen intentionally avoids disclosing whether
+    // an inaccessible project exists. The previous /404|not found/ matcher
+    // rejected this correct, security-conscious wording.
+    await expect(b.getByRole("heading", { name: "That page isn't available.", exact: true })).toBeVisible();
+    await expect(b.getByRole("heading", { name: privateProjectTitle, exact: true })).toHaveCount(0);
   } finally {
     await contextA.close();
     await contextB.close();
