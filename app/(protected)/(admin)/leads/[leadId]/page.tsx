@@ -4,6 +4,7 @@ import { QuickOutcomeButtons } from "@/components/leads/QuickOutcomeButtons";
 import { formatElapsed, formatPacificDateTime, getSlaState, rankLead, type FlowkeepLead } from "@/lib/flowkeep";
 import { createClient } from "@/lib/supabase/server";
 import { convertLeadToProject, scheduleConsultation } from "../actions";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 export default async function LeadDetailPage({
   params,
@@ -58,7 +59,7 @@ export default async function LeadDetailPage({
         <form action={convertLeadToProject} className="delivery-add-form" style={{ marginTop: 10 }}>
           <input type="hidden" name="lead_id" value={lead.id} />
           <input type="text" name="project_name" placeholder="Project name (optional)…" maxLength={160} />
-          <button type="submit" className="mini-button go">Convert to project</button>
+          <PortalSubmitButton pendingLabel="Converting…">Convert to project</PortalSubmitButton>
         </form>
       </header>
 
@@ -125,7 +126,7 @@ export default async function LeadDetailPage({
               <span>Pacific time</span>
               <input name="consultation_at" type="datetime-local" required />
             </label>
-            <button className="secondary-button wide" type="submit">Schedule consultation</button>
+            <PortalSubmitButton className="secondary-button wide" pendingLabel="Scheduling…">Schedule consultation</PortalSubmitButton>
           </form>
           {lead.consultation_at ? <p className="micro-copy">Current: {formatPacificDateTime(new Date(lead.consultation_at))}</p> : null}
         </article>
