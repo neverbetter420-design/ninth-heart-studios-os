@@ -9,6 +9,7 @@ import {
   projectObjectPath,
 } from "@/lib/files";
 import { createClient } from "@/lib/supabase/server";
+import type { PortalFeedbackState } from "@/lib/portal-feedback";
 
 function clean(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -28,7 +29,7 @@ export async function decideApproval(formData: FormData) {
   const approvalId = clean(formData.get("approval_id"));
   const decision = clean(formData.get("decision"));
   const comment = clean(formData.get("client_comment"));
-  if (!approvalId || (decision !== "approved" && decision !== "declined")) return;
+  if (!approvalId || (decision !== "approved" && decision !== "declined")) throw new Error("Invalid approval decision.");
 
   const { data: approval, error } = await supabase
     .from("approvals")
@@ -40,10 +41,12 @@ export async function decideApproval(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", approvalId)
+    .eq("status", "pending")
     .select("project_id")
     .single();
 
-  if (error || !approval) return;
+  if (error || !approval) throw new Error("Approval could not be saved.");
+  revalidatePath("/portal/approvals");
   revalidatePath(`/portal/projects/${approval.project_id}`);
   revalidatePath("/portal");
 }
@@ -115,7 +118,7 @@ export async function deleteClientFile(formData: FormData) {
   const supabase = await createClient();
 
   const fileId = clean(formData.get("file_id"));
-  if (!fileId) return;
+  if (!fileId) throw new Error("No file was selected.");
 
   const { data: file } = await supabase
     .from("files")
@@ -123,12 +126,15 @@ export async function deleteClientFile(formData: FormData) {
     .eq("id", fileId)
     .eq("uploaded_by", user.id)
     .maybeSingle();
-  if (!file) return;
+  if (!file) throw new Error("File not found or access denied.");
 
-  await supabase.storage.from(PROJECT_FILES_BUCKET).remove([file.object_path]);
-  await supabase.from("files").delete().eq("id", fileId);
+  const { error: storageError } = await supabase.storage.from(PROJECT_FILES_BUCKET).remove([file.object_path]);
+  if (storageError) throw new Error("File removal failed.");
+  const { error: metadataError, count } = await supabase.from("files").delete({ count: "exact" }).eq("id", fileId);
+  if (metadataError || count !== 1) throw new Error("Could not remove file metadata.");
 
   revalidatePath(`/portal/projects/${file.project_id}`);
+  revalidatePath("/portal/files");
   revalidatePath("/portal");
 }
 
@@ -148,7 +154,7 @@ export async function sendPortalMessage(formData: FormData) {
 
   const projectId = cleanPortal(formData.get("project_id"));
   const body = cleanPortal(formData.get("body"));
-  if (!projectId || !body || body.length > 2000) return;
+  if (!projectId || !body || body.length > 2000) throw new Error("Enter a valid message.");
 
   const { data: message, error } = await supabase
     .from("messages")
@@ -160,7 +166,8 @@ export async function sendPortalMessage(formData: FormData) {
     .select("id")
     .single();
 
-  if (error || !message) return;
+  if (error || !message) throw new Error("Message could not be saved.");
+  revalidatePath("/portal/messages");
   revalidatePath(`/portal/projects/${projectId}`);
   revalidatePath("/portal");
 }
@@ -204,4 +211,33 @@ export async function addPortalFeedbackPin(formData: FormData) {
 
   revalidatePath(`/portal/projects/${round.project_id}`);
   revalidatePath("/portal");
+}
+
+/** Result-aware wrappers used by the client portal. Never report success on an ignored write. */
+export async function decideApprovalWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  const choice = clean(formData.get("decision"));
+  try {
+    await decideApproval(formData);
+    return { status: "success", message: choice === "approved" ? "Approval saved." : "Your change request was saved." };
+  } catch {
+    return { status: "error", message: "We couldn't save that decision. Please try again." };
+  }
+}
+
+export async function sendPortalMessageWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try {
+    await sendPortalMessage(formData);
+    return { status: "success", message: "Message sent successfully." };
+  } catch {
+    return { status: "error", message: "Your message wasn't sent. Check the details and try again." };
+  }
+}
+
+export async function deleteClientFileWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try {
+    await deleteClientFile(formData);
+    return { status: "success", message: "File removed." };
+  } catch {
+    return { status: "error", message: "The file couldn't be removed. Please try again." };
+  }
 }

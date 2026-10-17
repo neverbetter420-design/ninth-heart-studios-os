@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import type { PortalFeedbackState } from "@/lib/portal-feedback";
 
 function clean(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -28,8 +29,8 @@ export async function signContract(formData: FormData) {
   const signerEmail = clean(formData.get("signer_email"));
   const agreed = formData.get("agreed") === "on";
 
-  if (!contractId || !signerName || !signerEmail || !agreed) return;
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signerEmail)) return;
+  if (!contractId || !signerName || !signerEmail || !agreed) throw new Error("Complete the signature fields.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signerEmail)) throw new Error("Invalid signer email.");
 
   // Fetch the contract body for the hash. RLS ensures it's theirs and sent.
   const { data: contract } = await supabase
@@ -37,7 +38,7 @@ export async function signContract(formData: FormData) {
     .select("id, body, project_id, status")
     .eq("id", contractId)
     .single();
-  if (!contract || contract.status !== "sent") return;
+  if (!contract || contract.status !== "sent") throw new Error("Contract is unavailable.");
 
   const signedAt = new Date().toISOString();
   const signatureHash = createHash("sha256")
@@ -59,9 +60,22 @@ export async function signContract(formData: FormData) {
       signer_ip: signerIp,
       updated_at: signedAt,
     })
-    .eq("id", contractId);
+    .eq("id", contractId)
+    .eq("status", "sent")
+    .select("id")
+    .single();
 
-  if (error) return;
+  if (error) throw new Error("Contract signature could not be saved.");
+  revalidatePath("/portal/contracts");
   revalidatePath("/portal");
   if (contract.project_id) revalidatePath(`/portal/projects/${contract.project_id}`);
+}
+
+export async function signContractWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try {
+    await signContract(formData);
+    return { status: "success", message: "Your contract was signed successfully." };
+  } catch {
+    return { status: "error", message: "The contract couldn't be signed. Please check your details and try again." };
+  }
 }
