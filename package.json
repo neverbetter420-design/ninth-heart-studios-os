@@ -20,6 +20,7 @@
     "verify:delivery": "node --experimental-strip-types scripts/verify-delivery.ts",
     "verify:radar": "node --experimental-strip-types scripts/verify-radar.ts",
     "verify:coverage": "node --experimental-strip-types scripts/verify-coverage.ts",
+    "verify:navigation": "node --experimental-strip-types scripts/verify-navigation.ts",
     "verify:scanner": "node --experimental-strip-types scripts/verify-scanner.ts",
     "verify:password-recovery": "node --experimental-strip-types scripts/verify-password-recovery.mjs",
     "cf:build": "opennextjs-cloudflare build",
