@@ -29,13 +29,13 @@ jobs:
       - name: Checkout the reviewed development-branch snapshot
         uses: actions/checkout@v4
         with:
-          ref: caf7fe23ebb847f107ed4463343a4ab0e0df4e48
+          ref: 35dc6084cab17a18d9442d623de5a96efa407482
           persist-credentials: false
 
       - name: Assert the approved commit
         shell: bash
         run: |
-          test "$(git rev-parse HEAD)" = "caf7fe23ebb847f107ed4463343a4ab0e0df4e48"
+          test "$(git rev-parse HEAD)" = "35dc6084cab17a18d9442d623de5a96efa407482"
           echo "Reviewed feature branch commit: $(git rev-parse --short HEAD)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Use Node.js 22
