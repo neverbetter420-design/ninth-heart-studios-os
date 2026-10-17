@@ -82,4 +82,14 @@ assert.ok(dashboard.includes('href={"/opportunities/" + item.id}'), "radar cards
 assert.ok(!read("components/PageHeader.tsx").includes('<button className="primary-button">'), "dead heading button present");
 assert.ok(!read("components/ModulePage.tsx").includes('<button className="text-button">'), "dead prototype button present");
 
+for (const routeFile of [
+  "app/(protected)/loading.tsx",
+  "app/(protected)/error.tsx",
+  "app/(protected)/not-found.tsx",
+]) {
+  assert.ok(exists(routeFile), "missing workspace recovery route: " + routeFile);
+}
+assert.ok(read("app/(protected)/error.tsx").includes("onClick={() => reset()}"), "retry action missing");
+assert.ok(read("app/(protected)/loading.tsx").includes('aria-busy="true"'), "loading status inaccessible");
+assert.ok(read("app/(protected)/not-found.tsx").includes('href="/"'), "not found recovery link missing");
 console.log("verify:navigation — role separation, routes, mobile drawer, client destinations and action links passed.");

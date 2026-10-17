@@ -22,10 +22,11 @@ export default async function ClientsPage({
   const { error: formError } = await searchParams;
   const supabase = await createClient();
 
-  const { data: rawClients } = await supabase
+  const { data: rawClients, error: clientsError } = await supabase
     .from("clients")
     .select("id, name, website, primary_email, status, created_at, client_memberships(profile_id), projects(id)")
     .order("name");
+  if (clientsError) throw new Error("Client management could not load.");
   const clients = (rawClients ?? []) as ClientRow[];
 
   const active = clients.filter((c) => c.status === "active");

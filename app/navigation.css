@@ -59,3 +59,37 @@
   .portal-shortcut { min-height: 66px; padding: 12px; font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { .navigation-shell > .nhs-sidebar { transition: none; } }
+
+
+/* Protected route loading and recovery. Never expose server errors to clients. */
+.workspace-loading-header { margin-bottom: 25px; }
+.workspace-loading-header h2, .workspace-feedback h2 {
+  margin: 8px 0 10px; font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(23px, 4vw, 34px); font-weight: 600;
+}
+.workspace-loading-metrics {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px; margin-bottom: 14px;
+}
+.workspace-loading-metric { padding: 22px; display: grid; gap: 18px; min-height: 110px; }
+.workspace-loading-panel { padding: 24px; display: grid; gap: 20px; min-height: 200px; }
+.workspace-skeleton {
+  display: block; height: 12px; width: 100%; border-radius: 8px;
+  background: linear-gradient(90deg, rgba(244,238,246,.055), rgba(185,43,225,.15), rgba(244,238,246,.055));
+  background-size: 200% 100%; animation: workspace-pulse 2s ease-in-out infinite;
+}
+.workspace-skeleton-short { width: 35%; }
+.workspace-skeleton-medium { width: 64%; }
+.workspace-feedback { max-width: 660px; margin: min(9vh, 75px) auto 0; padding: clamp(24px, 5vw, 42px); }
+.workspace-feedback > p:not(.eyebrow) { color: var(--muted); font-size: 13px; line-height: 1.7; }
+.workspace-feedback-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.workspace-feedback-actions a { display: inline-flex; align-items: center; text-decoration: none; }
+@keyframes workspace-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@media (max-width: 620px) {
+  .workspace-loading-metrics { grid-template-columns: 1fr; }
+  .workspace-loading-metric { min-height: 75px; gap: 10px; }
+  .workspace-feedback-actions > * { min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace-skeleton { animation: none; }
+}
