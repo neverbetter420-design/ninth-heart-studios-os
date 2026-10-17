@@ -46,6 +46,14 @@ const checks = [
     assert.match(yml, /npm run cf:dry-run/);
     assert.match(yml, /npm run cf:deploy/);
     assert.match(yml, /secrets\.CLOUDFLARE_API_TOKEN/);
+    assert.match(yml, /github.actor == 'neverbetter420-design'/);
+    assert.match(yml, /github.ref == 'refs\/heads\/main'/);
+    assert.match(yml, /approval_phrase:/);
+    assert.match(yml, /expected_main_sha:/);
+    assert.match(yml, /verified_security_migration:/);
+    assert.match(yml, /I_APPROVE_NHS_OS_PRODUCTION_DEPLOY/);
+    assert.match(yml, /I_VERIFIED_SUPABASE_HARDENING/);
+    assert.match(yml, /EXPECTED_MAIN_SHA/);
     const wrangler = JSON.parse(read("wrangler.jsonc"));
     assert.equal(wrangler.name, "ninth-heart-studios-os");
     assert.equal(wrangler.keep_vars, true);
