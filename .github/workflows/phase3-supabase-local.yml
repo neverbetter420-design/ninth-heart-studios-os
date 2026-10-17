@@ -1,0 +1,89 @@
+name: NHS Phase 3 local Supabase Auth and API security
+
+# Ephemeral local stack only. No Supabase access token, hosted project ID,
+# customer secrets or Cloudflare credentials are supplied.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase3-supabase-local.yml'
+      - 'scripts/verify-phase3-supabase-local.mjs'
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  supabase-integration:
+    name: Full local Supabase Auth and REST authorization
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: 'true'
+    steps:
+      - name: Checkout draft repository without credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install Supabase CLI without connecting to hosted Supabase
+        uses: supabase/setup-cli@v3
+        with:
+          version: latest
+
+      - name: Initialize disposable Supabase project with real migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_DB_PASSWORD:-}"
+          mkdir .nhs-phase3-local
+          cd .nhs-phase3-local
+          supabase init
+          cp ../supabase/migrations/*.sql supabase/migrations/
+          echo "Copied application migrations into disposable project."
+
+      - name: Apply migrations and start local Supabase Auth + REST stack
+        working-directory: .nhs-phase3-local
+        timeout-minutes: 25
+        run: supabase start
+
+      - name: Verify real local Auth and PostgREST permission boundaries
+        working-directory: .nhs-phase3-local
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_DB_PASSWORD:-}"
+          supabase status -o env > "$RUNNER_TEMP/nhs-phase3-local-keys.env"
+          set -a
+          source "$RUNNER_TEMP/nhs-phase3-local-keys.env"
+          set +a
+          export NHS_LOCAL_SUPABASE_URL="${API_URL:-}"
+          export NHS_LOCAL_SUPABASE_PUBLIC_KEY="${PUBLISHABLE_KEY:-${ANON_KEY:-}}"
+          export NHS_LOCAL_SUPABASE_ADMIN_KEY="${SECRET_KEY:-${SERVICE_ROLE_KEY:-}}"
+          test "$NHS_LOCAL_SUPABASE_URL" = 'http://127.0.0.1:54321'
+          test -n "$NHS_LOCAL_SUPABASE_PUBLIC_KEY"
+          test -n "$NHS_LOCAL_SUPABASE_ADMIN_KEY"
+          node ../scripts/verify-phase3-supabase-local.mjs
+
+      - name: Stop disposable containers
+        if: always()
+        working-directory: .nhs-phase3-local
+        continue-on-error: true
+        run: supabase stop --no-backup
+
+      - name: Report no hosted-project connection
+        if: always()
+        run: |
+          echo "Local Supabase Auth, REST and full migrations; synthetic user records only." >> "$GITHUB_STEP_SUMMARY"
+          echo "No hosted Supabase project or Cloudflare production deployment was accessed." >> "$GITHUB_STEP_SUMMARY"
