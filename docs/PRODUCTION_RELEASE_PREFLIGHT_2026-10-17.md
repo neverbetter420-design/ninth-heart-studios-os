@@ -13,6 +13,14 @@
 - PR #14 security test coverage: local isolated PostgreSQL 17, complete local Supabase migrations/Auth/PostgREST with **9/9** API cases, desktop/mobile portal UI including hostile cross-client form fields **2/2**, ordinary Playwright, TypeScript/application verification, Cloudflare Worker build and dry run. These results demonstrate local behavior, not post-deployment behavior.
 - Repeatable source preflight: `npm run verify:release-preflight`, run as part of `.github/workflows/verify.yml`; refuses missing applied migrations or removal of manual Cloudflare deployment guards.
 
+## Latest completed draft-branch verification
+
+GitHub CI on reviewed source commit `42d6279e346a9b7427a6a127385d112d971e3890` has completed successfully: [full local Supabase #39046904876](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39046904876) (9/9 Auth/API security cases plus 2/2 desktop and mobile portal UI tests); [application #39046904895](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39046904895); [ordinary browser #39046904873](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39046904873); [Cloudflare bundle dry run #39046904878](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39046904878); and [isolated PostgreSQL #39046904920](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39046904920).
+
+An earlier [local Supabase UI run #39046519493](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39046519493) failed on transient message error feedback after approval page revalidation. `tests/e2e/phase3-local-ui.spec.mjs` now waits for the approval view to settle and reloads before attempting a negative message submission. The corrected run passed both device scenarios, but this does not guarantee the UI is entirely free from concurrent revalidation edge cases. Keep an eye on live error feedback after rollout.
+
+**Important:** The above evidence is from synthetic CI data, not live production application verification. The final runbook/guard edits that follow the verified code commit must receive their own CI verification before the final release.
+
 ## Release dependency order
 
 ### Gate 0 — Validate external delivery and rollback capability (not verified yet)
