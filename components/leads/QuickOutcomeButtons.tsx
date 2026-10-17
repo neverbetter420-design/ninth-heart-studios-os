@@ -1,11 +1,12 @@
-import { logLeadOutcome } from "@/app/(protected)/(admin)/leads/actions";
+import { logLeadOutcomeWithFeedback } from "@/app/(protected)/(admin)/leads/actions";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 import { QUICK_LOG_OUTCOMES } from "@/lib/flowkeep";
 
 export function QuickOutcomeButtons({ leadId }: { leadId: string }) {
   return (
     <div className="quick-outcome-grid">
       {QUICK_LOG_OUTCOMES.map((outcome) => (
-        <form action={logLeadOutcome} key={outcome}>
+        <PortalActionForm action={logLeadOutcomeWithFeedback} key={outcome} lockOnSuccess={false} pendingMessage="Logging activity…">
           <input type="hidden" name="lead_id" value={leadId} />
           <input type="hidden" name="outcome" value={outcome} />
           <button
@@ -14,7 +15,7 @@ export function QuickOutcomeButtons({ leadId }: { leadId: string }) {
           >
             {outcome}
           </button>
-        </form>
+        </PortalActionForm>
       ))}
     </div>
   );
