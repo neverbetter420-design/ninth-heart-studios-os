@@ -525,8 +525,8 @@ export async function deleteProjectFile(formData: FormData) {
   revalidateProject(file.project_id);
 
   try {
-    const { error: storageError } = await supabase.storage.from(PROJECT_FILES_BUCKET).remove([file.object_path]);
-    if (storageError) throw storageError;
+    const { data: removedObjects, error: storageError } = await supabase.storage.from(PROJECT_FILES_BUCKET).remove([file.object_path]);
+    if (storageError || !Array.isArray(removedObjects)) throw storageError ?? new Error("Storage response was not confirmed.");
   } catch {
     // Metadata has been removed but the private object may remain. Never
     // encourage a blind retry after this partial-success state.
