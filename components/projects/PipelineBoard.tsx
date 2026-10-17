@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { moveProject } from "@/app/(protected)/(admin)/projects/actions";
+import { moveProjectWithFeedback } from "@/app/(protected)/(admin)/projects/actions";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 import {
   ON_HOLD_STAGE,
   PIPELINE_STAGES,
@@ -71,7 +72,7 @@ export function PipelineBoard({ projects }: { projects: ProjectWithClient[] }) {
                         </span>
                         <span>{project.progress}%</span>
                       </div>
-                      <form action={moveProject} className="pipeline-move-form">
+                      <PortalActionForm action={moveProjectWithFeedback} lockOnSuccess={false} pendingMessage="Moving project…" className="pipeline-move-form">
                         <input type="hidden" name="project_id" value={project.id} />
                         <select name="status" defaultValue={project.status} aria-label={`Move ${project.name} to stage`}>
                           {ALL_STAGES.map((s) => (
@@ -83,7 +84,7 @@ export function PipelineBoard({ projects }: { projects: ProjectWithClient[] }) {
                         <button type="submit" className="mini-button">
                           Move
                         </button>
-                      </form>
+                      </PortalActionForm>
                     </article>
                   );
                 })
