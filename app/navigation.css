@@ -149,6 +149,9 @@
   .workspace-grid .delivery-row .delivery-actions .mini-button {
     min-width: 44px;
     min-height: 44px;
+    /* Make programmatic and keyboard scrolling clear the sticky top bar. */
+    scroll-margin-top: 84px;
+    scroll-margin-bottom: 20px;
     touch-action: manipulation;
   }
 }
