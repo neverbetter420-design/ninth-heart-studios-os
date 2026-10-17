@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { addClientMember, removeClientMember } from "../actions";
-import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
+import { addClientMemberWithFeedback, removeClientMemberWithFeedback } from "../actions";
+import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 export default async function ClientDetailPage({
   params,
@@ -30,7 +30,7 @@ export default async function ClientDetailPage({
     created_at: string;
   };
 
-  const [{ data: rawMembers }, { data: rawProjects }] = await Promise.all([
+  const [{ data: rawMembers, error: membersError }, { data: rawProjects }] = await Promise.all([
     supabase
       .from("client_memberships")
       .select("client_id, profile_id, member_role, created_at, profiles(id, full_name, email, role)")
@@ -80,17 +80,21 @@ export default async function ClientDetailPage({
       {formError ? (
         <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
           <strong>Heads up.</strong>
-          <span>{decodeURIComponent(formError)}</span>
+          <span>{formError}</span>
         </section>
       ) : null}
 
       <section className="panel" aria-label="Portal members" style={{ marginBottom: 14 }}>
         <div className="panel-heading">
           <h3>Portal members</h3>
-          <span className="pipeline-count">{members.length}</span>
+          {!membersError ? <span className="pipeline-count">{members.length}</span> : null}
         </div>
         <ul className="delivery-list">
-          {members.length === 0 ? (
+          {membersError ? (
+            <li className="delivery-row" role="alert">
+              <p className="pipeline-empty">Could not load portal members. Refresh this page before changing access.</p>
+            </li>
+          ) : members.length === 0 ? (
             <li className="delivery-row">
               <p className="pipeline-empty">No portal members yet. Add someone by their account email below.</p>
             </li>
@@ -103,20 +107,24 @@ export default async function ClientDetailPage({
                     {m.profile?.email ?? ""} · {m.member_role} · {m.profile?.role ?? ""}
                   </p>
                 </div>
-                <form action={removeClientMember}>
+                <PortalActionForm
+                  action={removeClientMemberWithFeedback}
+                  pendingMessage="Removing member access…"
+                  confirmMessage={`Remove ${m.profile?.full_name ?? m.profile?.email ?? "this member"} from ${client.name}? This removes their membership-based portal access to this client's projects. Their account and other client memberships are kept.`}
+                >
                   <input type="hidden" name="client_id" value={client.id} />
                   <input type="hidden" name="profile_id" value={m.profile_id} />
                   <PortalSubmitButton pendingLabel="Removing…" className="mini-button danger">Remove</PortalSubmitButton>
-                </form>
+                </PortalActionForm>
               </li>
             ))
           )}
         </ul>
-        <form action={addClientMember} className="delivery-add-form">
+        <PortalActionForm action={addClientMemberWithFeedback} className="delivery-add-form" pendingMessage="Adding member access…" lockOnSuccess={false} resetOnSuccess>
           <input type="hidden" name="client_id" value={client.id} />
-          <input type="email" name="email" placeholder="Member's account email…" required maxLength={160} />
-          <PortalSubmitButton pendingLabel="Adding…">Add member</PortalSubmitButton>
-        </form>
+          <input type="email" name="email" aria-label="Member's account email" placeholder="Member's account email…" required maxLength={160} disabled={!!membersError} />
+          <button type="submit" className="mini-button go" disabled={!!membersError}>Add member</button>
+        </PortalActionForm>
         <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>
           Members get portal access to this client&apos;s projects. They need a signed-up account first.
         </p>

@@ -10,6 +10,10 @@ Run the **NHS OS browser QA** GitHub Actions workflow. It runs the real Chromium
 - The test creates no database records and never submits a business action. It only signs in, reads views, opens links, and checks route isolation.
 - Download the `nhs-playwright-report` artifact for failure screenshots, traces, and videos.
 
+The browser workflow also runs `action-feedback.spec.mjs` against the actual shared form and notification components in an isolated browser document. Its actions are mocks and all network requests are blocked. Desktop and mobile cases cover confirmation cancellation, pending controls, duplicate prevention, preserving failed input, success-only resets, and removal notifications after a row disappears. These tests do not exercise authenticated server submissions or Supabase permissions.
+
+`npm run verify:admin-actions` separately executes the actual admin action modules with mocked authentication, cache and Supabase responses. It checks confirmed rows, errors, zero-row responses, validation and scoped deletion without accessing a database. See [ADMIN_RELIABILITY_QA.md](./ADMIN_RELIABILITY_QA.md) for the remaining authenticated work.
+
 Unauthenticated checks always run. If GitHub Actions secrets are not yet configured, authenticated browser tests explicitly appear as **skipped**, not passed.
 
 Do not deploy or merge solely on the basis of a green browser workflow: review mobile screenshots, user experience, and the remaining form workflows first.

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { AppRole } from "@/lib/supabase/types";
 import { Sidebar } from "./Sidebar";
+import { ActionNotifications } from "./ActionNotifications";
 
 export function AppShell({
   children,
@@ -15,6 +16,7 @@ export function AppShell({
     <div className="app-shell">
       <Sidebar role={role} user={user} />
       <main className="main-shell">{children}</main>
+      <ActionNotifications />
     </div>
   );
 }

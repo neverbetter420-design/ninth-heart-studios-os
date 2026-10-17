@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { initialPortalFeedbackState, type PortalFeedbackState } from "@/lib/portal-feedback";
 
@@ -18,6 +18,8 @@ export function PortalActionForm({
   style,
   pendingMessage = "Saving…",
   lockOnSuccess = true,
+  confirmMessage,
+  resetOnSuccess = false,
 }: {
   action: FeedbackAction;
   children: ReactNode;
@@ -25,14 +27,29 @@ export function PortalActionForm({
   style?: CSSProperties;
   pendingMessage?: string;
   lockOnSuccess?: boolean;
+  confirmMessage?: string;
+  resetOnSuccess?: boolean;
 }) {
-  const [feedback, dispatch] = useActionState(action, initialPortalFeedbackState);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [feedback, dispatch] = useActionState(async (previous: PortalFeedbackState, data: FormData) => {
+    const result = await action(previous, data);
+    // Announce before revalidation removes the deleted row and its local form.
+    if (confirmMessage && result.status === "success") {
+      window.dispatchEvent(new CustomEvent("nhs-action-success", { detail: result.message }));
+    }
+    return result;
+  }, initialPortalFeedbackState);
   const [pending, startTransition] = useTransition();
   const [attempted, setAttempted] = useState(false);
+
+  useEffect(() => {
+    if (resetOnSuccess && feedback.status === "success") formRef.current?.reset();
+  }, [feedback, resetOnSuccess]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending || (lockOnSuccess && feedback.status === "success")) return;
+    if (confirmMessage && !window.confirm(confirmMessage)) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     // HTML submit buttons aren't included by default when FormData is created
@@ -46,7 +63,7 @@ export function PortalActionForm({
   }
 
   return (
-    <form className={className} style={style} onSubmit={handleSubmit} aria-busy={pending}>
+    <form ref={formRef} className={className} style={style} onSubmit={handleSubmit} aria-busy={pending}>
       <fieldset className="portal-action-fields" disabled={pending || (lockOnSuccess && feedback.status === "success")}>
         {children}
       </fieldset>

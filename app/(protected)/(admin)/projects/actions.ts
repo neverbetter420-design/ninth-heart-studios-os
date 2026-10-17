@@ -36,6 +36,9 @@ function clean(value: FormDataEntryValue | null) {
 function revalidateProject(projectId: string) {
   revalidatePath("/projects");
   revalidatePath(`/projects/${projectId}`);
+  revalidatePath("/portal");
+  revalidatePath("/portal/projects");
+  revalidatePath(`/portal/projects/${projectId}`);
 }
 
 async function logActivity(
@@ -109,29 +112,43 @@ export async function updateProjectDetails(formData: FormData) {
 
 /* ---------------- Milestones ---------------- */
 
+function deliveryDate(value: FormDataEntryValue | null) {
+  const date = clean(value);
+  if (!date) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("Choose a valid due date.");
+  const parsed = new Date(`${date}T00:00:00Z`);
+  if (!Number.isFinite(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== date) {
+    throw new Error("Choose a valid due date.");
+  }
+  return date;
+}
+
 export async function createMilestone(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const projectId = clean(formData.get("project_id"));
   const title = clean(formData.get("title"));
-  if (!projectId || !title) return;
+  if (!projectId || !title || title.length > 120) throw new Error("A project and milestone title of up to 120 characters are required.");
 
-  const dueDate = clean(formData.get("due_date"));
-  const { data: existing } = await supabase
+  const dueDate = deliveryDate(formData.get("due_date"));
+  const { data: existing, error: positionError } = await supabase
     .from("milestones")
     .select("position")
     .eq("project_id", projectId)
     .order("position", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (positionError) throw new Error("Could not prepare the milestone. Please retry.");
   const position = (existing?.position ?? -1) + 1;
 
-  await supabase.from("milestones").insert({
-    project_id: projectId,
-    title,
-    due_date: dueDate || null,
-    position,
-  });
+  const { data: milestone, error } = await supabase
+    .from("milestones")
+    .insert({ project_id: projectId, title, due_date: dueDate, position })
+    .select("id, project_id, title")
+    .single();
+  if (error || !milestone?.id || milestone.project_id !== projectId || milestone.title !== title) {
+    throw new Error("Milestone creation was not confirmed. Please retry.");
+  }
   revalidateProject(projectId);
 }
 
@@ -140,27 +157,33 @@ export async function setMilestoneStatus(formData: FormData) {
   const supabase = await createClient();
   const milestoneId = clean(formData.get("milestone_id"));
   const status = clean(formData.get("status"));
-  if (!milestoneId || !status || !VALID_MILESTONE_STATUSES.has(status)) return;
+  if (!milestoneId || !status || !VALID_MILESTONE_STATUSES.has(status)) throw new Error("Invalid milestone status.");
 
-  const { data: milestone } = await supabase
+  const { data: milestone, error: lookupError } = await supabase
     .from("milestones")
-    .select("id, project_id, title")
+    .select("id, project_id, title, status")
     .eq("id", milestoneId)
     .single();
-  if (!milestone) return;
+  if (lookupError || !milestone || milestone.id !== milestoneId) throw new Error("Milestone not found.");
 
-  await supabase
+  const { data: saved, error } = await supabase
     .from("milestones")
     .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", milestoneId);
+    .eq("id", milestoneId)
+    .eq("project_id", milestone.project_id)
+    .select("id, project_id, status")
+    .single();
+  if (error || !saved || saved.id !== milestoneId || saved.project_id !== milestone.project_id || saved.status !== status) {
+    throw new Error("Milestone status update was not confirmed. Please retry.");
+  }
 
-  if (status === "complete") {
+  if (status === "complete" && milestone.status !== "complete") {
     await logActivity(supabase, {
       project_id: milestone.project_id,
       event_type: "milestone_complete",
       summary: `Milestone complete: ${milestone.title}`,
       client_visible: true,
-    });
+    }).catch(() => undefined);
   }
   revalidateProject(milestone.project_id);
 }
@@ -169,14 +192,17 @@ export async function deleteMilestone(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const milestoneId = clean(formData.get("milestone_id"));
-  if (!milestoneId) return;
-  const { data: milestone } = await supabase
+  if (!milestoneId) throw new Error("Milestone not selected.");
+  const { data: milestone, error } = await supabase
     .from("milestones")
-    .select("project_id")
+    .delete()
     .eq("id", milestoneId)
+    .select("id, project_id")
     .single();
-  await supabase.from("milestones").delete().eq("id", milestoneId);
-  if (milestone) revalidateProject(milestone.project_id);
+  if (error || !milestone || milestone.id !== milestoneId || !milestone.project_id) {
+    throw new Error("Milestone deletion was not confirmed. It may already have been removed.");
+  }
+  revalidateProject(milestone.project_id);
 }
 
 /* ---------------- Tasks ---------------- */
@@ -186,19 +212,27 @@ export async function createTask(formData: FormData) {
   const supabase = await createClient();
   const projectId = clean(formData.get("project_id"));
   const title = clean(formData.get("title"));
-  if (!projectId || !title) return;
+  if (!projectId || !title || title.length > 160) throw new Error("A project and task title of up to 160 characters are required.");
 
-  const dueAt = clean(formData.get("due_at"));
+  const dueDate = deliveryDate(formData.get("due_at"));
   const priority = clean(formData.get("priority")) ?? "normal";
+  if (!["low", "normal", "high"].includes(priority)) throw new Error("Invalid task priority.");
   const clientVisible = formData.get("client_visible") === "on";
 
-  await supabase.from("tasks").insert({
-    project_id: projectId,
-    title,
-    due_at: dueAt || null,
-    priority: ["low", "normal", "high"].includes(priority) ? priority : "normal",
-    client_visible: clientVisible,
-  });
+  const { data: task, error } = await supabase
+    .from("tasks")
+    .insert({
+      project_id: projectId,
+      title,
+      due_at: dueDate ? `${dueDate}T00:00:00Z` : null,
+      priority,
+      client_visible: clientVisible,
+    })
+    .select("id, project_id, title, client_visible")
+    .single();
+  if (error || !task?.id || task.project_id !== projectId || task.title !== title || task.client_visible !== clientVisible) {
+    throw new Error("Task creation was not confirmed. Please retry.");
+  }
   revalidateProject(projectId);
 }
 
@@ -209,19 +243,22 @@ export async function setTaskStatus(formData: FormData) {
   const status = clean(formData.get("status"));
   if (!taskId || !status || !VALID_TASK_STATUSES.has(status)) throw new Error("Invalid task status.");
 
-  const { data: task } = await supabase
+  const { data: task, error: lookupError } = await supabase
     .from("tasks")
-    .select("project_id")
+    .select("id, project_id")
     .eq("id", taskId)
     .single();
-  if (!task) throw new Error("Task not found.");
-  const { error } = await supabase
+  if (lookupError || !task || task.id !== taskId) throw new Error("Task not found.");
+  const { data: saved, error } = await supabase
     .from("tasks")
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", taskId)
-    .select("id")
+    .eq("project_id", task.project_id)
+    .select("id, project_id, status")
     .single();
-  if (error) throw new Error("Task status update failed.");
+  if (error || !saved || saved.id !== taskId || saved.project_id !== task.project_id || saved.status !== status) {
+    throw new Error("Task status update was not confirmed. Please retry.");
+  }
   revalidateProject(task.project_id);
 }
 
@@ -229,17 +266,26 @@ export async function toggleTaskVisibility(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const taskId = clean(formData.get("task_id"));
-  if (!taskId) return;
-  const { data: task } = await supabase
+  const visibility = clean(formData.get("client_visible"));
+  if (!taskId || (visibility !== "true" && visibility !== "false")) throw new Error("Invalid task visibility.");
+  const clientVisible = visibility === "true";
+  const { data: task, error: lookupError } = await supabase
     .from("tasks")
-    .select("project_id, client_visible")
+    .select("id, project_id, client_visible")
     .eq("id", taskId)
     .single();
-  if (!task) return;
-  await supabase
+  if (lookupError || !task || task.id !== taskId) throw new Error("Task not found.");
+  const { data: saved, error } = await supabase
     .from("tasks")
-    .update({ client_visible: !task.client_visible, updated_at: new Date().toISOString() })
-    .eq("id", taskId);
+    .update({ client_visible: clientVisible, updated_at: new Date().toISOString() })
+    .eq("id", taskId)
+    .eq("project_id", task.project_id)
+    .eq("client_visible", task.client_visible)
+    .select("id, project_id, client_visible")
+    .single();
+  if (error || !saved || saved.id !== taskId || saved.project_id !== task.project_id || saved.client_visible !== clientVisible) {
+    throw new Error("Task visibility update was not confirmed. Refresh and retry.");
+  }
   revalidateProject(task.project_id);
 }
 
@@ -247,14 +293,17 @@ export async function deleteTask(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const taskId = clean(formData.get("task_id"));
-  if (!taskId) return;
-  const { data: task } = await supabase
+  if (!taskId) throw new Error("Task not selected.");
+  const { data: task, error } = await supabase
     .from("tasks")
-    .select("project_id")
+    .delete()
     .eq("id", taskId)
+    .select("id, project_id")
     .single();
-  await supabase.from("tasks").delete().eq("id", taskId);
-  if (task) revalidateProject(task.project_id);
+  if (error || !task || task.id !== taskId || !task.project_id) {
+    throw new Error("Task deletion was not confirmed. It may already have been removed.");
+  }
+  revalidateProject(task.project_id);
 }
 
 /* ---------------- Launch items ---------------- */
@@ -497,45 +546,61 @@ export async function sendProjectMessage(formData: FormData) {
 
 /* ---------------- Documents ---------------- */
 
+class DocumentActionError extends Error {}
+
 export async function createDocument(formData: FormData) {
   const { user } = await requireAdmin();
   const supabase = await createClient();
   const projectId = clean(formData.get("project_id"));
   const title = clean(formData.get("title"));
   const kind = clean(formData.get("kind"));
-  if (!projectId || !title || !kind || !VALID_DOCUMENT_KINDS.has(kind)) return;
+  if (!projectId || !title || title.length > 160 || !kind || !VALID_DOCUMENT_KINDS.has(kind)) {
+    throw new DocumentActionError("Enter a document title (up to 160 characters) and a valid kind.");
+  }
 
   const externalUrl = clean(formData.get("external_url"));
+  if (externalUrl) {
+    let url: URL;
+    try { url = new URL(externalUrl); } catch { throw new DocumentActionError("Enter a valid http or https document link."); }
+    if (!["http:", "https:"].includes(url.protocol) || externalUrl.length > 500) {
+      throw new DocumentActionError("Enter a valid http or https document link (up to 500 characters).");
+    }
+  }
   const templateId = clean(formData.get("template_id"));
   let notes = clean(formData.get("notes"));
+  if (notes && notes.length > 280) throw new DocumentActionError("Keep document notes to 280 characters.");
 
   // A chosen document template fills the notes unless the user wrote their own.
   if (templateId && !notes) {
-    const { data: template } = await supabase
+    const { data: template, error: templateError } = await supabase
       .from("templates")
       .select("content")
       .eq("id", templateId)
       .eq("category", "document")
       .eq("active", true)
       .maybeSingle();
-    if (template) notes = templateBody(template.content) || null;
+    if (templateError || !template) throw new DocumentActionError("The selected document template is unavailable. Choose another template or enter notes.");
+    notes = templateBody(template.content) || null;
   }
 
-  await supabase.from("documents").insert({
+  const { data: document, error } = await supabase.from("documents").insert({
     project_id: projectId,
     title,
     kind,
     external_url: externalUrl,
     notes,
     created_by: user.id,
-  });
+  }).select("id, project_id").single();
+  if (error || !document?.id || document.project_id !== projectId) {
+    throw new DocumentActionError("The document was not confirmed saved. Refresh the project before retrying.");
+  }
 
   await logActivity(supabase, {
     project_id: projectId,
     event_type: "document_shared",
     summary: `Document shared: ${title}`,
     client_visible: true,
-  });
+  }).catch(() => undefined);
   revalidateProject(projectId);
 }
 
@@ -543,14 +608,39 @@ export async function deleteDocument(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const documentId = clean(formData.get("document_id"));
-  if (!documentId) return;
-  const { data: doc } = await supabase
+  const projectId = clean(formData.get("project_id"));
+  if (!documentId || !projectId) throw new DocumentActionError("Select a document and project to remove.");
+  const { data: doc, error } = await supabase
     .from("documents")
-    .select("project_id")
+    .delete()
     .eq("id", documentId)
+    .eq("project_id", projectId)
+    .select("id, project_id")
     .single();
-  await supabase.from("documents").delete().eq("id", documentId);
-  if (doc) revalidateProject(doc.project_id);
+  if (error || doc?.id !== documentId || doc.project_id !== projectId) {
+    throw new DocumentActionError("Document removal was not confirmed. Refresh the project and try again.");
+  }
+  revalidateProject(doc.project_id);
+}
+
+export async function createDocumentWithFeedback(_previous: PortalFeedbackState, data: FormData): Promise<PortalFeedbackState> {
+  await requireAdmin();
+  try {
+    await createDocument(data);
+    return { status: "success", message: "Document shared." };
+  } catch (error) {
+    return { status: "error", message: error instanceof DocumentActionError ? error.message : "Unable to confirm the document was shared. Refresh before retrying." };
+  }
+}
+
+export async function deleteDocumentWithFeedback(_previous: PortalFeedbackState, data: FormData): Promise<PortalFeedbackState> {
+  await requireAdmin();
+  try {
+    await deleteDocument(data);
+    return { status: "success", message: "Document removed from this project." };
+  } catch (error) {
+    return { status: "error", message: error instanceof DocumentActionError ? error.message : "Unable to confirm document removal. Refresh before retrying." };
+  }
 }
 
 /* ---------------- Revision rounds ---------------- */
@@ -871,4 +961,28 @@ export async function updateProjectDetailsWithFeedback(_previous: PortalFeedback
 export async function setTaskStatusWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
   try { await setTaskStatus(formData); return { status: "success", message: "Task status updated." }; }
   catch { return { status: "error", message: "Task status wasn't saved. Please retry." }; }
+}
+export async function createTaskWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await createTask(formData); return { status: "success", message: "Task added." }; }
+  catch { return { status: "error", message: "Task wasn't added. Check the fields and try again." }; }
+}
+export async function toggleTaskVisibilityWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await toggleTaskVisibility(formData); return { status: "success", message: "Task visibility saved." }; }
+  catch { return { status: "error", message: "Task visibility wasn't saved. Refresh and try again." }; }
+}
+export async function deleteTaskWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await deleteTask(formData); return { status: "success", message: "Task deleted." }; }
+  catch { return { status: "error", message: "Task deletion wasn't confirmed. Refresh the project before retrying." }; }
+}
+export async function createMilestoneWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await createMilestone(formData); return { status: "success", message: "Milestone added." }; }
+  catch { return { status: "error", message: "Milestone wasn't added. Check the fields and try again." }; }
+}
+export async function setMilestoneStatusWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await setMilestoneStatus(formData); return { status: "success", message: "Milestone status updated." }; }
+  catch { return { status: "error", message: "Milestone status wasn't saved. Please retry." }; }
+}
+export async function deleteMilestoneWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await deleteMilestone(formData); return { status: "success", message: "Milestone deleted." }; }
+  catch { return { status: "error", message: "Milestone deletion wasn't confirmed. Refresh the project before retrying." }; }
 }

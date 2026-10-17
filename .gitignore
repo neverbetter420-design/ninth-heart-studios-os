@@ -21,3 +21,5 @@ pnpm-debug.log*
 .open-next/
 .wrangler/
 .dev.vars
+playwright-report/
+test-results/

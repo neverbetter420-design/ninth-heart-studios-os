@@ -1,11 +1,11 @@
 import {
-  createTask,
-  deleteTask,
+  createTaskWithFeedback,
+  deleteTaskWithFeedback,
   setTaskStatusWithFeedback,
-  toggleTaskVisibility,
+  toggleTaskVisibilityWithFeedback,
 } from "@/app/(protected)/(admin)/projects/actions";
 import type { ProjectTask } from "@/lib/supabase/types";
-import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 
 function pillClass(status: string) {
   if (status === "complete") return "delivery-pill done";
@@ -67,26 +67,32 @@ export function TaskSection({
                   </select>
                   <button type="submit" className="mini-button">Set</button>
                 </PortalActionForm>
-                <form action={toggleTaskVisibility}>
+                <PortalActionForm action={toggleTaskVisibilityWithFeedback} lockOnSuccess={false} pendingMessage="Saving visibility…">
                   <input type="hidden" name="task_id" value={t.id} />
+                  <input type="hidden" name="client_visible" value={String(!t.client_visible)} />
                   <button
                     type="submit"
                     className="mini-button"
                     title={t.client_visible ? "Hide from client" : "Show to client"}
+                    aria-label={`${t.client_visible ? "Hide" : "Show"} ${t.title} ${t.client_visible ? "from" : "to"} client`}
                   >
                     {t.client_visible ? "👁" : "👁‍🗨"}
                   </button>
-                </form>
-                <form action={deleteTask}>
+                </PortalActionForm>
+                <PortalActionForm
+                  action={deleteTaskWithFeedback}
+                  pendingMessage="Deleting task…"
+                  confirmMessage={`Delete “${t.title}”? This permanently removes the task and cannot be undone.`}
+                >
                   <input type="hidden" name="task_id" value={t.id} />
                   <button type="submit" className="mini-button danger" aria-label={`Delete ${t.title}`}>✕</button>
-                </form>
+                </PortalActionForm>
               </div>
             </li>
           ))
         )}
       </ul>
-      <form action={createTask} className="delivery-add-form">
+      <PortalActionForm action={createTaskWithFeedback} className="delivery-add-form" lockOnSuccess={false} resetOnSuccess pendingMessage="Adding task…">
         <input type="hidden" name="project_id" value={projectId} />
         <input type="text" name="title" placeholder="New task…" required maxLength={160} />
         <select name="priority" defaultValue="normal" aria-label="Priority">
@@ -98,8 +104,8 @@ export function TaskSection({
         <label className="mini-form" style={{ fontSize: 10, color: "#84798c" }}>
           <input type="checkbox" name="client_visible" /> Client-visible
         </label>
-        <PortalSubmitButton pendingLabel="Adding…">Add</PortalSubmitButton>
-      </form>
+        <button type="submit" className="mini-button go">Add</button>
+      </PortalActionForm>
     </section>
   );
 }
