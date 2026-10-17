@@ -42,7 +42,7 @@
 
 - [ ] Confirm database security post-check passed, recovery email is deliverable, approved `main` SHA is frozen, and production GitHub environment reviews are in force.
 - [ ] Record current Cloudflare deployment/version ID and Worker settings immediately before publish.
-- [ ] Trigger `Deploy NHS OS to Cloudflare (manual)` on **main** only after explicit approval; do not rely on automatic push workflows.
+- [ ] Trigger `Deploy NHS OS to Cloudflare (manual)` on **main** only after explicit approval; do not rely on automatic push workflows. The draft version of this workflow adds a fail-closed owner-only gate requiring exact `approval_phrase=I_APPROVE_NHS_OS_PRODUCTION_DEPLOY`, exact `expected_main_sha` matching the current approved 40-character commit, and `verified_security_migration=I_VERIFIED_SUPABASE_HARDENING` after independently verifying the active policies. These are manual human attestations, **not** substitutes for actual migration/backup/email checks. This workflow gate only takes effect when the reviewed source reaches `main` after separate merge approval.
 - [ ] Verify Worker deployment ID/version and app custom domain, `ASSETS` and `NEXTJS_ENV` bindings, compatibility flags and secret presence (names/types only, never values).
 
 ### Gate 4 — Post-deploy smoke and monitoring
