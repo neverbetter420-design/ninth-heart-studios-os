@@ -41,6 +41,7 @@ jobs:
           npm run verify:delivery
           npm run verify:radar
           npm run verify:coverage
+          npm run verify:navigation
       - name: Production build
         run: npm run build
 
