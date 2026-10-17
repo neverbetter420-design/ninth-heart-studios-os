@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import { milestoneStatusLabel, stageLabel } from "@/lib/delivery";
-import { addPortalFeedbackPin, decideApproval, deleteClientFile, sendPortalMessage, uploadClientFile } from "./actions";
-import { submitForm } from "@/app/(protected)/portal/forms/actions";
+import { addPortalFeedbackPin, decideApprovalWithFeedback, deleteClientFileWithFeedback, sendPortalMessage, sendPortalMessageWithFeedback, uploadClientFile } from "./actions";
+import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
+import { submitFormWithFeedback } from "@/app/(protected)/portal/forms/actions";
 import { MessageThread } from "@/components/projects/MessageThread";
 import { PortalRevisionSection } from "@/components/projects/PortalRevisionSection";
 import { ContractSign } from "@/components/portal/ContractSign";
@@ -223,7 +224,7 @@ export default async function ClientProjectPage({
                     Requested {new Date(approval.requested_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </p>
                 </div>
-                <form action={decideApproval} className="delivery-add-form" style={{ borderTop: 0, padding: 0 }}>
+                <PortalActionForm action={decideApprovalWithFeedback} pendingMessage="Saving your decision…" className="delivery-add-form" style={{ borderTop: 0, padding: 0 }}>
                   <input type="hidden" name="approval_id" value={approval.id} />
                   <input type="text" name="client_comment" placeholder="Comment (optional)…" maxLength={280} />
                   <button type="submit" name="decision" value="approved" className="mini-button go">
@@ -232,7 +233,7 @@ export default async function ClientProjectPage({
                   <button type="submit" name="decision" value="declined" className="mini-button danger">
                     Request changes
                   </button>
-                </form>
+                </PortalActionForm>
               </li>
             ))}
           </ul>
@@ -289,9 +290,7 @@ export default async function ClientProjectPage({
           <form action={uploadClientFile} className="mini-form file-upload-form" style={{ marginBottom: 10 }}>
             <input type="hidden" name="project_id" value={projectId} />
             <input type="file" name="file" required aria-label="Choose a file to upload" />
-            <button type="submit" className="mini-button go">
-              Upload
-            </button>
+            <PortalSubmitButton pendingLabel="Uploading…">Upload</PortalSubmitButton>
           </form>
           {portalFiles.length ? portalFiles.map((file) => (
             <div className="simple-row" key={file.id}>
@@ -305,12 +304,12 @@ export default async function ClientProjectPage({
               <span>
                 {formatBytes(file.size_bytes)}
                 {file.uploaded_by === user.id ? (
-                  <form action={deleteClientFile} className="mini-form" style={{ display: "inline", marginLeft: 8 }}>
+                  <PortalActionForm action={deleteClientFileWithFeedback} pendingMessage="Removing file…" className="mini-form" style={{ display: "inline", marginLeft: 8 }}>
                     <input type="hidden" name="file_id" value={file.id} />
                     <button type="submit" className="mini-button danger">
                       Delete
                     </button>
-                  </form>
+                  </PortalActionForm>
                 ) : null}
               </span>
             </div>
@@ -351,7 +350,7 @@ export default async function ClientProjectPage({
 
         <div id="contracts" className="portal-anchor"><ContractSign contracts={(contracts ?? []) as Contract[]} /></div>
 
-        <div id="forms" className="portal-anchor"><FormFill submissions={submissionsWithTemplates} submitAction={submitForm} /></div>
+        <div id="forms" className="portal-anchor"><FormFill submissions={submissionsWithTemplates} submitAction={submitFormWithFeedback} /></div>
       </section>
 
       <div id="messages" className="portal-anchor" style={{ marginTop: 14 }}>
@@ -360,6 +359,7 @@ export default async function ClientProjectPage({
           messages={((messages ?? []) as ProjectMessage[])}
           currentUserId={user.id}
           sendAction={sendPortalMessage}
+          feedbackAction={sendPortalMessageWithFeedback}
           otherLabel="Ninth Heart Studios"
           title="Messages"
         />

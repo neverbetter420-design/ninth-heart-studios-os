@@ -93,3 +93,15 @@
 @media (prefers-reduced-motion: reduce) {
   .workspace-skeleton { animation: none; }
 }
+
+/* Clear action feedback and disabled busy states for client portal. */
+.portal-action-fields { border: 0; padding: 0; margin: 0; min-width: 0; display: contents; }
+.portal-action-feedback { display: flex; align-items: center; gap: 9px; width: 100%; margin: 10px 0 0; border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.5; }
+.portal-action-feedback.is-pending { color: var(--muted); background: rgba(185, 43, 225, .08); border: 1px solid rgba(185, 43, 225, .19); }
+.portal-action-feedback.is-success { color: #9cecc6; background: rgba(110, 247, 180, .07); border: 1px solid rgba(110, 247, 180, .2); }
+.portal-action-feedback.is-error { color: #ffc0d9; background: rgba(255, 79, 150, .07); border: 1px solid rgba(255, 79, 150, .22); }
+.portal-action-spinner { display: inline-block; flex: 0 0 13px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: portal-spin .8s linear infinite; }
+@keyframes portal-spin { to { transform: rotate(360deg); } }
+.portal-action-fields:disabled { opacity: .65; }
+.portal-action-fields button:disabled, .file-upload-form button:disabled { opacity: .58; cursor: progress; }
+@media (prefers-reduced-motion: reduce) { .portal-action-spinner { animation: none; } }

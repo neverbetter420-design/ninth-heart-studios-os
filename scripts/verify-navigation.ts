@@ -92,4 +92,22 @@ for (const routeFile of [
 assert.ok(read("app/(protected)/error.tsx").includes("onClick={() => reset()}"), "retry action missing");
 assert.ok(read("app/(protected)/loading.tsx").includes('aria-busy="true"'), "loading status inaccessible");
 assert.ok(read("app/(protected)/not-found.tsx").includes('href="/"'), "not found recovery link missing");
+const actionForm = read("components/portal/PortalActionForm.tsx");
+assert.ok(actionForm.includes("useActionState"), "portal action state required");
+assert.ok(actionForm.includes("useTransition"), "pending state required");
+assert.ok(actionForm.includes("setAttempted(true)"), "feedback must not appear before submission");
+assert.ok(actionForm.includes("event.nativeEvent as SubmitEvent"), "approval submitter must be captured");
+for (const route of [
+  "app/(protected)/portal/projects/[projectId]/page.tsx",
+  "components/portal/ContractSign.tsx",
+  "components/portal/FormFill.tsx",
+]) assert.ok(read(route).includes("PortalActionForm"), "missing action feedback in " + route);
+for (const actionFile of [
+  "app/(protected)/portal/projects/[projectId]/actions.ts",
+  "app/(protected)/portal/contracts/actions.ts",
+  "app/(protected)/portal/forms/actions.ts",
+]) {
+  const code = read(actionFile);
+  assert.ok(code.includes('status: "success"') && code.includes('status: "error"'), "truthful outcome missing: " + actionFile);
+}
 console.log("verify:navigation — role separation, routes, mobile drawer, client destinations and action links passed.");
