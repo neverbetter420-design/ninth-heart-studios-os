@@ -154,7 +154,7 @@ export async function Dashboard() {
             {projects.length ? projects.map((project) => (
               <div className="project-row" key={project.id}>
                 <div className="project-copy">
-                  <strong>{project.name}</strong>
+                  <strong><Link href={"/projects/" + project.id}>{project.name}</Link></strong>
                   <span>{stageLabel(project.status)} · {dueLabel(project.due_date)}</span>
                 </div>
                 <div className="progress-track" aria-label={`${project.progress}% complete`}>
@@ -181,7 +181,7 @@ export async function Dashboard() {
               <div className="radar-row" key={item.id}>
                 <div>
                   <small>{item.source}</small>
-                  <strong>{item.title}</strong>
+                  <strong><Link href={"/opportunities/" + item.id}>{item.title}</Link></strong>
                 </div>
                 <div className="score-ring"><span>{item.score ?? "—"}</span></div>
               </div>

@@ -199,8 +199,17 @@ export default async function ClientProjectPage({
         </div>
       </header>
 
+      <nav className="portal-section-tabs" aria-label="Jump to project section">
+        <a href="#milestones">Milestones</a>
+        <a href={pendingApprovals.length ? "#pending-approvals" : "#approvals"}>Approvals</a>
+        <a href="#files">Files</a>
+        <a href="#contracts">Contracts</a>
+        <a href="#forms">Forms</a>
+        <a href="#messages">Messages</a>
+      </nav>
+
       {pendingApprovals.length > 0 ? (
-        <section className="panel" aria-label="Approvals needing your decision" style={{ marginBottom: 14 }}>
+        <section id="pending-approvals" className="panel portal-anchor" aria-label="Approvals needing your decision" style={{ marginBottom: 14 }}>
           <div className="panel-heading">
             <h3>Needs your sign-off</h3>
             <span className="pipeline-count">{pendingApprovals.length}</span>
@@ -231,7 +240,7 @@ export default async function ClientProjectPage({
       ) : null}
 
       <section className="client-detail-grid">
-        <article className="panel detail-panel">
+        <article id="milestones" className="panel detail-panel portal-anchor">
           <h3>Milestones</h3>
           {(milestones ?? []).length ? (milestones ?? []).map((m) => (
             <div className="simple-row" key={m.id}>
@@ -251,7 +260,7 @@ export default async function ClientProjectPage({
           )) : <p className="muted-copy">No client-visible tasks yet.</p>}
         </article>
 
-        <article className="panel detail-panel">
+        <article id="approvals" className="panel detail-panel portal-anchor">
           <h3>Past decisions</h3>
           {decidedApprovals.length ? decidedApprovals.map((approval) => (
             <div className="simple-row" key={approval.id}>
@@ -275,7 +284,7 @@ export default async function ClientProjectPage({
           )) : <p className="muted-copy">No follow-ups scheduled.</p>}
         </article>
 
-        <article className="panel detail-panel">
+        <article id="files" className="panel detail-panel portal-anchor">
           <h3>Files</h3>
           <form action={uploadClientFile} className="mini-form file-upload-form" style={{ marginBottom: 10 }}>
             <input type="hidden" name="project_id" value={projectId} />
@@ -340,12 +349,12 @@ export default async function ClientProjectPage({
           addPinAction={addPortalFeedbackPin}
         />
 
-        <ContractSign contracts={(contracts ?? []) as Contract[]} />
+        <div id="contracts" className="portal-anchor"><ContractSign contracts={(contracts ?? []) as Contract[]} /></div>
 
-        <FormFill submissions={submissionsWithTemplates} submitAction={submitForm} />
+        <div id="forms" className="portal-anchor"><FormFill submissions={submissionsWithTemplates} submitAction={submitForm} /></div>
       </section>
 
-      <div style={{ marginTop: 14 }}>
+      <div id="messages" className="portal-anchor" style={{ marginTop: 14 }}>
         <MessageThread
           projectId={projectId}
           messages={((messages ?? []) as ProjectMessage[])}

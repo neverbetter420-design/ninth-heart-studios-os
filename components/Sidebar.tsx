@@ -18,6 +18,12 @@ export function Sidebar({
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
   const sections = [...new Set(visibleItems.map((item) => item.section))];
   const home = role === "admin" ? "/" : "/portal";
+  const matchingItems = visibleItems.filter((item) =>
+    item.href === "/" || item.href === "/portal"
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(item.href + "/")
+  );
+  const activeHref = [...matchingItems].sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   useEffect(() => {
     setOpen(false);
@@ -85,9 +91,7 @@ export function Sidebar({
               <p className="nav-section-heading">{section}</p>
               <div className="nav-section-links">
                 {visibleItems.filter((item) => item.section === section).map((item) => {
-                  const active = item.href === "/" || item.href === "/portal"
-                    ? pathname === item.href
-                    : pathname === item.href || pathname.startsWith(item.href + "/");
+                  const active = item.href === activeHref;
                   return (
                     <Link
                       key={item.href}
