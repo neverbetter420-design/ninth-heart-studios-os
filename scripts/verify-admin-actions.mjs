@@ -35,6 +35,29 @@ function harness(file, expectations = [], options = {}) {
   const harnessErrors = [];
   let authCalls = 0;
   const supabase = {
+    storage: {
+      from(bucket) {
+        assert.equal(bucket, "project-files", "unexpected storage bucket");
+        return {
+          async remove(paths) {
+            const call = { table: "storage", operation: "remove", paths };
+            calls.push(call);
+            const expected = pending.shift();
+            try {
+              assert.ok(expected, "unexpected storage removal");
+              assert.equal(expected.table, "storage");
+              assert.equal(expected.operation, "remove");
+              if (expected.paths) assert.deepEqual(paths, expected.paths);
+            } catch (error) {
+              harnessErrors.push(error);
+              throw error;
+            }
+            if (expected.throws) throw new Error(expected.throws);
+            return expected.result;
+          },
+        };
+      },
+    },
     from(table) {
       const call = { table, operation: "select", filters: [], columns: null, terminal: null };
       const chain = {};
@@ -247,9 +270,38 @@ for (const [label, result, status] of [["confirmed", response(row()), "success"]
 }
 await check("document deletion needs a project scope", projects, "deleteDocumentWithFeedback", { document_id: ids.record }, [], "error");
 
+
+const projectFile = { id: ids.record, project_id: ids.project, object_path: `${ids.client}/${ids.project}/client/file.pdf`, filename: "file.pdf" };
+const fileLookup = (result = response(projectFile)) => query("files", "select", result, { eq: { id: ids.record } });
+const fileDelete = (result = response(projectFile)) => query("files", "delete", result, {
+  confirmed: true, eq: { id: ids.record, project_id: ids.project },
+});
+const storageRemove = (result = response([{ name: projectFile.object_path }])) =>
+  query("storage", "remove", result, { paths: [projectFile.object_path] });
+await check("file deletion confirms metadata and storage before reporting success", projects, "deleteProjectFileWithFeedback",
+  { file_id: ids.record }, [fileLookup(), fileDelete(), storageRemove(), query("activities", "insert", response(null))], "success");
+await check("file deletion never touches storage after a denied database write", projects, "deleteProjectFileWithFeedback",
+  { file_id: ids.record }, [fileLookup(), fileDelete(failed)], "error");
+await check("file deletion never touches storage after an unconfirmed database write", projects, "deleteProjectFileWithFeedback",
+  { file_id: ids.record }, [fileLookup(), fileDelete(missing)], "error");
+await check("file deletion does not mutate when lookup is denied", projects, "deleteProjectFileWithFeedback",
+  { file_id: ids.record }, [fileLookup(failed)], "error");
+await check("file deletion rejects missing IDs", projects, "deleteProjectFileWithFeedback", {}, [], "error");
+for (const removal of [storageRemove(failed), storageRemove(response(null))]) {
+  const run = harness(projects, [fileLookup(), fileDelete(), removal]);
+  const result = await run.actions.deleteProjectFileWithFeedback(initial, form({ file_id: ids.record }));
+  assert.equal(result.status, removal.result.error ? "error" : "success");
+  if (removal.result.error) {
+    assert.match(result.message, /storage cleanup failed/i);
+    assert.ok(run.revalidated.includes(`/projects/${ids.project}`), "confirmed metadata removal must refresh despite cleanup failure");
+  }
+  run.assertComplete();
+  checks += 1;
+}
+
 for (const [file, action] of [[clients, "addClientMemberWithFeedback"], [clients, "removeClientMemberWithFeedback"],
   ...["createTaskWithFeedback", "deleteTaskWithFeedback", "setTaskStatusWithFeedback", "toggleTaskVisibilityWithFeedback",
-    "createMilestoneWithFeedback", "setMilestoneStatusWithFeedback", "deleteMilestoneWithFeedback", "createDocumentWithFeedback", "deleteDocumentWithFeedback"].map((action) => [projects, action])]) {
+    "createMilestoneWithFeedback", "setMilestoneStatusWithFeedback", "deleteMilestoneWithFeedback", "createDocumentWithFeedback", "deleteDocumentWithFeedback", "deleteProjectFileWithFeedback"].map((action) => [projects, action])]) {
   const run = harness(file, [], { noAdmin: true });
   try {
     const result = await run.actions[action](initial, form({ ...taskInput, ...documentInput, client_id: ids.client, profile_id: ids.profile, email: "test@example.com", task_id: ids.record, milestone_id: ids.record, document_id: ids.record }));
