@@ -169,4 +169,31 @@ test.describe("Approved isolated live-action QA", () => {
       if (attempted) await safeRemove(page, "Documents", title);
     }
   });
+
+  test("admin private file: upload canary, client download link, and scoped removal", async ({ page, browser, baseURL }) => {
+    await guardedSetup(page, browser, baseURL);
+    const filename = testTag + "-upload.txt";
+    let attempted = false;
+    try {
+      const section = page.getByRole("region", { name: "Project files" });
+      const form = section.locator("form.file-upload-form");
+      await form.locator('input[type="file"]').setInputFiles({
+        name: filename,
+        mimeType: "text/plain",
+        buffer: Buffer.from("NHS isolated QA canary; no customer data."),
+      });
+      await form.getByRole("combobox", { name: "File visibility" }).selectOption("client");
+      attempted = true;
+      await form.getByRole("button", { name: "Upload" }).click();
+      await expect(page.getByRole("status").filter({ hasText: "File uploaded successfully." })).toBeVisible();
+      await expect(namedRow(page.getByRole("region", { name: "Project files" }), filename)).toBeVisible();
+      await page.reload();
+      const fileRow = namedRow(page.getByRole("region", { name: "Project files" }), filename);
+      await expect(fileRow.getByRole("link", { name: "Download" })).toHaveAttribute("href", /^https:\/\//);
+      await portalHas(browser, baseURL, filename, true);
+    } finally {
+      if (attempted) await safeRemove(page, "Project files", filename);
+    }
+    await portalHas(browser, baseURL, filename, false);
+  });
 });
