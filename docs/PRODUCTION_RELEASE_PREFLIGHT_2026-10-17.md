@@ -25,7 +25,7 @@ An earlier [local Supabase UI run #39046519493](https://github.com/neverbetter42
 
 ### Gate 0 — Validate external delivery and rollback capability (not verified yet)
 
-- [ ] Confirm a restorable Supabase database backup/snapshot exists **and** the intended restore procedure/permissions; a backup status alone is not proof of a working restore.
+- [ ] **Confirmed Free-plan backup gap (October 17):** Supabase project has no included downloadable automatic backups. Live read-only inventory: ~13 MB database, 4 Auth users, 1 Storage object and 22 applied migrations. Create an encrypted **manual logical backup including Auth/migration-history coverage**, preserve the sole Storage object's file bytes separately, and document a viable restore; or obtain explicit authorization for a paid upgrade and verify a backup. Follow `docs/EMAIL_AND_FREE_PLAN_RELEASE_GATE_2026-10-17.md`. A backup status alone is not proof of a working restore.
 - [ ] Confirm the GitHub `production` environment has required reviewers/approval protection; the workflow's `environment: production` line **does not prove** reviewers are configured. Verify in GitHub Settings UI.
 - [ ] Confirm Cloudflare API deployment token is stored in GitHub `production` environment; never paste credentials into chat, source, actions logs, or the app frontend.
 - [ ] Resolve **email DNS launch blocker** using `docs/EMAIL_DNS_GO_LIVE_FIXES.md`: Cloudflare zone lists 3 DMARC TXT records plus a CNAME at `_dmarc.ninthheartstudios.com`, and an Amazon inbound MX alongside Google Workspace MX. Confirm Wix/SES ownership and obtain separate DNS approval; preserve Google mail delivery. Then verify one valid DMARC policy and expected MX.
