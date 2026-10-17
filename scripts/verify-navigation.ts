@@ -110,4 +110,31 @@ for (const actionFile of [
   const code = read(actionFile);
   assert.ok(code.includes('status: "success"') && code.includes('status: "error"'), "truthful outcome missing: " + actionFile);
 }
+// Admin read/write UI regressions: never show success on a rejected record update.
+for (const actionFile of [
+  "app/(protected)/(admin)/clients/actions.ts",
+  "app/(protected)/(admin)/projects/actions.ts",
+  "app/(protected)/(admin)/leads/actions.ts",
+]) {
+  const actionCode = read(actionFile);
+  assert.ok(actionCode.includes('status: "success"') && actionCode.includes('status: "error"'), "missing confirmed admin action state for " + actionFile);
+}
+for (const [component, actionName] of [
+  ["app/(protected)/(admin)/clients/page.tsx", "setClientStatusWithFeedback"],
+  ["components/projects/PipelineBoard.tsx", "moveProjectWithFeedback"],
+  ["components/projects/ProjectOverview.tsx", "updateProjectDetailsWithFeedback"],
+  ["components/projects/TaskSection.tsx", "setTaskStatusWithFeedback"],
+  ["components/leads/QuickOutcomeButtons.tsx", "logLeadOutcomeWithFeedback"],
+]) {
+  assert.ok(read(component).includes(actionName), "unwired admin action feedback: " + component);
+}
+assert.ok(read("components/portal/PortalActionForm.tsx").includes("lockOnSuccess = true"), "repeatable admin actions need unlock support");
+for (const component of [
+  "components/leads/LeadCaptureCard.tsx",
+  "app/(protected)/(admin)/clients/page.tsx",
+  "app/(protected)/(admin)/projects/page.tsx",
+  "app/(protected)/(admin)/leads/[leadId]/page.tsx",
+]) {
+  assert.ok(read(component).includes("PortalSubmitButton"), "missing pending button for admin redirect action: " + component);
+}
 console.log("verify:navigation — role separation, routes, mobile drawer, client destinations and action links passed.");
