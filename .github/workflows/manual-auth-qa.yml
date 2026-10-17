@@ -1,0 +1,93 @@
+name: NHS OS authenticated browser QA (manual, read-only)
+
+# This workflow is intentionally on main so GitHub can dispatch it. It does
+# not merge or deploy PR #14. The application snapshot under test is pinned to
+# the reviewed development-branch commit below, rather than a mutable ref.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nhs-authenticated-qa
+  cancel-in-progress: false
+
+jobs:
+  browser-qa:
+    if: github.ref == 'refs/heads/main'
+    name: Admin and client navigation (desktop/mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://rquscwgdrqkzwjukiqtk.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7N1_IhU0_mvs6q0ppgyssA_0O6xj-L2
+      E2E_BASE_URL: http://127.0.0.1:3000
+      CI: "true"
+
+    steps:
+      - name: Checkout the reviewed development-branch snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: caf7fe23ebb847f107ed4463343a4ab0e0df4e48
+          persist-credentials: false
+
+      - name: Assert the approved commit
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "caf7fe23ebb847f107ed4463343a4ab0e0df4e48"
+          echo "Reviewed feature branch commit: $(git rev-parse --short HEAD)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Install isolated Playwright runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Require all six dedicated test credentials
+        shell: bash
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_CLIENT_A_EMAIL: ${{ secrets.E2E_CLIENT_A_EMAIL }}
+          E2E_CLIENT_A_PASSWORD: ${{ secrets.E2E_CLIENT_A_PASSWORD }}
+          E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
+          E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
+        run: |
+          for key in E2E_ADMIN_EMAIL E2E_ADMIN_PASSWORD E2E_CLIENT_A_EMAIL E2E_CLIENT_A_PASSWORD E2E_CLIENT_B_EMAIL E2E_CLIENT_B_PASSWORD; do
+            if [[ -z "${!key}" ]]; then
+              echo "::error::Missing required repository secret: $key"
+              exit 1
+            fi
+          done
+          echo "All six dedicated test-credential secrets are present." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Authenticated read-only browser checks (desktop and mobile)
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_CLIENT_A_EMAIL: ${{ secrets.E2E_CLIENT_A_EMAIL }}
+          E2E_CLIENT_A_PASSWORD: ${{ secrets.E2E_CLIENT_A_PASSWORD }}
+          E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
+          E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
+        run: npx playwright test tests/e2e/navigation.spec.mjs
+
+      - name: Upload failure screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhs-authenticated-qa-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
