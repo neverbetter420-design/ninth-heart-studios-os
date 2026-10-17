@@ -100,6 +100,12 @@ test.describe("Approved isolated live-action QA", () => {
     "Live record writes are disabled by default; require explicit approval, isolated test project and all six test credentials.",
   );
   test.describe.configure({ mode: "serial" });
+  // Real authenticated browser scenarios include five separate sign-ins and
+  // persisted cleanup. Leave enough room for cleanup without hiding UI hangs:
+  // the preceding no-write pointer test and normal per-action timeout stay on.
+  test.beforeEach(async ({}, testInfo) => {
+    testInfo.setTimeout(90_000);
+  });
 
   test("admin task: create, persisted status, client visibility and safe deletion", async ({ page, browser, baseURL }) => {
     await guardedSetup(page, browser, baseURL);
