@@ -187,9 +187,11 @@ end $$;
 
 rollback;
 -- The synthetic fixture is unchanged after all cases.
-select case when
-  (select count(*) from public.approvals)=4 and
-  (select count(*) from public.messages)=0
-  then 'PASS: isolated transaction rolled back; synthetic fixtures untouched'
-  else (1/0)::text
-end as no_residual_writes;
+do $
+begin
+  if (select count(*) from public.approvals) <> 4
+    or (select count(*) from public.messages) <> 0 then
+    raise exception 'Synthetic fixture changed despite transaction rollback';
+  end if;
+end $;
+\echo PASS: isolated transaction rolled back; synthetic fixtures untouched.
