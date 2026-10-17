@@ -73,6 +73,20 @@ The full-schema replay identified and led to a source-only fix of two missing PL
 
 **Coverage boundary:** Local Supabase runs actual Auth/REST/DB services, but this is not a separate **hosted** Supabase staging project. No browser-level client approval/message submissions against this local stack were included. Before any live migration, decide whether a hosted staging project plus browser QA is needed and obtain explicit approval for production schema changes.
 
+## Local NHS OS client portal UI evidence (2026-10-17)
+
+[Isolated local Supabase + browser QA #39043527259](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39043527259) **passed**: 9/9 Auth/PostgREST permission scenarios and 2/2 Playwright desktop/mobile client-portal interaction scenarios.
+
+The same ephemeral GitHub Actions Supabase stack applied the full migration sequence and provided only synthetic Auth users and records to a locally running NHS OS Next.js app. The browser tests:
+- Signed in Client A, approved one pending record and requested changes on a second using the real portal buttons;
+- Verified decisions, identity, comment, and server timestamp persisted via local Supabase;
+- Sent a real client message from the portal and verified persisted sender identity;
+- Reloaded the portal and found saved messages and decisions in the UI;
+- Signed in Client B and confirmed cross-client project links, approval labels, and messages were hidden;
+- Repeated the scenario on desktop Chromium and mobile Chromium.
+
+These tests use an explicit CI-only guard that refuses any remote Supabase URL, project token or non-local API target. All test records were synthetic and containers were disposed after the run. **No customer data or active Supabase migration changed.** A separate hosted staging environment is still unavailable, but the full local application/browser integration gate has been satisfied.
+
 ## Release blocking status
 
 - [x] Existing Phase 2 write QA: 10/10 and zero active QA leftovers on run #39021575467.
@@ -81,7 +95,8 @@ The full-schema replay identified and led to a source-only fix of two missing PL
 - [x] CI for the new migration-source verification and build is green.
 - [x] Isolated PostgreSQL 17 database applies the exact migration and passes synthetic negative mutation tests in CI.
 - [x] Disposable local Supabase verified chronological migrations, Auth, PostgREST and API approval/message security (9/9).
-- [ ] Hosted Supabase staging (not currently present) and browser-level approval/message UI test, if required by release policy.
+- [x] End-to-end approval/message UI passed in disposable local Supabase with desktop/mobile Playwright (2/2).
+- [ ] Optional separate hosted Supabase staging project (not currently available) if required before migration application.
 - [ ] Explicit approval to apply migration to the active project.
 - [ ] Separate verification after production policy deployment.
 - [ ] Merge/deploy authorization for draft PR #14 (not included in this phase).
