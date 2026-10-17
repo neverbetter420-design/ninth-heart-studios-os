@@ -34,7 +34,7 @@ begin
   new.signer_ip := null;
   return new;
 end;
-$function$
+$function$;
 
 
 DROP TRIGGER IF EXISTS guard_client_contract_signature ON public.contracts;
@@ -147,7 +147,7 @@ begin
   new.signer_ip := null;
   return new;
 end;
-$function$
+$function$;
 
 
 DROP TRIGGER IF EXISTS guard_client_form_submission ON public.form_submissions;
