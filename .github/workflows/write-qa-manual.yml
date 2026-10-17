@@ -1,8 +1,8 @@
 name: NHS OS isolated write QA (manual approval required)
 
-# Proposal only: stored on draft PR feature branch, not on main.
-# Do NOT publish this workflow to main or run it without explicit approval
-# for limited writes to the named disposable test project in live Supabase.
+# Approved to install on main for a single controlled manual run. Never run
+# without the exact explicit consent inputs, test owner, and isolated fixture.
+# This workflow has no push/PR/merge/deploy triggers.
 on:
   workflow_dispatch:
     inputs:
@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   approved-test-only:
-    if: github.ref == 'refs/heads/main' && inputs.approval_phrase == 'I_APPROVE_ISOLATED_QA_WRITES' && inputs.test_project_id == 'fdb531db-bf9c-47ee-bc6a-458b626665a2'
+    if: github.ref == 'refs/heads/main' && github.actor == 'neverbetter420-design' && inputs.approval_phrase == 'I_APPROVE_ISOLATED_QA_WRITES' && inputs.test_project_id == 'fdb531db-bf9c-47ee-bc6a-458b626665a2'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -39,11 +39,11 @@ jobs:
       - name: Checkout reviewed immutable write-QA code
         uses: actions/checkout@v4
         with:
-          ref: 383e4307cf2a085d4b7ba4eaa16707d5b7f0fd77
+          ref: 0f90b31acd9ec6a0932d4846830b335b76f1bfa0
           persist-credentials: false
 
       - name: Verify immutable code
-        run: test "$(git rev-parse HEAD)" = "383e4307cf2a085d4b7ba4eaa16707d5b7f0fd77"
+        run: test "$(git rev-parse HEAD)" = "0f90b31acd9ec6a0932d4846830b335b76f1bfa0"
 
       - name: Node 22
         uses: actions/setup-node@v4
@@ -74,6 +74,9 @@ jobs:
             if [[ -z "${!key}" ]]; then echo "::error::Missing $key"; exit 1; fi
           done
 
+      - name: Verify mobile action targets without Supabase writes
+        run: npx playwright test tests/e2e/mobile-delivery-controls.spec.mjs --retries=0
+
       - name: Run only the explicitly authorized test-data mutations
         env:
           E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
@@ -82,7 +85,17 @@ jobs:
           E2E_CLIENT_A_PASSWORD: ${{ secrets.E2E_CLIENT_A_PASSWORD }}
           E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
           E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
-        run: npx playwright test tests/e2e/write-actions.spec.mjs
+        run: npx playwright test tests/e2e/write-actions.spec.mjs --retries=0
+
+      # Every approved run receives a second database-and-storage reconciliation.
+      # This step must execute even after Playwright fails; exact tagged fixtures
+      # only. It fails the run if the browser left any data, even after cleanup.
+      - name: Reconcile and verify scoped QA data and storage
+        if: always()
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+        run: node scripts/reconcile-write-qa.mjs
 
       - name: Retain results for cleanup review
         if: always()
