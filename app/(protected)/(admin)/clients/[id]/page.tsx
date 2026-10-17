@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addClientMember, removeClientMember } from "../actions";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 export default async function ClientDetailPage({
   params,
@@ -105,7 +106,7 @@ export default async function ClientDetailPage({
                 <form action={removeClientMember}>
                   <input type="hidden" name="client_id" value={client.id} />
                   <input type="hidden" name="profile_id" value={m.profile_id} />
-                  <button type="submit" className="mini-button danger">Remove</button>
+                  <PortalSubmitButton pendingLabel="Removing…" className="mini-button danger">Remove</PortalSubmitButton>
                 </form>
               </li>
             ))
@@ -114,7 +115,7 @@ export default async function ClientDetailPage({
         <form action={addClientMember} className="delivery-add-form">
           <input type="hidden" name="client_id" value={client.id} />
           <input type="email" name="email" placeholder="Member's account email…" required maxLength={160} />
-          <button type="submit" className="mini-button go">Add member</button>
+          <PortalSubmitButton pendingLabel="Adding…">Add member</PortalSubmitButton>
         </form>
         <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>
           Members get portal access to this client&apos;s projects. They need a signed-up account first.
