@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 // Intentionally SKIPPED in every ordinary pull-request or browser QA run.
 // Enable only in a separate, explicitly approved, manual test-data workflow.
@@ -76,20 +77,62 @@ function namedRow(section, title) {
   return section.locator("li.delivery-row").filter({ hasText: title });
 }
 
+const cleanTable = {
+  Tasks: ["tasks", "title"],
+  Milestones: ["milestones", "title"],
+  Documents: ["documents", "title"],
+  "Project files": ["files", "filename"],
+};
+
+async function scopedAdminClient() {
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+  const { error } = await client.auth.signInWithPassword({
+    email: users.admin[0],
+    password: users.admin[1],
+  });
+  if (error) throw new Error("QA record-verification sign-in failed: " + error.message);
+  return client;
+}
+
+async function scopedRows(client, sectionName, title) {
+  const [table, field] = cleanTable[sectionName] ?? [];
+  if (!table || !title.startsWith(testTag) || projectId !== allowedTestProjectId) {
+    throw new Error("Refusing a non-QA or incorrectly scoped record lookup.");
+  }
+  const { data, error } = await client
+    .from(table)
+    .select("id")
+    .eq("project_id", allowedTestProjectId)
+    .eq(field, title);
+  if (error) throw new Error("Cannot verify persisted " + table + " record: " + error.message);
+  return data;
+}
+
 async function safeRemove(page, sectionName, title) {
-  // Only delete a row created by this exact run, never a pre-existing record.
-  if (!title.startsWith(testTag)) return;
+  // The DOM alone is not proof a Supabase record was deleted. Previously
+  // returning silently for a missing row produced false green test cases.
+  const admin = await scopedAdminClient();
+  const before = await scopedRows(admin, sectionName, title);
+  if (before.length === 0) return; // Initial create never persisted.
+  expect(before, "Only one QA record may match an exact generated name").toHaveLength(1);
   await page.goto(route);
   const section = page.getByRole("region", { name: sectionName });
   const row = namedRow(section, title);
-  if (await row.count() !== 1) return;
+  await expect(row, "A persisted QA row must be reachable for cleanup").toHaveCount(1);
   const deleteButton = row.getByRole("button", { name: "Delete " + title, exact: true });
   await deleteButton.scrollIntoViewIfNeeded();
   await expect(deleteButton).toBeInViewport();
   page.once("dialog", (dialog) => dialog.accept());
-  // Do not force the click; pointer interception is a real mobile defect.
+  // Do not force pointer clicks; that would conceal the mobile issue.
   await deleteButton.click();
-  // Server revalidation can be asynchronous; reload proves persisted deletion.
+  await expect.poll(async () => (await scopedRows(admin, sectionName, title)).length, {
+    message: "QA deletion must be confirmed against persisted Supabase data",
+    timeout: 15_000,
+  }).toBe(0);
   await page.reload();
   await expect(namedRow(page.getByRole("region", { name: sectionName }), title)).toHaveCount(0);
 }
@@ -205,7 +248,7 @@ test.describe("Approved isolated live-action QA", () => {
       });
       await form.getByRole("combobox", { name: "File visibility" }).selectOption("client");
       attempted = true;
-      await form.getByRole("button", { name: "Upload" }).click();
+      await form.getByRole("button", { name: "Upload", exact: true }).click();
       await expect(page.getByRole("status").filter({ hasText: "File uploaded successfully." })).toBeVisible();
       await expect(namedRow(page.getByRole("region", { name: "Project files" }), filename)).toBeVisible();
       await page.reload();
