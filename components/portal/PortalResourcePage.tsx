@@ -93,15 +93,20 @@ export async function PortalResourcePage({ kind }: { kind: PortalResourceKind })
   const projects = (visibleProjects ?? []) as { id: string; name: string }[];
   const names = new Map(projects.map((project) => [project.id, project.name]));
   const ids = projects.map((project) => project.id);
-  const { data: visibleResources, error } = ids.length
-    ? await supabase
-        .from(config.table)
-        .select(config.columns as string)
-        .in("project_id", ids)
-        .order(config.sort, { ascending: false })
-        .limit(100)
-    : { data: [], error: null };
-  const entries = (visibleResources ?? []) as ResourceRow[];
+  // Literal column lists keep Supabase's query parser type-safe.
+  const result = !ids.length
+    ? { data: [] as ResourceRow[], error: null }
+    : kind === "messages"
+      ? await supabase.from("messages").select("id, project_id, body, created_at").in("project_id", ids).order("created_at", { ascending: false }).limit(100)
+    : kind === "files"
+      ? await supabase.from("files").select("id, project_id, filename, created_at").in("project_id", ids).order("created_at", { ascending: false }).limit(100)
+    : kind === "approvals"
+      ? await supabase.from("approvals").select("id, project_id, title, status, requested_at").in("project_id", ids).order("requested_at", { ascending: false }).limit(100)
+    : kind === "contracts"
+      ? await supabase.from("contracts").select("id, project_id, title, status, created_at").in("project_id", ids).order("created_at", { ascending: false }).limit(100)
+      : await supabase.from("form_submissions").select("id, project_id, status, created_at").in("project_id", ids).order("created_at", { ascending: false }).limit(100);
+  const { error } = result;
+  const entries: ResourceRow[] = (result.data ?? []).map((row) => ({ ...row }));
 
   return (
     <div className="content-wrap">
@@ -134,7 +139,7 @@ export async function PortalResourcePage({ kind }: { kind: PortalResourceKind })
               <p>{detail(kind, item)}</p>
               <div className="portal-resource-meta">
                 <span>{names.get(item.project_id) ?? "Your project"} · {item.status ?? "Shared"}</span>
-                <Link href={"/portal/projects/" + item.project_id + "#" + config.anchor}>
+                <Link href={"/portal/projects/" + item.project_id + "#" + (kind === "approvals" && item.status !== "pending" ? "approvals" : config.anchor)}>
                   {kind === "approvals" ? "Review decision →" : "Open in project →"}
                 </Link>
               </div>
