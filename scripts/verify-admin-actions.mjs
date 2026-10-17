@@ -290,11 +290,9 @@ await check("file deletion rejects missing IDs", projects, "deleteProjectFileWit
 for (const removal of [storageRemove(failed), storageRemove(response(null))]) {
   const run = harness(projects, [fileLookup(), fileDelete(), removal]);
   const result = await run.actions.deleteProjectFileWithFeedback(initial, form({ file_id: ids.record }));
-  assert.equal(result.status, removal.result.error ? "error" : "success");
-  if (removal.result.error) {
-    assert.match(result.message, /storage cleanup failed/i);
-    assert.ok(run.revalidated.includes(`/projects/${ids.project}`), "confirmed metadata removal must refresh despite cleanup failure");
-  }
+  assert.equal(result.status, "error");
+  assert.match(result.message, /storage cleanup failed/i);
+  assert.ok(run.revalidated.includes(`/projects/${ids.project}`), "confirmed metadata removal must refresh despite cleanup failure");
   run.assertComplete();
   checks += 1;
 }
