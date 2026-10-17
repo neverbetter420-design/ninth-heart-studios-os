@@ -5,6 +5,8 @@ import { test, expect } from "@playwright/test";
 // Every write is scoped to the verified Client A test project; no service key.
 const approval = process.env.NHS_QA_WRITE_APPROVAL;
 const projectId = process.env.NHS_QA_TEST_PROJECT_ID || "";
+// Additional fail-closed guard: only the verified disposable Client A project.
+const allowedTestProjectId = "fdb531db-bf9c-47ee-bc6a-458b626665a2";
 const expectedProject = "Client A Test Co. Website";
 const enabled = approval === "I_APPROVE_ISOLATED_QA_WRITES";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -30,6 +32,7 @@ async function guardedSetup(page, browser, baseURL) {
   // Fail closed before any mutation if the intended project was not explicitly
   // identified or does not belong exclusively to our known test identities.
   expect(projectId, "Explicit test project UUID required").toMatch(uuid);
+  expect(projectId, "Only the approved test project is writable").toBe(allowedTestProjectId);
   const aCtx = await browser.newContext({ baseURL });
   const bCtx = await browser.newContext({ baseURL });
   try {
@@ -89,7 +92,7 @@ async function safeRemove(page, sectionName, title) {
 
 test.describe("Approved isolated live-action QA", () => {
   test.skip(
-    !enabled || !uuid.test(projectId) || Object.values(users).some((p) => !p[0] || !p[1]),
+    !enabled || !uuid.test(projectId) || projectId !== allowedTestProjectId || Object.values(users).some((p) => !p[0] || !p[1]),
     "Live record writes are disabled by default; require explicit approval, isolated test project and all six test credentials.",
   );
   test.describe.configure({ mode: "serial" });
