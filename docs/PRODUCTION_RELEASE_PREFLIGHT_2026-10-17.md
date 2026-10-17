@@ -28,7 +28,8 @@ An earlier [local Supabase UI run #39046519493](https://github.com/neverbetter42
 - [ ] Confirm a restorable Supabase database backup/snapshot exists **and** the intended restore procedure/permissions; a backup status alone is not proof of a working restore.
 - [ ] Confirm the GitHub `production` environment has required reviewers/approval protection; the workflow's `environment: production` line **does not prove** reviewers are configured. Verify in GitHub Settings UI.
 - [ ] Confirm Cloudflare API deployment token is stored in GitHub `production` environment; never paste credentials into chat, source, actions logs, or the app frontend.
-- [ ] Verify Resend transactional sender/domain, Supabase SMTP, auth redirect allow-list, and password-recovery email delivery with a controlled mailbox. Never assume HTTP 200 or `mail.send` proves delivered mail. Preserve Google Workspace MX records.
+- [ ] Resolve **email DNS launch blocker** using `docs/EMAIL_DNS_GO_LIVE_FIXES.md`: Cloudflare zone lists 3 DMARC TXT records plus a CNAME at `_dmarc.ninthheartstudios.com`, and an Amazon inbound MX alongside Google Workspace MX. Confirm Wix/SES ownership and obtain separate DNS approval; preserve Google mail delivery. Then verify one valid DMARC policy and expected MX.
+- [ ] Verify Resend transactional sender/domain, Supabase SMTP, auth redirect allow-list, and password-recovery email delivery with a controlled mailbox. Do not infer delivery from existing DNS records, HTTP 200 or `mail.send` alone.
 - [ ] Decide explicitly whether a separate hosted Supabase staging project is required. A disposable full-stack local Supabase stack **has** passed; no billable hosted staging project was created.
 
 ### Gate 1 — Approve ONLY the database security migration (separate authorization)
@@ -74,7 +75,7 @@ An earlier [local Supabase UI run #39046519493](https://github.com/neverbetter42
 
 1. Explicit owner authorization for the active-project migration, PR merge, and Worker deploy.
 2. Verified restorable database backup and GitHub production-environment reviewer configuration.
-3. Verified recovery-email provider delivery and cross-device reset behavior.
+3. Resolve conflicting DMARC records, clarify Google Workspace/AWS MX ownership, and verify actual recovery-email delivery and cross-device reset behavior.
 4. Production post-migration verification and post-deploy smoke testing, necessarily deferred until those steps are separately authorized.
 
 The additional source-history migration was restored only to the unmerged draft PR; it is already applied on the live database.
