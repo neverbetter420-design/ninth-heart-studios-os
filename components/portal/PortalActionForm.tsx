@@ -41,7 +41,7 @@ export function PortalActionForm({
       return {
         status: "error",
         message: "Could not confirm the server response. Refresh to check whether the change was saved before trying again.",
-      };
+      } satisfies PortalFeedbackState;
     }
     // Announce before revalidation removes the deleted row and its local form.
     if (confirmMessage && result.status === "success") {
