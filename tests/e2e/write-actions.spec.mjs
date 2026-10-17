@@ -83,8 +83,12 @@ async function safeRemove(page, sectionName, title) {
   const section = page.getByRole("region", { name: sectionName });
   const row = namedRow(section, title);
   if (await row.count() !== 1) return;
+  const deleteButton = row.getByRole("button", { name: "Delete " + title, exact: true });
+  await deleteButton.scrollIntoViewIfNeeded();
+  await expect(deleteButton).toBeInViewport();
   page.once("dialog", (dialog) => dialog.accept());
-  await row.getByRole("button", { name: "Delete " + title, exact: true }).click();
+  // Do not force the click; pointer interception is a real mobile defect.
+  await deleteButton.click();
   // Server revalidation can be asynchronous; reload proves persisted deletion.
   await page.reload();
   await expect(namedRow(page.getByRole("region", { name: sectionName }), title)).toHaveCount(0);
@@ -120,7 +124,9 @@ test.describe("Approved isolated live-action QA", () => {
       await expect(row.getByRole("status")).toContainText("Task status updated.");
       await page.reload();
       row = namedRow(page.getByRole("region", { name: "Tasks" }), title);
-      await expect(row.getByText("In progress", { exact: true })).toBeVisible();
+      // Select the displayed state badge, not the "In progress" option
+      // inside the status dropdown (Playwright strict-mode duplicate).
+      await expect(row.locator("span.delivery-pill.progress")).toHaveText("In progress");
 
       await row.getByRole("button", { name: "Hide " + title + " from client" }).click();
       await expect(row.getByRole("status")).toContainText("Task visibility saved.");
@@ -152,7 +158,7 @@ test.describe("Approved isolated live-action QA", () => {
       await expect(row.getByRole("status")).toContainText("Milestone status updated.");
       await page.reload();
       row = namedRow(page.getByRole("region", { name: "Milestones" }), title);
-      await expect(row.getByText("Complete", { exact: true })).toBeVisible();
+      await expect(row.locator("span.delivery-pill.done")).toHaveText("Complete");
     } finally {
       if (attempted) await safeRemove(page, "Milestones", title);
     }
