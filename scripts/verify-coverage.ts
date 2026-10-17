@@ -51,6 +51,7 @@ const expected = [
   "verify:delivery",
   "verify:radar",
   "verify:coverage",
+  "verify:navigation",
   "verify:flowkeep",
   "verify:security",
 ];
