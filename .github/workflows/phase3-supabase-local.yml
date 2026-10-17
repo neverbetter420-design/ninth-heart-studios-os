@@ -49,6 +49,7 @@ jobs:
           mkdir .nhs-phase3-local
           cd .nhs-phase3-local
           supabase init
+          mkdir -p supabase/migrations
           cp ../supabase/migrations/*.sql supabase/migrations/
           echo "Copied application migrations into disposable project."
 
