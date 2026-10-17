@@ -25,14 +25,19 @@ test.beforeAll(async () => {
         window.actionFixture = {
           calls,
           resolveNext(status, message) {
-            const resolve = pending.shift();
-            if (!resolve) throw new Error("No pending action to resolve");
-            resolve({ status, message });
+            const deferred = pending.shift();
+            if (!deferred) throw new Error("No pending action to resolve");
+            deferred.resolve({ status, message });
+          },
+          rejectNext(message) {
+            const deferred = pending.shift();
+            if (!deferred) throw new Error("No pending action to reject");
+            deferred.reject(new Error(message));
           },
         };
         async function action(_previous, formData) {
           calls.push(Object.fromEntries(formData.entries()));
-          return new Promise(resolve => pending.push(resolve));
+          return new Promise((resolve, reject) => pending.push({ resolve, reject }));
         }
 
         function Fixture() {
@@ -195,5 +200,23 @@ test("confirmed create resets fields and remains available for repeated creation
     { kind: "create", title: "First draft" },
     { kind: "create", title: "Second draft" },
   ]);
+  expect(requests).toEqual([]);
+});
+
+test("unconfirmed server transport failure displays a cautious error and preserves the draft", async ({ page }) => {
+  const requests = await mountFixture(page);
+  const create = page.getByRole("region", { name: "Create fixture" });
+  await create.getByLabel("Draft title").fill("Possibly submitted");
+  await create.getByRole("button", { name: "Create draft" }).click();
+  await expect.poll(async () => (await actionCalls(page)).length).toBe(1);
+  await expect(create.getByRole("status")).toHaveText("Saving draft…");
+
+  await page.evaluate(() => window.actionFixture.rejectNext("Network disconnected after submission"));
+  await expect(create.getByRole("alert")).toContainText("Could not confirm the server response");
+  await expect(create.getByRole("alert")).toContainText("Refresh");
+  await expect(create.getByLabel("Draft title")).toHaveValue("Possibly submitted");
+  await expect(create.getByRole("button", { name: "Create draft" })).toBeEnabled();
+  await expect(page.locator(".action-notification")).toHaveCount(0);
+  expect((await actionCalls(page)).length).toBe(1);
   expect(requests).toEqual([]);
 });
