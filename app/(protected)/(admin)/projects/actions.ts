@@ -9,6 +9,7 @@ import {
   stageLabel,
 } from "@/lib/delivery";
 import { createClient } from "@/lib/supabase/server";
+import type { PortalFeedbackState } from "@/lib/portal-feedback";
 import { templateBody } from "@/lib/templates";
 import {
   MAX_UPLOAD_BYTES,
@@ -58,20 +59,22 @@ export async function moveProject(formData: FormData) {
   const supabase = await createClient();
   const projectId = clean(formData.get("project_id"));
   const status = clean(formData.get("status"));
-  if (!projectId || !status || !VALID_STATUSES.has(status)) return;
+  if (!projectId || !status || !VALID_STATUSES.has(status)) throw new Error("Invalid project stage.");
 
   const { data: project } = await supabase
     .from("projects")
     .select("id, name, status")
     .eq("id", projectId)
     .single();
-  if (!project) return;
+  if (!project) throw new Error("Project not found.");
 
   const { error } = await supabase
     .from("projects")
     .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", projectId);
-  if (error) return;
+    .eq("id", projectId)
+    .select("id")
+    .single();
+  if (error) throw new Error("Project stage update failed.");
 
   await logActivity(supabase, {
     project_id: projectId,
@@ -86,7 +89,7 @@ export async function updateProjectDetails(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
   const projectId = clean(formData.get("project_id"));
-  if (!projectId) return;
+  if (!projectId) throw new Error("Project not selected.");
 
   const progressRaw = clean(formData.get("progress"));
   const progress = progressRaw === null ? null : Math.max(0, Math.min(100, Number(progressRaw)));
@@ -99,7 +102,8 @@ export async function updateProjectDetails(formData: FormData) {
   if (dueDate !== undefined) patch.due_date = dueDate || null;
   if (notesValue !== undefined) patch.internal_notes = notesValue;
 
-  await supabase.from("projects").update(patch).eq("id", projectId);
+  const { error } = await supabase.from("projects").update(patch).eq("id", projectId).select("id").single();
+  if (error) throw new Error("Project details update failed.");
   revalidateProject(projectId);
 }
 
@@ -203,18 +207,22 @@ export async function setTaskStatus(formData: FormData) {
   const supabase = await createClient();
   const taskId = clean(formData.get("task_id"));
   const status = clean(formData.get("status"));
-  if (!taskId || !status || !VALID_TASK_STATUSES.has(status)) return;
+  if (!taskId || !status || !VALID_TASK_STATUSES.has(status)) throw new Error("Invalid task status.");
 
   const { data: task } = await supabase
     .from("tasks")
     .select("project_id")
     .eq("id", taskId)
     .single();
-  await supabase
+  if (!task) throw new Error("Task not found.");
+  const { error } = await supabase
     .from("tasks")
     .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", taskId);
-  if (task) revalidateProject(task.project_id);
+    .eq("id", taskId)
+    .select("id")
+    .single();
+  if (error) throw new Error("Task status update failed.");
+  revalidateProject(task.project_id);
 }
 
 export async function toggleTaskVisibility(formData: FormData) {
@@ -850,4 +858,17 @@ export async function createProject(formData: FormData) {
 
   revalidatePath("/projects");
   redirect(`/projects/${project.id}`);
+}
+
+export async function moveProjectWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await moveProject(formData); return { status: "success", message: "Project stage updated." }; }
+  catch { return { status: "error", message: "Couldn't update the project stage. Try again." }; }
+}
+export async function updateProjectDetailsWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await updateProjectDetails(formData); return { status: "success", message: "Project details saved." }; }
+  catch { return { status: "error", message: "Project details weren't saved. Review the fields and retry." }; }
+}
+export async function setTaskStatusWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try { await setTaskStatus(formData); return { status: "success", message: "Task status updated." }; }
+  catch { return { status: "error", message: "Task status wasn't saved. Please retry." }; }
 }
