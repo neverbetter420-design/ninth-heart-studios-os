@@ -29,13 +29,13 @@ jobs:
       - name: Checkout the reviewed development-branch snapshot
         uses: actions/checkout@v4
         with:
-          ref: 35dc6084cab17a18d9442d623de5a96efa407482
+          ref: 45579c709e998a923c81a495b733db45f6f0acff
           persist-credentials: false
 
       - name: Assert the approved commit
         shell: bash
         run: |
-          test "$(git rev-parse HEAD)" = "35dc6084cab17a18d9442d623de5a96efa407482"
+          test "$(git rev-parse HEAD)" = "45579c709e998a923c81a495b733db45f6f0acff"
           echo "Reviewed feature branch commit: $(git rev-parse --short HEAD)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Use Node.js 22
@@ -80,6 +80,16 @@ jobs:
           E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
           E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
         run: npx playwright test tests/e2e/navigation.spec.mjs
+
+      - name: Phase 3 direct-API membership and approval isolation (read-only)
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+          E2E_CLIENT_A_EMAIL: ${{ secrets.E2E_CLIENT_A_EMAIL }}
+          E2E_CLIENT_A_PASSWORD: ${{ secrets.E2E_CLIENT_A_PASSWORD }}
+          E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
+          E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
+        run: npx playwright test tests/e2e/phase3-access.spec.mjs --retries=0
 
       - name: Upload failure screenshots and traces
         if: always()
