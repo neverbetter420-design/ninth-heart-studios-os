@@ -491,31 +491,69 @@ export async function uploadProjectFile(formData: FormData) {
   redirect(`/projects/${encodeURIComponent(projectId)}?upload_ok=File%20uploaded%20successfully.`);
 }
 
+class ProjectFileActionError extends Error {}
+
 export async function deleteProjectFile(formData: FormData) {
   await requireAdmin();
   const supabase = await createClient();
 
   const fileId = clean(formData.get("file_id"));
-  if (!fileId) return;
+  if (!fileId) throw new ProjectFileActionError("Choose a file to delete.");
 
-  const { data: file } = await supabase
+  const { data: file, error: lookupError } = await supabase
     .from("files")
     .select("id, project_id, object_path, filename")
     .eq("id", fileId)
     .maybeSingle();
-  if (!file) return;
+  if (lookupError || !file || file.id !== fileId) {
+    throw new ProjectFileActionError("File not found. Refresh the project before retrying.");
+  }
 
-  await supabase.storage.from(PROJECT_FILES_BUCKET).remove([file.object_path]);
-  await supabase.from("files").delete().eq("id", fileId);
+  // Remove the project reference first. If storage cleanup fails, the private
+  // object remains recoverable; do not delete the only visible metadata after
+  // an unconfirmed storage operation.
+  const { data: removed, error: deleteError } = await supabase
+    .from("files")
+    .delete()
+    .eq("id", fileId)
+    .eq("project_id", file.project_id)
+    .select("id, project_id")
+    .single();
+  if (deleteError || !removed || removed.id !== fileId || removed.project_id !== file.project_id) {
+    throw new ProjectFileActionError("File removal was not confirmed. Refresh before retrying.");
+  }
+  revalidateProject(file.project_id);
+
+  try {
+    const { error: storageError } = await supabase.storage.from(PROJECT_FILES_BUCKET).remove([file.object_path]);
+    if (storageError) throw storageError;
+  } catch {
+    // Metadata has been removed but the private object may remain. Never
+    // encourage a blind retry after this partial-success state.
+    throw new ProjectFileActionError("File was unlisted, but private storage cleanup failed. Contact an admin to reconcile it.");
+  }
 
   await logActivity(supabase, {
     project_id: file.project_id,
     event_type: "file_deleted",
     summary: `File removed: ${file.filename}`,
     client_visible: false,
-  });
+  }).catch(() => undefined);
+}
 
-  revalidateProject(file.project_id);
+export async function deleteProjectFileWithFeedback(_previous: PortalFeedbackState, data: FormData): Promise<PortalFeedbackState> {
+  await requireAdmin();
+  try {
+    await deleteProjectFile(data);
+    return { status: "success", message: "File deleted from the project and private storage." };
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof ProjectFileActionError
+        ? error.message
+        : "Unable to confirm file deletion. Refresh and check the project before retrying.",
+    };
+  }
 }
 
 /* ---------------- Messages ---------------- */
