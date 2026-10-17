@@ -39,11 +39,11 @@ jobs:
       - name: Checkout reviewed immutable write-QA code
         uses: actions/checkout@v4
         with:
-          ref: 2dd6744beffd9310623e63d274c7c835ecc90c33
+          ref: 8556ea5361825d5fdf4989c90e26cebc80a9d10f
           persist-credentials: false
 
       - name: Verify immutable code
-        run: test "$(git rev-parse HEAD)" = "2dd6744beffd9310623e63d274c7c835ecc90c33"
+        run: test "$(git rev-parse HEAD)" = "8556ea5361825d5fdf4989c90e26cebc80a9d10f"
 
       - name: Node 22
         uses: actions/setup-node@v4
