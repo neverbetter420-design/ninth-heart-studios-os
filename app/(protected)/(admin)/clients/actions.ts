@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { createClient as createSupabaseClient } from "@/lib/supabase/server";
+import type { PortalFeedbackState } from "@/lib/portal-feedback";
 
 function clean(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -42,12 +43,15 @@ export async function setClientStatus(formData: FormData) {
 
   const id = clean(formData.get("client_id"));
   const status = clean(formData.get("status"));
-  if (!id || (status !== "active" && status !== "archived")) return;
+  if (!id || (status !== "active" && status !== "archived")) throw new Error("Invalid client status.");
 
-  await supabase
+  const { error } = await supabase
     .from("clients")
     .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id")
+    .single();
+  if (error) throw new Error("Client status was not saved.");
   revalidateClients(id);
 }
 
@@ -92,4 +96,14 @@ export async function removeClientMember(formData: FormData) {
     .eq("client_id", clientId)
     .eq("profile_id", profileId);
   revalidateClients(clientId);
+}
+
+export async function setClientStatusWithFeedback(_previous: PortalFeedbackState, data: FormData): Promise<PortalFeedbackState> {
+  const status = clean(data.get("status"));
+  try {
+    await setClientStatus(data);
+    return { status: "success", message: status === "archived" ? "Client archived." : "Client restored." };
+  } catch {
+    return { status: "error", message: "Unable to update the client. Please retry." };
+  }
 }
