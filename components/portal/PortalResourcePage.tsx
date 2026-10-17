@@ -96,7 +96,7 @@ export async function PortalResourcePage({ kind }: { kind: PortalResourceKind })
   const { data: visibleResources, error } = ids.length
     ? await supabase
         .from(config.table)
-        .select(config.columns)
+        .select(config.columns as string)
         .in("project_id", ids)
         .order(config.sort, { ascending: false })
         .limit(100)
