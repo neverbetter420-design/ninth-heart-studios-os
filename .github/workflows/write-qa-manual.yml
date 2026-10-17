@@ -39,11 +39,11 @@ jobs:
       - name: Checkout reviewed immutable write-QA code
         uses: actions/checkout@v4
         with:
-          ref: 8556ea5361825d5fdf4989c90e26cebc80a9d10f
+          ref: 0f90b31acd9ec6a0932d4846830b335b76f1bfa0
           persist-credentials: false
 
       - name: Verify immutable code
-        run: test "$(git rev-parse HEAD)" = "8556ea5361825d5fdf4989c90e26cebc80a9d10f"
+        run: test "$(git rev-parse HEAD)" = "0f90b31acd9ec6a0932d4846830b335b76f1bfa0"
 
       - name: Node 22
         uses: actions/setup-node@v4
@@ -86,6 +86,16 @@ jobs:
           E2E_CLIENT_B_EMAIL: ${{ secrets.E2E_CLIENT_B_EMAIL }}
           E2E_CLIENT_B_PASSWORD: ${{ secrets.E2E_CLIENT_B_PASSWORD }}
         run: npx playwright test tests/e2e/write-actions.spec.mjs --retries=0
+
+      # Every approved run receives a second database-and-storage reconciliation.
+      # This step must execute even after Playwright fails; exact tagged fixtures
+      # only. It fails the run if the browser left any data, even after cleanup.
+      - name: Reconcile and verify scoped QA data and storage
+        if: always()
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+        run: node scripts/reconcile-write-qa.mjs
 
       - name: Retain results for cleanup review
         if: always()
