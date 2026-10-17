@@ -18,7 +18,7 @@ It must not be executed against the active `ninth-heart-studios-os` project unti
 4. The client INSERT policy for messages adds `sender_id = auth.uid()` to the existing own-project predicate; the separate administrator policy is not changed.
 5. Trusted `postgres` / `service_role` and authenticated NHS administrator operations remain supported. This trust boundary must be tested in staging before applying the migration.
 
-## Isolated staging tests required (none executed yet)
+## Staging security test matrix
 
 Use a **separate Supabase test project or local ephemeral database** with the migrations applied in chronological order and disposable Admin, Client A and Client B accounts. Never seed or alter the existing customer records in active Supabase. Test both allowed and rejected mutations and verify exact persisted results:
 
@@ -59,16 +59,29 @@ The workflow runs `supabase/tests/phase3_isolated_fixture.sql` (synthetic Admin,
 - Admin and trusted service-role maintenance allowed; anonymous reads/writes denied.
 - Test transactions rolled back; synthetic fixtures returned to their starting state.
 
-**Boundary:** This is a real PostgreSQL enforcement test of the exact migration, but its synthetic schema and `auth.uid()`/`private.*` helpers are purpose-built approximations. It has not exercised full Supabase Auth, PostgREST, all existing migrations, or a complete separate Supabase staging project. Staging integration validation remains a release gate.
+**Boundary:** This is a real PostgreSQL enforcement test of the exact migration, but its synthetic schema and `auth.uid()`/`private.*` helpers are purpose-built approximations. The separate full local-Supabase integration run below covers real Auth, PostgREST and the full repository migration chain. A separately hosted Supabase project and UI end-to-end tests are still distinct release considerations.
+
+## Full local Supabase Auth and PostgREST integration evidence (2026-10-17)
+
+[GitHub Actions run #39042764810](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39042764810) **passed**, using an ephemeral local Supabase stack, full chronological repository migrations, real GoTrue-created synthetic users, JWT-backed PostgREST requests, and the exact proposed hardening migration. No hosted Supabase project credentials or customer records were supplied.
+
+`scripts/verify-phase3-supabase-local.mjs` passed **9 authenticated/API scenarios**, including cross-client approval reads and updates, immutable-field edit denial, forged `decided_by` denial, oversize comment denial, valid approve and decline, server-generated decision timestamps, denial of re-decisions, sender spoofing and cross-project message denial, administrator writes, and anonymous isolation. Synthetic data was in disposable containers.
+
+The full-schema replay identified and led to a source-only fix of two missing PL/pgSQL terminators in the **historical** migration `20261013232917_secure_client_document_updates.sql`. This repairs reproducible fresh-install SQL syntax but does not execute the file again on your active Supabase project.
+
+**Provisioning observation:** GoTrue may persist `app_metadata` after the `auth.users` INSERT trigger fires, so a newly created synthetic account with `app_metadata.role=admin` received the safe `client` profile role initially. The CI fixture explicitly promoted only its disposable admin through the service-role `profiles` update. Existing trusted `scripts/seed-test-users.mjs` already upserts `profiles.role` separately. Do not assume new admin accounts become admins solely from `app_metadata` passed to `createUser`. This issue is fail-closed, not a demonstrated admin bypass.
+
+**Coverage boundary:** Local Supabase runs actual Auth/REST/DB services, but this is not a separate **hosted** Supabase staging project. No browser-level client approval/message submissions against this local stack were included. Before any live migration, decide whether a hosted staging project plus browser QA is needed and obtain explicit approval for production schema changes.
 
 ## Release blocking status
 
 - [x] Existing Phase 2 write QA: 10/10 and zero active QA leftovers on run #39021575467.
 - [x] Existing Phase 3 read-only access checks: 18/18 on run #39022920152.
 - [x] Proposed migration and offline contract checks committed on draft branch.
-- [ ] CI for the new migration-source verification and build is green.
+- [x] CI for the new migration-source verification and build is green.
 - [x] Isolated PostgreSQL 17 database applies the exact migration and passes synthetic negative mutation tests in CI.
-- [ ] Full Supabase staging environment verifies compatibility with existing migrations, Auth, PostgREST and approval/message UI.
+- [x] Disposable local Supabase verified chronological migrations, Auth, PostgREST and API approval/message security (9/9).
+- [ ] Hosted Supabase staging (not currently present) and browser-level approval/message UI test, if required by release policy.
 - [ ] Explicit approval to apply migration to the active project.
 - [ ] Separate verification after production policy deployment.
 - [ ] Merge/deploy authorization for draft PR #14 (not included in this phase).
