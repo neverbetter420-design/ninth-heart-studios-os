@@ -1,4 +1,5 @@
-import { signContract } from "@/app/(protected)/portal/contracts/actions";
+import { signContractWithFeedback } from "@/app/(protected)/portal/contracts/actions";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 import type { Contract } from "@/lib/supabase/types";
 
 export function ContractSign({ contracts }: { contracts: Contract[] }) {
@@ -22,7 +23,7 @@ export function ContractSign({ contracts }: { contracts: Contract[] }) {
               {c.body || <span className="muted-copy">No terms provided.</span>}
             </div>
             {c.status === "sent" ? (
-              <form action={signContract} className="muse-send-form">
+              <PortalActionForm action={signContractWithFeedback} className="muse-send-form" pendingMessage="Signing your contract…">
                 <input type="hidden" name="contract_id" value={c.id} />
                 <label className="field">
                   <span>Your full name</span>
@@ -38,7 +39,7 @@ export function ContractSign({ contracts }: { contracts: Contract[] }) {
                 </label>
                 <button type="submit" className="mini-button go">Sign contract</button>
                 <p className="muted small">Your name, email, and signing time are saved with a tamper-evident document hash.</p>
-              </form>
+              </PortalActionForm>
             ) : c.status === "signed" ? (
               <p className="muted-copy" style={{ fontSize: 13 }}>
                 Signed by {c.signer_name} on{" "}

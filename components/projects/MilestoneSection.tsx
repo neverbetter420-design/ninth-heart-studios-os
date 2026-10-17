@@ -1,10 +1,11 @@
 import {
-  createMilestone,
-  deleteMilestone,
-  setMilestoneStatus,
+  createMilestoneWithFeedback,
+  deleteMilestoneWithFeedback,
+  setMilestoneStatusWithFeedback,
 } from "@/app/(protected)/(admin)/projects/actions";
 import { milestoneStatusLabel } from "@/lib/delivery";
 import type { Milestone } from "@/lib/supabase/types";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 
 function pillClass(status: string) {
   if (status === "complete") return "delivery-pill done";
@@ -45,7 +46,7 @@ export function MilestoneSection({
               </div>
               <span className={pillClass(m.status)}>{milestoneStatusLabel(m.status)}</span>
               <div className="delivery-actions">
-                <form action={setMilestoneStatus} className="mini-form">
+                <PortalActionForm action={setMilestoneStatusWithFeedback} className="mini-form" lockOnSuccess={false} pendingMessage="Saving milestone status…">
                   <input type="hidden" name="milestone_id" value={m.id} />
                   <select name="status" defaultValue={m.status} aria-label={`Status for ${m.title}`}>
                     <option value="not_started">Not started</option>
@@ -53,22 +54,26 @@ export function MilestoneSection({
                     <option value="complete">Complete</option>
                   </select>
                   <button type="submit" className="mini-button">Set</button>
-                </form>
-                <form action={deleteMilestone}>
+                </PortalActionForm>
+                <PortalActionForm
+                  action={deleteMilestoneWithFeedback}
+                  pendingMessage="Deleting milestone…"
+                  confirmMessage={`Delete “${m.title}”? This permanently removes the milestone and cannot be undone.`}
+                >
                   <input type="hidden" name="milestone_id" value={m.id} />
                   <button type="submit" className="mini-button danger" aria-label={`Delete ${m.title}`}>✕</button>
-                </form>
+                </PortalActionForm>
               </div>
             </li>
           ))
         )}
       </ul>
-      <form action={createMilestone} className="delivery-add-form">
+      <PortalActionForm action={createMilestoneWithFeedback} className="delivery-add-form" lockOnSuccess={false} resetOnSuccess pendingMessage="Adding milestone…">
         <input type="hidden" name="project_id" value={projectId} />
         <input type="text" name="title" placeholder="New milestone…" required maxLength={120} />
         <input type="date" name="due_date" aria-label="Milestone due date" />
         <button type="submit" className="mini-button go">Add</button>
-      </form>
+      </PortalActionForm>
     </section>
   );
 }

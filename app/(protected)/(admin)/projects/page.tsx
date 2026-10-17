@@ -4,6 +4,7 @@ import { ON_HOLD_STAGE } from "@/lib/delivery";
 import { createClient } from "@/lib/supabase/server";
 import type { ProjectWithClient } from "@/lib/supabase/types";
 import { createProject } from "./actions";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 type ProjectRow = {
   id: string;
@@ -101,7 +102,7 @@ export default async function ProjectsPage({
             ))}
           </select>
           <input type="date" name="due_date" aria-label="Due date" />
-          <button type="submit" className="mini-button go">Create</button>
+          <PortalSubmitButton pendingLabel="Creating…">Create</PortalSubmitButton>
         </form>
         {clients.length === 0 ? (
           <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>

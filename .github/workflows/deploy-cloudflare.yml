@@ -4,6 +4,19 @@ name: Deploy NHS OS to Cloudflare (manual)
 # sessions must not be replaced until email and auth configuration are verified.
 on:
   workflow_dispatch:
+    inputs:
+      approval_phrase:
+        description: "Explicit owner approval for production Worker deployment"
+        required: true
+        type: string
+      expected_main_sha:
+        description: "Exact 40-character reviewed main commit SHA"
+        required: true
+        type: string
+      verified_security_migration:
+        description: "Confirm production Supabase policy post-check was completed"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -14,6 +27,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.actor == 'neverbetter420-design' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment: production
@@ -25,6 +39,26 @@ jobs:
     steps:
       - name: Checkout approved main
         uses: actions/checkout@v4
+      - name: Fail closed unless reviewed release is explicitly authorized
+        shell: bash
+        env:
+          APPROVAL_PHRASE: ${{ inputs.approval_phrase }}
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          VERIFIED_SECURITY_MIGRATION: ${{ inputs.verified_security_migration }}
+        run: |
+          set -euo pipefail
+          if [[ "$APPROVAL_PHRASE" != "I_APPROVE_NHS_OS_PRODUCTION_DEPLOY" ]]; then
+            echo "::error::Exact production deployment approval phrase is required."
+            exit 1
+          fi
+          if [[ ! "$EXPECTED_MAIN_SHA" =~ ^[0-9a-f]{40}$ || "$EXPECTED_MAIN_SHA" != "$GITHUB_SHA" ]]; then
+            echo "::error::The reviewed main SHA must exactly match the deployed commit."
+            exit 1
+          fi
+          if [[ "$VERIFIED_SECURITY_MIGRATION" != "I_VERIFIED_SUPABASE_HARDENING" ]]; then
+            echo "::error::Confirm the active Supabase migration post-check before deploying."
+            exit 1
+          fi
       - name: Node 22
         uses: actions/setup-node@v4
         with:

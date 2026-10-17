@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createClientAction, setClientStatus } from "./actions";
+import { createClient as createClientAction, setClientStatusWithFeedback } from "./actions";
+import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 type ClientRow = {
   id: string;
@@ -22,10 +23,11 @@ export default async function ClientsPage({
   const { error: formError } = await searchParams;
   const supabase = await createClient();
 
-  const { data: rawClients } = await supabase
+  const { data: rawClients, error: clientsError } = await supabase
     .from("clients")
     .select("id, name, website, primary_email, status, created_at, client_memberships(profile_id), projects(id)")
     .order("name");
+  if (clientsError) throw new Error("Client management could not load.");
   const clients = (rawClients ?? []) as ClientRow[];
 
   const active = clients.filter((c) => c.status === "active");
@@ -74,7 +76,7 @@ export default async function ClientsPage({
           <input type="text" name="name" placeholder="Client / business name…" required maxLength={160} />
           <input type="text" name="website" placeholder="Website (optional)" maxLength={280} />
           <input type="email" name="primary_email" placeholder="Primary email (optional)" maxLength={160} />
-          <button type="submit" className="mini-button go">Create</button>
+          <PortalSubmitButton pendingLabel="Creating…">Create</PortalSubmitButton>
         </form>
       </section>
 
@@ -102,13 +104,13 @@ export default async function ClientsPage({
                     {c.client_memberships.length} member{c.client_memberships.length === 1 ? "" : "s"}
                   </p>
                 </div>
-                <form action={setClientStatus}>
+                <PortalActionForm action={setClientStatusWithFeedback} pendingMessage="Updating client…" lockOnSuccess={false}>
                   <input type="hidden" name="client_id" value={c.id} />
                   <input type="hidden" name="status" value={c.status === "active" ? "archived" : "active"} />
                   <button type="submit" className="mini-button">
                     {c.status === "active" ? "Archive" : "Restore"}
                   </button>
-                </form>
+                </PortalActionForm>
               </li>
             ))
           )}

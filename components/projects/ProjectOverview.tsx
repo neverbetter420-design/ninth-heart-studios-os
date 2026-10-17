@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { updateProjectDetails } from "@/app/(protected)/(admin)/projects/actions";
+import { updateProjectDetailsWithFeedback } from "@/app/(protected)/(admin)/projects/actions";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 import { stageLabel } from "@/lib/delivery";
 
 type Props = {
@@ -47,7 +48,7 @@ export function ProjectOverview({ project, clientName }: Props) {
           <h3>Project details</h3>
           <span className="pipeline-count">Edit</span>
         </summary>
-        <form action={updateProjectDetails} style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <PortalActionForm action={updateProjectDetailsWithFeedback} lockOnSuccess={false} pendingMessage="Saving project details…" className="project-details-form" style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
           <input type="hidden" name="project_id" value={project.id} />
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <label className="field" style={{ minWidth: 120 }}>
@@ -66,7 +67,7 @@ export function ProjectOverview({ project, clientName }: Props) {
           <div>
             <button type="submit" className="mini-button go">Save details</button>
           </div>
-        </form>
+        </PortalActionForm>
       </details>
     </div>
   );

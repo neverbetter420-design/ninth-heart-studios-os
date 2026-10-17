@@ -1,4 +1,5 @@
 import { createLead } from "@/app/(protected)/(admin)/leads/actions";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 export function LeadCaptureCard({ error }: { error?: string }) {
   return (
@@ -54,7 +55,7 @@ export function LeadCaptureCard({ error }: { error?: string }) {
 
         <div className="capture-submit">
           <p>Only the business name is required. Flowkeep chooses the first next action automatically.</p>
-          <button className="primary-button" type="submit">Capture lead</button>
+          <PortalSubmitButton className="primary-button" pendingLabel="Capturing…">Capture lead</PortalSubmitButton>
         </div>
       </form>
     </section>

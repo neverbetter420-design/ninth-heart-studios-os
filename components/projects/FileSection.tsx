@@ -1,8 +1,9 @@
 import {
-  deleteProjectFile,
+  deleteProjectFileWithFeedback,
   uploadProjectFile,
 } from "@/app/(protected)/(admin)/projects/actions";
 import { formatBytes } from "@/lib/files";
+import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 export type WorkspaceFile = {
   id: string;
@@ -35,9 +36,7 @@ export function FileSection({
           <option value="client">Client-visible</option>
           <option value="internal">Internal only</option>
         </select>
-        <button type="submit" className="mini-button go">
-          Upload
-        </button>
+        <PortalSubmitButton pendingLabel="Uploading…">Upload</PortalSubmitButton>
       </form>
 
       <ul className="delivery-list">
@@ -70,12 +69,14 @@ export function FileSection({
                     Download
                   </a>
                 ) : null}
-                <form action={deleteProjectFile} className="mini-form">
+                <PortalActionForm
+                  action={deleteProjectFileWithFeedback}
+                  pendingMessage="Deleting file…"
+                  confirmMessage={`Permanently delete “${f.filename}” from this project and private storage? This cannot be undone.`}
+                >
                   <input type="hidden" name="file_id" value={f.id} />
-                  <button type="submit" className="mini-button danger">
-                    Delete
-                  </button>
-                </form>
+                  <button type="submit" className="mini-button danger" aria-label={`Delete ${f.filename}`}>Delete</button>
+                </PortalActionForm>
               </div>
             </li>
           ))

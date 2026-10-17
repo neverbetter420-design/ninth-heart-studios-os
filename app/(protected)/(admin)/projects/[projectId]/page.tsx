@@ -44,18 +44,18 @@ export default async function ProjectWorkspacePage({
   const supabase = await createClient();
 
   const [
-    { data: rawProject },
-    { data: rawMilestones },
-    { data: rawTasks },
+    { data: rawProject, error: projectError },
+    { data: rawMilestones, error: milestonesError },
+    { data: rawTasks, error: tasksError },
     { data: rawApprovals },
     { data: rawLaunchItems },
     { data: rawActivities },
     { data: rawFiles },
     { data: rawMessages },
-    { data: rawDocuments },
+    { data: rawDocuments, error: documentsError },
     { data: rawRounds },
     { data: rawChangeOrders },
-    { data: rawDocTemplates },
+    { data: rawDocTemplates, error: templatesError },
   ] = await Promise.all([
     supabase
       .from("projects")
@@ -121,6 +121,9 @@ export default async function ProjectWorkspacePage({
       .order("name"),
   ]);
 
+  if (projectError || milestonesError || tasksError || documentsError || templatesError) {
+    throw new Error("Unable to load project tasks, milestones or documents. Please try again.");
+  }
   if (!rawProject) notFound();
   const project = rawProject as ProjectRow;
 

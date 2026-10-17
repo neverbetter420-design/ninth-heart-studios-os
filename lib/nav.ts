@@ -4,20 +4,28 @@ export type NavItem = {
   href: string;
   label: string;
   icon: string;
+  section: string;
   roles: readonly AppRole[];
 };
 
 export const navItems: readonly NavItem[] = [
-  { href: "/", label: "Command Center", icon: "◇", roles: ["admin"] },
-  { href: "/leads", label: "Lead Intelligence", icon: "↗", roles: ["admin"] },
-  { href: "/projects", label: "Project Pipeline", icon: "⌁", roles: ["admin"] },
-  { href: "/clients", label: "Client Management", icon: "◎", roles: ["admin"] },
-  { href: "/opportunities", label: "Opportunity Radar", icon: "✦", roles: ["admin"] },
-  { href: "/muse", label: "Muse", icon: "✧", roles: ["admin"] },
-  { href: "/automations", label: "Automations", icon: "⚡", roles: ["admin"] },
-  { href: "/contracts", label: "Contracts", icon: "✒", roles: ["admin"] },
-  { href: "/templates", label: "Master Templates", icon: "▱", roles: ["admin"] },
-  { href: "/forms", label: "Fillable Forms", icon: "▤", roles: ["admin"] },
-  { href: "/settings", label: "System Settings", icon: "⚙", roles: ["admin"] },
-  { href: "/portal", label: "My Project Portal", icon: "◇", roles: ["client"] },
+  { href: "/", label: "Command Center", icon: "◇", section: "Overview", roles: ["admin"] },
+  { href: "/leads", label: "Lead Intelligence", icon: "↗", section: "Growth", roles: ["admin"] },
+  { href: "/leads/discover", label: "Lead Scanner", icon: "⌖", section: "Growth", roles: ["admin"] },
+  { href: "/opportunities", label: "Opportunity Radar", icon: "✦", section: "Growth", roles: ["admin"] },
+  { href: "/projects", label: "Project Pipeline", icon: "⌁", section: "Delivery", roles: ["admin"] },
+  { href: "/clients", label: "Client Management", icon: "◎", section: "Delivery", roles: ["admin"] },
+  { href: "/contracts", label: "Contracts", icon: "✒", section: "Workspace", roles: ["admin"] },
+  { href: "/templates", label: "Master Templates", icon: "▱", section: "Workspace", roles: ["admin"] },
+  { href: "/forms", label: "Fillable Forms", icon: "▤", section: "Workspace", roles: ["admin"] },
+  { href: "/muse", label: "Muse", icon: "✧", section: "Studio", roles: ["admin"] },
+  { href: "/automations", label: "Automations", icon: "⚡", section: "Studio", roles: ["admin"] },
+  { href: "/settings", label: "System Settings", icon: "⚙", section: "Studio", roles: ["admin"] },
+  { href: "/portal", label: "Overview", icon: "◇", section: "My workspace", roles: ["client"] },
+  { href: "/portal/projects", label: "My Projects", icon: "⌁", section: "My workspace", roles: ["client"] },
+  { href: "/portal/messages", label: "Messages", icon: "✉", section: "My workspace", roles: ["client"] },
+  { href: "/portal/files", label: "Files", icon: "▤", section: "My workspace", roles: ["client"] },
+  { href: "/portal/approvals", label: "Approvals", icon: "✓", section: "My workspace", roles: ["client"] },
+  { href: "/portal/contracts", label: "Contracts", icon: "✒", section: "My workspace", roles: ["client"] },
+  { href: "/portal/forms", label: "Forms", icon: "▱", section: "My workspace", roles: ["client"] },
 ] as const;

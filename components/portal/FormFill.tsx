@@ -11,6 +11,8 @@ import {
   type LineItem,
 } from "@/lib/forms";
 import type { FormSubmission, FormTemplate } from "@/lib/supabase/types";
+import type { PortalFeedbackState } from "@/lib/portal-feedback";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 
 type SubmissionView = FormSubmission & { template: FormTemplate; sourceUrl: string | null };
 
@@ -136,7 +138,7 @@ export function FormFill({
   submitAction,
 }: {
   submissions: SubmissionView[];
-  submitAction: (formData: FormData) => void;
+  submitAction: (previous: PortalFeedbackState, formData: FormData) => Promise<PortalFeedbackState>;
 }) {
   if (submissions.length === 0) return null;
 
@@ -157,7 +159,7 @@ export function FormFill({
             {s.status === "submitted" ? (
               <ReadOnlySubmission submission={s} sourceUrl={s.sourceUrl} />
             ) : (
-              <form action={submitAction} style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+              <PortalActionForm action={submitAction} pendingMessage="Submitting your form…" className="portal-form-fill" style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
                 <input type="hidden" name="submission_id" value={s.id} />
                 <p className="muted-copy" style={{ fontSize: 12, margin: 0 }}>
                   {categoryLabel(s.template.category)}
@@ -230,7 +232,7 @@ export function FormFill({
                   </button>
                 </div>
                 <p className="muted small">Your answers and submission time are saved with a tamper-evident signature record.</p>
-              </form>
+              </PortalActionForm>
             )}
           </details>
         );

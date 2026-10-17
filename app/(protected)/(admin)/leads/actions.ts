@@ -13,6 +13,7 @@ import {
   type QuickLogOutcome,
 } from "@/lib/flowkeep";
 import { createClient } from "@/lib/supabase/server";
+import type { PortalFeedbackState } from "@/lib/portal-feedback";
 
 function clean(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -92,12 +93,12 @@ export async function logLeadOutcome(formData: FormData) {
   const leadId = clean(formData.get("lead_id"));
   const rawOutcome = clean(formData.get("outcome"));
 
-  if (!leadId || !rawOutcome || !QUICK_LOG_OUTCOMES.includes(rawOutcome as QuickLogOutcome)) return;
+  if (!leadId || !rawOutcome || !QUICK_LOG_OUTCOMES.includes(rawOutcome as QuickLogOutcome)) throw new Error("Invalid lead outcome.");
   const outcome = rawOutcome as QuickLogOutcome;
   const patch = outcomePatch(outcome, new Date());
 
-  const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
-  if (error) throw new Error(error.message);
+  const { error } = await supabase.from("leads").update(patch).eq("id", leadId).select("id").single();
+  if (error) throw new Error("Lead outcome was not saved.");
 
   await supabase.from("activities").insert({
     lead_id: leadId,
@@ -210,4 +211,13 @@ export async function convertLeadToProject(formData: FormData) {
   revalidatePath("/projects");
   revalidatePath(`/leads/${leadId}`);
   redirect(`/projects/${project.id}`);
+}
+
+export async function logLeadOutcomeWithFeedback(_previous: PortalFeedbackState, formData: FormData): Promise<PortalFeedbackState> {
+  try {
+    await logLeadOutcome(formData);
+    return { status: "success", message: "Lead activity logged." };
+  } catch {
+    return { status: "error", message: "Lead activity wasn't saved. Please try again." };
+  }
 }

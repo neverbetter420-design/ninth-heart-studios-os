@@ -20,9 +20,7 @@ export function PageHeader({
         <h2>{title}</h2>
         <p className="page-description">{description}</p>
       </div>
-      {action ? (
-        actionHref ? <Link className="primary-button page-header-action" href={actionHref}>{action}</Link> : <button className="primary-button">{action}</button>
-      ) : null}
+      {action && actionHref ? <Link className="primary-button page-header-action" href={actionHref}>{action}</Link> : null}
     </header>
   );
 }
