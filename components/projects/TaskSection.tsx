@@ -1,10 +1,11 @@
 import {
   createTask,
   deleteTask,
-  setTaskStatus,
+  setTaskStatusWithFeedback,
   toggleTaskVisibility,
 } from "@/app/(protected)/(admin)/projects/actions";
 import type { ProjectTask } from "@/lib/supabase/types";
+import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 function pillClass(status: string) {
   if (status === "complete") return "delivery-pill done";
@@ -56,7 +57,7 @@ export function TaskSection({
               {t.client_visible ? <span className="delivery-pill visible">Client sees this</span> : null}
               <span className={pillClass(t.status)}>{statusLabel(t.status)}</span>
               <div className="delivery-actions">
-                <form action={setTaskStatus} className="mini-form">
+                <PortalActionForm action={setTaskStatusWithFeedback} lockOnSuccess={false} pendingMessage="Saving status…" className="mini-form">
                   <input type="hidden" name="task_id" value={t.id} />
                   <select name="status" defaultValue={t.status} aria-label={`Status for ${t.title}`}>
                     <option value="not_started">Not started</option>
@@ -65,7 +66,7 @@ export function TaskSection({
                     <option value="complete">Complete</option>
                   </select>
                   <button type="submit" className="mini-button">Set</button>
-                </form>
+                </PortalActionForm>
                 <form action={toggleTaskVisibility}>
                   <input type="hidden" name="task_id" value={t.id} />
                   <button
@@ -97,7 +98,7 @@ export function TaskSection({
         <label className="mini-form" style={{ fontSize: 10, color: "#84798c" }}>
           <input type="checkbox" name="client_visible" /> Client-visible
         </label>
-        <button type="submit" className="mini-button go">Add</button>
+        <PortalSubmitButton pendingLabel="Adding…">Add</PortalSubmitButton>
       </form>
     </section>
   );
