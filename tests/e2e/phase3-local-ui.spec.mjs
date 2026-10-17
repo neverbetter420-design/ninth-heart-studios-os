@@ -72,6 +72,21 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
 
     const decisions = page.getByRole("region", { name: "Approvals needing your decision" });
     const approveRow = decisions.locator("li.delivery-row").filter({ hasText: approveTitle });
+
+    // Hostile form-field mutation: Client A substitutes a Client B approval ID.
+    // The server action must return an error and leave both approvals unchanged.
+    const approvalTarget = approveRow.locator('input[name="approval_id"]');
+    await approvalTarget.evaluate((el, foreignId) => { el.value = foreignId; }, approvalOther);
+    await approveRow.locator('input[name="client_comment"]').fill("Tampered client approval");
+    await approveRow.getByRole("button", { name: "Approve", exact: true }).click();
+    await expect(approveRow.getByRole("alert")).toContainText("couldn't save that decision");
+    const untouchedOwn = (await required(srv.from("approvals").select("status").eq("id",approvalA), "own approval unchanged"))[0];
+    const untouchedOther = (await required(srv.from("approvals").select("status").eq("id",approvalOther), "other approval unchanged"))[0];
+    expect(untouchedOwn.status).toBe("pending");
+    expect(untouchedOther.status).toBe("pending");
+
+    // A failed action must not permanently lock the legitimate form.
+    await approvalTarget.evaluate((el, ownId) => { el.value = ownId; }, approvalA);
     await approveRow.locator('input[name="client_comment"]').fill("Approved through local UI");
     await approveRow.getByRole("button", { name: "Approve", exact: true }).click();
     await expect.poll(async () => {
@@ -94,6 +109,20 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     }, { timeout: 25000 }).toBe("declined");
 
     const thread = page.getByRole("region", { name: "Messages" });
+
+    // Hostile form-field mutation: use Client B's project ID while logged in as A.
+    // The UI must report failure, preserve the typed message, and persist nothing.
+    const messageTarget = thread.locator('input[name="project_id"]');
+    const rejectedMessage = "Rejected cross-client UI message " + seed;
+    await messageTarget.evaluate((el, foreignId) => { el.value = foreignId; }, projectB);
+    await thread.locator('input[name="body"]').fill(rejectedMessage);
+    await thread.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(thread.getByRole("alert")).toContainText("wasn't sent");
+    await expect(thread.locator('input[name="body"]')).toHaveValue(rejectedMessage);
+    expect(await required(srv.from("messages").select("id").eq("body",rejectedMessage), "no forged message persisted")).toHaveLength(0);
+
+    // Restore the authorized project and prove the form works on retry.
+    await messageTarget.evaluate((el, ownProject) => { el.value = ownProject; }, projectA);
     await thread.locator('input[name="body"]').fill(note);
     await thread.getByRole("button", { name: "Send", exact: true }).click();
     await expect.poll(async () => {
