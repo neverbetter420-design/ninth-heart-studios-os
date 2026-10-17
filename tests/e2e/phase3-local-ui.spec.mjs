@@ -107,6 +107,13 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       const rows = await required(srv.from("approvals").select("status").eq("id",approvalB), "decline row");
       return rows[0]?.status;
     }, { timeout: 25000 }).toBe("declined");
+    // The approval action revalidates the entire server-rendered project page.
+    // Wait until that transition has completed before submitting a message.
+    // Otherwise, the old approval revalidation can unmount a message error.
+    await expect(page.getByRole("region", { name: "Approvals needing your decision" })
+      .locator("li.delivery-row").filter({ hasText: changeTitle })).toHaveCount(0);
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Synthetic UI Project A", exact: true })).toBeVisible();
 
     const thread = page.getByRole("region", { name: "Messages" });
 
