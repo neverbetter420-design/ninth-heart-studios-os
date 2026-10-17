@@ -1,0 +1,88 @@
+name: NHS OS browser QA (Playwright)
+
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'tests/e2e/**'
+      - 'playwright.config.mjs'
+      - '.github/workflows/browser-qa.yml'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Browser target: branch-local Next.js app or current live site'
+        type: choice
+        required: true
+        default: local
+        options:
+          - local
+          - live
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-qa:
+    name: Chromium desktop and mobile
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://rquscwgdrqkzwjukiqtk.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7N1_IhU0_mvs6q0ppgyssA_0O6xj-L2
+      E2E_BASE_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'live' && 'https://app.ninthheartstudios.com' || 'http://127.0.0.1:3000' }}
+      # Never expose login secrets to code from unreviewed pull requests.
+      E2E_ADMIN_EMAIL: ${{ github.event_name == 'workflow_dispatch' && secrets.E2E_ADMIN_EMAIL || '' }}
+      E2E_ADMIN_PASSWORD: ${{ github.event_name == 'workflow_dispatch' && secrets.E2E_ADMIN_PASSWORD || '' }}
+      E2E_CLIENT_A_EMAIL: ${{ github.event_name == 'workflow_dispatch' && secrets.E2E_CLIENT_A_EMAIL || '' }}
+      E2E_CLIENT_A_PASSWORD: ${{ github.event_name == 'workflow_dispatch' && secrets.E2E_CLIENT_A_PASSWORD || '' }}
+      E2E_CLIENT_B_EMAIL: ${{ github.event_name == 'workflow_dispatch' && secrets.E2E_CLIENT_B_EMAIL || '' }}
+      E2E_CLIENT_B_PASSWORD: ${{ github.event_name == 'workflow_dispatch' && secrets.E2E_CLIENT_B_PASSWORD || '' }}
+    steps:
+      - name: Checkout selected code
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install isolated Playwright test runner
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Show test scope
+        shell: bash
+        run: |
+          echo "Test target: $E2E_BASE_URL" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -z "$E2E_ADMIN_EMAIL" || -z "$E2E_ADMIN_PASSWORD" ]]; then
+            echo "Admin authenticated browser tests: SKIPPED (configure test account secrets)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [[ -z "$E2E_CLIENT_A_EMAIL" || -z "$E2E_CLIENT_A_PASSWORD" || -z "$E2E_CLIENT_B_EMAIL" || -z "$E2E_CLIENT_B_PASSWORD" ]]; then
+            echo "Full client isolation browser tests: SKIPPED (configure both test client accounts)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Test navigation in desktop and mobile Chromium
+        run: npx playwright test
+
+      - name: Upload failure screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhs-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
