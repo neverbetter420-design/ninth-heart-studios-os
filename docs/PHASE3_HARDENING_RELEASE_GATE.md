@@ -45,13 +45,30 @@ Tests must preserve old/new row states and verify RLS/grants/trigger names after
 
 Before staging deployment, capture the previous trigger/function existence and complete RLS policy definitions. A rollback would restore precisely the prior message and approval policies and remove the new trigger/function, but **restoring the insecure approval/message policy is not an acceptable long-term production fallback**. Prefer fixing the migration in staging before applying it. No automatic migration or rollback should occur in production.
 
+
+## PostgreSQL 17 isolated enforcement evidence (2026-10-17)
+
+The draft migration was applied successfully to an **ephemeral PostgreSQL 17.11 container** during GitHub Actions [run #39041643690](https://github.com/neverbetter420-design/ninth-heart-studios-os/actions/runs/39041643690). This did not connect to active Supabase and did not require any real credentials.
+
+The workflow runs `supabase/tests/phase3_isolated_fixture.sql` (synthetic Admin, Client A, Client B, projects, old RLS/grants and update trigger), then applies the **exact staged migration**, then runs `supabase/tests/phase3_security_enforcement.test.sql` with actual Postgres role switches and RLS:
+
+- Own approvals and messages allowed; other client's project, approvals and messages denied.
+- Attempts to change approval title, project, timestamps, future metadata field, decided-by identity and completed status rejected.
+- Approved/declined client decisions allowed; database timestamp replaces user-supplied timestamp.
+- Cross-project messages and sender spoofing rejected.
+- Admin and trusted service-role maintenance allowed; anonymous reads/writes denied.
+- Test transactions rolled back; synthetic fixtures returned to their starting state.
+
+**Boundary:** This is a real PostgreSQL enforcement test of the exact migration, but its synthetic schema and `auth.uid()`/`private.*` helpers are purpose-built approximations. It has not exercised full Supabase Auth, PostgREST, all existing migrations, or a complete separate Supabase staging project. Staging integration validation remains a release gate.
+
 ## Release blocking status
 
 - [x] Existing Phase 2 write QA: 10/10 and zero active QA leftovers on run #39021575467.
 - [x] Existing Phase 3 read-only access checks: 18/18 on run #39022920152.
 - [x] Proposed migration and offline contract checks committed on draft branch.
 - [ ] CI for the new migration-source verification and build is green.
-- [ ] Isolated PostgreSQL database applies the migration and runs the negative mutation test matrix.
+- [x] Isolated PostgreSQL 17 database applies the exact migration and passes synthetic negative mutation tests in CI.
+- [ ] Full Supabase staging environment verifies compatibility with existing migrations, Auth, PostgREST and approval/message UI.
 - [ ] Explicit approval to apply migration to the active project.
 - [ ] Separate verification after production policy deployment.
 - [ ] Merge/deploy authorization for draft PR #14 (not included in this phase).
