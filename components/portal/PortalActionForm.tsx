@@ -32,7 +32,17 @@ export function PortalActionForm({
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [feedback, dispatch] = useActionState(async (previous: PortalFeedbackState, data: FormData) => {
-    const result = await action(previous, data);
+    let result: PortalFeedbackState;
+    try {
+      result = await action(previous, data);
+    } catch {
+      // Transport/session failures leave the persisted outcome unknown. Never
+      // claim a failed save or invite blind retries that could duplicate writes.
+      return {
+        status: "error",
+        message: "Could not confirm the server response. Refresh to check whether the change was saved before trying again.",
+      };
+    }
     // Announce before revalidation removes the deleted row and its local form.
     if (confirmMessage && result.status === "success") {
       window.dispatchEvent(new CustomEvent("nhs-action-success", { detail: result.message }));
