@@ -44,6 +44,7 @@ jobs:
           npm run verify:navigation
           npm run verify:admin-actions
           npm run verify:phase3-security
+          npm run verify:release-preflight
       - name: Production build
         run: npm run build
 
