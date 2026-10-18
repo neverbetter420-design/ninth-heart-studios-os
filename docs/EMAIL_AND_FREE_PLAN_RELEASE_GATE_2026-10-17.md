@@ -44,6 +44,12 @@ After confirming A and B, invite or use only an **approved, real, controlled tes
 4. Inspect Supabase Auth logs for delivery errors and recent status. Do not paste real links or tokens into chat or CI logs.
 5. Do not infer success from the `sent=1` screen. Code intentionally returns the same message for known and unknown addresses.
 
+## Gate C verification update — October 17, 2026 (PDT)
+
+**PASS for the existing owner's recovery and sign-in flow.** The owner confirmed a new password was set. A read-only Supabase Auth log review verified a `user_updated_password` audit event at **2026-10-18 04:07:28 UTC**, followed by a `login` audit event at **2026-10-18 04:08:19 UTC**, both for the **same account**; a successful authenticated `GET /user` followed. Earlier recovery request and link verification also appeared in the Auth logs. This establishes functional password recovery and new-credential sign-in on the deployed live app without exposing credentials or tokens.
+
+**Remaining limitations:** a separate Resend dashboard `delivered` event was not read using an authenticated provider integration; a user opening a recovery email provides useful end-to-end evidence but does not audit the provider's internal delivery status. Unused or expired-link behavior and client-account recovery have not been independently smoke-tested. This verified password-recovery workflow does **not** clear the unrelated database backup, client authorization migration, protected merge, or Cloudflare deployment gates.
+
 ## Gate D: Pre-migration backup on Supabase Free
 
 The current plan has no guaranteed **downloadable automatic database backup**. Before any new live migration either:
