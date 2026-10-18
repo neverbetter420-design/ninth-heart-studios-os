@@ -104,6 +104,15 @@ jobs:
           npx playwright install --with-deps chromium
           npx playwright test tests/e2e/phase3-local-ui.spec.mjs --retries=0
 
+      - name: Upload synthetic Nocturne Atelier desktop and mobile previews
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhs-nocturne-atelier-visual-review
+          path: design-preview/*.png
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Collect local UI failure traces and screenshots
         if: failure()
         uses: actions/upload-artifact@v4
