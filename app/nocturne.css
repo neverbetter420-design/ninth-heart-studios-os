@@ -711,3 +711,155 @@
   .nhs-theme-admin .nocturne-workspace-disclosure > summary { padding: 19px 50px 19px 17px; }
   .nhs-theme-admin .nocturne-workspace-disclosure > .workspace-grid { padding: 2px 10px 15px; }
 }
+
+
+/* Navigation context, designed for location without another dashboard tile. */
+.nhs-breadcrumbs {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  font-size: 12px;
+  letter-spacing: .015em;
+  text-transform: none;
+}
+.nhs-breadcrumbs > a {
+  color: #b5a7c1;
+  text-decoration: none;
+  font-weight: 550;
+}
+.nhs-breadcrumbs > a:hover { color: #f5eefa; text-decoration: underline; }
+.nhs-breadcrumbs > [aria-current="page"] { color: #eadfea; font-weight: 700; }
+.nhs-breadcrumb-separator { color: #6b5b74; font-size: 11px; }
+.nhs-theme-client .nhs-breadcrumbs > a { color: #806985; }
+.nhs-theme-client .nhs-breadcrumbs > a:hover { color: #5b4264; }
+.nhs-theme-client .nhs-breadcrumbs > [aria-current="page"] { color: #4f3a56; }
+.nhs-theme-client .nhs-breadcrumb-separator { color: #b39fb3; }
+@media(max-width: 860px) {
+  /* Mobile still has its compact app bar. The thin breadcrumb below it helps
+     users orient without reopening the drawer on every project subpage. */
+  .nhs-context-bar {
+    display: flex;
+    min-height: 39px;
+    padding: 8px 17px;
+    border-bottom: 1px solid rgba(193,167,215,.10);
+  }
+  .nhs-context-account { display: none; }
+  .nhs-context-location { gap: 7px; }
+  .nhs-context-symbol { font-size: 14px; }
+  .nhs-breadcrumbs { gap: 7px; font-size: 11px; }
+}
+@media(max-width: 400px) {
+  .nhs-context-bar { padding: 8px 12px; }
+  .nhs-breadcrumbs { font-size: 10px; gap: 5px; }
+  .nhs-context-symbol { display: none; }
+}
+
+/* Atelier paperwork hub: elegant directories, not eight shortcut cards. */
+.atelier-documents-page { display: flex; flex-direction: column; gap: clamp(26px,3.2vw,40px); }
+.atelier-documents-heading {
+  padding: clamp(21px,3vw,42px) 0 clamp(3px,1vw,13px);
+  max-width: 750px;
+}
+.atelier-documents-heading h2 {
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(29px,3.8vw,47px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -.016em;
+  color: #3b2a41;
+  margin: 14px 0 15px;
+}
+.atelier-documents-heading > p:last-child {
+  max-width: 580px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #746777;
+  margin: 0;
+}
+.atelier-document-directory {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 13px;
+}
+.atelier-document-destination {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 157px;
+  padding: 25px 41px 22px 25px;
+  gap: 8px;
+  border: 1px solid #e2d3df;
+  border-radius: 17px;
+  color: #4b3752;
+  text-decoration: none;
+  background: rgba(255,253,250,.85);
+  box-shadow: 0 12px 35px rgba(56,38,55,.045);
+}
+.atelier-document-destination:hover {
+  color: #3c2944;
+  background: #fff;
+  border-color: #ba9aba;
+}
+.atelier-doc-icon { font-size: 22px; color: #987e9c; margin-bottom: 8px; }
+.atelier-document-destination strong { font-size: 15px; color: #4c3852; }
+.atelier-document-destination small {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #776c7d;
+}
+.atelier-doc-arrow { position: absolute; top: 23px; right: 23px; color: #806184; }
+.atelier-shared-documents { scroll-margin-top: 105px; }
+.atelier-document-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #e0d1df; }
+.atelier-document-row {
+  display: grid;
+  grid-template-columns: 37px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 10px;
+  border-bottom: 1px solid #e4d8e3;
+}
+.atelier-document-file-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: #efe4ec;
+  color: #795d81;
+}
+.atelier-document-row-main { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.atelier-document-row-main strong { font-size: 14px; color: #413045; }
+.atelier-document-row-main small { font-size: 11px; color: #817484; }
+.atelier-document-open {
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #6c4e76;
+  white-space: nowrap;
+}
+.atelier-document-open:hover { text-decoration: underline; color: #4a3557; }
+@media(max-width: 780px) {
+  .atelier-document-directory { grid-template-columns: 1fr; }
+  .atelier-document-destination {
+    display: grid;
+    grid-template-columns: 35px minmax(0,1fr) auto;
+    grid-template-rows: auto auto;
+    min-height: 88px;
+    align-content: center;
+    column-gap: 14px;
+    row-gap: 4px;
+    padding: 17px;
+  }
+  .atelier-doc-icon { grid-row: 1 / 3; margin: 0; }
+  .atelier-document-destination strong { grid-column: 2; }
+  .atelier-document-destination small { grid-column: 2; }
+  .atelier-doc-arrow { position: static; grid-column: 3; grid-row: 1 / 3; align-self: center; }
+}
+@media(max-width: 520px) {
+  .atelier-document-row { grid-template-columns: 28px minmax(0,1fr); column-gap: 12px; padding: 15px 2px; }
+  .atelier-document-file-icon { width: 28px; height: 31px; }
+  .atelier-document-open { grid-column: 2; white-space: normal; }
+}
