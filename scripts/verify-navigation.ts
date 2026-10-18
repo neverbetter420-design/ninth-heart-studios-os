@@ -84,6 +84,10 @@ assert.ok(read("app/layout.tsx").includes('import "./nocturne.css";'), "Nocturne
 assert.ok(appShell.includes('nhs-theme-client') && appShell.includes('nhs-theme-admin'), "role-scoped themes required");
 assert.ok(appShell.includes('action="/auth/sign-out"'), "visible desktop sign out required");
 assert.ok(sidebar.includes('className="nhs-mobile-sign-out"'), "visible mobile sign out required");
+assert.ok(sidebar.includes('className="nav-section-heading nav-section-toggle"'), "admin sidebar groups must be expandable");
+assert.ok(sidebar.includes('aria-expanded={expanded}'), "sidebar group toggle must expose expanded state");
+assert.ok(nocturneStyles.includes(".nav-section-links[hidden]"), "collapsed links must not remain visible");
+
 assert.ok(portalHome.includes('className="atelier-hero"'), "Atelier client welcome required");
 assert.ok(portalHome.includes('className="atelier-action-panel"'), "client next action required");
 assert.ok(portalHome.includes('href="/portal/messages"'), "messaging must remain linked");
