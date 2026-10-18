@@ -72,7 +72,6 @@ export async function Dashboard() {
     { label: "Active Leads", value: String(rankedLeads.length), detail: `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
     { label: "Waiting on Me", value: String(waitingOnMe), detail: `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
     { label: "Open Projects", value: String(projectCount ?? 0), detail: "Live Supabase count", tone: "cyan" as const },
-    { label: "Priority Engine", value: String(nextActions.length), detail: "Top actions surfaced", tone: "green" as const },
   ];
 
   const projects = (rawProjects ?? []) as { id: string; name: string; status: string; progress: number; due_date: string | null }[];
@@ -83,8 +82,8 @@ export async function Dashboard() {
     <div className="content-wrap">
       <PageHeader
         eyebrow="Command Center"
-        title="Good evening, Hailey."
-        description="The studio pulse at a glance. Human replies outrank busywork, because apparently software needed to be taught manners."
+        title="Your studio, in focus."
+        description="Priority actions and active projects at a glance. Everything else stays close, without the noise."
         action="+ Quick capture"
         actionHref="/leads#quick-capture"
       />
