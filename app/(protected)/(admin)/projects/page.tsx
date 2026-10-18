@@ -89,10 +89,11 @@ export default async function ProjectsPage({
         </section>
       ) : null}
 
-      <section className="panel" aria-label="New project" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>New project</h3>
-        </div>
+      <details className="nocturne-create-panel" open={Boolean(formError)} aria-label="New project">
+        <summary className="nocturne-create-toggle">
+          <strong>New project</strong>
+          <span>Create a project when you're ready</span>
+        </summary>
         <form action={createProject} className="delivery-add-form">
           <input type="text" name="name" placeholder="Project name…" required maxLength={160} />
           <select name="client_id" required defaultValue="" aria-label="Client" style={{ flex: 1 }}>
@@ -109,7 +110,7 @@ export default async function ProjectsPage({
             No clients yet — create one on the <a href="/clients">Clients</a> page first.
           </p>
         ) : null}
-      </section>
+      </details>
 
       <PipelineBoard projects={projects} />
     </div>
