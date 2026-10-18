@@ -71,7 +71,7 @@ export async function Dashboard() {
   const metrics = [
     { label: "Active Leads", value: String(rankedLeads.length), detail: `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
     { label: "Waiting on Me", value: String(waitingOnMe), detail: `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
-    { label: "Open Projects", value: String(projectCount ?? 0), detail: "Live Supabase count", tone: "cyan" as const },
+    { label: "Open Projects", value: String(projectCount ?? 0), detail: "Across your studio", tone: "cyan" as const },
   ];
 
   const projects = (rawProjects ?? []) as { id: string; name: string; status: string; progress: number; due_date: string | null }[];
@@ -79,7 +79,8 @@ export async function Dashboard() {
   const activities = (rawActivities ?? []) as { id: string; summary: string; created_at: string }[];
 
   return (
-    <div className="content-wrap">
+    <div className="content-wrap nocturne-command-center">
+      <div className="nocturne-overview">
       <PageHeader
         eyebrow="Command Center"
         title="Your studio, in focus."
@@ -91,15 +92,16 @@ export async function Dashboard() {
       <section className="metric-grid" aria-label="Studio metrics">
         {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
       </section>
+      </div>
 
       <section className="dashboard-grid">
         <div className="panel action-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow electric">Priority engine</p>
+              <p className="eyebrow electric">01 · Your attention</p>
               <h3>Next 3 actions</h3>
             </div>
-            <span className="live-pill"><i /> Live logic</span>
+            <span className="live-pill"><i /> Ranked for you</span>
           </div>
 
           <div className="action-list">
@@ -116,7 +118,8 @@ export async function Dashboard() {
             )) : (
               <div className="empty-dashboard-actions">
                 <strong>No lead actions yet.</strong>
-                <span>Capture a lead and Flowkeep will rank the next move.</span>
+                <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>
+                <Link href="/leads#quick-capture" className="nocturne-empty-link">Capture a lead <span aria-hidden="true">↗</span></Link>
               </div>
             )}
           </div>
@@ -125,7 +128,7 @@ export async function Dashboard() {
         <div className="panel project-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">Delivery</p>
+              <p className="eyebrow">02 · In motion</p>
               <h3>Project pulse</h3>
             </div>
             <Link className="text-button" href="/projects">View pipeline →</Link>

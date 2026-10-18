@@ -1,5 +1,11 @@
 # Nocturne Atelier visual acceptance review
 
+## Admin composition follow-up
+
+Owner feedback: the initial admin visual changes looked the same. The earlier pass corrected defects while retaining the original dashboard composition. The follow-up replaces that composition on the Command Center route with a plum architectural masthead, integrated unboxed metrics, a warm ivory priority surface, an open project ledger, larger editorial headings, restrained cream/plum actions and lighter supporting disclosure chrome. Client pages and other admin routes retain their existing presentation. No data queries, authentication, permissions or server actions changed. The internal backend label on the project count now reads "Across your studio".
+
+Synthetic desktop/mobile captures include matching empty-state before/after views and a populated three-action preview. Eight isolated visual checks now cover populated priority contrast, responsive bounds, reachable lead links and visible keyboard focus in addition to the prior regressions. Owner final visual approval is still pending; the previous acceptance and CI evidence below applies to the earlier design commit only. Evaluate fresh CI on this follow-up commit.
+
 Reviewed October 18, 2026. Draft PR #14 only. **Owner final visual approval and a verified restorable production backup remain mandatory.** No release approval is implied by this review.
 
 ## Reviewed evidence

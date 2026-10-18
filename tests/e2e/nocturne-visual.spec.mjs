@@ -64,3 +64,21 @@ test("Atelier long titles, empty and error states fit at 320px", async ({ page }
     if (scenario === "error") await expect(page.getByRole("alert")).toContainText("Projects are temporarily unavailable.");
   }
 });
+
+test("Nocturne priority surface keeps populated actions readable and reachable", async ({ page }) => {
+  await show(page, "admin", "populated");
+  await expect(page.locator(".action-row")).toHaveCount(3);
+  for (const width of [1440, 900, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    expect(await contrast(page.locator(".action-copy strong").first(), ".action-panel")).toBeGreaterThanOrEqual(4.5);
+    const links = page.locator(".action-row a");
+    for (const link of await links.all()) {
+      await link.scrollIntoViewIfNeeded();
+      await expect(link).toBeInViewport();
+      await expect(link).toHaveAttribute("href", /\/leads\/synthetic-lead-/);
+      await link.focus();
+      expect(await link.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+    }
+  }
+});

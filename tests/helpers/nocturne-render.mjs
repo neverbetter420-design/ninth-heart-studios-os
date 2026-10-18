@@ -20,7 +20,11 @@ export async function renderNocturne(role, scenario = "normal") {
   const rows = {
     projects: scenario === "empty" ? [] : [project],
     approvals: scenario === "empty" ? [] : [{ id: "synthetic-approval", title: scenario === "long" ? "UnbrokenApprovalTitle".repeat(8) : "Review the homepage design", project_id: project.id }],
-    leads: [], opportunities: [], activities: [],
+    leads: scenario === "populated" ? ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({
+      id: `synthetic-lead-${i}`, business_name: name, acquisition_type: "outbound",
+      momentum_state: "Waiting on Me", status: "prospect", next_action_kind: "reply",
+      created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+    })) : [], opportunities: [], activities: [],
   };
   const supabase = { from(table) {
     if (!(table in rows)) throw new Error(`Unexpected preview table: ${table}`);
