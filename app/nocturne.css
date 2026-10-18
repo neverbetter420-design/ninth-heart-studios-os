@@ -863,3 +863,46 @@
   .atelier-document-file-icon { width: 28px; height: 31px; }
   .atelier-document-open { grid-column: 2; white-space: normal; }
 }
+
+
+/* Collapsible admin navigation: tools remain reachable, without twelve links
+ * competing for attention all day. Client destinations remain fully visible. */
+.nav-section-links[hidden] { display: none !important; }
+.nhs-theme-admin .nav-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  padding: 10px 12px;
+  margin: 0 0 5px;
+  border-radius: 9px;
+  color: #c1afc8;
+  transition: color .18s, background .18s;
+}
+.nhs-theme-admin .nav-section-toggle:hover {
+  color: #efe2f5;
+  background: rgba(230,197,239,.055);
+}
+.nhs-theme-admin .nav-section-toggle:focus-visible {
+  outline: 2px solid #c9a7d9;
+  outline-offset: 2px;
+}
+.nhs-theme-admin .nav-section-chevron {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  font-size: 17px;
+  color: #b897c8;
+  font-weight: 400;
+  line-height: 1;
+}
+.nhs-theme-admin .nav-section-toggle[aria-expanded="true"] { color: #ebd5ee; }
+.nhs-theme-admin .nav-section-toggle[aria-expanded="true"] .nav-section-chevron { color: #e5bceb; }
+@media (prefers-reduced-motion: reduce) {
+  .nhs-theme-admin .nav-section-toggle { transition: none; }
+}
