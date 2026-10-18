@@ -18,6 +18,86 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
+test("Client directory and workspaces keep projects and access controls usable", async ({ page }) => {
+  test.setTimeout(90000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const view of ["clients", "client-detail"]) {
+    for (const scenario of view === "clients" ? ["normal", "long", "empty", "form-error"] : ["normal", "long", "quiet", "members-error", "error", "archived"]) {
+      await show(page, "admin", scenario, view);
+      for (const width of [1440, 1024, 860, 620, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth), `${view} ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+      }
+      if (view === "clients") {
+        const create = page.locator('details[aria-label="New client"]');
+        if (scenario !== "form-error") await create.locator("summary").press("Enter");
+        await expect(create.getByLabel("Client / business name")).toBeVisible();
+        if (scenario !== "empty") await expect(page.locator(".management-client-row .management-text-link").first()).toHaveAttribute("href", "/clients/synthetic-client");
+      } else {
+        const email = page.getByLabel("Member's account email");
+        if (scenario === "members-error") {
+          await expect(email).toBeDisabled();
+          await expect(page.getByRole("button", { name: "Add member", exact: true })).toBeDisabled();
+          await expect(page.getByRole("alert")).toContainText("Could not load portal members");
+          await expect(page.getByRole("button", { name: "Remove", exact: true })).toHaveCount(0);
+        } else await expect(email).toBeEnabled();
+        if (scenario === "error") await expect(page.getByRole("alert")).toContainText("Projects could not load");
+        if (scenario === "archived") {
+          await expect(page.getByRole("link", { name: "New project" })).toHaveCount(0);
+          await expect(page.getByRole("button", { name: "Restore client" })).toBeVisible();
+        }
+        await page.getByRole("navigation", { name: "Client workspace destinations" }).getByRole("link", { name: "Portal access" }).click();
+        await expect(page.locator("#client-access h3")).toBeInViewport();
+      }
+    }
+  }
+});
+
+test("Pipeline keeps real phases, bounded progress and move controls in view", async ({ page }) => {
+  test.setTimeout(90000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const scenario of ["populated", "long", "stages", "empty", "error", "context", "form-error", "client-choices-error"]) {
+    await show(page, "admin", scenario, "pipeline");
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${scenario} pipeline at ${width}px`).toBeLessThanOrEqual(width);
+    }
+    const create = page.locator('details[aria-label="New project"]');
+    if (["context", "form-error"].includes(scenario)) await expect(create).toHaveAttribute("open", "");
+    if (scenario === "context") await expect(create.getByLabel("Client", { exact: true })).toHaveValue("synthetic-client");
+    if (scenario === "client-choices-error") {
+      await create.locator("summary").press("Enter");
+      await expect(create.getByRole("button", { name: "Create project" })).toBeDisabled();
+      await expect(create.getByRole("alert")).toContainText("Client choices could not load");
+    }
+    if (scenario === "error") {
+      await expect(page.getByRole("alert")).toContainText("Project data could not load");
+      await expect(page.locator(".pipeline-board")).toHaveCount(0);
+      await expect(page.locator(".metric-card strong").first()).toHaveText("—");
+    }
+    if (scenario === "stages") {
+      await expect(page.locator(".pipeline-phase")).toHaveCount(9);
+      await expect(page.locator("#phase-unassigned")).toContainText("Sample legacy_phase project");
+      await expect(page.locator("#phase-discovery")).not.toContainText("legacy_phase");
+      await expect(page.locator("#phase-on_hold .management-due-overdue")).toHaveCount(0);
+      await expect(page.locator("#phase-discovery [role=progressbar]")).toHaveAttribute("aria-valuenow", "100");
+      await page.locator("#phase-unassigned summary").press("Enter");
+      await expect(page.locator("#phase-unassigned select")).toHaveValue("");
+    }
+    const move = page.locator(".pipeline-move-disclosure").first();
+    if (await move.count()) {
+      await move.locator("summary").press("Enter");
+      await move.locator("select").selectOption("build");
+      const button = move.getByRole("button", { name: "Move", exact: true });
+      await button.scrollIntoViewIfNeeded();
+      await button.focus();
+      expect(await button.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+      expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
+      expect(await move.locator("form").evaluate(el => new FormData(el).get("status"))).toBe("build");
+    }
+  }
+});
+
 test("Scanner lowers old missing-website scores and exposes honest social verification", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const scenario of ["normal", "long"]) {

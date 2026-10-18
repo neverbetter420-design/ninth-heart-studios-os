@@ -278,8 +278,71 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       expect(converted.status).toBe("discovery");
       expect(converted.client_id).toBe(linkedLead.client_id);
 
+      // Client relationship and vertical pipeline workflows: disposable records only.
+      const managedName = "Synthetic managed client " + seed;
+      await adminPage.goto("/clients");
+      const newClient = adminPage.locator('details[aria-label="New client"]');
+      await newClient.locator("summary").click();
+      await newClient.getByLabel("Client / business name").fill(managedName);
+      await newClient.getByLabel("Primary email (optional)").fill("managed@example.invalid");
+      await newClient.getByRole("button", { name: "Create client", exact: true }).click();
+      await expect(adminPage.getByRole("heading", { name: managedName, exact: true })).toBeVisible();
+      const managedId = new URL(adminPage.url()).pathname.split("/").pop();
+      expect((await required(srv.from("clients").select("name,primary_email,status").eq("id", managedId), "managed client persisted"))[0]).toMatchObject({ name: managedName, primary_email: "managed@example.invalid", status: "active" });
+      await adminPage.getByRole("link", { name: "New project", exact: true }).click();
+      const newProject = adminPage.locator('details[aria-label="New project"]');
+      await expect(newProject).toHaveAttribute("open", "");
+      await expect(newProject.getByLabel("Client", { exact: true })).toHaveValue(managedId);
+      const managedProjectName = "Synthetic managed project " + seed;
+      await newProject.getByLabel("Project name", { exact: true }).fill(managedProjectName);
+      await newProject.getByRole("button", { name: "Create project", exact: true }).click();
+      await expect(adminPage.getByRole("heading", { name: managedProjectName, exact: true })).toBeVisible();
+      const managedProjectId = new URL(adminPage.url()).pathname.split("/").pop();
       await adminPage.goto("/projects");
-      await expect(adminPage.getByRole("heading", { name: "Delivery without the scavenger hunt." })).toBeVisible();
+      const pipelineRow = adminPage.locator('[data-project-id="' + managedProjectId + '"]');
+      await expect(adminPage.locator("#phase-discovery")).toContainText(managedProjectName);
+      await pipelineRow.locator("summary").click();
+      await pipelineRow.getByRole("combobox").selectOption("build");
+      await pipelineRow.getByRole("button", { name: "Move", exact: true }).click();
+      await expect(adminPage.locator(".action-notification").getByRole("status")).toHaveText("Project stage updated.");
+      await expect.poll(async () => (await required(srv.from("projects").select("status").eq("id", managedProjectId), "phase change persisted"))[0].status).toBe("build");
+      await adminPage.reload();
+      await expect(adminPage.locator("#phase-build")).toContainText(managedProjectName);
+
+      await adminPage.goto("/clients/" + managedId);
+      await adminPage.getByLabel("Member's account email").fill(emailB);
+      await adminPage.getByRole("button", { name: "Add member", exact: true }).click();
+      await expect.poll(async () => (await required(srv.from("client_memberships").select("profile_id").eq("client_id", managedId).eq("profile_id", userB.id), "new member persisted")).length).toBe(1);
+      const accessContext = await browser.newContext({ baseURL });
+      try {
+        const memberPage = await accessContext.newPage();
+        await signIn(memberPage, emailB);
+        await memberPage.goto("/portal/projects/" + managedProjectId);
+        await expect(memberPage.getByRole("heading", { name: managedProjectName, exact: true })).toBeVisible();
+        await adminPage.reload();
+        adminPage.once("dialog", dialog => dialog.accept());
+        await adminPage.locator(".management-member-row").filter({ hasText: emailB }).getByRole("button", { name: "Remove", exact: true }).click();
+        await expect.poll(async () => (await required(srv.from("client_memberships").select("profile_id").eq("client_id", managedId).eq("profile_id", userB.id), "member removal persisted")).length).toBe(0);
+        await memberPage.reload();
+        await expect(memberPage.getByRole("heading", { name: "That page isn't available.", exact: true })).toBeVisible();
+        await memberPage.goto("/portal/projects/" + projectB);
+        await expect(memberPage.getByRole("heading", { name: "Synthetic UI Project B", exact: true })).toBeVisible();
+      } finally { await accessContext.close(); }
+
+      const clientStatus = adminPage.getByRole("region", { name: "Client status", exact: true });
+      await clientStatus.getByRole("button", { name: "Archive client", exact: true }).click();
+      await expect.poll(async () => (await required(srv.from("clients").select("status").eq("id", managedId), "archived client persisted"))[0].status).toBe("archived");
+      await adminPage.reload();
+      await clientStatus.getByRole("button", { name: "Restore client", exact: true }).click();
+      await expect.poll(async () => (await required(srv.from("clients").select("status").eq("id", managedId), "restored client persisted"))[0].status).toBe("active");
+      await adminPage.goto("/clients");
+      await adminPage.screenshot({ path: "design-preview/nocturne-clients-" + previewSuffix + ".png", fullPage: true });
+      await adminPage.getByRole("link", { name: "Open client: " + managedName, exact: true }).click();
+      await expect(adminPage.getByRole("link", { name: managedProjectName })).toBeVisible();
+      await adminPage.screenshot({ path: "design-preview/nocturne-client-workspace-" + previewSuffix + ".png", fullPage: true });
+
+      await adminPage.goto("/projects");
+      await expect(adminPage.getByRole("heading", { name: /Every project,/ })).toBeVisible();
       await adminPage.screenshot({ path: "design-preview/nocturne-admin-pipeline-" + previewSuffix + ".png", fullPage: true });
       await adminPage.goto("/projects/" + projectA);
       await expect(adminPage.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();

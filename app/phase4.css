@@ -1,39 +1,4 @@
-/* Phase 4 — Project Delivery: pipeline kanban + project workspace. */
-
-/* ---------- Pipeline board ---------- */
-.pipeline-board {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(248px, 300px);
-  gap: 12px;
-  overflow-x: auto;
-  padding: 4px 2px 14px;
-  align-items: start;
-}
-.pipeline-column {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: linear-gradient(160deg, rgba(18, 16, 28, 0.72), rgba(10, 9, 16, 0.6));
-  min-height: 120px;
-  display: flex;
-  flex-direction: column;
-}
-.pipeline-column-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 13px 14px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.pipeline-column-head h3 {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #cfc3d8;
-}
+/* Phase 4 — Project Delivery shared utilities and workspace. */
 .pipeline-count {
   font-size: 10px;
   color: #84798c;
@@ -41,64 +6,6 @@
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 999px;
   padding: 2px 8px;
-}
-.pipeline-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-}
-.pipeline-card {
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.025);
-  padding: 12px 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.pipeline-card:hover { border-color: rgba(193, 91, 255, 0.25); }
-.pipeline-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-.pipeline-card-name {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 650;
-  color: #f5eff8;
-  line-height: 1.35;
-}
-.pipeline-card-name a { color: inherit; text-decoration: none; }
-.pipeline-card-name a:hover { color: #d9a8ff; }
-.pipeline-card-client {
-  margin: 0;
-  font-size: 10px;
-  color: #84798c;
-}
-.pipeline-card-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 10px;
-  color: #84798c;
-}
-.pipeline-due-over { color: #ff9d9d; }
-.pipeline-move-form { display: flex; gap: 6px; }
-.pipeline-move-form select {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 7px 8px;
-  background: rgba(255, 255, 255, 0.03);
-  color: #f5eff8;
-  font: inherit;
-  font-size: 10px;
-  color-scheme: dark;
 }
 .pipeline-empty {
   margin: 0;

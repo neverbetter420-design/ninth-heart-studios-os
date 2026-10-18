@@ -19,6 +19,7 @@ export function PortalActionForm({
   pendingMessage = "Saving…",
   lockOnSuccess = true,
   confirmMessage,
+  announceSuccess = false,
   resetOnSuccess = false,
 }: {
   action: FeedbackAction;
@@ -28,6 +29,7 @@ export function PortalActionForm({
   pendingMessage?: string;
   lockOnSuccess?: boolean;
   confirmMessage?: string;
+  announceSuccess?: boolean;
   resetOnSuccess?: boolean;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
@@ -44,7 +46,7 @@ export function PortalActionForm({
       } satisfies PortalFeedbackState;
     }
     // Announce before revalidation removes the deleted row and its local form.
-    if (confirmMessage && result.status === "success") {
+    if ((confirmMessage || announceSuccess) && result.status === "success") {
       window.dispatchEvent(new CustomEvent("nhs-action-success", { detail: result.message }));
     }
     return result;

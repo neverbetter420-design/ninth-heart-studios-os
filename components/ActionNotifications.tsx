@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-/** Keep confirmed removal feedback visible after the affected row disappears. */
+/** Keep confirmed feedback visible after an affected row disappears or moves. */
 export function ActionNotifications() {
   const [message, setMessage] = useState("");
   useEffect(() => {

@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { ProjectDirectoryRow } from "@/components/projects/ProjectDirectoryRow";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { addClientMemberWithFeedback, removeClientMemberWithFeedback } from "../actions";
+import { addClientMemberWithFeedback, removeClientMemberWithFeedback, setClientStatusWithFeedback } from "../actions";
 import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 export default async function ClientDetailPage({
@@ -30,7 +31,7 @@ export default async function ClientDetailPage({
     created_at: string;
   };
 
-  const [{ data: rawMembers, error: membersError }, { data: rawProjects }] = await Promise.all([
+  const [{ data: rawMembers, error: membersError }, { data: rawProjects, error: projectsError }] = await Promise.all([
     supabase
       .from("client_memberships")
       .select("client_id, profile_id, member_role, created_at, profiles(id, full_name, email, role)")
@@ -60,105 +61,66 @@ export default async function ClientDetailPage({
   }));
   const projects = (rawProjects ?? []) as { id: string; name: string; status: string; progress: number; due_date: string | null }[];
 
+  let websiteHref: string | null = null;
+  if (client.website) {
+    try {
+      const url = new URL(/^https?:\/\//i.test(client.website) ? client.website : `https://${client.website}`);
+      if (["http:", "https:"].includes(url.protocol) && url.hostname.includes(".") && !url.username && !url.password) websiteHref = url.toString();
+    } catch { /* Preserve the contact text when a link is invalid. */ }
+  }
+
   return (
-    <div className="content-wrap">
-      <div className="lead-detail-backline" style={{ marginBottom: 10 }}>
-        <Link href="/clients" className="text-button">← Clients</Link>
-      </div>
-
-      <header className="page-header">
-        <div>
-          <p className="eyebrow electric">Client · {client.status}</p>
-          <h2>{client.name}</h2>
-          <p className="page-description">
-            {client.primary_email ?? "No email"}
-            {client.website ? ` · ${client.website}` : ""}
-          </p>
-        </div>
+    <div className="content-wrap management-page management-client-workspace">
+      <Link className="management-back-link" href="/clients">← Client directory</Link>
+      <header className="page-header management-heading">
+        <div><p className="eyebrow electric">Client · {client.status}</p><h2>{client.name}</h2><p className="page-description">The projects, people and details behind this relationship.</p></div>
+        {client.status === "active" && <Link className="management-primary-link" href={`/projects?client=${client.id}#new-project`}>New project <span aria-hidden="true">↗</span></Link>}
       </header>
+      {formError && <div className="management-notice" role="alert">{formError}</div>}
+      <nav className="management-destinations" aria-label="Client workspace destinations"><a href="#client-projects">Projects</a><a href="#client-access">Portal access</a><a href="#client-contact">Contact details</a><a href="#client-status">Client status</a></nav>
 
-      {formError ? (
-        <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
-          <strong>Heads up.</strong>
-          <span>{formError}</span>
-        </section>
-      ) : null}
+      <div className="management-client-grid">
+        <div className="management-client-work">
+          <section id="client-projects" aria-labelledby="client-projects-title">
+            <div className="management-section-heading"><div><p className="eyebrow">In the studio</p><h3 id="client-projects-title">Client projects</h3></div><span>{projectsError ? "Unavailable" : `${projects.length} projects`}</span></div>
+            {projectsError ? <p className="management-notice" role="alert">Projects could not load. Refresh to try again.</p> : projects.length ? projects.map(p => <ProjectDirectoryRow key={p.id} project={{ ...p, client_id: client.id, client_name: client.name }} />) : <p className="management-empty-copy">No projects yet. Start one when this client is ready.</p>}
+          </section>
 
-      <section className="panel" aria-label="Portal members" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>Portal members</h3>
-          {!membersError ? <span className="pipeline-count">{members.length}</span> : null}
+          <section id="client-access" aria-labelledby="client-access-title">
+            <div className="management-section-heading"><div><p className="eyebrow">People &amp; permissions</p><h3 id="client-access-title">Portal members</h3></div><span>{membersError ? "Unavailable" : `${members.length} linked`}</span></div>
+            {membersError ? <p className="management-notice" role="alert">Could not load portal members. Refresh this page before changing access.</p> : !members.length ? <p className="management-empty-copy">No portal members yet. Add an existing account below.</p> : (
+              <ul className="management-member-list">
+                {memberProfiles.map(m => <li className="management-member-row" key={m.profile_id}>
+                  <div><strong>{m.profile?.full_name ?? m.profile?.email ?? "Unknown member"}</strong><p>{m.profile?.email ?? "Email unavailable"}</p><small>{m.member_role === "client" ? "Client access" : m.member_role} · {m.profile?.role === "admin" ? "Admin account" : m.profile?.role === "client" ? "Client account" : "Account role unavailable"}</small></div>
+                  <PortalActionForm action={removeClientMemberWithFeedback} pendingMessage="Removing member access…" confirmMessage={`Remove ${m.profile?.full_name ?? m.profile?.email ?? "this member"} from ${client.name}? This removes their membership-based portal access to this client's projects. Their account and other client memberships are kept.`}>
+                    <input type="hidden" name="client_id" value={client.id} /><input type="hidden" name="profile_id" value={m.profile_id} />
+                    <PortalSubmitButton pendingLabel="Removing…" className="mini-button danger">Remove</PortalSubmitButton>
+                  </PortalActionForm>
+                </li>)}
+              </ul>
+            )}
+            <PortalActionForm action={addClientMemberWithFeedback} className="management-member-add" pendingMessage="Adding member access…" lockOnSuccess={false} resetOnSuccess>
+              <input type="hidden" name="client_id" value={client.id} />
+              <label className="field"><span>Member&apos;s account email</span><input type="email" name="email" aria-label="Member's account email" placeholder="name@business.com" required maxLength={160} disabled={!!membersError} /></label>
+              <button type="submit" className="mini-button go" disabled={!!membersError}>Add member</button>
+            </PortalActionForm>
+            <p className="management-help">Members get portal access to this client&apos;s projects. They need a signed-up account first.</p>
+          </section>
         </div>
-        <ul className="delivery-list">
-          {membersError ? (
-            <li className="delivery-row" role="alert">
-              <p className="pipeline-empty">Could not load portal members. Refresh this page before changing access.</p>
-            </li>
-          ) : members.length === 0 ? (
-            <li className="delivery-row">
-              <p className="pipeline-empty">No portal members yet. Add someone by their account email below.</p>
-            </li>
-          ) : (
-            memberProfiles.map((m) => (
-              <li key={m.profile_id} className="delivery-row">
-                <div className="delivery-row-main">
-                  <p className="delivery-row-title">{m.profile?.full_name ?? m.profile?.email ?? "Unknown"}</p>
-                  <p className="delivery-row-sub">
-                    {m.profile?.email ?? ""} · {m.member_role} · {m.profile?.role ?? ""}
-                  </p>
-                </div>
-                <PortalActionForm
-                  action={removeClientMemberWithFeedback}
-                  pendingMessage="Removing member access…"
-                  confirmMessage={`Remove ${m.profile?.full_name ?? m.profile?.email ?? "this member"} from ${client.name}? This removes their membership-based portal access to this client's projects. Their account and other client memberships are kept.`}
-                >
-                  <input type="hidden" name="client_id" value={client.id} />
-                  <input type="hidden" name="profile_id" value={m.profile_id} />
-                  <PortalSubmitButton pendingLabel="Removing…" className="mini-button danger">Remove</PortalSubmitButton>
-                </PortalActionForm>
-              </li>
-            ))
-          )}
-        </ul>
-        <PortalActionForm action={addClientMemberWithFeedback} className="delivery-add-form" pendingMessage="Adding member access…" lockOnSuccess={false} resetOnSuccess>
-          <input type="hidden" name="client_id" value={client.id} />
-          <input type="email" name="email" aria-label="Member's account email" placeholder="Member's account email…" required maxLength={160} disabled={!!membersError} />
-          <button type="submit" className="mini-button go" disabled={!!membersError}>Add member</button>
-        </PortalActionForm>
-        <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>
-          Members get portal access to this client&apos;s projects. They need a signed-up account first.
-        </p>
-      </section>
 
-      <section className="panel" aria-label="Projects">
-        <div className="panel-heading">
-          <h3>Projects</h3>
-          <span className="pipeline-count">{projects.length}</span>
-        </div>
-        <ul className="delivery-list">
-          {projects.length === 0 ? (
-            <li className="delivery-row">
-              <p className="pipeline-empty">No projects yet.</p>
-            </li>
-          ) : (
-            projects.map((p) => (
-              <li key={p.id} className="delivery-row">
-                <div className="delivery-row-main">
-                  <p className="delivery-row-title">
-                    <Link href={`/projects/${p.id}`} style={{ color: "inherit", textDecoration: "none" }}>
-                      {p.name}
-                    </Link>
-                  </p>
-                  <p className="delivery-row-sub">
-                    {p.status} · {p.progress}% complete
-                    {p.due_date ? ` · Due ${new Date(p.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
-                  </p>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
-      </section>
+        <aside className="management-client-context">
+          <section id="client-contact" aria-labelledby="client-contact-title"><div className="management-section-heading"><div><p className="eyebrow">The connection</p><h3 id="client-contact-title">Contact details</h3></div></div>
+            <dl className="management-contact-list"><div><dt>Email</dt><dd>{client.primary_email ?? "No primary email"}</dd></div><div><dt>Website</dt><dd>{websiteHref ? <a href={websiteHref} target="_blank" rel="noreferrer">Open website ↗</a> : client.website ?? "Not added"}</dd></div></dl>
+          </section>
+          <section id="client-status" aria-label="Client status"><div className="management-section-heading"><div><p className="eyebrow">Relationship</p><h3>Client status</h3></div></div><p className="management-status-copy">{client.status === "active" ? "Active client" : client.status === "archived" ? "Archived client" : client.status}</p>
+            <PortalActionForm action={setClientStatusWithFeedback} pendingMessage="Updating client…" lockOnSuccess={false}>
+              <input type="hidden" name="client_id" value={client.id} /><input type="hidden" name="status" value={client.status === "active" ? "archived" : "active"} />
+              <button type="submit" className="mini-button">{client.status === "active" ? "Archive client" : "Restore client"}</button>
+            </PortalActionForm>
+            <p className="management-help">Archiving keeps the client record and existing memberships. Manage portal access in the member list.</p>
+          </section>
+        </aside>
+      </div>
     </div>
   );
 }

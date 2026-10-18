@@ -267,59 +267,6 @@
 }
 
 
-/* Admin creation forms are available on demand, not permanently in the way. */
-.nhs-theme-admin .nocturne-create-panel {
-  margin-bottom: 21px;
-  border: 1px solid rgba(190, 158, 207, .16);
-  background: rgba(22, 17, 31, .58);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.nhs-theme-admin .nocturne-create-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  padding: 19px 48px 19px 21px;
-  list-style: none;
-  cursor: pointer;
-  gap: 15px;
-}
-
-.nhs-theme-admin .nocturne-create-toggle::-webkit-details-marker { display: none; }
-.nhs-theme-admin .nocturne-create-toggle:hover { background: rgba(201, 166, 219, .06); }
-.nhs-theme-admin .nocturne-create-toggle:focus-visible { outline: 2px solid #c5a2d5; outline-offset: -3px; }
-
-.nhs-theme-admin .nocturne-create-toggle strong {
-  color: #eee0f0;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.nhs-theme-admin .nocturne-create-toggle > span {
-  color: #aba0b5;
-  font-size: 11px;
-  margin-left: auto;
-}
-
-.nhs-theme-admin .nocturne-create-toggle::after {
-  content: "+";
-  position: absolute;
-  right: 20px;
-  color: #cba6d8;
-  font-size: 22px;
-  line-height: 1;
-}
-
-.nhs-theme-admin .nocturne-create-panel[open] .nocturne-create-toggle::after { content: "−"; }
-.nhs-theme-admin .nocturne-create-panel .delivery-add-form { border-top: 1px solid rgba(221, 182, 225, .10); }
-
-@media (max-width: 600px) {
-  .nhs-theme-admin .nocturne-create-toggle { align-items: flex-start; flex-direction: column; padding: 16px 44px 16px 17px; gap: 5px; }
-  .nhs-theme-admin .nocturne-create-toggle > span { margin-left: 0; }
-}
-
 /* Visual acceptance: preserve the dark navigation palette inside Atelier. */
 .nhs-theme-client .sidebar {
   --text: #f5edf4;

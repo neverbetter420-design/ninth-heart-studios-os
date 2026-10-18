@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads", "nocturne-management"];
 export const previewCSS = styles.map((name) => readFileSync(resolve(root, `app/${name}.css`), "utf8"))
   .join("\n").replace('@import "tailwindcss";', "");
 
@@ -18,7 +18,9 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
   const longTitle = "Alexandria's extraordinarily detailed studio website and international collection";
   const project = { id: "synthetic-a", client_id: "synthetic-client", name: scenario === "long" ? longTitle : "Synthetic Studio Website", status: "design", progress: 100, due_date: null, internal_notes: null, clients: { name: "Synthetic Studio" } };
   const rows = {
-    projects: scenario === "empty" ? [] : scenario === "populated" ? [
+    clients: scenario === "empty" ? [] : [{ id: "synthetic-client", name: scenario === "long" ? "UnbrokenClientName".repeat(8) : "Cedar & Stone", website: "https://example.com/", primary_email: scenario === "long" ? "contact".repeat(18) + "@example.invalid" : "hello@example.invalid", status: scenario === "archived" ? "archived" : "active", client_memberships: [{ profile_id: "synthetic-profile" }], projects: [{ id: "synthetic-a" }] }],
+    client_memberships: ["empty", "quiet"].includes(scenario) ? [] : [{ profile_id: "synthetic-profile", member_role: "client", profiles: { full_name: scenario === "long" ? "UnbrokenMemberName".repeat(8) : "Jamie Morgan", email: scenario === "long" ? "memberemail".repeat(12) + "@example.invalid" : "jamie@example.invalid", role: "client" } }],
+    projects: ["empty", "quiet"].includes(scenario) ? [] : scenario === "populated" ? [
       { ...project, name: "Cedar & Stone Website", progress: 72 },
       { ...project, id: "synthetic-b", name: "Mira Studio", status: "build", progress: 46 },
       { ...project, id: "synthetic-c", name: "Northline Editions", status: "discovery", progress: 18 },
@@ -43,15 +45,18 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     revision_rounds: [], change_orders: [], contracts: [], form_submissions: [], form_templates: [], templates: [],
     files: view === "project" && scenario === "populated" ? [{ id: "synthetic-image", filename: "Shared design.png", mime_type: "image/png", visibility: "client", size_bytes: 100, created_at: "2026-10-01T12:00:00Z", object_path: "synthetic.png" }] : [],
   };
+  if (["pipeline", "client-detail"].includes(view) && scenario === "long") rows.projects[0].name = "UnbrokenProjectTitle".repeat(10);
+  if (view === "clients" && scenario === "populated") rows.clients = ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({ ...rows.clients[0], id: i ? `synthetic-client-${i}` : "synthetic-client", name, status: i === 2 ? "archived" : "active", projects: Array.from({length: 3-i}, (_, j) => ({ id: `project-${i}-${j}` })) }));
+  if (view === "pipeline" && scenario === "stages") rows.projects = ["discovery", "content", "design", "build", "review", "launch", "care", "on_hold", "legacy_phase"].map((status, i) => ({ ...project, id: `synthetic-stage-${i}`, name: `Sample ${status} project`, status, progress: i === 0 ? 120 : i * 10, due_date: "2020-01-01" }));
   const supabase = { storage: { from: () => ({ createSignedUrl: async () => ({ data: { signedUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=" } }) }) }, from(table) {
     if (!(table in rows)) throw new Error(`Unexpected preview table: ${table}`);
-    const result = { data: rows[table], count: rows[table].length, error: scenario === "error" && (table === "projects" || table === "leads") ? { message: "Synthetic read failure" } : null };
+    const result = { data: rows[table], count: rows[table].length, error: (scenario === "error" && (table === "projects" || table === "leads")) || (scenario === "members-error" && table === "client_memberships") || (scenario === "client-choices-error" && table === "clients") ? { message: "Synthetic read failure" } : null };
     const chain = { then: (ok, fail) => Promise.resolve(result).then(ok, fail) };
     for (const method of ["select", "eq", "neq", "not", "order", "limit", "in"]) chain[method] = () => chain;
     chain.maybeSingle = () => { result.data = rows[table][0] ?? null; return chain; };
     return chain;
   } };
-  const path = view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
+  const path = view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -83,14 +88,16 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     return module.exports;
   }
   const { AppShell } = load(resolve(root, "components/AppShell.tsx"));
-  const Page = view === "scanner"
+  const Page = ["clients", "client-detail", "pipeline"].includes(view)
+    ? load(resolve(root, { clients: "app/(protected)/(admin)/clients/page.tsx", "client-detail": "app/(protected)/(admin)/clients/[id]/page.tsx", pipeline: "app/(protected)/(admin)/projects/page.tsx" }[view])).default
+    : view === "scanner"
     ? load(resolve(root, "app/(protected)/(admin)/leads/discover/page.tsx")).default
     : view.startsWith("lead")
     ? load(resolve(root, view === "leads" ? "app/(protected)/(admin)/leads/page.tsx" : "app/(protected)/(admin)/leads/[leadId]/page.tsx")).default
     : view === "project"
     ? load(resolve(root, role === "admin" ? "app/(protected)/(admin)/projects/[projectId]/page.tsx" : "app/(protected)/portal/projects/[projectId]/page.tsx")).default
     : role === "admin" ? load(resolve(root, "components/Dashboard.tsx")).Dashboard : load(resolve(root, "app/(protected)/portal/page.tsx")).default;
-  const content = renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id, leadId: "synthetic-lead-0" }), searchParams: Promise.resolve({ section, error: scenario === "form-error" ? "Check the website URL and try again." : undefined }) }));
+  const content = renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id, leadId: "synthetic-lead-0", id: "synthetic-client" }), searchParams: Promise.resolve({ section, client: scenario === "context" ? "synthetic-client" : undefined, error: scenario === "form-error" ? "Check the submitted fields and try again." : undefined }) }));
   const user = { name: "Synthetic Review Owner", email: "visual-review@example.invalid" };
   const html = renderToStaticMarkup(React.createElement(AppShell, { role, user }, React.createElement("div", { "data-preview-content": true, dangerouslySetInnerHTML: { __html: content } })));
   return { html, content, role, user, path };

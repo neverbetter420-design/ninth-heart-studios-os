@@ -126,7 +126,7 @@ const adminClientsPage = read("app/(protected)/(admin)/clients/page.tsx");
 const adminProjectsPage = read("app/(protected)/(admin)/projects/page.tsx");
 for (const source of [adminClientsPage, adminProjectsPage]) {
   assert.ok(source.includes('className="nocturne-create-panel"'), "admin create forms must be discoverable but collapse until needed");
-  assert.ok(source.includes('open={Boolean(formError)}'), "failed create must reveal the form so errors are actionable");
+  assert.ok(source.includes('open={Boolean(formError)'), "failed create must reveal the form so errors are actionable");
   assert.ok(source.includes('className="nocturne-create-toggle"'), "creation control must be a focusable native details summary");
   assert.ok(source.includes("PortalSubmitButton"), "creation forms must keep their pending submit controls");
 }
@@ -180,8 +180,8 @@ for (const actionFile of [
   assert.ok(actionCode.includes('status: "success"') && actionCode.includes('status: "error"'), "missing confirmed admin action state for " + actionFile);
 }
 for (const [component, actionName] of [
-  ["app/(protected)/(admin)/clients/page.tsx", "setClientStatusWithFeedback"],
-  ["components/projects/PipelineBoard.tsx", "moveProjectWithFeedback"],
+  ["app/(protected)/(admin)/clients/[id]/page.tsx", "setClientStatusWithFeedback"],
+  ["components/projects/ProjectDirectoryRow.tsx", "moveProjectWithFeedback"],
   ["components/projects/ProjectOverview.tsx", "updateProjectDetailsWithFeedback"],
   ["components/projects/TaskSection.tsx", "setTaskStatusWithFeedback"],
   ["components/leads/QuickOutcomeButtons.tsx", "logLeadOutcomeWithFeedback"],

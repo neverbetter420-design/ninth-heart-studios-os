@@ -42,17 +42,19 @@ test.beforeAll(async () => {
 
         function Fixture() {
           const [showRemove, setShowRemove] = React.useState(true);
+          const [showCreate, setShowCreate] = React.useState(true);
           window.actionFixture.removeForm = () => setShowRemove(false);
+          window.actionFixture.removeCreate = () => setShowCreate(false);
           return (
           <React.Fragment>
             <ActionNotifications />
-            <section aria-label="Create fixture">
-              <PortalActionForm action={action} pendingMessage="Saving draft…" lockOnSuccess={false} resetOnSuccess>
+            {showCreate ? <section aria-label="Create fixture">
+              <PortalActionForm action={action} pendingMessage="Saving draft…" lockOnSuccess={false} resetOnSuccess announceSuccess>
                 <input type="hidden" name="kind" value="create" />
                 <label>Draft title<input name="title" required /></label>
                 <button type="submit">Create draft</button>
               </PortalActionForm>
-            </section>
+            </section> : null}
             {showRemove ? <section aria-label="Remove fixture">
               <PortalActionForm action={action} pendingMessage="Removing member…" confirmMessage="Remove this member from this client?">
                 <input type="hidden" name="kind" value="remove" />
@@ -218,5 +220,23 @@ test("unconfirmed server transport failure displays a cautious error and preserv
   await expect(create.getByRole("button", { name: "Create draft" })).toBeEnabled();
   await expect(page.locator(".action-notification")).toHaveCount(0);
   expect((await actionCalls(page)).length).toBe(1);
+  expect(requests).toEqual([]);
+});
+
+test("opt-in success remains announced after a moved form unmounts without a confirmation dialog", async ({ page }) => {
+  const requests = await mountFixture(page);
+  const dialogs = [];
+  page.on("dialog", async dialog => { dialogs.push(dialog.message()); await dialog.dismiss(); });
+  const create = page.getByRole("region", { name: "Create fixture" });
+  await create.getByLabel("Draft title").fill("A confirmed phase change");
+  await create.getByRole("button", { name: "Create draft" }).click();
+  await expect.poll(async () => (await actionCalls(page)).length).toBe(1);
+  await resolveAction(page, "success", "Project stage updated.");
+  const notification = page.locator(".action-notification");
+  await expect(notification.getByRole("status")).toHaveText("Project stage updated.");
+  await page.evaluate(() => window.actionFixture.removeCreate());
+  await expect(create).toHaveCount(0);
+  await expect(notification.getByRole("status")).toHaveText("Project stage updated.");
+  expect(dialogs).toEqual([]);
   expect(requests).toEqual([]);
 });
