@@ -18,6 +18,66 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
+test("Muse keeps focus, drafting and saved work separate across narrow screens", async ({ page }) => {
+  test.setTimeout(90000);
+  for (const scenario of ["normal", "long", "empty", "error", "risk-error", "drafts-error", "preview", "invalid-target", "email-configured", "risk-order"]) {
+    await show(page, "admin", scenario, "muse");
+    const saved = page.locator("details.studio-saved-draft").first();
+    if (await saved.count()) await saved.locator(":scope > summary").press("Enter");
+    if (scenario === "email-configured") {
+      await saved.locator(".studio-send > summary").press("Enter");
+      await expect(saved.getByLabel("Recipient address", { exact: true })).toBeVisible();
+      await expect(saved.getByRole("button", { name: "Confirm send", exact: true })).toBeVisible();
+    } else await expect(page.locator(".studio-send")).toHaveCount(0);
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Muse ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+    await expect(page.getByLabel("Draft kind", { exact: true })).toHaveValue("follow_up");
+    if (scenario === "empty") await expect(page.getByRole("button", { name: "Generate draft", exact: true })).toBeDisabled();
+    if (["error", "risk-error"].includes(scenario)) {
+      await expect(page.getByRole("region", { name: "Top recommendation" })).toContainText("picture is incomplete");
+      await expect(page.getByRole("link", { name: "Take the next step" })).toHaveCount(0);
+    }
+    if (scenario === "risk-order") await expect(page.getByRole("region", { name: "Top recommendation" })).toContainText("Unblock Critical project");
+    if (scenario === "drafts-error") await expect(page.getByRole("region", { name: "Saved drafts", exact: true })).toContainText("Saved drafts could not load");
+    if (scenario === "invalid-target") {
+      await expect(page.getByRole("button", { name: "Save draft", exact: true })).toHaveCount(0);
+      await expect(page.getByRole("alert")).toContainText("draft target is unavailable");
+    }
+    if (["preview", "long"].includes(scenario)) {
+      await expect(page.getByLabel("Draft text", { exact: true })).toBeVisible();
+      await expect(page.getByLabel("Target", { exact: true })).toHaveValue("lead:synthetic-muse-lead");
+      await page.getByLabel("Draft text", { exact: true }).fill("A revised synthetic draft.");
+      const button = page.getByRole("button", { name: "Save draft", exact: true });
+      await button.scrollIntoViewIfNeeded(); await button.focus();
+      expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
+      expect(await button.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+    }
+    await page.getByRole("navigation", { name: "Muse destinations" }).getByRole("link", { name: "Saved drafts", exact: true }).click();
+    await expect(page.locator("#muse-saved h3")).toBeInViewport();
+  }
+});
+
+test("Settings distinguishes read checks, configuration presence and manual releases", async ({ page }) => {
+  for (const scenario of ["normal", "long", "error", "email-configured"]) {
+    await show(page, "admin", scenario, "settings");
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Settings ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+    const services = page.getByRole("region", { name: "Connections", exact: true });
+    await expect(services).toContainText(scenario === "error" ? "Read check unavailable" : "Read check passed");
+    await expect(services).toContainText(scenario === "email-configured" ? "Settings present" : "Not configured");
+    await expect(services).toContainText("Manual release");
+    await expect(services).not.toContainText("Deployed");
+    await expect(page.locator('.studio-page input[type="password"]')).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Save|Deploy|Enable/ })).toHaveCount(0);
+    await page.getByRole("navigation", { name: "Settings destinations" }).getByRole("link", { name: "Connections", exact: true }).click();
+    await expect(page.locator("#studio-connections h3")).toBeInViewport();
+  }
+});
+
 test("Document directories keep creation, archives, filters and errors readable", async ({ page }) => {
   test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: "reduce" });

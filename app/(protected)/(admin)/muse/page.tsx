@@ -14,7 +14,12 @@ import {
   type ProjectRisk,
   type ProjectRiskInput,
 } from "@/lib/muse";
-import { PageHeader } from "@/components/PageHeader";
+import {
+  DocumentSectionHeading,
+  DocumentNotice,
+  documentDate,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { CopyButton } from "@/components/CopyButton";
 import { isEmailConfigured } from "@/lib/email";
 import { sendDraftEmail } from "./actions";
@@ -29,13 +34,6 @@ const DRAFT_KINDS: { value: MuseDraftKind; label: string }[] = [
   { value: "proposal", label: "Proposal" },
   { value: "check_in", label: "Client check-in" },
 ];
-
-const RISK_TONE: Record<ProjectRisk["level"], string> = {
-  critical: "risk-critical",
-  high: "risk-high",
-  watch: "risk-watch",
-  low: "risk-low",
-};
 
 async function saveDraft(formData: FormData) {
   "use server";
@@ -68,45 +66,61 @@ async function archiveDraft(formData: FormData) {
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
   if (!id) return;
-  await supabase.from("muse_drafts").update({ status: "archived" }).eq("id", id);
+  await supabase
+    .from("muse_drafts")
+    .update({ status: "archived" })
+    .eq("id", id);
   revalidatePath("/muse");
 }
 
 type SearchParams = { kind?: string; target?: string };
 
-export default async function MusePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+export default async function MusePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   await requireAdmin();
   const supabase = await createClient();
   const params = await searchParams;
 
-  const [{ data: rawLeads }, { data: rawProjects }, { data: rawOpportunities }, { data: drafts }] =
-    await Promise.all([
-      supabase.from("leads").select(LEAD_SELECT).neq("status", "not_interested"),
-      supabase
-        .from("projects")
-        .select("id, name, status, due_date, updated_at, clients(name)")
-        .order("updated_at", { ascending: false })
-        .limit(8),
-      supabase
-        .from("opportunities")
-        .select("id, title, source, url, score, status")
-        .neq("status", "closed")
-        .order("score", { ascending: false, nullsFirst: false })
-        .limit(5),
-      supabase
-        .from("muse_drafts")
-        .select("id, kind, subject, body, lead_id, opportunity_id, project_id, status, created_at")
-        .eq("status", "draft")
-        .order("created_at", { ascending: false })
-        .limit(10),
-    ]);
+  const [
+    { data: rawLeads, error: leadsError },
+    { data: rawProjects, error: projectsError },
+    { data: rawOpportunities, error: opportunitiesError },
+    { data: rawDrafts, error: draftsError },
+  ] = await Promise.all([
+    supabase.from("leads").select(LEAD_SELECT).neq("status", "not_interested"),
+    supabase
+      .from("projects")
+      .select("id, name, status, due_date, updated_at, clients(name)")
+      .order("updated_at", { ascending: false })
+      .limit(8),
+    supabase
+      .from("opportunities")
+      .select("id, title, source, url, score, status")
+      .neq("status", "closed")
+      .order("score", { ascending: false, nullsFirst: false })
+      .limit(5),
+    supabase
+      .from("muse_drafts")
+      .select(
+        "id, kind, subject, body, lead_id, opportunity_id, project_id, status, created_at",
+      )
+      .eq("status", "draft")
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
 
-  const ranked = rankLeads((rawLeads ?? []) as FlowkeepLead[]);
+  const drafts = draftsError ? [] : (rawDrafts ?? []);
+  const ranked = rankLeads(
+    (leadsError ? [] : (rawLeads ?? [])) as FlowkeepLead[],
+  );
   const explanations = ranked.slice(0, 3).map((lead) => explainPriority(lead));
   const stale = findStaleLeads(ranked);
   const emailConfigured = isEmailConfigured();
 
-  const projects = (rawProjects ?? []) as {
+  const projects = (projectsError ? [] : (rawProjects ?? [])) as {
     id: string;
     name: string;
     status: string;
@@ -124,12 +138,30 @@ export default async function MusePage({ searchParams }: { searchParams: Promise
   };
 
   const risks: ProjectRisk[] = [];
+  let riskReadFailed = false;
   for (const project of projects) {
-    const [{ data: milestones }, { data: tasks }, { data: approvals }] = await Promise.all([
-      supabase.from("milestones").select("title, status, due_date").eq("project_id", project.id),
-      supabase.from("tasks").select("title, status, due_at").eq("project_id", project.id),
-      supabase.from("approvals").select("id, decided_at").eq("project_id", project.id),
+    const [
+      { data: milestones, error: milestonesError },
+      { data: tasks, error: tasksError },
+      { data: approvals, error: approvalsError },
+    ] = await Promise.all([
+      supabase
+        .from("milestones")
+        .select("title, status, due_date")
+        .eq("project_id", project.id),
+      supabase
+        .from("tasks")
+        .select("title, status, due_at")
+        .eq("project_id", project.id),
+      supabase
+        .from("approvals")
+        .select("id, decided_at")
+        .eq("project_id", project.id),
     ]);
+    if (milestonesError || tasksError || approvalsError) {
+      riskReadFailed = true;
+      continue;
+    }
     const input: ProjectRiskInput = {
       id: project.id,
       name: project.name,
@@ -150,12 +182,18 @@ export default async function MusePage({ searchParams }: { searchParams: Promise
     };
     risks.push(summarizeProjectRisk(input));
   }
-  const activeRisks = risks.filter((r) => r.level !== "low");
+  const severity = { critical: 3, high: 2, watch: 1, low: 0 };
+  const activeRisks = risks
+    .filter((r) => r.level !== "low")
+    .sort((a, b) => severity[b.level] - severity[a.level]);
+  const focusUnavailable = Boolean(
+    leadsError || projectsError || opportunitiesError || riskReadFailed,
+  );
   const topRisk = activeRisks[0];
 
-  const topOpportunity = (rawOpportunities ?? [])[0] as
-    | { id: string; title: string; score: number | null }
-    | undefined;
+  const topOpportunity = (
+    opportunitiesError ? [] : (rawOpportunities ?? [])
+  )[0] as { id: string; title: string; score: number | null } | undefined;
 
   const recommendation = recommendNextAction({
     topLead: ranked[0],
@@ -165,16 +203,25 @@ export default async function MusePage({ searchParams }: { searchParams: Promise
   });
 
   // Draft composer: ?kind=follow_up&target=lead:<id>
-  let preview: { subject: string; body: string; kind: MuseDraftKind; target: DraftTarget } | null = null;
-  const kindParam = (params.kind ?? "") as string;
+  let preview: {
+    subject: string;
+    body: string;
+    kind: MuseDraftKind;
+    target: DraftTarget;
+  } | null = null;
+  const kindParam = DRAFT_KINDS.some((k) => k.value === params.kind)
+    ? params.kind!
+    : "follow_up";
   const targetParam = (params.target ?? "") as string;
-  if (DRAFT_KINDS.some((k) => k.value === kindParam) && targetParam.includes(":")) {
+  if (targetParam.split(":").length === 2) {
     const [targetType, targetId] = targetParam.split(":");
     let target: DraftTarget | null = null;
-    if (targetType === "lead") {
-      const lead = (rawLeads ?? []).find((l) => l.id === targetId) as FlowkeepLead | undefined;
+    if (targetType === "lead" && !leadsError) {
+      const lead = (rawLeads ?? []).find((l) => l.id === targetId) as
+        | FlowkeepLead
+        | undefined;
       if (lead) target = { type: "lead", lead };
-    } else if (targetType === "opportunity") {
+    } else if (targetType === "opportunity" && !opportunitiesError) {
       const opp = (rawOpportunities ?? []).find((o) => o.id === targetId) as
         | { title: string; source?: string | null; url?: string | null }
         | undefined;
@@ -184,252 +231,459 @@ export default async function MusePage({ searchParams }: { searchParams: Promise
       if (project)
         target = {
           type: "project",
-          project: { name: project.name, clientName: clientName(project.clients) },
+          project: {
+            name: project.name,
+            clientName: clientName(project.clients),
+          },
         };
     }
     if (target) {
       const kind = kindParam as MuseDraftKind;
       const generated = buildDraftFromTarget(target, kind);
-      preview = { subject: generated.subject, body: generated.body, kind, target };
+      preview = {
+        subject: generated.subject,
+        body: generated.body,
+        kind,
+        target,
+      };
     }
   }
 
   const targetOptions: { value: string; label: string }[] = [
-    ...(ranked.slice(0, 10).map((l) => ({ value: `lead:${l.id}`, label: `Lead — ${l.business_name}` }))),
-    ...((rawOpportunities ?? []).map((o) => ({
+    ...ranked.slice(0, 10).map((l) => ({
+      value: `lead:${l.id}`,
+      label: `Lead — ${l.business_name}`,
+    })),
+    ...(opportunitiesError ? [] : (rawOpportunities ?? [])).map((o) => ({
       value: `opportunity:${o.id}`,
       label: `Opportunity — ${o.title}`,
-    }))),
-    ...(projects.map((p) => ({ value: `project:${p.id}`, label: `Project — ${p.name}` }))),
+    })),
+    ...projects.map((p) => ({
+      value: `project:${p.id}`,
+      label: `Project — ${p.name}`,
+    })),
   ];
 
+  if (preview && !targetOptions.some((o) => o.value === targetParam)) {
+    targetOptions.push({
+      value: targetParam,
+      label:
+        preview.target.type === "lead"
+          ? `Lead — ${preview.target.lead.business_name}`
+          : "Selected target",
+    });
+  }
+  const selectedTarget = preview ? targetParam : "";
+
   return (
-    <div className="content-wrap">
-      <PageHeader
-        eyebrow="Muse"
-        title="Studio intelligence, minus the guesswork."
-        description="Why the priority engine ranks what it ranks, where delivery is at risk, who's going quiet — and drafts you can steal. Muse explains and drafts. It never sends anything anywhere."
-      />
-
-      <section className="panel muse-reco" aria-label="Top recommendation">
-        <p className="eyebrow electric">The one thing</p>
-        <h3>{recommendation.title}</h3>
-        <p className="muse-copy">{recommendation.detail}</p>
-        <p className="muse-why">
-          <strong>Why:</strong> {recommendation.why}
-        </p>
-        <Link className="secondary-button" href={recommendation.href}>
-          Go handle it →
+    <div className="content-wrap management-page paperwork-page studio-page muse-workroom">
+      <header className="page-header management-heading">
+        <div>
+          <p className="eyebrow">Muse · Your studio companion</p>
+          <h2>
+            A clearer head.
+            <br />
+            <em>A sharper next move.</em>
+          </h2>
+          <p className="page-description">
+            Find the work that needs you, understand why, and put the first
+            words on the page.
+          </p>
+        </div>
+        <Link href="/settings" className="management-text-link">
+          Studio settings ↗
         </Link>
-      </section>
-
-      <section className="muse-grid">
-        <div className="panel" aria-label="Prioritization explanations">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow electric">Why these are next</p>
-              <h3>Priority, explained</h3>
-            </div>
-          </div>
-          {explanations.length > 0 ? (
-            <div className="muse-explain-list">
-              {explanations.map((exp) => (
-                <article key={exp.leadId} className="muse-explain">
-                  <div className="muse-explain-head">
-                    <strong>{exp.businessName}</strong>
-                    <span className={`priority-pill ${exp.priorityLabel}`}>{exp.priorityLabel}</span>
-                  </div>
-                  <p className="muse-explain-action">{exp.actionTitle}</p>
-                  <ul>
-                    {exp.reasons.map((reason, i) => (
-                      <li key={i}>{reason}</li>
-                    ))}
-                  </ul>
-                  <Link className="text-button" href={`/leads/${exp.leadId}`}>
-                    Open lead →
-                  </Link>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="muted">No ranked leads yet. The engine is idling.</p>
-          )}
-        </div>
-
-        <div className="panel" aria-label="Project risk">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow electric">Delivery radar</p>
-              <h3>Project risk</h3>
-            </div>
-            <Link className="text-button" href="/projects">
-              View pipeline →
+      </header>
+      <nav className="management-destinations" aria-label="Muse destinations">
+        <a href="#muse-focus">Studio focus</a>
+        <a href="#muse-compose">Write a draft</a>
+        <a href="#muse-saved">Saved drafts</a>
+      </nav>
+      <section
+        id="muse-focus"
+        aria-label="Top recommendation"
+        className="studio-focus"
+      >
+        <p className="eyebrow">The one thing</p>
+        {focusUnavailable ? (
+          <>
+            <h3>Your studio picture is incomplete.</h3>
+            <DocumentNotice>
+              Some lead, opportunity or project-risk data could not load.
+              Refresh before relying on a top recommendation.
+            </DocumentNotice>
+            <Link href="/muse" className="management-text-link">
+              Refresh Muse ↗
             </Link>
-          </div>
-          {activeRisks.length > 0 ? (
-            <div className="muse-risk-list">
-              {activeRisks.map((risk) => (
-                <article key={risk.projectId} className={`muse-risk ${RISK_TONE[risk.level]}`}>
-                  <div className="muse-explain-head">
-                    <strong>{risk.name}</strong>
-                    <span className={`priority-pill ${risk.level}`}>{risk.level}</span>
-                  </div>
-                  <ul>
-                    {risk.factors.map((factor, i) => (
-                      <li key={i}>{factor}</li>
-                    ))}
-                  </ul>
-                  <Link className="text-button" href={`/projects/${risk.projectId}`}>
-                    Open project →
-                  </Link>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="muted">No delivery risks flagged. Suspicious, but we'll take it.</p>
-          )}
-        </div>
-      </section>
-
-      <section className="panel" id="stale" aria-label="Stale leads">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow electric">Going quiet</p>
-            <h3>Stale leads</h3>
-          </div>
-        </div>
-        {stale.length > 0 ? (
-          <div className="muse-stale-list">
-            {stale.slice(0, 8).map((s) => (
-              <div key={s.leadId} className="muse-stale-row">
-                <div>
-                  <strong>{s.businessName}</strong>
-                  <span>{s.reason}</span>
-                </div>
-                <div className="muse-stale-actions">
-                  <Link className="ghost-button" href={`/muse?kind=check_in&target=lead:${s.leadId}`}>
-                    Draft check-in
-                  </Link>
-                  <Link className="text-button" href={`/leads/${s.leadId}`}>
-                    Open →
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+          </>
         ) : (
-          <p className="muted">Nobody's going quiet. The pipeline has manners today.</p>
+          <>
+            <h3>{recommendation.title}</h3>
+            <p>{recommendation.detail}</p>
+            <p className="studio-focus-why">
+              <strong>Why this comes first</strong>
+              {recommendation.why}
+            </p>
+            <Link
+              className="management-primary-link"
+              href={recommendation.href}
+            >
+              Take the next step <span aria-hidden="true">↗</span>
+            </Link>
+          </>
         )}
       </section>
-
-      <section className="panel" aria-label="Draft composer">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow electric">Drafts, not dispatches</p>
-            <h3>Muse drafts</h3>
-          </div>
-        </div>
-        <p className="muse-copy">
-          Pick a kind and a target, and Muse writes the first version. You edit, you copy, you send it
-          yourself — nothing leaves this app on its own. Ever.
-        </p>
-        <form className="muse-composer" method="get" action="/muse">
-          <label>
-            <span>Draft kind</span>
-            <select name="kind" defaultValue={kindParam || "follow_up"}>
-              {DRAFT_KINDS.map((k) => (
-                <option key={k.value} value={k.value}>
-                  {k.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>Target</span>
-            <select name="target" defaultValue={targetParam}>
-              <option value="">Choose…</option>
-              {targetOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button className="secondary-button" type="submit">
-            Generate draft
-          </button>
-        </form>
-
-        {preview && (
-          <form className="muse-preview" action={saveDraft}>
-            <input type="hidden" name="kind" value={preview.kind} />
-            <input type="hidden" name="target" value={targetParam} />
-            {preview.target.type === "lead" && (
-              <input type="hidden" name="lead_id" value={preview.target.lead.id} />
-            )}
-            <label>
-              <span>Subject</span>
-              <input name="subject" defaultValue={preview.subject} />
-            </label>
-            <label>
-              <span>Body</span>
-              <textarea name="body" rows={14} defaultValue={preview.body} />
-            </label>
-            <div className="muse-preview-actions">
-              <button className="secondary-button" type="submit">
-                Save draft
-              </button>
-              <span className="muted small">Saved as a draft. Nothing is sent.</span>
-            </div>
-          </form>
-        )}
-
-        {(drafts ?? []).length > 0 && (
-          <div className="muse-drafts-list">
-            <h4>Saved drafts</h4>
-            {(drafts ?? []).map((d) => (
-              <article key={d.id} className="muse-draft-row">
-                <div>
-                  <strong>{d.subject}</strong>
-                  <span>
-                    {d.kind.replace("_", " ")} ·{" "}
-                    {new Date(d.created_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
+      <div className="studio-intelligence-grid">
+        <section aria-label="Prioritization explanations">
+          <DocumentSectionHeading
+            eyebrow="The reasoning"
+            title="Priority, explained"
+          />
+          {leadsError ? (
+            <DocumentNotice>Lead priorities could not load.</DocumentNotice>
+          ) : explanations.length ? (
+            explanations.map((exp) => (
+              <article key={exp.leadId} className="studio-insight-row">
+                <div className="studio-row-heading">
+                  <h4>{exp.businessName}</h4>
+                  <span className="studio-status">{exp.priorityLabel}</span>
                 </div>
-                <div className="muse-stale-actions">
-                  <CopyButton text={`${d.subject}\n\n${d.body}`} />
-                  {emailConfigured ? (
-                    <details className="muse-send-details">
-                      <summary className="mini-button go">Send via Gmail</summary>
-                      <form action={sendDraftEmail} className="muse-send-form">
-                        <input type="hidden" name="draft_id" value={d.id} />
+                <p>{exp.actionTitle}</p>
+                <ul>
+                  {exp.reasons.map((reason, i) => (
+                    <li key={i}>{reason}</li>
+                  ))}
+                </ul>
+                <Link
+                  className="management-text-link"
+                  href={`/leads/${exp.leadId}`}
+                >
+                  Open lead ↗
+                </Link>
+              </article>
+            ))
+          ) : (
+            <p className="management-help">
+              No ranked leads yet. Capture a lead when the next conversation
+              starts.
+            </p>
+          )}
+        </section>
+        <section aria-label="Project risk">
+          <DocumentSectionHeading
+            eyebrow="Delivery radar"
+            title="What needs watching"
+          />
+          <p className="management-help">
+            Checks the eight most recently updated projects.
+          </p>
+          {projectsError || riskReadFailed ? (
+            <DocumentNotice>
+              Project risk is unavailable or incomplete. Refresh to restore the
+              missing checks.
+            </DocumentNotice>
+          ) : null}
+          {activeRisks.map((risk) => (
+            <article
+              key={risk.projectId}
+              className="studio-insight-row"
+              data-risk={risk.level}
+            >
+              <div className="studio-row-heading">
+                <h4>{risk.name}</h4>
+                <span className="studio-status">{risk.level}</span>
+              </div>
+              <ul>
+                {risk.factors.map((factor, i) => (
+                  <li key={i}>{factor}</li>
+                ))}
+              </ul>
+              <Link
+                href={`/projects/${risk.projectId}`}
+                className="management-text-link"
+              >
+                Open project ↗
+              </Link>
+            </article>
+          ))}
+          {!projectsError && !riskReadFailed && !activeRisks.length ? (
+            <p className="management-help">
+              No elevated risk flagged in the checked projects.
+            </p>
+          ) : null}
+          <Link href="/projects" className="management-text-link">
+            View the pipeline ↗
+          </Link>
+        </section>
+      </div>
+      <details id="stale" className="studio-disclosure">
+        <summary>
+          <span>Going quiet</span>
+          <small>
+            {leadsError
+              ? "Unavailable"
+              : `${stale.length} ${stale.length === 1 ? "lead" : "leads"} to revisit`}
+          </small>
+        </summary>
+        {leadsError ? (
+          <DocumentNotice>Quiet-lead checks could not load.</DocumentNotice>
+        ) : stale.length ? (
+          stale.slice(0, 8).map((s) => (
+            <article key={s.leadId} className="studio-insight-row">
+              <h4>{s.businessName}</h4>
+              <p>{s.reason}</p>
+              <div className="studio-actions">
+                <Link
+                  href={`/muse?kind=check_in&target=lead:${s.leadId}#muse-compose`}
+                  className="management-text-link"
+                >
+                  Draft a check-in ↗
+                </Link>
+                <Link
+                  href={`/leads/${s.leadId}`}
+                  className="management-text-link"
+                >
+                  Open lead ↗
+                </Link>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p className="management-help">
+            No quiet leads flagged in the current list.
+          </p>
+        )}
+      </details>
+      <section
+        id="muse-compose"
+        aria-label="Draft composer"
+        className="studio-compose"
+      >
+        <DocumentSectionHeading
+          eyebrow="Put it into words"
+          title="The first draft is yours to change."
+        />
+        <div className="studio-writing-grid">
+          <div>
+            {leadsError || projectsError || opportunitiesError ? (
+              <DocumentNotice>
+                Some draft targets could not load. Available targets are still
+                listed.
+              </DocumentNotice>
+            ) : null}
+            {params.target && !preview ? (
+              <DocumentNotice>
+                That draft target is unavailable. Choose an available target to
+                start a draft.
+              </DocumentNotice>
+            ) : null}
+            <form
+              className="paperwork-form"
+              method="get"
+              action="/muse#muse-compose"
+            >
+              <div className="paperwork-form-grid">
+                <label className="field">
+                  <span>Draft kind</span>
+                  <select
+                    name="kind"
+                    aria-label="Draft kind"
+                    defaultValue={kindParam}
+                  >
+                    {DRAFT_KINDS.map((k) => (
+                      <option key={k.value} value={k.value}>
+                        {k.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span>Target</span>
+                  <select
+                    name="target"
+                    aria-label="Target"
+                    required
+                    defaultValue={selectedTarget}
+                    disabled={!targetOptions.length}
+                  >
+                    <option value="" disabled>
+                      Choose a lead, opportunity or project
+                    </option>
+                    {targetOptions.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div>
+                <button
+                  className="mini-button go"
+                  type="submit"
+                  disabled={!targetOptions.length}
+                >
+                  Generate draft
+                </button>
+              </div>
+            </form>
+            {!targetOptions.length ? (
+              <p className="management-help">
+                Add a lead, opportunity or project to create a targeted draft.
+              </p>
+            ) : null}
+            {preview ? (
+              <form
+                className="paperwork-form studio-preview"
+                action={saveDraft}
+              >
+                <input type="hidden" name="kind" value={preview.kind} />
+                <input type="hidden" name="target" value={targetParam} />
+                {preview.target.type === "lead" ? (
+                  <input
+                    type="hidden"
+                    name="lead_id"
+                    value={preview.target.lead.id}
+                  />
+                ) : null}
+                <label className="field">
+                  <span>Subject</span>
+                  <input
+                    name="subject"
+                    defaultValue={preview.subject}
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span>Draft text</span>
+                  <textarea
+                    name="body"
+                    aria-label="Draft text"
+                    rows={14}
+                    defaultValue={preview.body}
+                    className="paperwork-body-editor"
+                    required
+                  />
+                </label>
+                <div>
+                  <PortalSubmitButton pendingLabel="Saving draft…">
+                    Save draft
+                  </PortalSubmitButton>
+                </div>
+                <p className="management-help">
+                  Saving keeps a draft in this studio. It does not send an
+                  email.
+                </p>
+              </form>
+            ) : null}
+          </div>
+          <aside className="studio-writing-note">
+            <p className="eyebrow">A starting point, not the last word</p>
+            <h4>You bring the judgment.</h4>
+            <p>
+              Muse uses recorded studio activity to suggest priorities and
+              assemble draft text. Check names, scope, prices and promises
+              before using it.
+            </p>
+            <p>
+              Copy saved text to use elsewhere.{" "}
+              {emailConfigured
+                ? "Email settings are present. An individual Gmail send requires a recipient and Confirm send."
+                : "Gmail sending is unavailable until email is configured."}
+            </p>
+            <Link
+              href="/settings#studio-connections"
+              className="management-text-link"
+            >
+              View connection status ↗
+            </Link>
+          </aside>
+        </div>
+      </section>
+      <section
+        id="muse-saved"
+        aria-label="Saved drafts"
+        className="studio-saved"
+      >
+        <DocumentSectionHeading
+          eyebrow="Keep the useful words"
+          title="Saved drafts"
+          detail={
+            draftsError
+              ? "Unavailable"
+              : `${drafts.length} recent ${drafts.length === 1 ? "draft" : "drafts"}`
+          }
+        />
+        <p className="management-help">
+          The ten most recent saved drafts. Open one to review its text before
+          copying or sending.
+        </p>
+        {draftsError ? (
+          <DocumentNotice>
+            Saved drafts could not load. Refresh to try again.
+          </DocumentNotice>
+        ) : drafts.length ? (
+          drafts.map((d) => (
+            <details
+              key={d.id}
+              className="studio-saved-draft"
+              data-draft-id={d.id}
+            >
+              <summary>
+                <span>
+                  <strong>{d.subject}</strong>
+                  <small>
+                    {d.kind.replaceAll("_", " ")} · {documentDate(d.created_at)}
+                  </small>
+                </span>
+                <span aria-hidden="true">+</span>
+              </summary>
+              <div className="studio-draft-body">{d.body}</div>
+              <div className="studio-actions">
+                <CopyButton text={`${d.subject}\n\n${d.body}`} />
+                {emailConfigured ? (
+                  <details className="studio-send">
+                    <summary className="mini-button">Send via Gmail</summary>
+                    <form action={sendDraftEmail} className="paperwork-form">
+                      <input type="hidden" name="draft_id" value={d.id} />
+                      <label className="field">
+                        <span>Recipient address</span>
                         <input
                           type="email"
                           name="to"
-                          placeholder="recipient@example.com"
                           required
-                          aria-label="Recipient address"
+                          placeholder="recipient@example.com"
                         />
-                        <button type="submit" className="mini-button go">
+                      </label>
+                      <p className="management-help">
+                        This sends the saved text above to the address you
+                        enter. Review both before confirming.
+                      </p>
+                      <div>
+                        <PortalSubmitButton pendingLabel="Sending email…">
                           Confirm send
-                        </button>
-                        <p className="muted small">You approve every send. It's logged.</p>
-                      </form>
-                    </details>
-                  ) : null}
-                  <form action={archiveDraft}>
-                    <input type="hidden" name="id" value={d.id} />
-                    <button className="ghost-button" type="submit">
-                      Archive
-                    </button>
-                  </form>
-                </div>
-              </article>
-            ))}
-          </div>
+                        </PortalSubmitButton>
+                      </div>
+                    </form>
+                  </details>
+                ) : null}
+                <form action={archiveDraft}>
+                  <input type="hidden" name="id" value={d.id} />
+                  <PortalSubmitButton
+                    pendingLabel="Archiving…"
+                    className="mini-button"
+                  >
+                    Archive draft
+                  </PortalSubmitButton>
+                </form>
+              </div>
+            </details>
+          ))
+        ) : (
+          <p className="management-help">
+            No saved drafts yet. Start with a target above, then save the
+            version you want to keep.
+          </p>
         )}
       </section>
     </div>

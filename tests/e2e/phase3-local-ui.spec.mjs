@@ -459,6 +459,38 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.goto("/forms");
       await adminPage.screenshot({ path: "design-preview/nocturne-forms-" + previewSuffix + ".png", fullPage: true });
 
+      // Muse stays in draft mode in this isolated workflow; no Gmail secrets or sends.
+      await adminPage.goto("/muse#muse-compose");
+      await adminPage.getByLabel("Draft kind", { exact: true }).selectOption("check_in");
+      await adminPage.getByLabel("Target", { exact: true }).selectOption("project:" + managedProjectId);
+      await adminPage.getByRole("button", { name: "Generate draft", exact: true }).click();
+      await expect(adminPage.getByLabel("Draft text", { exact: true })).toBeVisible();
+      await expect(adminPage.getByLabel("Target", { exact: true })).toHaveValue("project:" + managedProjectId);
+      const museSubject = "Synthetic Muse draft " + seed;
+      const museBody = "Reviewed local draft " + seed;
+      await adminPage.getByLabel("Subject", { exact: true }).fill(museSubject);
+      await adminPage.getByLabel("Draft text", { exact: true }).fill(museBody);
+      await adminPage.getByRole("button", { name: "Save draft", exact: true }).click();
+      await expect.poll(async () => (await required(srv.from("muse_drafts").select("id").eq("subject", museSubject), "Muse draft persisted")).length).toBe(1);
+      const museDraft = (await required(srv.from("muse_drafts").select("id,kind,body,project_id,status").eq("subject", museSubject), "Muse draft readback"))[0];
+      expect(museDraft).toMatchObject({ kind: "check_in", body: museBody, project_id: managedProjectId, status: "draft" });
+      await adminPage.goto("/muse#muse-saved");
+      const savedMuse = adminPage.locator('[data-draft-id="' + museDraft.id + '"]');
+      await savedMuse.locator(":scope > summary").click();
+      await expect(savedMuse.locator(".studio-draft-body")).toHaveText(museBody);
+      await expect(adminPage.locator(".studio-send")).toHaveCount(0);
+      await adminPage.evaluate(() => window.scrollTo(0,0));
+      await adminPage.screenshot({ path: "design-preview/nocturne-muse-" + previewSuffix + ".png", fullPage: true });
+      await savedMuse.getByRole("button", { name: "Archive draft", exact: true }).click();
+      await expect.poll(async () => (await required(srv.from("muse_drafts").select("status").eq("id", museDraft.id), "Muse archive persisted"))[0].status).toBe("archived");
+      await adminPage.reload();
+      await expect(adminPage.locator('[data-draft-id="' + museDraft.id + '"]')).toHaveCount(0);
+      await adminPage.goto("/settings");
+      await expect(adminPage.getByRole("region", { name: "Connections", exact: true })).toContainText("Read check passed");
+      await expect(adminPage.getByRole("region", { name: "Connections", exact: true })).toContainText("Not configured");
+      await adminPage.evaluate(() => window.scrollTo(0,0));
+      await adminPage.screenshot({ path: "design-preview/nocturne-settings-" + previewSuffix + ".png", fullPage: true });
+
       await adminPage.goto("/projects");
       await expect(adminPage.getByRole("heading", { name: /Every project,/ })).toBeVisible();
       await adminPage.screenshot({ path: "design-preview/nocturne-admin-pipeline-" + previewSuffix + ".png", fullPage: true });
