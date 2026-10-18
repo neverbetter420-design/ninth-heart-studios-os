@@ -587,3 +587,64 @@
   .atelier-disclosure > summary { padding: 17px 49px 17px 14px; }
   .atelier-disclosure > summary::after { right: 14px; top: 19px; }
 }
+
+
+/* Optional admin modules should not compete with the three priority actions. */
+.nhs-theme-admin .nocturne-insights {
+  margin-top: 28px;
+  background: rgba(20,16,28,.42);
+  border: 1px solid rgba(194,164,220,.12);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.nhs-theme-admin .nocturne-insights > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  cursor: pointer;
+  padding: 22px 25px;
+}
+.nhs-theme-admin .nocturne-insights > summary::-webkit-details-marker { display:none; }
+.nhs-theme-admin .nocturne-insights > summary:hover { background: rgba(203,160,212,.045); }
+.nhs-theme-admin .nocturne-insights > summary:focus-visible { outline: 2px solid #c9a4dc; outline-offset: -3px; }
+.nhs-theme-admin .nocturne-insights > summary > span:first-child { display: grid; gap: 7px; }
+.nhs-theme-admin .nocturne-insights > summary strong {
+  color: #eadfea;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(16px,1.7vw,22px);
+  font-weight: 500;
+}
+.nhs-theme-admin .nocturne-insights > summary small {
+  color: #aba0b3;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.nhs-theme-admin .nocturne-insights-toggle {
+  color: #c5aacd;
+  font-size: 11px;
+  border: 1px solid rgba(199,163,210,.22);
+  border-radius: 999px;
+  padding: 9px 15px;
+}
+.nhs-theme-admin .nocturne-insights[open] .nocturne-insights-toggle::after { content: " −"; }
+.nhs-theme-admin .nocturne-insights:not([open]) .nocturne-insights-toggle::after { content: " +"; }
+.nhs-theme-admin .nocturne-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 17px;
+  padding: 8px 18px 18px;
+}
+.nhs-theme-admin .nocturne-insights-grid .activity-panel { grid-column: 1 / -1; }
+.nhs-theme-admin .nocturne-insights-grid .muse-panel { min-width: 0; }
+.nhs-theme-admin .nocturne-insights-grid .radar-panel { min-width: 0; }
+@media (max-width: 900px) {
+  .nhs-theme-admin .nocturne-insights-grid { grid-template-columns: 1fr; }
+  .nhs-theme-admin .nocturne-insights-grid .activity-panel { grid-column: auto; }
+}
+@media (max-width: 620px) {
+  .nhs-theme-admin .nocturne-insights > summary { padding: 19px 15px; }
+  .nhs-theme-admin .nocturne-insights-grid { padding: 8px 10px 12px; }
+  .nhs-theme-admin .nocturne-insights-toggle { padding: 8px 11px; }
+}
