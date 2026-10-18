@@ -68,17 +68,18 @@ export default async function ClientsPage({
         />
       </section>
 
-      <section className="panel" aria-label="New client" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>New client</h3>
-        </div>
+      <details className="nocturne-create-panel" open={Boolean(formError)} aria-label="New client">
+        <summary className="nocturne-create-toggle">
+          <strong>New client</strong>
+          <span>Add a client when you need to</span>
+        </summary>
         <form action={createClientAction} className="delivery-add-form">
           <input type="text" name="name" placeholder="Client / business name…" required maxLength={160} />
           <input type="text" name="website" placeholder="Website (optional)" maxLength={280} />
           <input type="email" name="primary_email" placeholder="Primary email (optional)" maxLength={160} />
           <PortalSubmitButton pendingLabel="Creating…">Create</PortalSubmitButton>
         </form>
-      </section>
+      </details>
 
       <section className="panel" aria-label="Clients">
         <div className="panel-heading">
