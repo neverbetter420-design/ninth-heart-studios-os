@@ -37,8 +37,14 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       const menu = p.getByRole("button", { name: "Open navigation", exact: true });
       if (await menu.isVisible()) await menu.click();
       const nav = p.getByRole("navigation", { name: "Primary navigation", exact: true });
-      const link = nav.getByRole("link", { name: label, exact: true });
-      if (!await link.isVisible()) await nav.locator(".nav-section").filter({ has: link }).locator(".nav-section-toggle").click();
+      await expect(nav).toBeVisible();
+      const destination = 'a.nav-link[href="' + pathname + '"]';
+      const link = nav.locator(destination);
+      // CSS retains collapsed links; the relative inner selector starts at
+      // each group, rather than asking that group to contain the whole nav.
+      if (!await link.isVisible()) await nav.locator(".nav-section").filter({ has: p.locator(destination) }).locator(".nav-section-toggle").click();
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAccessibleName(label);
       await link.click();
       await expect(p).toHaveURL(new RegExp(pathname === "/" ? "/$" : pathname + "$"));
       await expect(p.getByRole("navigation", { name: "Breadcrumb", exact: true }).locator('[aria-current="page"]')).toHaveText(label);

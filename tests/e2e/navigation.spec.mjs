@@ -39,7 +39,7 @@ async function visitNav(page, isMobile, label, pathname) {
   const item = nav.locator(`a.nav-link[href="${pathname}"]`);
   await expect(item).toHaveAttribute("href", pathname);
   if (!(await item.isVisible())) {
-    const group = nav.locator(".nav-section").filter({ has: item });
+    const group = nav.locator(".nav-section").filter({ has: page.locator(`a.nav-link[href="${pathname}"]`) });
     const toggle = group.locator(".nav-section-toggle");
     await expect(toggle).toBeVisible();
     await toggle.click();
