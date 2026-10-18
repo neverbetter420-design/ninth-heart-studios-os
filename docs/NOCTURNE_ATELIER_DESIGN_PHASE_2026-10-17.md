@@ -54,6 +54,16 @@ The following source changes are committed on the draft branch and **not deploye
 4. The Documents hub is an index and navigation surface; it does not replace private Storage access controls, sign contracts, or create files.
 5. Preserve mobile responsiveness and live client project role isolation. **The revised UI has not received owner-side visual approval or production smoke testing yet.**
 
+## Phase 3 refinement — consistent Atelier collections and visual proof
+
+- `app/(protected)/portal/projects/page.tsx` now presents the project collection as airy editorial rows with per-project progress and clear workspace links, retaining the original project IDs and permission checks.
+- `components/portal/PortalResourcePage.tsx` now groups Messages, Files, Approvals, Contracts, and Forms by RLS-visible project using a calmer row layout, retaining working deep links and destinations. No table, row, schema, or action handler changed.
+- `app/nocturne-phase3.css` scopes the collection styling to the client role and includes responsive design down to narrow mobile viewports and a reduced-motion preference.
+- `tests/e2e/phase3-local-ui.spec.mjs` exercises these collections using **synthetic clients** against **localhost-only disposable Supabase**, and captures full-page screenshots of the Client Home, Projects, and Documents screens on desktop and mobile.
+- `.github/workflows/phase3-supabase-local.yml` uploads synthetic previews as a **7-day GitHub Actions artifact** named `nhs-nocturne-atelier-visual-review` only when the isolated local test succeeds. These screenshots are not from production and no customer records or live access tokens are included.
+
+**Review criteria:** verify visual composition, responsive line lengths, action discoverability, contrast, clean navigation, and the fact that the project and resource lists are visibly less cluttered. A passed screenshot-generation job does not substitute for human visual approval of the screenshots.
+
 ## Functional and visual acceptance
 
 1. **Admin desktop/mobile:** sign out accessible from account controls; after sign out, protected routes require reauthentication; sidebar still navigates all admin tools.
