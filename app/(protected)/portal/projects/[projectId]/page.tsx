@@ -1,3 +1,4 @@
+import { ProjectSectionLink } from "@/components/projects/ProjectSectionLink";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -206,12 +207,12 @@ export default async function ClientProjectPage({
       <ProjectJourney status={project.status} />
 
       <nav className="atelier-project-nav" aria-label="Project destinations">
-        <Link href="?section=details#project-details">Project details</Link>
-        <Link href={pendingApprovals.length ? "?section=approvals#pending-approvals" : "?section=approvals#approvals"}>Approvals</Link>
-        <Link href="?section=files#files">Files</Link>
-        <Link href="?section=documents#documents">Documents</Link>
-        <Link href="?section=feedback#design-feedback">Design feedback</Link>
-        <Link href="?section=messages#messages">Messages</Link>
+        <ProjectSectionLink href="?section=details#project-details">Project details</ProjectSectionLink>
+        <ProjectSectionLink href={pendingApprovals.length ? "?section=approvals#pending-approvals" : "?section=approvals#approvals"}>Approvals</ProjectSectionLink>
+        <ProjectSectionLink href="?section=files#files">Files</ProjectSectionLink>
+        <ProjectSectionLink href="?section=documents#documents">Documents</ProjectSectionLink>
+        <ProjectSectionLink href="?section=feedback#design-feedback">Design feedback</ProjectSectionLink>
+        <ProjectSectionLink href="?section=messages#messages">Messages</ProjectSectionLink>
       </nav>
 
       <DesignGallery files={portalFiles} filesHref="?section=files#files" />

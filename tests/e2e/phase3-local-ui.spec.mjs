@@ -118,6 +118,12 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await page.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
       if (target === "messages") await expect(page.locator("details.atelier-discussion")).toHaveAttribute("open", "");
       else await expect(page.locator("details#" + target)).toHaveAttribute("open", "");
+      if (target === "project-resources") {
+        await page.locator("details#project-resources > summary").click();
+        await expect(page.locator("details#project-resources")).not.toHaveAttribute("open", "");
+        await page.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
+        await expect(page.locator("details#project-resources")).toHaveAttribute("open", "");
+      }
     }
     await page.goto("/portal/projects/" + projectA);
 
@@ -241,6 +247,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(adminPage.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();
       await adminPage.screenshot({ path: "design-preview/nocturne-admin-project-" + previewSuffix + ".png", fullPage: true });
       for (const [label, target] of [["Design & feedback", "workspace-collaboration"], ["Files & documents", "workspace-resources"], ["Conversation", "workspace-conversation"], ["Delivery", "workspace-delivery"]]) {
+        await adminPage.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
+        await expect(adminPage.locator("details#" + target)).toHaveAttribute("open", "");
+        await adminPage.locator("details#" + target + " > summary").click();
+        await expect(adminPage.locator("details#" + target)).not.toHaveAttribute("open", "");
         await adminPage.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
         await expect(adminPage.locator("details#" + target)).toHaveAttribute("open", "");
       }

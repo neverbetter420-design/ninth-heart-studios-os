@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ProjectSectionLink } from "@/components/projects/ProjectSectionLink";
 import { DesignGallery } from "@/components/projects/DesignGallery";
 import { notFound } from "next/navigation";
 import { ActivityTimeline } from "@/components/projects/ActivityTimeline";
@@ -194,11 +194,11 @@ export default async function ProjectWorkspacePage({
       <ProjectOverview project={project} clientName={clientName(project.clients)} />
 
       <nav className="studio-workspace-nav" aria-label="Project destinations">
-        <Link href="#workspace-priorities">Working plan</Link>
-        <Link href="?section=creative#workspace-collaboration">Design & feedback</Link>
-        <Link href="?section=files#workspace-resources">Files & documents</Link>
-        <Link href="?section=messages#workspace-conversation">Conversation</Link>
-        <Link href="?section=delivery#workspace-delivery">Delivery</Link>
+        <ProjectSectionLink href="#workspace-priorities">Working plan</ProjectSectionLink>
+        <ProjectSectionLink href="?section=creative#workspace-collaboration">Design & feedback</ProjectSectionLink>
+        <ProjectSectionLink href="?section=files#workspace-resources">Files & documents</ProjectSectionLink>
+        <ProjectSectionLink href="?section=messages#workspace-conversation">Conversation</ProjectSectionLink>
+        <ProjectSectionLink href="?section=delivery#workspace-delivery">Delivery</ProjectSectionLink>
       </nav>
 
       <DesignGallery files={files} filesHref="?section=files#workspace-resources" />

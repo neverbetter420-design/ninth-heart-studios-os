@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { ProjectSectionLink } from "./ProjectSectionLink";
 
 type PreviewFile = { id: string; filename: string; mime_type: string | null; downloadUrl: string | null };
 const previewTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
@@ -11,7 +11,7 @@ export function DesignGallery({ files, filesHref }: { files: PreviewFile[]; file
     <section className="studio-gallery" aria-label="Design previews">
       <div className="studio-gallery-heading">
         <div><p className="studio-overline">The work, in view</p><h3>Design previews</h3></div>
-        <Link href={filesHref}>All project files <span aria-hidden="true">↗</span></Link>
+        <ProjectSectionLink href={filesHref}>All project files <span aria-hidden="true">↗</span></ProjectSectionLink>
       </div>
       <div className="studio-gallery-images">
         {previews.map((file) => (
