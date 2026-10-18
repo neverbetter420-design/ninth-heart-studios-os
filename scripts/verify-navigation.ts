@@ -76,7 +76,24 @@ const detail = read("app/(protected)/portal/projects/[projectId]/page.tsx");
 for (const id of ["milestones", "pending-approvals", "approvals", "files", "contracts", "forms", "messages"]) {
   assert.ok(detail.includes('id="' + id + '"'), "missing detail anchor " + id);
 }
+// Nocturne / Atelier role-specific navigation and progressive disclosure.
+const appShell = read("components/AppShell.tsx");
+const nocturneStyles = read("app/nocturne.css");
+const portalHome = read("app/(protected)/portal/page.tsx");
+assert.ok(read("app/layout.tsx").includes('import "./nocturne.css";'), "Nocturne theme must load last");
+assert.ok(appShell.includes('nhs-theme-client') && appShell.includes('nhs-theme-admin'), "role-scoped themes required");
+assert.ok(appShell.includes('action="/auth/sign-out"'), "visible desktop sign out required");
+assert.ok(sidebar.includes('className="nhs-mobile-sign-out"'), "visible mobile sign out required");
+assert.ok(portalHome.includes('className="atelier-hero"'), "Atelier client welcome required");
+assert.ok(portalHome.includes('className="atelier-action-panel"'), "client next action required");
+assert.ok(portalHome.includes('href="/portal/messages"'), "messaging must remain linked");
+assert.ok(portalHome.includes('href="/portal/files"'), "project files must remain linked");
+assert.ok(detail.includes('className="atelier-project-nav"'), "client project destination navigation required");
+assert.ok(detail.includes('className="atelier-disclosure"'), "client detail progressive disclosure required");
+assert.ok(nocturneStyles.includes("prefers-reduced-motion"), "accessible reduced motion required");
+assert.ok(navEntries.some((x) => x.href === "/portal/forms" && x.section === "Decisions & documents"), "client paperwork grouped in navigation");
 const dashboard = read("components/Dashboard.tsx");
+assert.ok(dashboard.includes('className="nocturne-insights"'), "optional admin intelligence should be progressive disclosure");
 assert.ok(dashboard.includes('href={"/projects/" + project.id}'), "project cards should link to workspace");
 assert.ok(dashboard.includes('href={"/opportunities/" + item.id}'), "radar cards should link to opportunity");
 assert.ok(!read("components/PageHeader.tsx").includes('<button className="primary-button">'), "dead heading button present");
