@@ -36,6 +36,10 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       { id: "synthetic-event-3", event_type: "notes_updated", summary: "Northline Editions discovery notes updated", created_at: new Date(Date.now() - 86400000).toISOString() },
     ] : [],
     tasks: [], milestones: [], launch_items: [], messages: [], documents: [],
+    prospects: scenario === "empty" ? [] : [
+      { id: "synthetic-no-site", business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone", address: "Puyallup, WA", category: "bar", website: null, signals: { has_website: false, reachable: false, social_profiles: [{ platform: "facebook", url: "https://www.facebook.com/cedarandstone/", source: "listing", status: "unconfirmed", evidence: "Public profile unavailable; manual review required" }] }, opportunity_score: 35, outreach_status: "none", status: "new" },
+      { id: "synthetic-rough-site", business_name: "Mira Studio", website: "https://example.com/", signals: { has_website: true, reachable: true, https: false, mobile_viewport: false, builder: "Wix", title_ok: false, description_ok: false }, opportunity_score: 65, outreach_status: "none", status: "new" },
+    ],
     revision_rounds: [], change_orders: [], contracts: [], form_submissions: [], form_templates: [], templates: [],
     files: view === "project" && scenario === "populated" ? [{ id: "synthetic-image", filename: "Shared design.png", mime_type: "image/png", visibility: "client", size_bytes: 100, created_at: "2026-10-01T12:00:00Z", object_path: "synthetic.png" }] : [],
   };
@@ -47,7 +51,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     chain.maybeSingle = () => { result.data = rows[table][0] ?? null; return chain; };
     return chain;
   } };
-  const path = view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
+  const path = view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -79,7 +83,9 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     return module.exports;
   }
   const { AppShell } = load(resolve(root, "components/AppShell.tsx"));
-  const Page = view.startsWith("lead")
+  const Page = view === "scanner"
+    ? load(resolve(root, "app/(protected)/(admin)/leads/discover/page.tsx")).default
+    : view.startsWith("lead")
     ? load(resolve(root, view === "leads" ? "app/(protected)/(admin)/leads/page.tsx" : "app/(protected)/(admin)/leads/[leadId]/page.tsx")).default
     : view === "project"
     ? load(resolve(root, role === "admin" ? "app/(protected)/(admin)/projects/[projectId]/page.tsx" : "app/(protected)/portal/projects/[projectId]/page.tsx")).default

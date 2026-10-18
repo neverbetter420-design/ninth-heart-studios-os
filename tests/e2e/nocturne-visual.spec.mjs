@@ -18,6 +18,25 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
+test("Scanner lowers old missing-website scores and exposes honest social verification", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const scenario of ["normal", "long"]) {
+    await show(page, "admin", scenario, "scanner");
+    const prospects = page.locator("article.prospect-card");
+    await expect(prospects.first()).toContainText("Mira Studio");
+    await expect(prospects.nth(1).locator(".score")).toHaveText("10");
+    await expect(prospects.nth(1)).toContainText("Needs verification");
+    await expect(prospects.nth(1)).toContainText("Website unconfirmed · low priority");
+    await expect(prospects.nth(1).getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
+    await expect(prospects.nth(1).getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
+    await expect(prospects.nth(1).getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
+    for (const width of [1440, 1024, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `scanner ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+  }
+});
+
 test("Lead Intelligence keeps capture, queue and error states usable at every width", async ({ page }) => {
   for (const scenario of ["populated", "long", "empty", "error", "form-error"]) {
     await show(page, "admin", scenario, "leads");

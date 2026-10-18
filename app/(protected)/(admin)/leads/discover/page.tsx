@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
-import { NICHES, signalBadges, type WebsiteSignals } from "@/lib/prospect-scan";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
+import { NICHES, signalBadges, scoreSignals, normalizeSocialProfile, type WebsiteSignals } from "@/lib/prospect-scan";
 import {
   runScan,
   analyzeProspect,
@@ -51,18 +52,21 @@ export default async function DiscoverPage({
   query = show === "archived" ? query.eq("status", "archived") : query.neq("status", "archived");
   const { data } = await query;
 
-  const prospects = (data ?? []) as Prospect[];
+  // Old saved scans adopt the lower no-website score without a database backfill.
+  const prospects = ((data ?? []) as Prospect[]).map(p => ({
+    ...p, opportunity_score: typeof p.signals?.has_website === "boolean" ? scoreSignals(p.signals) : p.opportunity_score,
+  })).sort((a, b) => (b.opportunity_score ?? -1) - (a.opportunity_score ?? -1));
   const showArchived = show === "archived";
 
   return (
-    <div className="content-wrap">
+    <div className="content-wrap scanner-page">
       <header className="page-header">
         <div>
           <p className="eyebrow electric">Lead Scanner</p>
           <h2>Find them. Read their site. Reach out.</h2>
           <p className="page-description">
             Discovers local businesses by type and area, analyzes their websites for
-            redesign signals, scores the opportunity, and drafts your outreach. Free data,
+            redesign signals, checks listed Instagram/Facebook profiles, and drafts your outreach. Free data,
             no API keys, nothing sent without you.
           </p>
         </div>
@@ -104,7 +108,8 @@ export default async function DiscoverPage({
           </fieldset>
           <ScannerSubmitButton />
           <p className="form-hint">
-            Up to 12 businesses per scan. Business data © OpenStreetMap
+            Up to 12 businesses per scan. Missing websites stay low priority while social profiles are checked.
+            Business data © OpenStreetMap
             contributors (ODbL). Be nice — scans are on-demand, not continuous.
           </p>
         </form>
@@ -161,16 +166,34 @@ export default async function DiscoverPage({
                       {p.website.replace(/^https?:\/\//, "").split("/")[0]}
                     </a>
                   ) : (
-                    <span>No website listed</span>
+                    <span>Website not confirmed</span>
                   )}
                   {p.phone && <span> · {p.phone}</span>}
                   {p.status === "promoted" && <span> · ✓ In leads</span>}
                   {p.outreach_status === "sent" && <span> · ✉ Sent</span>}
                 </div>
 
+                <section className="prospect-social-check" aria-label={`Social verification for ${p.business_name}`}>
+                  {(p.signals?.social_profiles ?? []).filter(profile => normalizeSocialProfile(profile.url, profile.platform)).map(profile => (
+                    <div key={profile.url}>
+                      <a href={normalizeSocialProfile(profile.url, profile.platform)!} target="_blank" rel="noreferrer">
+                        {profile.platform === "instagram" ? "Instagram" : "Facebook"} ↗
+                      </a>
+                      <span>{profile.status === "matched" ? "Business details match" : "Needs verification"}</span>
+                      <small>{profile.evidence}</small>
+                    </div>
+                  ))}
+                  {!p.signals?.social_profiles?.length && <p>{p.signals?.social_checked_at ? "No social profile found in the available listing or website. Verify manually." : "Social profiles have not been checked. Re-analyze to verify."}</p>}
+                  {p.signals?.website_source === "social_profile" && <p>Website found on a matching social profile.</p>}
+                  {!p.website && <div className="prospect-social-search">
+                    <a href={`https://www.google.com/search?q=${encodeURIComponent(`site:instagram.com "${p.business_name}" ${p.address ?? ""}`)}`} target="_blank" rel="noreferrer">Search Instagram ↗</a>
+                    <a href={`https://www.google.com/search?q=${encodeURIComponent(`site:facebook.com "${p.business_name}" ${p.address ?? ""}`)}`} target="_blank" rel="noreferrer">Search Facebook ↗</a>
+                  </div>}
+                </section>
+
                 <div className="prospect-actions">
                   <form action={analyzeProspect.bind(null, p.id)}>
-                    <button type="submit" className="mini-button">Re-analyze</button>
+                    <PortalSubmitButton className="mini-button" pendingLabel="Checking website & socials…">Re-analyze &amp; check socials</PortalSubmitButton>
                   </form>
                   <form action={generateDraft.bind(null, p.id)}>
                     <button type="submit" className="mini-button">

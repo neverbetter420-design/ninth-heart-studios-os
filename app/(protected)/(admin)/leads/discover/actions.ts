@@ -9,7 +9,8 @@ import {
   NICHES,
   geocode,
   discoverBusinesses,
-  analyzeWebsite,
+  analyzeBusinessPresence,
+  refreshSocialProfiles,
   scoreSignals,
   draftOutreach,
   type NicheKey,
@@ -50,7 +51,7 @@ export async function runScan(formData: FormData): Promise<never> {
   let skipped = 0;
   for (let i = 0; i < Math.min(found.length, SCAN_CAP); i += 3) {
     await Promise.all(found.slice(i, i + 3).map(async (b) => {
-    const signals = await analyzeWebsite(b.website);
+    const { signals, website } = await analyzeBusinessPresence(b);
     const score = scoreSignals(signals);
     const row = {
       source_ref: b.source_ref,
@@ -58,7 +59,7 @@ export async function runScan(formData: FormData): Promise<never> {
       category: b.category,
       address: b.address,
       phone: b.phone,
-      website: b.website,
+      website,
       signals,
       opportunity_score: score,
       scanned_at: new Date().toISOString(),
@@ -100,13 +101,18 @@ export async function analyzeProspect(id: string) {
   const { user } = await requireAdmin();
   void user;
   const supabase = await createClient();
-  const { data: p } = await supabase.from("prospects").select("id, website").eq("id", id).single();
+  const { data: p } = await supabase.from("prospects").select("id, source_ref, business_name, website, address, phone, signals").eq("id", id).single();
   if (!p) return;
-  const signals = await analyzeWebsite(p.website);
+  const refreshed = await refreshSocialProfiles(p.source_ref);
+  const { signals, website } = await analyzeBusinessPresence({
+    name: p.business_name, website: p.website, address: p.address, phone: p.phone,
+    social_profiles: [...refreshed, ...(p.signals?.social_profiles ?? [])],
+  });
   await supabase
     .from("prospects")
     .update({
       signals,
+      website,
       opportunity_score: scoreSignals(signals),
       scanned_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -202,7 +208,7 @@ export async function promoteProspect(id: string) {
       website: p.website,
       acquisition_type: "outbound",
       ...workflow,
-      score: p.opportunity_score,
+      score: typeof p.signals?.has_website === "boolean" ? scoreSignals(p.signals) : p.opportunity_score,
       status: wasSent ? "contacted" : "prospect",
       owner_id: user.id,
       metadata: {
