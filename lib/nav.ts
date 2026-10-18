@@ -26,6 +26,5 @@ export const navItems: readonly NavItem[] = [
   { href: "/portal/messages", label: "Messages", icon: "✉", section: "Communication", roles: ["client"] },
   { href: "/portal/files", label: "Files", icon: "▤", section: "Communication", roles: ["client"] },
   { href: "/portal/approvals", label: "Approvals", icon: "✓", section: "Decisions & documents", roles: ["client"] },
-  { href: "/portal/contracts", label: "Contracts", icon: "✒", section: "Decisions & documents", roles: ["client"] },
-  { href: "/portal/forms", label: "Forms", icon: "▱", section: "Decisions & documents", roles: ["client"] },
+  { href: "/portal/documents", label: "Documents", icon: "▱", section: "Decisions & documents", roles: ["client"] },
 ] as const;
