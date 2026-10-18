@@ -41,6 +41,8 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     const approveTitle = "Synthetic UI approval " + seed;
     const changeTitle = "Synthetic UI changes " + seed;
     const note = "Synthetic UI message " + seed;
+    const docTitleA = "Synthetic UI Document A " + seed;
+    const docTitleB = "Synthetic UI Document B " + seed;
     await required(srv.from("clients").insert([
       { id: clientA, name: "Synthetic UI Client A" },
       { id: clientB, name: "Synthetic UI Client B" },
@@ -53,6 +55,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       { id: projectA, client_id: clientA, name: "Synthetic UI Project A" },
       { id: projectB, client_id: clientB, name: "Synthetic UI Project B" },
     ]).select("id"), "projects");
+    await required(srv.from("documents").insert([
+      { project_id: projectA, title: docTitleA, kind: "handoff" },
+      { project_id: projectB, title: docTitleB, kind: "other" },
+    ]).select("id"), "documents");
     await required(srv.from("approvals").insert([
       { id: approvalA, project_id: projectA, title: approveTitle, status: "pending" },
       { id: approvalB, project_id: projectA, title: changeTitle, status: "pending" },
@@ -67,6 +73,14 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(p.locator(".navigation-shell")).toBeVisible({ timeout: 30000 });
     }
     await signIn(page, emailA);
+    await page.goto("/portal/documents");
+    await expect(page.getByRole("heading", { name: "Everything in writing." })).toBeVisible();
+    await expect(page.getByText(docTitleA, { exact: true })).toBeVisible();
+    await expect(page.getByText(docTitleB, { exact: true })).toHaveCount(0);
+    const documentRow = page.locator(".atelier-document-row").filter({ hasText: docTitleA });
+    await documentRow.getByRole("link", { name: "View in project" }).click();
+    await expect(page.locator('details#project-details')).toHaveAttribute("open", "");
+    await expect(page.locator("article#documents")).toContainText(docTitleA);
     await page.goto("/portal/projects/" + projectA);
     await expect(page.getByRole("heading", { name: "Synthetic UI Project A", exact: true })).toBeVisible();
 
@@ -163,6 +177,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(b.getByText(note, { exact: true })).toHaveCount(0);
       await b.goto("/portal/approvals");
       await expect(b.getByText(approveTitle, { exact: true })).toHaveCount(0);
+      await b.goto("/portal/documents");
+      await expect(b.getByText(docTitleA, { exact: true })).toHaveCount(0);
+      await expect(b.getByText(docTitleB, { exact: true })).toBeVisible();
+
       await expect(b.getByText(changeTitle, { exact: true })).toHaveCount(0);
     } finally {
       await ctxB.close();
