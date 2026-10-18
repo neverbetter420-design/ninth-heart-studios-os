@@ -69,10 +69,9 @@ export default async function ProjectsPage({
       </header>
 
       <section className="metric-grid" aria-label="Pipeline metrics">
-        <MetricCard label="Active Projects" value={String(active)} detail="Across all stages" tone="violet" />
+        <MetricCard label="Active Projects" value={String(active)} detail={`${onHold} on hold`} tone="violet" />
         <MetricCard label="In Review" value={String(inReview)} detail="Waiting on approvals" tone="pink" />
         <MetricCard label="Launching" value={String(inLaunch)} detail="Almost out the door" tone="cyan" />
-        <MetricCard label="On Hold" value={String(onHold)} detail="Parked, not dead" tone="green" />
       </section>
 
       {formError ? (
