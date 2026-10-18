@@ -139,7 +139,13 @@ export async function PortalResourcePage({ kind }: { kind: PortalResourceKind })
               <p>{detail(kind, item)}</p>
               <div className="portal-resource-meta">
                 <span>{names.get(item.project_id) ?? "Your project"} · {item.status ?? "Shared"}</span>
-                <Link href={"/portal/projects/" + item.project_id + "#" + (kind === "approvals" && item.status !== "pending" ? "approvals" : config.anchor)}>
+                <Link
+                  href={
+                    "/portal/projects/" + item.project_id +
+                    (kind === "approvals" && item.status === "pending" ? "" : "?section=" + kind) +
+                    "#" + (kind === "approvals" && item.status !== "pending" ? "approvals" : config.anchor)
+                  }
+                >
                   {kind === "approvals" ? "Review decision →" : "Open in project →"}
                 </Link>
               </div>
