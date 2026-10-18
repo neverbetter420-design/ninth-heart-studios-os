@@ -108,6 +108,19 @@ assert.ok(detail.includes('id="documents"'), "project documents anchor must be p
 assert.ok(read("components/portal/PortalResourcePage.tsx").includes('"?section=" + kind'), "deep links must open collapsed resource sections");
 assert.ok(appShell.includes("WorkspaceBreadcrumbs"), "context navigation must load in app shell");
 assert.ok(breadcrumb.includes('aria-label="Breadcrumb"') && breadcrumb.includes('aria-current="page"'), "breadcrumbs must be accessible");
+// Phase 3: client collection pages share a calm editorial system instead of
+// repeated cards, while keeping all role-scoped resource links functional.
+const clientProjectCollection = read("app/(protected)/portal/projects/page.tsx");
+const resourceCollection = read("components/portal/PortalResourcePage.tsx");
+const phase3Styles = read("app/nocturne-phase3.css");
+assert.ok(read("app/layout.tsx").includes('import "./nocturne-phase3.css";'), "Atelier collection CSS must load after the base theme");
+assert.ok(clientProjectCollection.includes('className="atelier-project-collection"'), "client project collection must avoid dashboard card grids");
+assert.ok(clientProjectCollection.includes('className={"atelier-project-row"'), "client project rows must remain discoverable");
+assert.ok(clientProjectCollection.includes('href={"/portal/projects/" + project.id}'), "client projects must still open their workspace");
+assert.ok(resourceCollection.includes('className="atelier-resource-groups"'), "client resources must be grouped by project");
+assert.ok(resourceCollection.includes('className="atelier-resource-rows"'), "client resource directory must have accessible lists");
+assert.ok(resourceCollection.includes('href={itemHref(item)}'), "client resource links must navigate to the original project");
+assert.ok(phase3Styles.includes("prefers-reduced-motion"), "Atelier client transitions require reduced-motion support");
 const dashboard = read("components/Dashboard.tsx");
 assert.ok(dashboard.includes('className="nocturne-insights"'), "optional admin intelligence should be progressive disclosure");
 const adminProject = read("app/(protected)/(admin)/projects/[projectId]/page.tsx");
