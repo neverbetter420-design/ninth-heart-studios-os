@@ -55,7 +55,9 @@ export function Sidebar({
         <Link href={home} className="mobile-brand" onClick={() => setOpen(false)}>
           <span aria-hidden="true">♥</span> NHS OS
         </Link>
-        <span className="mobile-role">{role === "admin" ? "Admin" : "Client"}</span>
+        <form action="/auth/sign-out" method="post">
+          <button type="submit" className="nhs-mobile-sign-out" aria-label="Sign out of NHS OS">Sign out</button>
+        </form>
       </header>
 
       {open && (
