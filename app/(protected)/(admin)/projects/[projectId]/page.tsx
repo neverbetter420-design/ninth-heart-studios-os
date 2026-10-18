@@ -191,58 +191,83 @@ export default async function ProjectWorkspacePage({
       {uploadOk && <p role="status" className="notice">{uploadOk}</p>}
       <ProjectOverview project={project} clientName={clientName(project.clients)} />
 
-      <div className="workspace-grid">
+      <section className="nocturne-workspace-focus" aria-label="Project priorities">
+        <div className="nocturne-workspace-heading">
+          <p className="eyebrow electric">Your working view</p>
+          <h3>Project priorities</h3>
+          <p>Tasks, milestones and approvals stay visible. Everything else is one click away.</p>
+        </div>
+        <div className="workspace-grid">
         <div className="workspace-span-7">
-          <MilestoneSection projectId={projectId} milestones={(rawMilestones ?? []) as Milestone[]} />
-        </div>
+                  <MilestoneSection projectId={projectId} milestones={(rawMilestones ?? []) as Milestone[]} />
+                </div>
+
         <div className="workspace-span-5">
-          <ApprovalSection
-            projectId={projectId}
-            approvals={(rawApprovals ?? []) as { id: string; title: string; status: string; requested_at: string; decided_at: string | null; client_comment: string | null }[]}
-          />
-        </div>
+                  <ApprovalSection
+                    projectId={projectId}
+                    approvals={(rawApprovals ?? []) as { id: string; title: string; status: string; requested_at: string; decided_at: string | null; client_comment: string | null }[]}
+                  />
+                </div>
+
         <div className="workspace-span-12">
-          <TaskSection projectId={projectId} tasks={(rawTasks ?? []) as ProjectTask[]} />
+                  <TaskSection projectId={projectId} tasks={(rawTasks ?? []) as ProjectTask[]} />
+                </div>
         </div>
+      </section>
+
+      <details className="nocturne-workspace-disclosure" id="workspace-collaboration">
+        <summary><span><strong>Creative collaboration & files</strong><small>Revisions, files, conversation and documents</small></span></summary>
+        <div className="workspace-grid">
         <div className="workspace-span-12">
-          <RevisionSection
-            projectId={projectId}
-            rounds={rounds}
-            activeRound={activeRound}
-            pins={pins}
-            changeOrders={changeOrders}
-            scopeVerdicts={scopeVerdicts}
-          />
-        </div>
-        <div className="workspace-span-6">
-          <LaunchGateSection projectId={projectId} items={(rawLaunchItems ?? []) as LaunchItem[]} />
-        </div>
-        <div className="workspace-span-6">
-          <ActivityTimeline
-            activities={(rawActivities ?? []) as { id: string; event_type: string; summary: string; client_visible: boolean; created_at: string }[]}
-          />
-        </div>
+                  <RevisionSection
+                    projectId={projectId}
+                    rounds={rounds}
+                    activeRound={activeRound}
+                    pins={pins}
+                    changeOrders={changeOrders}
+                    scopeVerdicts={scopeVerdicts}
+                  />
+                </div>
+
         <div className="workspace-span-12">
-          <FileSection projectId={projectId} files={files} />
-        </div>
+                  <FileSection projectId={projectId} files={files} />
+                </div>
+
         <div className="workspace-span-6">
-          <MessageThread
-            projectId={projectId}
-            messages={(rawMessages ?? []) as ProjectMessage[]}
-            currentUserId={user.id}
-            sendAction={sendProjectMessage}
-            otherLabel="Client"
-            title="Messages"
-          />
-        </div>
+                  <MessageThread
+                    projectId={projectId}
+                    messages={(rawMessages ?? []) as ProjectMessage[]}
+                    currentUserId={user.id}
+                    sendAction={sendProjectMessage}
+                    otherLabel="Client"
+                    title="Messages"
+                  />
+                </div>
+
         <div className="workspace-span-6">
-          <DocumentSection
-            projectId={projectId}
-            documents={(rawDocuments ?? []) as ProjectDocument[]}
-            docTemplates={(rawDocTemplates ?? []) as { id: string; name: string }[]}
-          />
+                  <DocumentSection
+                    projectId={projectId}
+                    documents={(rawDocuments ?? []) as ProjectDocument[]}
+                    docTemplates={(rawDocTemplates ?? []) as { id: string; name: string }[]}
+                  />
+                </div>
         </div>
-      </div>
+      </details>
+
+      <details className="nocturne-workspace-disclosure" id="workspace-delivery">
+        <summary><span><strong>Delivery & studio activity</strong><small>Launch gates and the project activity timeline</small></span></summary>
+        <div className="workspace-grid">
+        <div className="workspace-span-6">
+                  <LaunchGateSection projectId={projectId} items={(rawLaunchItems ?? []) as LaunchItem[]} />
+                </div>
+
+        <div className="workspace-span-6">
+                  <ActivityTimeline
+                    activities={(rawActivities ?? []) as { id: string; event_type: string; summary: string; client_visible: boolean; created_at: string }[]}
+                  />
+                </div>
+        </div>
+      </details>
     </div>
   );
 }
