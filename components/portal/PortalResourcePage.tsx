@@ -91,7 +91,6 @@ export async function PortalResourcePage({ kind }: { kind: PortalResourceKind })
     .select("id, name")
     .order("updated_at", { ascending: false });
   const projects = (visibleProjects ?? []) as { id: string; name: string }[];
-  const names = new Map(projects.map((project) => [project.id, project.name]));
   const ids = projects.map((project) => project.id);
   // Literal column lists keep Supabase's query parser type-safe.
   const result = !ids.length
@@ -108,50 +107,72 @@ export async function PortalResourcePage({ kind }: { kind: PortalResourceKind })
   const { error } = result;
   const entries: ResourceRow[] = (result.data ?? []).map((row) => ({ ...row }));
 
+  const grouped = projects.map((project) => ({
+    ...project,
+    items: entries.filter((item) => item.project_id === project.id),
+  })).filter((group) => group.items.length > 0);
+
+  const itemHref = (item: ResourceRow) =>
+    "/portal/projects/" + item.project_id +
+    (kind === "approvals" && item.status === "pending" ? "" : "?section=" + kind) +
+    "#" + (kind === "approvals" && item.status !== "pending" ? "approvals" : config.anchor);
+
   return (
-    <div className="content-wrap">
-      <div className="lead-detail-backline" style={{ marginBottom: 12 }}>
-        <Link href="/portal" className="text-button">← Client overview</Link>
-      </div>
-      <header className="page-header">
-        <div>
-          <p className="eyebrow electric">Client workspace</p>
-          <h2>{config.title}</h2>
-          <p className="page-description">{config.description}</p>
-        </div>
+    <div className="content-wrap atelier-collection-page atelier-resource-page">
+      <Link href={kind === "contracts" || kind === "forms" ? "/portal/documents" : "/portal"} className="atelier-text-link">
+        ← {kind === "contracts" || kind === "forms" ? "Documents" : "Your Atelier"}
+      </Link>
+
+      <header className="atelier-collection-heading">
+        <p className="atelier-overline">Client Atelier · Everything in its place</p>
+        <h2>{config.title}</h2>
+        <p>{config.description}</p>
       </header>
+
       {projectError || error ? (
-        <section className="panel empty-state" role="alert">
+        <section className="atelier-notice" role="alert">
           <h3>We couldn't load this section.</h3>
-          <p>{projectError?.message ?? error?.message}</p>
+          <p>Please refresh this page or contact the studio if the problem continues.</p>
         </section>
       ) : entries.length === 0 ? (
-        <section className="panel empty-state">
+        <section className="atelier-empty">
+          <span aria-hidden="true">◇</span>
           <h3>{config.empty}</h3>
           <p>Your workspace is connected. New items will appear here when they're shared.</p>
-          <Link className="secondary-button inline-button" href="/portal/projects">View my projects</Link>
+          <Link className="atelier-text-link" href="/portal/projects">View my projects →</Link>
         </section>
       ) : (
-        <section className="portal-resource-list" aria-label={config.title}>
-          {entries.map((item) => (
-            <article className="panel portal-resource-item" key={item.id}>
-              <h3>{itemTitle(kind, item)}</h3>
-              <p>{detail(kind, item)}</p>
-              <div className="portal-resource-meta">
-                <span>{names.get(item.project_id) ?? "Your project"} · {item.status ?? "Shared"}</span>
-                <Link
-                  href={
-                    "/portal/projects/" + item.project_id +
-                    (kind === "approvals" && item.status === "pending" ? "" : "?section=" + kind) +
-                    "#" + (kind === "approvals" && item.status !== "pending" ? "approvals" : config.anchor)
-                  }
-                >
-                  {kind === "approvals" ? "Review decision →" : "Open in project →"}
-                </Link>
+        <div className="atelier-resource-groups">
+          <p className="atelier-overline">Organized by project</p>
+          {grouped.map((group) => (
+            <section key={group.id} className="atelier-resource-group" aria-label={group.name + " " + config.title}>
+              <div className="atelier-resource-group-heading">
+                <h3>{group.name}</h3>
+                <span>{group.items.length} {group.items.length === 1 ? "item" : "items"}</span>
               </div>
-            </article>
+              <ul className="atelier-resource-rows">
+                {group.items.map((item) => (
+                  <li key={item.id} className="atelier-resource-row">
+                    <div className="atelier-resource-row-content">
+                      <span className="atelier-resource-row-kicker">
+                        {kind === "messages" ? "Conversation" : kind === "approvals" ? "Decision" : kind === "files" ? "File" : "Project record"}
+                      </span>
+                      <h4>{itemTitle(kind, item)}</h4>
+                      <p>{detail(kind, item)}</p>
+                    </div>
+                    <div className="atelier-resource-row-end">
+                      {item.status && <span className="atelier-resource-status">{item.status.replaceAll("_", " ")}</span>}
+                      <Link href={itemHref(item)} className="atelier-resource-open">
+                        {kind === "approvals" ? "Review decision" : "Open in project"}
+                        <span aria-hidden="true"> ↗</span>
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </section>
+        </div>
       )}
     </div>
   );
