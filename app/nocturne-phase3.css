@@ -1,0 +1,267 @@
+/* NHS Nocturne: Atelier Collection
+   Open editorial lists replace stacked UI cards across client destinations.
+   Scoped to protected client theme; admin structure is unchanged. */
+
+.nhs-theme-client .atelier-collection-page {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 3vw, 40px);
+}
+
+.nhs-theme-client .atelier-collection-heading {
+  max-width: 790px;
+  padding: clamp(20px, 3vw, 40px) 0 4px;
+}
+
+.nhs-theme-client .atelier-collection-heading h2 {
+  margin: 14px 0 13px;
+  color: #3c2d43;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(27px, 3.4vw, 43px);
+  line-height: 1.22;
+  letter-spacing: -.015em;
+  font-weight: 500;
+}
+
+.nhs-theme-client .atelier-collection-heading > p:last-child {
+  margin: 0;
+  max-width: 650px;
+  line-height: 1.8;
+  color: #746879;
+  font-size: 14px;
+}
+
+.nhs-theme-client .atelier-project-collection,
+.nhs-theme-client .atelier-resource-groups {
+  width: 100%;
+  min-width: 0;
+}
+
+.nhs-theme-client .atelier-collection-intro {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #d9cbd6;
+}
+
+.nhs-theme-client .atelier-collection-intro > span {
+  font-size: 12px;
+  color: #856e88;
+}
+
+.nhs-theme-client .atelier-project-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(135px, .65fr) auto;
+  gap: clamp(16px, 2.4vw, 38px);
+  align-items: center;
+  padding: clamp(23px, 3vw, 40px) clamp(8px, 2vw, 24px);
+  border-bottom: 1px solid #e2d5df;
+  transition: background-color 180ms ease;
+}
+
+.nhs-theme-client .atelier-project-row:hover {
+  background: rgba(255, 253, 250, .66);
+}
+
+.nhs-theme-client .atelier-project-row-featured {
+  background: linear-gradient(100deg, rgba(252, 248, 250, .91), rgba(252, 248, 250, .24));
+  border-radius: 16px 16px 0 0;
+}
+
+.nhs-theme-client .atelier-project-row-copy { min-width: 0; }
+.nhs-theme-client .atelier-project-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: #886e8b;
+}
+
+.nhs-theme-client .atelier-project-number { color: #b198b1; }
+.nhs-theme-client .atelier-project-row h3 {
+  margin: 12px 0 8px;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(19px, 2vw, 27px);
+  font-weight: 500;
+  line-height: 1.32;
+  color: #372b3d;
+}
+
+.nhs-theme-client .atelier-project-row-copy > p {
+  margin: 0;
+  color: #817485;
+  font-size: 12px;
+}
+
+.nhs-theme-client .atelier-project-row-progress {
+  min-width: 0;
+}
+
+.nhs-theme-client .atelier-project-row-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  border: 1px solid #d9c6d5;
+  border-radius: 999px;
+  padding: 12px 17px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #553a61;
+  background: #fffcfa;
+}
+
+.nhs-theme-client .atelier-project-row-link:hover,
+.nhs-theme-client .atelier-project-row-link:focus-visible {
+  background: #f0e5ee;
+  border-color: #ba9cba;
+  color: #42314a;
+}
+
+.nhs-theme-client .atelier-resource-groups > .atelier-overline {
+  margin-bottom: 20px;
+}
+
+.nhs-theme-client .atelier-resource-group {
+  margin-bottom: clamp(28px, 3.6vw, 48px);
+}
+
+.nhs-theme-client .atelier-resource-group-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 4px 18px;
+  border-bottom: 1px solid #d9cbd6;
+}
+
+.nhs-theme-client .atelier-resource-group-heading h3 {
+  margin: 0;
+  font-size: clamp(19px, 2vw, 25px);
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-weight: 500;
+  color: #3b2e43;
+}
+
+.nhs-theme-client .atelier-resource-group-heading > span {
+  font-size: 11px;
+  color: #967d96;
+}
+
+.nhs-theme-client .atelier-resource-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nhs-theme-client .atelier-resource-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 30px;
+  padding: 22px 7px;
+  border-bottom: 1px solid #e7dce5;
+}
+
+.nhs-theme-client .atelier-resource-row-content {
+  min-width: 0;
+}
+
+.nhs-theme-client .atelier-resource-row-kicker {
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  font-size: 10px;
+  font-weight: 700;
+  color: #997a9a;
+}
+
+.nhs-theme-client .atelier-resource-row-content h4 {
+  margin: 8px 0;
+  color: #423248;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.nhs-theme-client .atelier-resource-row-content p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #786c7f;
+  overflow-wrap: anywhere;
+}
+
+.nhs-theme-client .atelier-resource-row-end {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-direction: column;
+}
+
+.nhs-theme-client .atelier-resource-status {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: .05em;
+  color: #705379;
+  border: 1px solid #dfd1df;
+  background: #f5eef4;
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+
+.nhs-theme-client .atelier-resource-open {
+  color: #67456e;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.nhs-theme-client .atelier-resource-open:hover,
+.nhs-theme-client .atelier-resource-open:focus-visible {
+  text-decoration: underline;
+  color: #3e2850;
+}
+
+@media (max-width: 950px) {
+  .nhs-theme-client .atelier-project-row {
+    grid-template-columns: minmax(0, 1fr) minmax(120px, .55fr);
+  }
+  .nhs-theme-client .atelier-project-row-link {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 650px) {
+  .nhs-theme-client .atelier-project-row {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 24px 12px;
+    gap: 18px;
+  }
+  .nhs-theme-client .atelier-project-row-link { grid-column: 1; }
+  .nhs-theme-client .atelier-resource-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 20px 5px;
+  }
+  .nhs-theme-client .atelier-resource-row-end {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .nhs-theme-client .atelier-resource-open { white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nhs-theme-client .atelier-project-row { transition: none; }
+}
