@@ -119,10 +119,10 @@ export default async function ClientPortalPage() {
             <small>Find and share files</small>
             <span className="atelier-arrow" aria-hidden="true">↗</span>
           </Link>
-          <Link href="/portal/forms" className="atelier-destination">
+          <Link href="/portal/documents" className="atelier-destination">
             <span className="atelier-destination-icon" aria-hidden="true">✧</span>
-            <strong>Forms & paperwork</strong>
-            <small>Complete what is needed</small>
+            <strong>Documents</strong>
+            <small>Agreements, forms & paperwork</small>
             <span className="atelier-arrow" aria-hidden="true">↗</span>
           </Link>
         </div>
