@@ -16,10 +16,10 @@ const navEntries = [...read("lib/nav.ts").matchAll(
   roles: [...match[4].matchAll(/"(admin|client)"/g)].map((m) => m[1]),
 }));
 
-assert.ok(navEntries.length >= 19, "expected admin and client navigation destinations");
+assert.ok(navEntries.length >= 18, "expected admin and client navigation destinations");
 assert.equal(new Set(navEntries.map((item) => item.href)).size, navEntries.length, "navigation hrefs must be unique");
 assert.ok(navEntries.filter((item) => item.roles.includes("admin")).length >= 11);
-assert.ok(navEntries.filter((item) => item.roles.includes("client")).length >= 7);
+assert.ok(navEntries.filter((item) => item.roles.includes("client")).length >= 6);
 
 for (const item of navEntries) {
   assert.ok(item.label && item.section, "every navigation item needs a label and section");
@@ -88,10 +88,22 @@ assert.ok(portalHome.includes('className="atelier-hero"'), "Atelier client welco
 assert.ok(portalHome.includes('className="atelier-action-panel"'), "client next action required");
 assert.ok(portalHome.includes('href="/portal/messages"'), "messaging must remain linked");
 assert.ok(portalHome.includes('href="/portal/files"'), "project files must remain linked");
+assert.ok(portalHome.includes('href="/portal/documents"'), "consolidated paperwork must remain linked");
 assert.ok(detail.includes('className="atelier-project-nav"'), "client project destination navigation required");
 assert.ok(detail.includes('className="atelier-disclosure"'), "client detail progressive disclosure required");
 assert.ok(nocturneStyles.includes("prefers-reduced-motion"), "accessible reduced motion required");
-assert.ok(navEntries.some((x) => x.href === "/portal/forms" && x.section === "Decisions & documents"), "client paperwork grouped in navigation");
+assert.ok(navEntries.some((x) => x.href === "/portal/documents" && x.section === "Decisions & documents"), "client paperwork must have an accessible hub");
+assert.ok(exists("app/(protected)/portal/contracts/page.tsx") && exists("app/(protected)/portal/forms/page.tsx"), "paperwork detail routes must remain accessible");
+const documentHub = read("app/(protected)/portal/documents/page.tsx");
+const breadcrumb = read("components/WorkspaceBreadcrumbs.tsx");
+assert.ok(documentHub.includes('profile.role !== "client"'), "documents must be client-only");
+assert.ok(documentHub.includes('from("documents")') && documentHub.includes('.in("project_id", projects.map((p) => p.id))'), "documents require RLS scoped project queries");
+assert.ok(documentHub.includes('href="/portal/contracts"') && documentHub.includes('href="/portal/forms"'), "contracts and forms must remain accessible through Documents");
+assert.ok(detail.includes('section: requestedSection'), "project deep links must open requested section");
+assert.ok(detail.includes('id="documents"'), "project documents anchor must be present");
+assert.ok(read("components/portal/PortalResourcePage.tsx").includes('"?section=" + kind'), "deep links must open collapsed resource sections");
+assert.ok(appShell.includes("WorkspaceBreadcrumbs"), "context navigation must load in app shell");
+assert.ok(breadcrumb.includes('aria-label="Breadcrumb"') && breadcrumb.includes('aria-current="page"'), "breadcrumbs must be accessible");
 const dashboard = read("components/Dashboard.tsx");
 assert.ok(dashboard.includes('className="nocturne-insights"'), "optional admin intelligence should be progressive disclosure");
 const adminProject = read("app/(protected)/(admin)/projects/[projectId]/page.tsx");
