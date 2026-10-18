@@ -253,7 +253,8 @@ export default async function FormsPage({
                   <h4>{t.name}</h4>
                   <p>
                     {categoryLabel(t.category)} · {parseFields(t.fields).length}{" "}
-                    fields{t.description ? ` · ${t.description}` : ""}
+                    {parseFields(t.fields).length === 1 ? "field" : "fields"}
+                    {t.description ? ` · ${t.description}` : ""}
                   </p>
                 </div>
                 <span className="paperwork-status">

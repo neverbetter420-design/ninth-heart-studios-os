@@ -16,6 +16,8 @@ The owner reported that the draft looked unlike the approved concept. The first 
 
 ## Logo status
 
+**Later resolution:** The final consistency pass found the uploaded NHS logo and integrated uniformly scaled local assets without altering its heart/ring/key geometry. See [original logo provenance](NHS_ORIGINAL_LOGO_SOURCE.md). The inspection below describes the earlier generated candidate only.
+
 The source repository has no approved logo master. A Library candidate named `Ninth Heart logo with glowing orbit.png` was inspected: it is RGB and has a checkerboard baked into the image. It was not recolored, traced, cropped, background-removed or inserted into the app. The existing shell heart glyph is still a temporary placeholder, not the approved heart/ring/skeleton-key artwork. Final identity acceptance requires the clean original asset.
 
 ## Review and verification

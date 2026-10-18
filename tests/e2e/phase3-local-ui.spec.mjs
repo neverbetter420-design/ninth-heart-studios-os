@@ -20,6 +20,29 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
 
   test("client approval + change request + messages persist and remain private", async ({ page, browser, baseURL, isMobile }) => {
     test.setTimeout(300000);
+    const hydrationWarnings = [];
+    function observeHydration(p) {
+      p.on("console", message => {
+        if (/hydration-mismatch|hydration failed|a tree hydrated|hydrated.*didn't match/i.test(message.text())) hydrationWarnings.push(message.text());
+      });
+    }
+    observeHydration(page);
+    async function capture(p, filename) {
+      await p.evaluate(() => window.scrollTo(0, 0));
+      // Hiding the caret mutates input style attributes before hydration finishes.
+      // Preserve DOM attributes while capturing the actual page from scroll zero.
+      await p.screenshot({ path: filename, fullPage: true, caret: "initial" });
+    }
+    async function visitPrimary(p, label, pathname) {
+      const menu = p.getByRole("button", { name: "Open navigation", exact: true });
+      if (await menu.isVisible()) await menu.click();
+      const nav = p.getByRole("navigation", { name: "Primary navigation", exact: true });
+      const link = nav.getByRole("link", { name: label, exact: true });
+      if (!await link.isVisible()) await nav.locator(".nav-section").filter({ has: link }).locator(".nav-section-toggle").click();
+      await link.click();
+      await expect(p).toHaveURL(new RegExp(pathname === "/" ? "/$" : pathname + "$"));
+      await expect(p.getByRole("navigation", { name: "Breadcrumb", exact: true }).locator('[aria-current="page"]')).toHaveText(label);
+    }
     const opts = { auth: { persistSession: false, autoRefreshToken: false } };
     const srv = createClient(apiURL, adminKey, opts);
     const seed = randomUUID();
@@ -83,8 +106,26 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await p.locator('input[name="password"]').fill(pass);
       await p.getByRole("button", { name: "Sign in", exact: true }).click();
       await expect(p.locator(".navigation-shell")).toBeVisible({ timeout: 30000 });
+      await expect(p.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
     }
     await signIn(page, emailA);
+    for (const [label, route] of [["Home", "/portal"], ["My Projects", "/portal/projects"], ["Messages", "/portal/messages"], ["Files", "/portal/files"], ["Approvals", "/portal/approvals"], ["Documents", "/portal/documents"]]) await visitPrimary(page, label, route);
+    // Paperwork children keep Documents selected and offer a real return path.
+    for (const label of ["Contracts", "Forms"]) {
+      await page.goto("/portal/documents");
+      await page.locator(".atelier-document-directory").getByRole("link", { name: new RegExp(label) }).click();
+      const crumbs = page.getByRole("navigation", { name: "Breadcrumb", exact: true });
+      await expect(crumbs.locator('[aria-current="page"]')).toHaveText(label);
+      await expect(crumbs.getByRole("link", { name: "Documents", exact: true })).toHaveAttribute("href", "/portal/documents");
+      const menu = page.getByRole("button", { name: "Open navigation", exact: true });
+      if (await menu.isVisible()) await menu.click();
+      const primary = page.getByRole("navigation", { name: "Primary navigation", exact: true });
+      await expect(primary.locator('a[aria-current="page"]')).toHaveAttribute("href", "/portal/documents");
+      await expect(primary.getByRole("link", { name: "Lead Intelligence", exact: true })).toHaveCount(0);
+      if (await page.locator(".navigation-close").isVisible()) await page.locator(".navigation-close").click();
+      await crumbs.getByRole("link", { name: "Documents", exact: true }).click();
+      await expect(page.getByRole("heading", { name: "Everything in writing.", exact: true })).toBeVisible();
+    }
 
     // Real client visual previews from a disposable local Supabase project.
     // No real client records, hosted credentials, or production browser session.
@@ -92,16 +133,16 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     const previewSuffix = isMobile ? "mobile" : "desktop";
     await page.goto("/portal");
     await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
-    await page.screenshot({ path: "design-preview/atelier-home-" + previewSuffix + ".png", fullPage: true });
+    await capture(page, "design-preview/atelier-home-" + previewSuffix + ".png");
 
     await page.goto("/portal/projects");
     await expect(page.locator("article.atelier-project-row")).toHaveCount(1);
     await expect(page.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();
-    await page.screenshot({ path: "design-preview/atelier-projects-" + previewSuffix + ".png", fullPage: true });
+    await capture(page, "design-preview/atelier-projects-" + previewSuffix + ".png");
 
     await page.goto("/portal/documents");
     await expect(page.getByRole("heading", { name: "Everything in writing." })).toBeVisible();
-    await page.screenshot({ path: "design-preview/atelier-documents-" + previewSuffix + ".png", fullPage: true });
+    await capture(page, "design-preview/atelier-documents-" + previewSuffix + ".png");
     await expect(page.getByRole("heading", { name: "Everything in writing." })).toBeVisible();
     await expect(page.getByText(docTitleA, { exact: true })).toBeVisible();
     await expect(page.getByText(docTitleB, { exact: true })).toHaveCount(0);
@@ -112,7 +153,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     await page.goto("/portal/projects/" + projectA);
     await expect(page.getByRole("heading", { name: "Synthetic UI Project A", exact: true })).toBeVisible();
     await expect(page.getByRole("region", { name: "Project journey" })).toBeVisible();
-    await page.screenshot({ path: "design-preview/atelier-workspace-" + previewSuffix + ".png", fullPage: true });
+    await capture(page, "design-preview/atelier-workspace-" + previewSuffix + ".png");
     // Each project destination opens its own group without exposing unrelated
     // client records. Exercise real pointer navigation on desktop and mobile.
     for (const [label, target] of [["Files", "project-resources"], ["Documents", "project-resources"], ["Design feedback", "design-feedback"], ["Messages", "messages"], ["Project details", "project-details"]]) {
@@ -214,6 +255,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     const ctxB = await browser.newContext({ baseURL });
     try {
       const b = await ctxB.newPage();
+      observeHydration(b);
       await signIn(b,emailB);
       await b.goto("/portal/projects/" + projectA);
       await expect(b.getByRole("heading", { name: "That page isn't available.", exact: true })).toBeVisible();
@@ -237,10 +279,15 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     });
     try {
       const adminPage = await adminContext.newPage();
+      observeHydration(adminPage);
       await signIn(adminPage, emailAdmin);
+      for (const [label, route] of [["Command Center", "/"], ["Lead Intelligence", "/leads"], ["Lead Scanner", "/leads/discover"], ["Opportunity Radar", "/opportunities"], ["Project Pipeline", "/projects"], ["Client Management", "/clients"], ["Contracts", "/contracts"], ["Text templates", "/templates"], ["Fillable Forms", "/forms"], ["Muse", "/muse"], ["Automations", "/automations"], ["Settings", "/settings"]]) {
+        await visitPrimary(adminPage, label, route);
+        if (route === "/leads/discover") await capture(adminPage, "design-preview/nocturne-scanner-" + previewSuffix + ".png");
+      }
       await adminPage.goto("/");
       await expect(adminPage.getByRole("heading", { name: "Your studio, in focus." })).toBeVisible();
-      await adminPage.screenshot({ path: "design-preview/nocturne-admin-home-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-admin-home-" + previewSuffix + ".png");
 
       // Exercise the redesigned lead forms against this disposable database.
       const leadName = "Synthetic UI Lead " + seed;
@@ -263,10 +310,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect.poll(async () => (await required(srv.from("leads").select("consultation_at").eq("id", leadId), "consultation persisted"))[0].consultation_at).toContain("2099-04-12");
       await adminPage.reload();
       await expect(adminPage.locator(".consultation-panel .micro-copy")).toHaveText("Current: Apr 12, 10:00 AM PDT");
-      await adminPage.screenshot({ path: "design-preview/nocturne-lead-detail-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-lead-detail-" + previewSuffix + ".png");
       await adminPage.goto("/leads");
       await expect(adminPage.getByRole("link", { name: "Open lead: " + leadName, exact: true })).toBeVisible();
-      await adminPage.screenshot({ path: "design-preview/nocturne-leads-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-leads-" + previewSuffix + ".png");
       await adminPage.getByRole("link", { name: "Open lead: " + leadName, exact: true }).click();
       await adminPage.locator("details.lead-conversion > summary").click();
       const convertedName = "Synthetic converted project " + seed;
@@ -337,10 +384,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await clientStatus.getByRole("button", { name: "Restore client", exact: true }).click();
       await expect.poll(async () => (await required(srv.from("clients").select("status").eq("id", managedId), "restored client persisted"))[0].status).toBe("active");
       await adminPage.goto("/clients");
-      await adminPage.screenshot({ path: "design-preview/nocturne-clients-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-clients-" + previewSuffix + ".png");
       await adminPage.getByRole("link", { name: "Open client: " + managedName, exact: true }).click();
       await expect(adminPage.getByRole("link", { name: managedProjectName })).toBeVisible();
-      await adminPage.screenshot({ path: "design-preview/nocturne-client-workspace-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-client-workspace-" + previewSuffix + ".png");
 
       // Document workflows use only this disposable stack and the existing UI actions.
       const textTemplateName = "Synthetic contract text " + seed;
@@ -363,7 +410,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.getByRole("button", { name: "Restore template", exact: true }).click();
       await expect.poll(async () => (await required(srv.from("templates").select("active").eq("id", textTemplateId), "template restore persisted"))[0].active).toBe(true);
       await adminPage.goto("/templates");
-      await adminPage.screenshot({ path: "design-preview/nocturne-templates-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-templates-" + previewSuffix + ".png");
+      await adminPage.goto("/templates/" + textTemplateId);
+      await expect(adminPage.getByLabel("Reusable text", { exact: true })).toHaveValue(terms + " saved");
+      await capture(adminPage, "design-preview/nocturne-template-workspace-" + previewSuffix + ".png");
 
       const agreementName = "Synthetic UI agreement " + seed;
       await adminPage.goto("/contracts");
@@ -394,9 +444,9 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.reload();
       await expect(adminPage.getByRole("region", { name: "Signature audit" })).toContainText("Synthetic Client A");
       await expect(adminPage.locator("#contract-signature code")).toHaveText(/^[a-f0-9]{64}$/);
-      await adminPage.screenshot({ path: "design-preview/nocturne-contract-workspace-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-contract-workspace-" + previewSuffix + ".png");
       await adminPage.goto("/contracts");
-      await adminPage.screenshot({ path: "design-preview/nocturne-contracts-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-contracts-" + previewSuffix + ".png");
 
       const formName = "Synthetic UI intake " + seed;
       await adminPage.goto("/forms");
@@ -426,7 +476,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       expect((await required(srv.from("form_submissions").select("values").eq("template_id", formId), "form answers persisted"))[0].values[formFields[0].id]).toBe("Synthetic Client A business");
       await adminPage.reload();
       await expect(adminPage.getByRole("region", { name: "Submissions", exact: true })).toContainText("Submitted");
-      await adminPage.screenshot({ path: "design-preview/nocturne-form-workspace-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-form-workspace-" + previewSuffix + ".png");
       await adminPage.getByRole("button", { name: "Archive form", exact: true }).click();
       await expect.poll(async () => (await required(srv.from("form_templates").select("active").eq("id", formId), "form archive persisted"))[0].active).toBe(false);
       await adminPage.goto("/forms?state=archived");
@@ -457,7 +507,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.goto("/forms?state=archived");
       await expect(adminPage.getByRole("link", { name: "Open form: " + importName, exact: true })).toBeVisible();
       await adminPage.goto("/forms");
-      await adminPage.screenshot({ path: "design-preview/nocturne-forms-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-forms-" + previewSuffix + ".png");
 
       // Muse stays in draft mode in this isolated workflow; no Gmail secrets or sends.
       await adminPage.goto("/muse#muse-compose");
@@ -480,7 +530,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(savedMuse.locator(".studio-draft-body")).toHaveText(museBody);
       await expect(adminPage.locator(".studio-send")).toHaveCount(0);
       await adminPage.evaluate(() => window.scrollTo(0,0));
-      await adminPage.screenshot({ path: "design-preview/nocturne-muse-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-muse-" + previewSuffix + ".png");
       await savedMuse.getByRole("button", { name: "Archive draft", exact: true }).click();
       await expect.poll(async () => (await required(srv.from("muse_drafts").select("status").eq("id", museDraft.id), "Muse archive persisted"))[0].status).toBe("archived");
       await adminPage.reload();
@@ -489,7 +539,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(adminPage.getByRole("region", { name: "Connections", exact: true })).toContainText("Read check passed");
       await expect(adminPage.getByRole("region", { name: "Connections", exact: true })).toContainText("Not configured");
       await adminPage.evaluate(() => window.scrollTo(0,0));
-      await adminPage.screenshot({ path: "design-preview/nocturne-settings-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-settings-" + previewSuffix + ".png");
 
       // Radar: manual intake, scoring and proposal bookkeeping only. No outbound bid.
       const radarTitle = "Synthetic Radar Opportunity " + seed;
@@ -528,7 +578,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(proposalRow.getByLabel("Proposal text", { exact: true })).toHaveValue(proposalBody);
       await expect(adminPage.getByLabel("Bid stage", { exact: true })).toHaveValue("proposal");
       await adminPage.evaluate(() => window.scrollTo(0,0));
-      await adminPage.screenshot({ path: "design-preview/nocturne-opportunity-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-opportunity-" + previewSuffix + ".png");
       // Records an already-sent state; the action has no delivery call.
       await proposalRow.getByRole("button", { name: "Record as sent", exact: true }).click();
       await expect.poll(async () => (await required(srv.from("proposals").select("status").eq("id",proposalId).single(), "proposal state persisted")).status).toBe("sent");
@@ -541,7 +591,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(adminPage.getByRole("link", { name: "Open opportunity: " + radarTitle, exact: true })).toBeVisible();
       await expect(adminPage.getByRole("navigation", { name: "Bid stage filter" }).getByRole("link", { name: "Submitted", exact: true })).toHaveAttribute("aria-current", "page");
       await adminPage.evaluate(() => window.scrollTo(0,0));
-      await adminPage.screenshot({ path: "design-preview/nocturne-radar-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-radar-" + previewSuffix + ".png");
 
       // Read-state writes only: never run, enable or disable any automation.
       const registryBefore = await required(srv.from("automations").select("id,enabled,last_run_at,last_status").order("id"), "registry baseline");
@@ -564,16 +614,16 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(controls.getByRole("button", { name:"Run now", exact:true })).toBeVisible();
       await expect(controls.getByRole("button", { name:/Enable automation|Disable automation/ })).toBeVisible();
       await adminPage.evaluate(() => window.scrollTo(0,0));
-      await adminPage.screenshot({ path: "design-preview/nocturne-automations-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-automations-" + previewSuffix + ".png");
       expect(await required(srv.from("automations").select("id,enabled,last_run_at,last_status").order("id"), "registry unchanged")).toEqual(registryBefore);
       expect(await required(srv.from("automation_runs").select("id").order("id"), "runs unchanged")).toEqual(runsBefore);
 
       await adminPage.goto("/projects");
       await expect(adminPage.getByRole("heading", { name: /Every project,/ })).toBeVisible();
-      await adminPage.screenshot({ path: "design-preview/nocturne-admin-pipeline-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-admin-pipeline-" + previewSuffix + ".png");
       await adminPage.goto("/projects/" + projectA);
       await expect(adminPage.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();
-      await adminPage.screenshot({ path: "design-preview/nocturne-admin-project-" + previewSuffix + ".png", fullPage: true });
+      await capture(adminPage, "design-preview/nocturne-admin-project-" + previewSuffix + ".png");
       for (const [label, target] of [["Design & feedback", "workspace-collaboration"], ["Files & documents", "workspace-resources"], ["Conversation", "workspace-conversation"], ["Delivery", "workspace-delivery"]]) {
         await adminPage.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
         await expect(adminPage.locator("details#" + target)).toHaveAttribute("open", "");
@@ -585,6 +635,16 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     } finally {
       await adminContext.close();
     }
+
+    // Complete the client collection review with actual local project records.
+    for (const [kind, label] of [["messages", "Messages"], ["files", "Files"], ["approvals", "Approvals"], ["contracts", "Contracts"], ["forms", "Forms"]]) {
+      await page.goto("/portal/" + kind);
+      await expect(page.getByRole("heading", { name: label, exact: true })).toBeVisible();
+      await expect(page.getByRole("navigation", { name: "Breadcrumb", exact: true }).locator('[aria-current="page"]')).toHaveText(label);
+      await expect(page.getByText("Other client private approval", { exact: true })).toHaveCount(0);
+      await capture(page, "design-preview/atelier-" + kind + "-" + previewSuffix + ".png");
+    }
+    expect(hydrationWarnings, "No capture-induced or application hydration mismatch").toEqual([]);
 
     // Explicit sign-out affordance must invalidate the session, not just hide UI.
     const desktopSignOut = page.locator(".nhs-context-bar .nhs-sign-out");

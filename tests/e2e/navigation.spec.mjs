@@ -83,11 +83,11 @@ test("admin navigation loads each section (read-only)", async ({ page, isMobile 
     ["Project Pipeline", "/projects"],
     ["Client Management", "/clients"],
     ["Contracts", "/contracts"],
-    ["Master Templates", "/templates"],
+    ["Text templates", "/templates"],
     ["Fillable Forms", "/forms"],
     ["Muse", "/muse"],
     ["Automations", "/automations"],
-    ["System Settings", "/settings"],
+    ["Settings", "/settings"],
   ]) {
     await test.step(label, () => visitNav(page, isMobile, label, route));
   }

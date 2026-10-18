@@ -534,3 +534,41 @@ test("Automation workroom distinguishes availability, history and partial read f
     await expect(page.locator("#engine-history h3")).toBeInViewport();
   }
 });
+
+test("Shared navigation keeps workspace names, nested paperwork and return paths aligned", async ({ page }) => {
+  test.setTimeout(90000);
+  const cases = [
+    ["admin", "/", "Command Center", "/", []],
+    ["admin", "/leads/discover", "Lead Scanner", "/leads/discover", ["/"]],
+    ["admin", "/clients/synthetic-client", "Client workspace", "/clients", ["/", "/clients"]],
+    ["admin", "/leads/synthetic-lead", "Lead workspace", "/leads", ["/", "/leads"]],
+    ["admin", "/opportunities/synthetic-opportunity", "Opportunity workspace", "/opportunities", ["/", "/opportunities"]],
+    ["admin", "/projects/synthetic-project", "Project workspace", "/projects", ["/", "/projects"]],
+    ["admin", "/templates", "Text templates", "/templates", ["/"]],
+    ["admin", "/templates/synthetic-template", "Template workspace", "/templates", ["/", "/templates"]],
+    ["admin", "/forms/synthetic-form", "Form workspace", "/forms", ["/", "/forms"]],
+    ["admin", "/contracts/synthetic-contract", "Contract workspace", "/contracts", ["/", "/contracts"]],
+    ["admin", "/settings", "Settings", "/settings", ["/"]],
+    ["client", "/portal", "Home", "/portal", []],
+    ["client", "/portal/projects/synthetic-project", "Project workspace", "/portal/projects", ["/portal", "/portal/projects"]],
+    ["client", "/portal/messages", "Messages", "/portal/messages", ["/portal"]],
+    ["client", "/portal/files", "Files", "/portal/files", ["/portal"]],
+    ["client", "/portal/approvals", "Approvals", "/portal/approvals", ["/portal"]],
+    ["client", "/portal/documents", "Documents", "/portal/documents", ["/portal"]],
+    ["client", "/portal/contracts", "Contracts", "/portal/documents", ["/portal", "/portal/documents"]],
+    ["client", "/portal/forms", "Forms", "/portal/documents", ["/portal", "/portal/documents"]],
+  ];
+  for (const [role, path, current, active, returns] of cases) {
+    await show(page, role, "normal", "navigation", path);
+    await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
+    const crumbs = page.getByRole("navigation", { name: "Breadcrumb", exact: true });
+    await expect(crumbs.locator('[aria-current="page"]')).toHaveText(current);
+    expect(await crumbs.locator("a").evaluateAll(links => links.map(a => a.getAttribute("href")))).toEqual(returns);
+    await expect(page.locator('.nav-stack a[aria-current="page"]')).toHaveAttribute("href", active);
+    if (role === "client") await expect(page.locator('.nav-stack a[href="/leads"]')).toHaveCount(0);
+    for (const width of [1440, 860, 390, 320]) {
+      await page.setViewportSize({ width, height: 800 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${path} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+  }
+});

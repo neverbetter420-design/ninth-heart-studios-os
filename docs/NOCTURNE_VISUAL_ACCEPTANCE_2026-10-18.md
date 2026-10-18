@@ -1,5 +1,7 @@
 # Nocturne Atelier visual acceptance review
 
+**Historical review:** This note describes earlier design commits. Use [the final Nocturne design review](NOCTURNE_FINAL_REVIEW_2026-10-18.md) and current draft PR #14 evidence for the complete app. Later Command Center, pipeline, document and studio compositions supersede the earlier observations below.
+
 ## Admin composition follow-up
 
 Owner feedback: the initial admin visual changes looked the same. The earlier pass corrected defects while retaining the original dashboard composition. The follow-up replaces that composition on the Command Center route with a plum architectural masthead, integrated unboxed metrics, a warm ivory priority surface, an open project ledger, larger editorial headings, restrained cream/plum actions and lighter supporting disclosure chrome. Client pages and other admin routes retain their existing presentation. No data queries, authentication, permissions or server actions changed. The internal backend label on the project count now reads "Across your studio".
