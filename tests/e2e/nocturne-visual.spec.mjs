@@ -18,6 +18,62 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
+test("Lead Intelligence keeps capture, queue and error states usable at every width", async ({ page }) => {
+  for (const scenario of ["populated", "long", "empty", "error", "form-error"]) {
+    await show(page, "admin", scenario, "leads");
+    const capture = page.getByRole("region", { name: "Quick capture" });
+    const extras = capture.locator("details");
+    if (scenario === "form-error") await expect(extras).toHaveAttribute("open", "");
+    else await expect(extras).not.toHaveAttribute("open", "");
+    if (scenario !== "form-error") await extras.locator("summary").press("Enter");
+    await expect(capture.getByLabel("Business email")).toBeVisible();
+    await capture.getByLabel("Business email").fill("preview@example.invalid");
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${scenario} lead queue at ${width}px`).toBeLessThanOrEqual(width);
+      const button = capture.getByRole("button", { name: "Capture lead" });
+      await button.scrollIntoViewIfNeeded();
+      await button.focus();
+      expect(await button.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+      expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    }
+    if (scenario === "error") {
+      await expect(page.getByRole("alert")).toContainText("Lead data could not load");
+      await expect(page.getByText("No active leads.", { exact: true })).toHaveCount(0);
+      await expect(page.locator(".metric-card strong").first()).toHaveText("—");
+    }
+    if (scenario === "empty") await expect(page.getByText("No active leads.", { exact: true })).toBeVisible();
+    if (scenario === "populated") {
+      await expect(page.locator(".lead-open-link")).toHaveCount(3);
+      await expect(page.locator(".lead-open-link").first()).toHaveAttribute("href", "/leads/synthetic-lead-0");
+    }
+    await extras.locator("summary").press("Enter");
+    expect(await capture.locator("form").evaluate(el => new FormData(el).get("email"))).toBe("preview@example.invalid");
+  }
+});
+
+test("Lead conversation retains all outcomes, scheduling and deliberate conversion on mobile", async ({ page }) => {
+  for (const scenario of ["populated", "long", "normal"]) {
+    await show(page, "admin", scenario, "lead-detail");
+    await expect(page.locator(".quick-outcome-grid form")).toHaveCount(6);
+    const conversion = page.locator("details.lead-conversion");
+    await conversion.locator("summary").press("Enter");
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${scenario} lead detail at ${width}px`).toBeLessThanOrEqual(width);
+      for (const button of await page.locator(".nocturne-leads button").all()) {
+        await button.scrollIntoViewIfNeeded();
+        expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
+      }
+    }
+    await expect(page.getByLabel("Project name (optional)")).toBeVisible();
+    await expect(page.getByLabel("Pacific time")).toHaveAttribute("type", "datetime-local");
+    for (const id of await page.locator('input[name="lead_id"]').all()) await expect(id).toHaveValue("synthetic-lead-0");
+    expect(await contrast(page.locator(".lead-detail-list dt").first(), ".app-shell")).toBeGreaterThanOrEqual(4.5);
+    await expect(page.locator(".timeline-row")).toHaveCount(scenario === "populated" ? 3 : 0);
+  }
+});
+
 test("Atelier dark sidebar retains readable identity and sign out", async ({ page }) => {
   await show(page, "client");
   // Reveal the same drawer for a CSS check without simulating authentication.

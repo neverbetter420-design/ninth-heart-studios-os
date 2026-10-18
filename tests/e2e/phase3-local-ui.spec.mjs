@@ -3,7 +3,7 @@ import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
-// This suite deliberately performs approval and message writes. It is allowed
+// This suite deliberately performs portal and lead workflow writes. It is allowed
 // ONLY inside disposable CI local Supabase, never live NHS / remote Supabase.
 const apiURL = process.env.NHS_LOCAL_SUPABASE_URL;
 const adminKey = process.env.NHS_LOCAL_SUPABASE_ADMIN_KEY;
@@ -18,7 +18,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
   test.skip(!safe, "Real portal writes are permitted only against disposable CI localhost:54321.");
 
   test("client approval + change request + messages persist and remain private", async ({ page, browser, baseURL, isMobile }) => {
-    test.setTimeout(230000);
+    test.setTimeout(300000);
     const opts = { auth: { persistSession: false, autoRefreshToken: false } };
     const srv = createClient(apiURL, adminKey, opts);
     const seed = randomUUID();
@@ -240,6 +240,44 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.goto("/");
       await expect(adminPage.getByRole("heading", { name: "Your studio, in focus." })).toBeVisible();
       await adminPage.screenshot({ path: "design-preview/nocturne-admin-home-" + previewSuffix + ".png", fullPage: true });
+
+      // Exercise the redesigned lead forms against this disposable database.
+      const leadName = "Synthetic UI Lead " + seed;
+      await adminPage.goto("/leads#quick-capture");
+      const capture = adminPage.getByRole("region", { name: "Quick capture" });
+      await capture.getByLabel("Business name").fill(leadName);
+      await capture.locator("details > summary").click();
+      await capture.getByLabel("Business email").fill("synthetic-lead@example.invalid");
+      await capture.getByLabel("Opportunity score").fill("82");
+      await capture.getByRole("button", { name: "Capture lead", exact: true }).click();
+      await expect(adminPage.getByRole("heading", { name: leadName, exact: true })).toBeVisible();
+      const leadId = new URL(adminPage.url()).pathname.split("/").pop();
+      const capturedLead = (await required(srv.from("leads").select("business_name,email,score").eq("id", leadId), "captured lead"))[0];
+      expect(capturedLead).toMatchObject({ business_name: leadName, email: "synthetic-lead@example.invalid", score: 82 });
+      await adminPage.getByRole("button", { name: "Received Reply", exact: true }).click();
+      await expect(adminPage.getByRole("status")).toContainText("Lead activity logged.");
+      await expect.poll(async () => (await required(srv.from("leads").select("next_action_kind").eq("id", leadId), "reply priority"))[0].next_action_kind).toBe("reply");
+      await adminPage.getByLabel("Pacific time").fill("2099-04-12T10:00");
+      await adminPage.getByRole("button", { name: "Schedule consultation", exact: true }).click();
+      await expect.poll(async () => (await required(srv.from("leads").select("consultation_at").eq("id", leadId), "consultation persisted"))[0].consultation_at).toContain("2099-04-12");
+      await adminPage.reload();
+      await expect(adminPage.locator(".consultation-panel .micro-copy")).toContainText("2099");
+      await adminPage.screenshot({ path: "design-preview/nocturne-lead-detail-" + previewSuffix + ".png", fullPage: true });
+      await adminPage.goto("/leads");
+      await expect(adminPage.getByRole("link", { name: "Open lead: " + leadName, exact: true })).toBeVisible();
+      await adminPage.screenshot({ path: "design-preview/nocturne-leads-" + previewSuffix + ".png", fullPage: true });
+      await adminPage.getByRole("link", { name: "Open lead: " + leadName, exact: true }).click();
+      await adminPage.locator("details.lead-conversion > summary").click();
+      const convertedName = "Synthetic converted project " + seed;
+      await adminPage.getByLabel("Project name (optional)").fill(convertedName);
+      await adminPage.getByRole("button", { name: "Convert to project", exact: true }).click();
+      await expect(adminPage.getByRole("heading", { name: convertedName, exact: true })).toBeVisible();
+      const convertedId = new URL(adminPage.url()).pathname.split("/").pop();
+      const converted = (await required(srv.from("projects").select("status,client_id").eq("id", convertedId), "converted project persisted"))[0];
+      const linkedLead = (await required(srv.from("leads").select("client_id").eq("id", leadId), "lead client linked"))[0];
+      expect(converted.status).toBe("discovery");
+      expect(converted.client_id).toBe(linkedLead.client_id);
+
       await adminPage.goto("/projects");
       await expect(adminPage.getByRole("heading", { name: "Delivery without the scavenger hunt." })).toBeVisible();
       await adminPage.screenshot({ path: "design-preview/nocturne-admin-pipeline-" + previewSuffix + ".png", fullPage: true });

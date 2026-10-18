@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads"];
 export const previewCSS = styles.map((name) => readFileSync(resolve(root, `app/${name}.css`), "utf8"))
   .join("\n").replace('@import "tailwindcss";', "");
 
@@ -24,15 +24,16 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       { ...project, id: "synthetic-c", name: "Northline Editions", status: "discovery", progress: 18 },
     ] : [project],
     approvals: scenario === "empty" ? [] : [{ id: "synthetic-approval", title: scenario === "long" ? "UnbrokenApprovalTitle".repeat(8) : "Review the homepage design", project_id: project.id, status: "pending", requested_at: "2026-10-01T12:00:00Z" }],
-    leads: scenario === "populated" ? ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({
-      id: `synthetic-lead-${i}`, business_name: name, acquisition_type: "outbound",
+    leads: scenario === "populated" || (view.startsWith("lead") && scenario !== "empty") ? ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({
+      id: `synthetic-lead-${i}`, business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(9) : name, acquisition_type: "outbound",
       momentum_state: "Waiting on Me", status: "prospect", next_action_kind: "reply",
+      score: 82 - i * 12, email: scenario === "long" ? "longemail".repeat(12) + "@example.invalid" : "hello@example.invalid", contact_name: "Jamie Morgan", website: "https://example.invalid",
       created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
     })) : [], opportunities: [],
     activities: scenario === "populated" ? [
-      { id: "synthetic-event-1", summary: "Homepage concept shared with Cedar & Stone", created_at: new Date(Date.now() - 3600000).toISOString() },
-      { id: "synthetic-event-2", summary: "Mira Studio moved into development", created_at: new Date(Date.now() - 7200000).toISOString() },
-      { id: "synthetic-event-3", summary: "Northline Editions discovery notes updated", created_at: new Date(Date.now() - 86400000).toISOString() },
+      { id: "synthetic-event-1", event_type: "design_shared", summary: "Homepage concept shared with Cedar & Stone", created_at: new Date(Date.now() - 3600000).toISOString() },
+      { id: "synthetic-event-2", event_type: "project_updated", summary: "Mira Studio moved into development", created_at: new Date(Date.now() - 7200000).toISOString() },
+      { id: "synthetic-event-3", event_type: "notes_updated", summary: "Northline Editions discovery notes updated", created_at: new Date(Date.now() - 86400000).toISOString() },
     ] : [],
     tasks: [], milestones: [], launch_items: [], messages: [], documents: [],
     revision_rounds: [], change_orders: [], contracts: [], form_submissions: [], form_templates: [], templates: [],
@@ -40,13 +41,13 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
   };
   const supabase = { storage: { from: () => ({ createSignedUrl: async () => ({ data: { signedUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=" } }) }) }, from(table) {
     if (!(table in rows)) throw new Error(`Unexpected preview table: ${table}`);
-    const result = { data: rows[table], count: rows[table].length, error: scenario === "error" && table === "projects" ? { message: "Synthetic read failure" } : null };
+    const result = { data: rows[table], count: rows[table].length, error: scenario === "error" && (table === "projects" || table === "leads") ? { message: "Synthetic read failure" } : null };
     const chain = { then: (ok, fail) => Promise.resolve(result).then(ok, fail) };
     for (const method of ["select", "eq", "neq", "not", "order", "limit", "in"]) chain[method] = () => chain;
     chain.maybeSingle = () => { result.data = rows[table][0] ?? null; return chain; };
     return chain;
   } };
-  const path = view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
+  const path = view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -78,10 +79,12 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     return module.exports;
   }
   const { AppShell } = load(resolve(root, "components/AppShell.tsx"));
-  const Page = view === "project"
+  const Page = view.startsWith("lead")
+    ? load(resolve(root, view === "leads" ? "app/(protected)/(admin)/leads/page.tsx" : "app/(protected)/(admin)/leads/[leadId]/page.tsx")).default
+    : view === "project"
     ? load(resolve(root, role === "admin" ? "app/(protected)/(admin)/projects/[projectId]/page.tsx" : "app/(protected)/portal/projects/[projectId]/page.tsx")).default
     : role === "admin" ? load(resolve(root, "components/Dashboard.tsx")).Dashboard : load(resolve(root, "app/(protected)/portal/page.tsx")).default;
-  const content = renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id }), searchParams: Promise.resolve({ section }) }));
+  const content = renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id, leadId: "synthetic-lead-0" }), searchParams: Promise.resolve({ section, error: scenario === "form-error" ? "Check the website URL and try again." : undefined }) }));
   const user = { name: "Synthetic Review Owner", email: "visual-review@example.invalid" };
   const html = renderToStaticMarkup(React.createElement(AppShell, { role, user }, React.createElement("div", { "data-preview-content": true, dangerouslySetInnerHTML: { __html: content } })));
   return { html, content, role, user, path };

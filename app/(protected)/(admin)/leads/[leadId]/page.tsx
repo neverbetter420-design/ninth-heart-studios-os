@@ -39,119 +39,127 @@ export default async function LeadDetailPage({
   const websiteHref = lead.website && /^https?:\/\//i.test(lead.website) ? lead.website : null;
 
   return (
-    <div className="content-wrap">
+    <div className="content-wrap nocturne-leads nocturne-lead-workspace">
       <div className="lead-detail-backline">
         <Link href="/leads" className="text-button">← Lead Intelligence</Link>
       </div>
 
-      <header className="page-header lead-detail-header">
+      <header className="page-header lead-editorial-heading lead-detail-header">
         <div>
           <p className="eyebrow electric">{lead.acquisition_type} lead</p>
           <h2>{lead.business_name}</h2>
-          <p className="page-description">
-            {lead.contact_name || "No contact name yet"} · {lead.momentum_state}
-          </p>
+          <p className="page-description">{lead.contact_name || "No contact name yet"} · {lead.momentum_state}</p>
         </div>
         <div className="lead-score-card">
           <span>Opportunity score</span>
-          <strong>{lead.score ?? "—"}</strong>
+          <strong>{lead.score ?? "—"}<small> / 100</small></strong>
         </div>
-        <form action={convertLeadToProject} className="delivery-add-form" style={{ marginTop: 10 }}>
-          <input type="hidden" name="lead_id" value={lead.id} />
-          <input type="text" name="project_name" placeholder="Project name (optional)…" maxLength={160} />
-          <PortalSubmitButton pendingLabel="Converting…">Convert to project</PortalSubmitButton>
-        </form>
       </header>
 
-      {formError ? <div className="lead-form-error detail-error">{formError}</div> : null}
+      {formError ? <div className="lead-form-error detail-error" role="alert">{formError}</div> : null}
 
-      <section className="lead-clock-grid">
-        <article className="panel clock-card">
+      <section className="lead-clock-grid" aria-label="Lead momentum">
+        <article className="clock-card">
           <span>Next action</span>
           <strong>{ranked?.actionTitle ?? "No action"}</strong>
           <small>{ranked?.actionMeta ?? "Lead is closed"}</small>
         </article>
-        <article className={`panel clock-card sla-${sla.status}`}>
+        <article className={`clock-card sla-${sla.status}`}>
           <span>Inbound SLA</span>
           <strong>{sla.applicable ? sla.label : "Not applicable"}</strong>
           <small>{sla.dueAt ? formatPacificDateTime(new Date(sla.dueAt)) : "Outbound lead"}</small>
         </article>
-        <article className="panel clock-card">
-          <span>Real momentum</span>
+        <article className="clock-card">
+          <span>Time since activity</span>
           <strong>{momentumElapsed}</strong>
           <small>Since the last logged activity</small>
         </article>
       </section>
 
-      <section className="lead-detail-grid">
-        <article className="panel detail-panel lead-contact-panel">
-          <div className="panel-heading compact-heading">
-            <div>
-              <p className="eyebrow">Contact</p>
-              <h3>Lead details</h3>
-            </div>
-          </div>
-          <dl className="lead-detail-list">
-            <div><dt>Email</dt><dd>{lead.email ?? "Not found yet"}</dd></div>
-            <div><dt>Phone</dt><dd>{lead.phone ?? "Not found yet"}</dd></div>
-            <div><dt>Website</dt><dd>{websiteHref ? <a href={websiteHref} target="_blank" rel="noreferrer">Open site ↗</a> : lead.website ? "Invalid URL" : "Not added"}</dd></div>
-            <div><dt>Status</dt><dd>{lead.status}</dd></div>
-            <div><dt>Last outcome</dt><dd>{lead.last_outcome ?? "None yet"}</dd></div>
-          </dl>
-        </article>
-
-        <article className="panel detail-panel quick-log-panel">
-          <div className="panel-heading compact-heading">
-            <div>
-              <p className="eyebrow electric">Quick log</p>
-              <h3>What just happened?</h3>
-            </div>
-          </div>
-          <div className="detail-panel-body">
-            <QuickOutcomeButtons leadId={lead.id} />
-            <p className="micro-copy">Received Reply jumps to priority one immediately. No committee meeting required.</p>
-          </div>
-        </article>
-
-        <article className="panel detail-panel consultation-panel">
-          <div className="panel-heading compact-heading">
-            <div>
-              <p className="eyebrow">Consultation</p>
-              <h3>Schedule prep</h3>
-            </div>
-          </div>
-          <form action={scheduleConsultation} className="consultation-form">
-            <input type="hidden" name="lead_id" value={lead.id} />
-            <label className="field">
-              <span>Pacific time</span>
-              <input name="consultation_at" type="datetime-local" required />
-            </label>
-            <PortalSubmitButton className="secondary-button wide" pendingLabel="Scheduling…">Schedule consultation</PortalSubmitButton>
-          </form>
-          {lead.consultation_at ? <p className="micro-copy">Current: {formatPacificDateTime(new Date(lead.consultation_at))}</p> : null}
-        </article>
-      </section>
-
-      <section className="panel lead-activity-panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">History</p>
-            <h3>Momentum timeline</h3>
-          </div>
-        </div>
-        <div className="lead-timeline">
-          {(activities ?? []).length ? (activities ?? []).map((item) => (
-            <div className="timeline-row" key={item.id}>
-              <span className="activity-dot" />
+      <div className="lead-detail-grid">
+        <div className="lead-conversation-column">
+          <section className="quick-log-panel" aria-labelledby="lead-quick-log-title">
+            <div className="panel-heading">
               <div>
-                <strong>{item.summary}</strong>
-                <small>{item.event_type}</small>
+                <p className="eyebrow electric">Keep it moving</p>
+                <h3 id="lead-quick-log-title">Log the conversation</h3>
               </div>
-              <time>{formatPacificDateTime(new Date(item.created_at))}</time>
             </div>
-          )) : <p className="muted-copy timeline-empty">No activity logged yet.</p>}
+            <QuickOutcomeButtons leadId={lead.id} />
+            <p className="micro-copy">Received Reply moves this lead to the top of your queue.</p>
+          </section>
+
+          <section className="lead-activity-panel" aria-labelledby="lead-history-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">The conversation so far</p>
+                <h3 id="lead-history-title">Momentum timeline</h3>
+              </div>
+            </div>
+            <div className="lead-timeline">
+              {(activities ?? []).length ? (activities ?? []).map((item) => (
+                <div className="timeline-row" key={item.id}>
+                  <span className="activity-dot" />
+                  <div>
+                    <strong>{item.summary}</strong>
+                    <small>{item.event_type.replaceAll("_", " ")}</small>
+                  </div>
+                  <time dateTime={item.created_at}>{formatPacificDateTime(new Date(item.created_at))}</time>
+                </div>
+              )) : <p className="muted-copy timeline-empty">No activity logged yet. Log a conversation to begin the timeline.</p>}
+            </div>
+          </section>
         </div>
-      </section>
+
+        <aside className="lead-context-column" aria-label="Lead details and planning">
+          <section className="lead-contact-panel" aria-labelledby="lead-contact-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">The connection</p>
+                <h3 id="lead-contact-title">Lead details</h3>
+              </div>
+            </div>
+            <dl className="lead-detail-list">
+              <div><dt>Email</dt><dd>{lead.email ?? "Not found yet"}</dd></div>
+              <div><dt>Phone</dt><dd>{lead.phone ?? "Not found yet"}</dd></div>
+              <div><dt>Website</dt><dd>{websiteHref ? <a href={websiteHref} target="_blank" rel="noreferrer">Open site ↗</a> : lead.website ? "Invalid URL" : "Not added"}</dd></div>
+              <div><dt>Status</dt><dd>{lead.status}</dd></div>
+              <div><dt>Last outcome</dt><dd>{lead.last_outcome ?? "None yet"}</dd></div>
+            </dl>
+          </section>
+
+          <section className="consultation-panel" aria-labelledby="lead-consultation-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">Make time</p>
+                <h3 id="lead-consultation-title">Consultation</h3>
+              </div>
+            </div>
+            <form action={scheduleConsultation} className="consultation-form">
+              <input type="hidden" name="lead_id" value={lead.id} />
+              <label className="field">
+                <span>Pacific time</span>
+                <input name="consultation_at" type="datetime-local" required />
+              </label>
+              <PortalSubmitButton className="secondary-button wide" pendingLabel="Scheduling…">Schedule consultation</PortalSubmitButton>
+            </form>
+            {lead.consultation_at ? <p className="micro-copy">Current: {formatPacificDateTime(new Date(lead.consultation_at))}</p> : null}
+          </section>
+
+          <details className="lead-conversion">
+            <summary><span>Ready for a project?</span><span aria-hidden="true">+</span></summary>
+            <p>Create a client and a project in Discovery, or use the client already linked to this lead.</p>
+            <form action={convertLeadToProject} className="lead-conversion-form">
+              <input type="hidden" name="lead_id" value={lead.id} />
+              <label className="field">
+                <span>Project name (optional)</span>
+                <input type="text" name="project_name" placeholder="Project name" maxLength={160} />
+              </label>
+              <PortalSubmitButton className="primary-button" pendingLabel="Converting…">Convert to project</PortalSubmitButton>
+            </form>
+          </details>
+        </aside>
+      </div>
     </div>
   );
 }

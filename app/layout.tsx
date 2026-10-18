@@ -11,6 +11,7 @@ import "./nocturne.css";
 import "./nocturne-phase3.css";
 import "./nocturne-command.css";
 import "./atelier-studio.css";
+import "./nocturne-leads.css";
 
 const headingFont = Cinzel({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-cinzel", display: "swap" });
 const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
