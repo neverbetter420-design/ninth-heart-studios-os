@@ -91,7 +91,7 @@ for (const key of ["clientA", "clientB"]) {
     test.skip(!authReady(user), "Configure E2E_" + key.toUpperCase() + "_EMAIL/PASSWORD GitHub Actions secrets");
     await signIn(page, user);
     for (const [label, route] of [
-      ["Overview", "/portal"],
+      ["Home", "/portal"],
       ["My Projects", "/portal/projects"],
       ["Messages", "/portal/messages"],
       ["Files", "/portal/files"],
