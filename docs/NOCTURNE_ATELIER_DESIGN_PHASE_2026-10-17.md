@@ -64,6 +64,18 @@ The following source changes are committed on the draft branch and **not deploye
 
 **Review criteria:** verify visual composition, responsive line lengths, action discoverability, contrast, clean navigation, and the fact that the project and resource lists are visibly less cluttered. A passed screenshot-generation job does not substitute for human visual approval of the screenshots.
 
+## Phase 3 follow-through — cohesive client collections and lighter admin forms
+
+- The **Client Projects** route no longer stacks heavy project cards: it presents an editorial project list with clear progress and workspace links.
+- The shared **PortalResourcePage** component now groups Messages, Files, Approvals, Contracts and Forms by entitled project, using spacious rows instead of repeating the same boxed presentation.
+- Both changes retain the existing user-scoped Supabase queries, deep-link resolution, and client role gate.
+- Admin **New Client** and **New Project** forms are native expandable controls. They stay collapsed by default, and are automatically expanded when a creation error is present. Actions/validation unchanged.
+- `app/nocturne-phase3.css` contains responsive client collection and admin creation styles, loaded after the existing Nocturne design.
+- The isolated-local Playwright visual suite now captures **Admin Home, Admin Project Pipeline, Admin Project Workspace, Client Home, Client Projects and Client Documents**, each for desktop and mobile with **synthetic** credentials and records. Successful job publishes twelve PNG screenshots in the short-lived private GitHub Actions artifact `nhs-nocturne-atelier-visual-review`. These screenshots are visual review inputs, not automatic approval.
+- Neither private production Storage objects nor live customer records are exported to the screenshot artifact.
+
+**Review/ship gate:** Owner must inspect the synthetic previews and test revised navigation on a staged app build. Continue withholding the pending security migration, live deployment, and PR merge until the verified backup and distinct production approvals are in place.
+
 ## Functional and visual acceptance
 
 1. **Admin desktop/mobile:** sign out accessible from account controls; after sign out, protected routes require reauthentication; sidebar still navigates all admin tools.
