@@ -161,7 +161,11 @@ export default async function FormDetailPage({
                 <div className="paperwork-form-grid">
                   <label className="field">
                     <span>Field type</span>
-                    <select name="type" defaultValue="text">
+                    <select
+                      aria-label="Field type"
+                      name="type"
+                      defaultValue="text"
+                    >
                       <option value="text">Short text</option>
                       <option value="textarea">Long text</option>
                       <option value="number">Number</option>
@@ -235,7 +239,11 @@ export default async function FormDetailPage({
                 </label>
                 <label className="field">
                   <span>Category</span>
-                  <select name="category" defaultValue={template.category}>
+                  <select
+                    aria-label="Category"
+                    name="category"
+                    defaultValue={template.category}
+                  >
                     <option value="contract">Contract</option>
                     <option value="document">Document</option>
                     <option value="invoice">Invoice</option>
@@ -340,7 +348,12 @@ export default async function FormDetailPage({
               <fieldset className="paperwork-fieldset" disabled={cannotSend}>
                 <label className="field">
                   <span>Project</span>
-                  <select name="project_id" required defaultValue="">
+                  <select
+                    aria-label="Project"
+                    name="project_id"
+                    required
+                    defaultValue=""
+                  >
                     <option value="" disabled>
                       Choose a project
                     </option>

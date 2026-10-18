@@ -106,7 +106,12 @@ export default async function ContractDetailPage({
                       />
                       <label className="field">
                         <span>Contract text template</span>
-                        <select name="template_id" required defaultValue="">
+                        <select
+                          aria-label="Contract text template"
+                          name="template_id"
+                          required
+                          defaultValue=""
+                        >
                           <option value="" disabled>
                             Choose a template
                           </option>
@@ -139,6 +144,7 @@ export default async function ContractDetailPage({
                   <label className="field">
                     <span>Terms</span>
                     <textarea
+                      aria-label="Terms"
                       name="body"
                       className="paperwork-body-editor"
                       defaultValue={contract.body}
@@ -233,9 +239,15 @@ export default async function ContractDetailPage({
             <section aria-label="Send contract">
               <DocumentSectionHeading title="Ready for signature?" />
               <p>
-                Save the final terms first. Sending locks the draft and makes it
-                available for signature in the app.
+                Save the final terms first. Sending locks the draft. Clients
+                sign through their project portal.
               </p>
+              {!contract.project_id ? (
+                <p className="management-help">
+                  This agreement is linked to an opportunity. Client signing
+                  requires a project with portal access.
+                </p>
+              ) : null}
               <form action={sendContract}>
                 <input type="hidden" name="contract_id" value={contract.id} />
                 <PortalSubmitButton pendingLabel="Sending agreement…">

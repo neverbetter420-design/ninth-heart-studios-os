@@ -88,7 +88,11 @@ export default async function TemplatesPage({
             </label>
             <label className="field">
               <span>Category</span>
-              <select name="category" defaultValue="contract">
+              <select
+                aria-label="Category"
+                name="category"
+                defaultValue="contract"
+              >
                 <option value="contract">Contract</option>
                 <option value="document">Document</option>
               </select>
@@ -97,6 +101,7 @@ export default async function TemplatesPage({
           <label className="field">
             <span>Reusable text</span>
             <textarea
+              aria-label="Reusable text"
               name="body"
               className="paperwork-short-editor"
               placeholder="Scope, welcome notes or a handoff checklist…"

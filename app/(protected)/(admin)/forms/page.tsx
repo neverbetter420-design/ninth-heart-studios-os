@@ -116,7 +116,11 @@ export default async function FormsPage({
             </label>
             <label className="field">
               <span>Category</span>
-              <select name="category" defaultValue="contract">
+              <select
+                aria-label="Category"
+                name="category"
+                defaultValue="contract"
+              >
                 <option value="contract">Contract</option>
                 <option value="document">Document</option>
                 <option value="invoice">Invoice</option>
@@ -147,7 +151,11 @@ export default async function FormsPage({
             </label>
             <label className="field">
               <span>Category</span>
-              <select name="category" defaultValue="contract">
+              <select
+                aria-label="Category"
+                name="category"
+                defaultValue="contract"
+              >
                 <option value="contract">Contract</option>
                 <option value="document">Document</option>
                 <option value="invoice">Invoice</option>

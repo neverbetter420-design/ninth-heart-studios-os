@@ -33,6 +33,8 @@ test("Document directories keep creation, archives, filters and errors readable"
         else { await expect(create).not.toHaveAttribute("open", ""); await create.locator("summary").press("Enter"); }
         for (const input of await create.locator("input:not([type=hidden]), select, textarea").all()) {
           expect(await input.evaluate(el => !!el.labels?.length), `${view} has a visible field label`).toBe(true);
+          const label = await input.evaluate(el => el.labels[0].querySelector("span").textContent.trim());
+          await expect(input).toHaveAccessibleName(label);
         }
       }
       for (const width of [1440, 1024, 860, 620, 390, 320]) {
@@ -60,24 +62,28 @@ test("Document directories keep creation, archives, filters and errors readable"
 });
 
 test("Contract workspaces keep sent terms locked and signature evidence legible", async ({ page }) => {
-  for (const scenario of ["normal", "long", "sent", "signed", "voided", "template-choices-error"]) {
+  for (const scenario of ["normal", "long", "sent", "signed", "voided", "template-choices-error", "opportunity"]) {
     await show(page, "admin", scenario, "contract-detail");
     for (const details of await page.locator(".paperwork-page details").all()) await details.locator("summary").press("Enter");
     for (const width of [1440, 1024, 860, 620, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `contract ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
     }
-    const editable = ["normal", "long", "template-choices-error"].includes(scenario);
+    const editable = ["normal", "long", "template-choices-error", "opportunity"].includes(scenario);
     await expect(page.getByRole("button", { name: "Save draft", exact: true })).toHaveCount(editable ? 1 : 0);
     await expect(page.getByRole("button", { name: "Send for signature", exact: true })).toHaveCount(editable ? 1 : 0);
     await expect(page.locator('textarea[name="body"]')).toHaveCount(editable ? 1 : 0);
+    if (editable) await expect(page.getByLabel("Terms", { exact: true })).toBeVisible();
     if (scenario === "signed") {
       await expect(page.getByRole("region", { name: "Signature audit" })).toContainText("Jamie Morgan");
       await expect(page.locator("#contract-signature code")).toHaveText("a".repeat(64));
       await expect(page.locator(".paperwork-controls")).toHaveCount(0);
     }
     if (scenario === "template-choices-error") await expect(page.getByRole("alert")).toContainText("Text templates could not load");
-    await expect(page.getByRole("link", { name: "Open project" })).toHaveAttribute("href", "/projects/synthetic-a?section=documents#workspace-resources");
+    if (scenario === "opportunity") {
+      await expect(page.getByRole("link", { name: "Open project" })).toHaveCount(0);
+      await expect(page.getByRole("region", { name: "Send contract" })).toContainText("Client signing requires a project with portal access");
+    } else await expect(page.getByRole("link", { name: "Open project" })).toHaveAttribute("href", "/projects/synthetic-a?section=documents#workspace-resources");
   }
 });
 
@@ -97,8 +103,8 @@ test("Form and text editors keep inactive sending, field controls and private re
         const disabled = ["archived", "imported", "source-error", "projects-error", "quiet"].includes(scenario);
         if (disabled) await expect(send.getByRole("button", { name: "Send form", exact: true })).toBeDisabled();
         else await expect(send.getByRole("button", { name: "Send form", exact: true })).toBeEnabled();
-        await expect(page.getByLabel("Field type")).toHaveValue("text");
-        await expect(page.getByLabel("Field type").locator("option")).toHaveCount(8);
+        await expect(page.getByLabel("Field type", { exact: true })).toHaveValue("text");
+        await expect(page.getByLabel("Field type", { exact: true }).locator("option")).toHaveCount(8);
         await expect(page.locator('input[name="template_id"]')).not.toHaveCount(0);
         if (scenario === "imported") {
           await expect(page.getByRole("link", { name: /Brand reference.pdf/ })).toHaveAttribute("target", "_blank");
@@ -111,7 +117,7 @@ test("Form and text editors keep inactive sending, field controls and private re
         await expect(page.locator("#form-fields h3")).toBeInViewport();
       } else {
         await expect(page.getByRole("button", { name: scenario === "archived" ? "Restore template" : "Archive template", exact: true })).toBeVisible();
-        await expect(page.getByLabel("Reusable text")).toHaveValue(/Project scope|UnbrokenTemplateBody/);
+        await expect(page.getByLabel("Reusable text", { exact: true })).toHaveValue(/Project scope|UnbrokenTemplateBody/);
       }
     }
   }

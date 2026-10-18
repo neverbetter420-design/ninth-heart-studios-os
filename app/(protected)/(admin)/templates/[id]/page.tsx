@@ -68,7 +68,11 @@ export default async function TemplateDetailPage({
               </label>
               <label className="field">
                 <span>Category</span>
-                <select name="category" defaultValue={template.category}>
+                <select
+                  aria-label="Category"
+                  name="category"
+                  defaultValue={template.category}
+                >
                   <option value="contract">Contract</option>
                   <option value="document">Document</option>
                 </select>
@@ -77,6 +81,7 @@ export default async function TemplateDetailPage({
             <label className="field">
               <span>Reusable text</span>
               <textarea
+                aria-label="Reusable text"
                 name="body"
                 className="paperwork-body-editor"
                 defaultValue={templateBody(template.content)}

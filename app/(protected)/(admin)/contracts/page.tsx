@@ -110,13 +110,15 @@ export default async function ContractsPage({
               />
             </label>
             <p className="management-help">
-              Choose a project or opportunity for this agreement. Sending makes
-              it available in the app; it does not send an email.
+              Choose a project or opportunity for this agreement. Clients sign
+              through a project with portal access. Sending does not send an
+              email.
             </p>
             <div className="paperwork-form-grid">
               <label className="field">
                 <span>Project</span>
                 <select
+                  aria-label="Project"
                   name="project_id"
                   defaultValue=""
                   disabled={Boolean(projects.error)}
@@ -132,6 +134,7 @@ export default async function ContractsPage({
               <label className="field">
                 <span>Opportunity</span>
                 <select
+                  aria-label="Opportunity"
                   name="opportunity_id"
                   defaultValue=""
                   disabled={Boolean(opportunities.error)}
@@ -148,6 +151,7 @@ export default async function ContractsPage({
             <label className="field">
               <span>Text template (optional)</span>
               <select
+                aria-label="Text template (optional)"
                 name="template_id"
                 defaultValue=""
                 disabled={Boolean(templates.error)}
