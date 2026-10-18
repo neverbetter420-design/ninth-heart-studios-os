@@ -175,8 +175,8 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     } else {
       await page.locator(".mobile-topbar .nhs-mobile-sign-out").click();
     }
-    await expect(page).toHaveURL(/\\/auth\\/sign-in/, { timeout: 15000 });
+    await expect(page).toHaveURL(new RegExp("/auth/sign-in"), { timeout: 15000 });
     await page.goto("/portal");
-    await expect(page).toHaveURL(/\\/auth\\/sign-in/);
+    await expect(page).toHaveURL(new RegExp("/auth/sign-in"));
   });
 });
