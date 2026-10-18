@@ -15,7 +15,7 @@ The redesigned studio is ready for an owner visual review in draft PR #14. This 
 
 ## Consistency corrections
 
-Menu selection and breadcrumbs now use one role-scoped route context. Client Contracts and Forms stay under Documents, show their own names and provide a working Documents return link. Project, client, lead and document detail breadcrumbs use “workspace” consistently. Text templates and Settings use matching menu/breadcrumb names. A single form field now reads “1 field.” No routes, permission rules or business action implementations changed in this pass.
+Menu selection and breadcrumbs now use one role-scoped route context. Client Contracts and Forms stay under Documents, show their own names and provide a working Documents return link. Project, client, lead and document detail breadcrumbs use “workspace” consistently. Text templates and Settings use matching menu/breadcrumb names. A single form field now reads “1 field.” Lead Scanner now shares the editorial header, open scan controls and ruled prospect list; missing-website priority remains 10 and listed/linked social verification is unchanged. Scanner read failures show an unavailable count rather than an empty queue. No routes, permission rules or business action implementations changed in this pass.
 
 The final authenticated walkthrough visits all twelve admin and six client menu destinations by clicking the real navigation. It checks the two nested client paperwork destinations and return links on desktop/mobile. Captures start at scroll position zero and preserve input caret attributes, avoiding screenshot-induced hydration warnings. A console check fails the walkthrough if a hydration mismatch occurs. This is an actual rendering check, not suppression of React warnings.
 

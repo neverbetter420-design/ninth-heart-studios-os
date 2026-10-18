@@ -272,16 +272,31 @@ test("Pipeline keeps real phases, bounded progress and move controls in view", a
 
 test("Scanner lowers old missing-website scores and exposes honest social verification", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  for (const scenario of ["normal", "long"]) {
+  for (const scenario of ["normal", "long", "empty", "error"]) {
     await show(page, "admin", scenario, "scanner");
     const prospects = page.locator("article.prospect-card");
-    await expect(prospects.first()).toContainText("Mira Studio");
-    await expect(prospects.nth(1).locator(".score")).toHaveText("10");
-    await expect(prospects.nth(1)).toContainText("Needs verification");
-    await expect(prospects.nth(1)).toContainText("Website unconfirmed · low priority");
-    await expect(prospects.nth(1).getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
-    await expect(prospects.nth(1).getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
-    await expect(prospects.nth(1).getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
+    if (["normal", "long"].includes(scenario)) {
+      await expect(prospects.first()).toContainText("Mira Studio");
+      await expect(prospects.nth(1).locator(".score")).toHaveText("10");
+      await expect(prospects.nth(1)).toContainText("Needs verification");
+      await expect(prospects.nth(1)).toContainText("Website unconfirmed · low priority");
+      await expect(prospects.nth(1).getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
+      await expect(prospects.nth(1).getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
+      await expect(prospects.nth(1).getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
+    } else {
+      await expect(prospects).toHaveCount(0);
+      if (scenario === "error") {
+        await expect(page.getByRole("alert")).toContainText("Prospects could not load");
+        await expect(page.locator(".section-head .count")).toHaveText("—");
+        await expect(page.getByText(/No prospects yet/)).toHaveCount(0);
+      }
+    }
+    await expect(page.getByRole("heading", { name: "Better leads. A closer look." })).toBeVisible();
+    const scan = page.getByRole("button", { name: "Scan", exact: true });
+    await scan.focus();
+    expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage)).toBe("none");
+    expect(await page.getByRole("region", { name: "Run a scan" }).evaluate(el => getComputedStyle(el).borderRadius)).toBe("0px");
     for (const width of [1440, 1024, 620, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `scanner ${scenario} at ${width}px`).toBeLessThanOrEqual(width);

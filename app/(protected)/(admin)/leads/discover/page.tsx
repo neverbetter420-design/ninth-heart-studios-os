@@ -1,7 +1,14 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
-import { NICHES, signalBadges, scoreSignals, normalizeSocialProfile, type WebsiteSignals } from "@/lib/prospect-scan";
+import {
+  NICHES,
+  signalBadges,
+  scoreSignals,
+  normalizeSocialProfile,
+  type WebsiteSignals,
+} from "@/lib/prospect-scan";
 import {
   runScan,
   analyzeProspect,
@@ -44,37 +51,52 @@ export default async function DiscoverPage({
   let query = supabase
     .from("prospects")
     .select(
-      "id, business_name, category, address, phone, website, signals, opportunity_score, outreach_draft, outreach_status, status, scanned_at"
+      "id, business_name, category, address, phone, website, signals, opportunity_score, outreach_draft, outreach_status, status, scanned_at",
     )
     .order("opportunity_score", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(60);
-  query = show === "archived" ? query.eq("status", "archived") : query.neq("status", "archived");
-  const { data } = await query;
+  query =
+    show === "archived"
+      ? query.eq("status", "archived")
+      : query.neq("status", "archived");
+  const { data, error: readError } = await query;
 
   // Old saved scans adopt the lower no-website score without a database backfill.
-  const prospects = ((data ?? []) as Prospect[]).map(p => ({
-    ...p, opportunity_score: typeof p.signals?.has_website === "boolean" ? scoreSignals(p.signals) : p.opportunity_score,
-  })).sort((a, b) => (b.opportunity_score ?? -1) - (a.opportunity_score ?? -1));
+  const prospects = ((readError ? [] : (data ?? [])) as Prospect[])
+    .map((p) => ({
+      ...p,
+      opportunity_score:
+        typeof p.signals?.has_website === "boolean"
+          ? scoreSignals(p.signals)
+          : p.opportunity_score,
+    }))
+    .sort((a, b) => (b.opportunity_score ?? -1) - (a.opportunity_score ?? -1));
   const showArchived = show === "archived";
 
   return (
-    <div className="content-wrap scanner-page">
-      <header className="page-header">
+    <div className="content-wrap management-page scanner-page scanner-workroom">
+      <header className="page-header management-heading">
         <div>
-          <p className="eyebrow electric">Lead Scanner</p>
-          <h2>Find them. Read their site. Reach out.</h2>
+          <p className="eyebrow">Lead Scanner · Local intelligence</p>
+          <h2>
+            Better leads.
+            <br />
+            <em>A closer look.</em>
+          </h2>
           <p className="page-description">
-            Discovers local businesses by type and area, analyzes their websites for
-            redesign signals, checks listed Instagram/Facebook profiles, and drafts your outreach. Free data,
-            no API keys, nothing sent without you.
+            Discover local businesses, review website signals and check listed
+            Instagram or Facebook profiles before drafting your first approach.
           </p>
         </div>
+        <Link href="/leads" className="management-text-link">
+          Lead Intelligence <span aria-hidden="true">↗</span>
+        </Link>
       </header>
 
-      {msg && <p className="notice">{decodeURIComponent(msg)}</p>}
+      {msg && <p className="notice">{msg}</p>}
 
-      <section className="card" aria-label="Run a scan">
+      <section className="card scanner-controls" aria-label="Run a scan">
         <h3>Run a scan</h3>
         <form action={runScan} className="form-grid">
           <label>
@@ -93,23 +115,29 @@ export default async function DiscoverPage({
           <fieldset>
             <legend>Business types</legend>
             <div className="check-grid">
-              {(Object.keys(NICHES) as Array<keyof typeof NICHES>).map((key) => (
-                <label key={key} className="check">
-                  <input
-                    type="checkbox"
-                    name="niches"
-                    value={key}
-                    defaultChecked={["restaurants", "bars", "salons"].includes(key)}
-                  />
-                  {NICHES[key].label}
-                </label>
-              ))}
+              {(Object.keys(NICHES) as Array<keyof typeof NICHES>).map(
+                (key) => (
+                  <label key={key} className="check">
+                    <input
+                      type="checkbox"
+                      name="niches"
+                      value={key}
+                      defaultChecked={[
+                        "restaurants",
+                        "bars",
+                        "salons",
+                      ].includes(key)}
+                    />
+                    {NICHES[key].label}
+                  </label>
+                ),
+              )}
             </div>
           </fieldset>
           <ScannerSubmitButton />
           <p className="form-hint">
-            Up to 12 businesses per scan. Missing websites stay low priority while social profiles are checked.
-            Business data © OpenStreetMap
+            Up to 12 businesses per scan. Missing websites stay low priority
+            while social profiles are checked. Business data © OpenStreetMap
             contributors (ODbL). Be nice — scans are on-demand, not continuous.
           </p>
         </form>
@@ -118,20 +146,32 @@ export default async function DiscoverPage({
       <section aria-label="Prospects">
         <div className="section-head">
           <h3>
-            Prospects <span className="count">{prospects.length}</span>
+            Prospects{" "}
+            <span className="count">{readError ? "—" : prospects.length}</span>
           </h3>
           <a
             className="mini-button"
-            href={showArchived ? "/leads/discover" : "/leads/discover?show=archived"}
+            href={
+              showArchived ? "/leads/discover" : "/leads/discover?show=archived"
+            }
           >
             {showArchived ? "Hide archived" : "Show archived"}
           </a>
         </div>
 
-        {prospects.length === 0 && (
+        <p className="management-help">
+          Up to 60 saved prospects. Current scores are ranked within this view.
+        </p>
+        {readError ? (
+          <p className="management-notice" role="alert">
+            Prospects could not load. Refresh to try again; the count is
+            unavailable.
+          </p>
+        ) : null}
+        {!readError && prospects.length === 0 && (
           <p className="empty-state">
-            No prospects yet. Run a scan above and they&apos;ll land here, scored and
-            ready.
+            No prospects yet. Run a scan above and they&apos;ll land here,
+            scored and ready.
           </p>
         )}
 
@@ -144,10 +184,13 @@ export default async function DiscoverPage({
                   <div>
                     <h4>{p.business_name}</h4>
                     <p className="muted">
-                      {[p.category, p.address].filter(Boolean).join(" · ") || "—"}
+                      {[p.category, p.address].filter(Boolean).join(" · ") ||
+                        "—"}
                     </p>
                   </div>
-                  <span className={`score score-${scoreTone(p.opportunity_score)}`}>
+                  <span
+                    className={`score score-${scoreTone(p.opportunity_score)}`}
+                  >
                     {p.opportunity_score ?? "—"}
                   </span>
                 </div>
@@ -173,27 +216,75 @@ export default async function DiscoverPage({
                   {p.outreach_status === "sent" && <span> · ✉ Sent</span>}
                 </div>
 
-                <section className="prospect-social-check" aria-label={`Social verification for ${p.business_name}`}>
-                  {(p.signals?.social_profiles ?? []).filter(profile => normalizeSocialProfile(profile.url, profile.platform)).map(profile => (
-                    <div key={profile.url}>
-                      <a href={normalizeSocialProfile(profile.url, profile.platform)!} target="_blank" rel="noreferrer">
-                        {profile.platform === "instagram" ? "Instagram" : "Facebook"} ↗
+                <section
+                  className="prospect-social-check"
+                  aria-label={`Social verification for ${p.business_name}`}
+                >
+                  {(p.signals?.social_profiles ?? [])
+                    .filter((profile) =>
+                      normalizeSocialProfile(profile.url, profile.platform),
+                    )
+                    .map((profile) => (
+                      <div key={profile.url}>
+                        <a
+                          href={normalizeSocialProfile(
+                            profile.url,
+                            profile.platform,
+                          )!}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {profile.platform === "instagram"
+                            ? "Instagram"
+                            : "Facebook"}{" "}
+                          ↗
+                        </a>
+                        <span>
+                          {profile.status === "matched"
+                            ? "Business details match"
+                            : "Needs verification"}
+                        </span>
+                        <small>{profile.evidence}</small>
+                      </div>
+                    ))}
+                  {!p.signals?.social_profiles?.length && (
+                    <p>
+                      {p.signals?.social_checked_at
+                        ? "No social profile found in the available listing or website. Verify manually."
+                        : "Social profiles have not been checked. Re-analyze to verify."}
+                    </p>
+                  )}
+                  {p.signals?.website_source === "social_profile" && (
+                    <p>Website found on a matching social profile.</p>
+                  )}
+                  {!p.website && (
+                    <div className="prospect-social-search">
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(`site:instagram.com "${p.business_name}" ${p.address ?? ""}`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Search Instagram ↗
                       </a>
-                      <span>{profile.status === "matched" ? "Business details match" : "Needs verification"}</span>
-                      <small>{profile.evidence}</small>
+                      <a
+                        href={`https://www.google.com/search?q=${encodeURIComponent(`site:facebook.com "${p.business_name}" ${p.address ?? ""}`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Search Facebook ↗
+                      </a>
                     </div>
-                  ))}
-                  {!p.signals?.social_profiles?.length && <p>{p.signals?.social_checked_at ? "No social profile found in the available listing or website. Verify manually." : "Social profiles have not been checked. Re-analyze to verify."}</p>}
-                  {p.signals?.website_source === "social_profile" && <p>Website found on a matching social profile.</p>}
-                  {!p.website && <div className="prospect-social-search">
-                    <a href={`https://www.google.com/search?q=${encodeURIComponent(`site:instagram.com "${p.business_name}" ${p.address ?? ""}`)}`} target="_blank" rel="noreferrer">Search Instagram ↗</a>
-                    <a href={`https://www.google.com/search?q=${encodeURIComponent(`site:facebook.com "${p.business_name}" ${p.address ?? ""}`)}`} target="_blank" rel="noreferrer">Search Facebook ↗</a>
-                  </div>}
+                  )}
                 </section>
 
                 <div className="prospect-actions">
                   <form action={analyzeProspect.bind(null, p.id)}>
-                    <PortalSubmitButton className="mini-button" pendingLabel="Checking website & socials…">Re-analyze &amp; check socials</PortalSubmitButton>
+                    <PortalSubmitButton
+                      className="mini-button"
+                      pendingLabel="Checking website & socials…"
+                    >
+                      Re-analyze &amp; check socials
+                    </PortalSubmitButton>
                   </form>
                   <form action={generateDraft.bind(null, p.id)}>
                     <button type="submit" className="mini-button">
@@ -208,7 +299,9 @@ export default async function DiscoverPage({
                     </form>
                   )}
                   <form action={archiveProspect.bind(null, p.id)}>
-                    <button type="submit" className="mini-button ghost">Archive</button>
+                    <button type="submit" className="mini-button ghost">
+                      Archive
+                    </button>
                   </form>
                 </div>
 
@@ -218,14 +311,19 @@ export default async function DiscoverPage({
                       Outreach draft
                       {p.outreach_status === "sent" ? " (sent)" : ""}
                     </summary>
-                    <form action={saveDraft.bind(null, p.id)} className="form-grid">
+                    <form
+                      action={saveDraft.bind(null, p.id)}
+                      className="form-grid"
+                    >
                       <textarea
                         name="outreach_draft"
                         defaultValue={p.outreach_draft ?? ""}
                         rows={10}
                       />
                       <div className="row">
-                        <button type="submit" className="mini-button">Save draft</button>
+                        <button type="submit" className="mini-button">
+                          Save draft
+                        </button>
                         {p.outreach_status !== "sent" && p.outreach_draft && (
                           <button
                             type="submit"
