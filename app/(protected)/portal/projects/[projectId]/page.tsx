@@ -27,11 +27,11 @@ export default async function ClientProjectPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams?: Promise<{ upload_error?: string; upload_ok?: string }>;
+  searchParams?: Promise<{ upload_error?: string; upload_ok?: string; section?: string }>;
 }) {
   const { user } = await requireUser();
   const { projectId } = await params;
-  const { upload_error: uploadError, upload_ok: uploadOk } = searchParams ? await searchParams : {};
+  const { upload_error: uploadError, upload_ok: uploadOk, section: requestedSection } = searchParams ? await searchParams : {};
   const supabase = await createClient();
 
   const { data: project } = await supabase
@@ -205,8 +205,7 @@ export default async function ClientProjectPage({
         <Link href="/portal/approvals">Approvals</Link>
         <Link href="/portal/files">Files</Link>
         <Link href="/portal/messages">Messages</Link>
-        <Link href="/portal/contracts">Contracts</Link>
-        <Link href="/portal/forms">Forms</Link>
+        <Link href="/portal/documents">Documents</Link>
       </nav>
 
       {pendingApprovals.length > 0 ? (
@@ -240,7 +239,7 @@ export default async function ClientProjectPage({
         </section>
       ) : null}
 
-      <details className="atelier-disclosure" id="project-details">
+      <details className="atelier-disclosure" id="project-details" open={["documents", "files", "forms", "contracts", "approvals"].includes(requestedSection ?? "")}>
         <summary><span className="atelier-disclosure-title">Timeline & project details</span><span className="atelier-disclosure-subtitle">Milestones, tasks, decisions, project files, and feedback</span></summary>
         <section className="client-detail-grid">
         <article id="milestones" className="panel detail-panel portal-anchor">
@@ -328,7 +327,7 @@ export default async function ClientProjectPage({
           )) : <p className="muted-copy">No updates yet.</p>}
         </article>
 
-        <article className="panel detail-panel">
+        <article id="documents" className="panel detail-panel portal-anchor">
           <h3>Documents</h3>          {(documents ?? []).length ? ((documents ?? []) as ProjectDocument[]).map((doc) => (
             <div className="simple-row" key={doc.id}>
               <strong>{doc.title}</strong>
@@ -356,7 +355,7 @@ export default async function ClientProjectPage({
         </section>
       </details>
 
-      <details className="atelier-disclosure atelier-discussion">
+      <details className="atelier-disclosure atelier-discussion" open={requestedSection === "messages"}>
         <summary><span className="atelier-disclosure-title">Project conversation</span><span className="atelier-disclosure-subtitle">Read updates and message your designer</span></summary>
         <div id="messages" className="portal-anchor" style={{ marginTop: 14 }}>
         <MessageThread
