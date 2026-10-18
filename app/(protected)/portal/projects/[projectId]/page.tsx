@@ -180,13 +180,13 @@ export default async function ClientProjectPage({
   );
 
   return (
-    <div className="content-wrap">
+    <div className="content-wrap atelier-project-page">
       {uploadError && <p role="alert" className="lead-form-error">{uploadError}</p>}
       {uploadOk && <p role="status" className="notice">{uploadOk}</p>}
       <div className="lead-detail-backline" style={{ marginBottom: 10 }}>
         <Link href="/portal" className="text-button">← Client Portal</Link>
       </div>
-      <header className="page-header">
+      <header className="page-header atelier-project-header">
         <div>
           <p className="eyebrow electric">Client Project</p>
           <h2>{project.name}</h2>
@@ -200,13 +200,13 @@ export default async function ClientProjectPage({
         </div>
       </header>
 
-      <nav className="portal-section-tabs" aria-label="Jump to project section">
-        <a href="#milestones">Milestones</a>
-        <a href={pendingApprovals.length ? "#pending-approvals" : "#approvals"}>Approvals</a>
-        <a href="#files">Files</a>
-        <a href="#contracts">Contracts</a>
-        <a href="#forms">Forms</a>
-        <a href="#messages">Messages</a>
+      <nav className="atelier-project-nav" aria-label="Project destinations">
+        <a href="#project-details">Project details</a>
+        <Link href="/portal/approvals">Approvals</Link>
+        <Link href="/portal/files">Files</Link>
+        <Link href="/portal/messages">Messages</Link>
+        <Link href="/portal/contracts">Contracts</Link>
+        <Link href="/portal/forms">Forms</Link>
       </nav>
 
       {pendingApprovals.length > 0 ? (
@@ -240,7 +240,9 @@ export default async function ClientProjectPage({
         </section>
       ) : null}
 
-      <section className="client-detail-grid">
+      <details className="atelier-disclosure" id="project-details">
+        <summary><span className="atelier-disclosure-title">Timeline & project details</span><span className="atelier-disclosure-subtitle">Milestones, tasks, decisions, project files, and feedback</span></summary>
+        <section className="client-detail-grid">
         <article id="milestones" className="panel detail-panel portal-anchor">
           <h3>Milestones</h3>
           {(milestones ?? []).length ? (milestones ?? []).map((m) => (
@@ -351,9 +353,12 @@ export default async function ClientProjectPage({
         <div id="contracts" className="portal-anchor"><ContractSign contracts={(contracts ?? []) as Contract[]} /></div>
 
         <div id="forms" className="portal-anchor"><FormFill submissions={submissionsWithTemplates} submitAction={submitFormWithFeedback} /></div>
-      </section>
+        </section>
+      </details>
 
-      <div id="messages" className="portal-anchor" style={{ marginTop: 14 }}>
+      <details className="atelier-disclosure atelier-discussion">
+        <summary><span className="atelier-disclosure-title">Project conversation</span><span className="atelier-disclosure-subtitle">Read updates and message your designer</span></summary>
+        <div id="messages" className="portal-anchor" style={{ marginTop: 14 }}>
         <MessageThread
           projectId={projectId}
           messages={((messages ?? []) as ProjectMessage[])}
@@ -363,7 +368,8 @@ export default async function ClientProjectPage({
           otherLabel="Ninth Heart Studios"
           title="Messages"
         />
-      </div>
+        </div>
+      </details>
     </div>
   );
 }
