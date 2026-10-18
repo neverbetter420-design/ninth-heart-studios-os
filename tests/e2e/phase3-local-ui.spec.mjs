@@ -261,7 +261,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.getByRole("button", { name: "Schedule consultation", exact: true }).click();
       await expect.poll(async () => (await required(srv.from("leads").select("consultation_at").eq("id", leadId), "consultation persisted"))[0].consultation_at).toContain("2099-04-12");
       await adminPage.reload();
-      await expect(adminPage.locator(".consultation-panel .micro-copy")).toContainText("2099");
+      await expect(adminPage.locator(".consultation-panel .micro-copy")).toHaveText("Current: Apr 12, 10:00 AM PDT");
       await adminPage.screenshot({ path: "design-preview/nocturne-lead-detail-" + previewSuffix + ".png", fullPage: true });
       await adminPage.goto("/leads");
       await expect(adminPage.getByRole("link", { name: "Open lead: " + leadName, exact: true })).toBeVisible();
