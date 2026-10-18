@@ -432,3 +432,105 @@ test("Nocturne priority surface keeps populated actions readable and reachable",
     }
   }
 });
+
+test("Radar shortlist keeps intake, bid stages and loaded metrics clear", async ({ page }) => {
+  for (const scenario of ["populated", "long", "empty", "error", "filtered", "invalid-stage", "form-error", "unsafe-url"]) {
+    await show(page, "admin", scenario, "opportunities");
+    const intake = page.locator(".nocturne-create-panel");
+    if (!(await intake.getAttribute("open") === "")) await intake.locator(":scope > summary").press("Enter");
+    await expect(page.getByLabel("Opportunity title", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Source", { exact: true })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Bid stage filter" }).locator('[aria-current="page"]')).toHaveCount(1);
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Radar ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+    if (scenario === "filtered") {
+      await expect(page.locator(".radar-row")).toHaveCount(1);
+      await expect(page.locator(".metric-card strong").first()).toHaveText("2");
+      await expect(page.getByRole("link", { name: "Qualified", exact: true })).toHaveAttribute("aria-current", "page");
+    }
+    if (scenario === "error") {
+      await expect(page.getByRole("alert")).toContainText("could not load");
+      await expect(page.locator(".metric-card strong").first()).toHaveText("—");
+      await expect(page.locator(".radar-row")).toHaveCount(0);
+      await expect(page.getByText("Room for the right work.", { exact: true })).toHaveCount(0);
+    }
+    if (scenario === "unsafe-url") await expect(page.getByRole("link", { name: "View listing", exact: true })).toHaveCount(0);
+    if (scenario === "invalid-stage") await expect(page.getByRole("alert")).toContainText("Showing all loaded");
+    const submit = page.getByRole("button", { name: "Track opportunity", exact: true });
+    await submit.scrollIntoViewIfNeeded(); await submit.focus();
+    expect((await submit.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect(await submit.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+  }
+});
+
+test("Opportunity workspaces separate scoring, saved proposals and bid records", async ({ page }) => {
+  for (const scenario of ["normal", "long", "empty", "error", "proposals-error", "sent", "unscored", "unsafe-url"]) {
+    await show(page, "admin", scenario, "opportunity-detail");
+    if (scenario === "error") {
+      await expect(page.getByRole("alert")).toContainText("details could not load");
+      await expect(page.getByRole("button", { name: "Move stage", exact: true })).toHaveCount(0);
+      continue;
+    }
+    for (const details of await page.locator(".radar-page details").all()) await details.locator(":scope > summary").press("Enter");
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Opportunity ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+    await expect(page.getByLabel("Project fit (0–20)", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Bid stage", { exact: true })).toHaveValue("qualified");
+    await expect(page.getByRole("region", { name: "Proposal workspace", exact: true })).toContainText("does not deliver it");
+    if (scenario === "sent") {
+      await expect(page.getByRole("button", { name: "Save proposal draft", exact: true })).toHaveCount(0);
+      await expect(page.locator(".studio-draft-body")).toContainText("clear scope");
+    } else if (!["empty", "proposals-error"].includes(scenario)) {
+      await expect(page.getByLabel("Proposal text", { exact: true })).toBeVisible();
+      await page.getByLabel("Proposal text", { exact: true }).fill("A careful synthetic proposal.");
+    }
+    if (scenario === "proposals-error") {
+      await expect(page.getByRole("alert")).toContainText("Proposal drafts could not load");
+      await expect(page.getByRole("button", { name: "Create draft", exact: true })).toHaveCount(0);
+    }
+    if (scenario === "unsafe-url") await expect(page.getByRole("link", { name: "View original listing", exact: true })).toHaveCount(0);
+    const nav = page.getByRole("navigation", { name: "Opportunity destinations" });
+    await nav.getByRole("link", { name: "Bid record", exact: true }).click();
+    await expect(page.locator("#radar-record h3")).toBeInViewport();
+  }
+});
+
+test("Automation workroom distinguishes availability, history and partial read failures", async ({ page }) => {
+  test.setTimeout(90000);
+  for (const scenario of ["normal", "long", "empty", "error", "runs-error", "notifications-error", "enabled", "failed-run", "read", "email-configured"]) {
+    await show(page, "admin", scenario, "automations");
+    for (const details of await page.locator(".engine-controls").all()) await details.locator(":scope > summary").press("Enter");
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Automations ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+    const registry = page.getByRole("region", { name: "Automation registry", exact: true });
+    await expect(registry).toContainText("even when the flag is off");
+    await expect(page.getByRole("region", { name: "External integrations", exact: true })).toContainText(scenario === "email-configured" ? "Settings present" : "Not configured");
+    if (scenario === "error") {
+      await expect(registry.getByRole("alert")).toContainText("registry could not load");
+      await expect(page.getByRole("button", { name: "Run now", exact: true })).toHaveCount(0);
+      await expect(page.locator(".metric-card strong").first()).toHaveText("—");
+    }
+    if (scenario === "runs-error") {
+      await expect(page.getByRole("region", { name: "Run history", exact: true }).getByRole("alert")).toContainText("could not load");
+      await expect(page.getByRole("button", { name: "Run now", exact: true })).toBeVisible();
+    }
+    if (scenario === "notifications-error") await expect(page.getByRole("button", { name: "Mark all notifications read", exact: true })).toHaveCount(0);
+    if (scenario === "enabled") await expect(page.getByRole("button", { name: "Disable automation", exact: true })).toBeVisible();
+    if (scenario === "read") {
+      await expect(page.getByRole("button", { name: "Mark read", exact: true })).toHaveCount(0);
+      await expect(page.locator(".engine-signal h4 a")).toHaveAttribute("href", "/leads");
+    }
+    if (scenario === "failed-run") await expect(page.locator(".engine-run .studio-status")).toHaveText("Error");
+    // Inspect manual-run and enabled controls, never invoke either in source previews.
+    const run = page.getByRole("button", { name: "Run now", exact: true });
+    if (await run.count()) { await run.scrollIntoViewIfNeeded(); await run.focus(); expect((await run.boundingBox()).height).toBeGreaterThanOrEqual(44); expect(await run.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none"); }
+    await page.getByRole("navigation", { name: "Automation destinations" }).getByRole("link", { name: "Run history", exact: true }).click();
+    await expect(page.locator("#engine-history h3")).toBeInViewport();
+  }
+});

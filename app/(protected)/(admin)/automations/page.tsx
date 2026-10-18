@@ -1,4 +1,11 @@
+import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
+import {
+  DocumentNotice,
+  DocumentSectionHeading,
+  documentDate,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import {
   markAllNotificationsRead,
   markNotificationRead,
@@ -7,7 +14,11 @@ import {
 } from "./actions";
 import { createClient } from "@/lib/supabase/server";
 import { isEmailConfigured } from "@/lib/email";
-import type { Automation, AutomationRun, Notification } from "@/lib/supabase/types";
+import type {
+  Automation,
+  AutomationRun,
+  Notification,
+} from "@/lib/supabase/types";
 
 const KIND_LABELS: Record<string, string> = {
   internal: "Internal",
@@ -16,235 +27,410 @@ const KIND_LABELS: Record<string, string> = {
   payments: "Payments",
   lead_source: "Lead source",
 };
-
-function timeAgo(iso: string) {
-  const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  return `${Math.floor(hours / 24)}d ago`;
+const RUN_LABELS: Record<string, string> = {
+  ok: "Completed",
+  error: "Error",
+  skipped: "Skipped",
+};
+function localDestination(href: string | null) {
+  return href?.startsWith("/") && !href.startsWith("//") && !href.includes("\\")
+    ? href
+    : null;
 }
 
 export default async function AutomationsPage() {
   const supabase = await createClient();
-
-  const [{ data: rawAutomations }, { data: rawRuns }, { data: rawNotifications }] =
-    await Promise.all([
-      supabase.from("automations").select("*").order("name"),
-      supabase
-        .from("automation_runs")
-        .select("id, automation_id, started_at, finished_at, status, summary")
-        .order("started_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("notifications")
-        .select("id, title, body, href, kind, read, created_at")
-        .order("created_at", { ascending: false })
-        .limit(20),
-    ]);
-
-  const automations = (rawAutomations ?? []) as Automation[];
-  const runs = (rawRuns ?? []) as AutomationRun[];
-  const notifications = (rawNotifications ?? []) as Notification[];
-
-  const enabledCount = automations.filter((a) => a.enabled).length;
-  const unreadCount = notifications.filter((n) => !n.read).length;
-  const errorRuns = runs.filter((r) => r.status === "error").length;
-
-  const automationName = (id: string) =>
-    automations.find((a) => a.id === id)?.name ?? "Unknown";
-
-  const emailConnected = isEmailConfigured();
-
+  const [
+    { data: rawAutomations, error: registryError },
+    { data: rawRuns, error: runsError },
+    { data: rawNotifications, error: notificationsError },
+  ] = await Promise.all([
+    supabase.from("automations").select("*").order("name"),
+    supabase
+      .from("automation_runs")
+      .select("id, automation_id, started_at, finished_at, status, summary")
+      .order("started_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("notifications")
+      .select("id, title, body, href, kind, read, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20),
+  ]);
+  const automations = (
+    registryError ? [] : (rawAutomations ?? [])
+  ) as Automation[];
+  const runs = (runsError ? [] : (rawRuns ?? [])) as AutomationRun[];
+  const notifications = (
+    notificationsError ? [] : (rawNotifications ?? [])
+  ) as Notification[];
+  const enabled = automations.filter((a) => a.enabled).length;
+  const unread = notifications.filter((n) => !n.read).length;
+  const errors = runs.filter((r) => r.status === "error").length;
+  const name = (id: string) =>
+    automations.find((a) => a.id === id)?.name ?? "Automation name unavailable";
+  const emailConfigured = isEmailConfigured();
   return (
-    <div className="content-wrap">
-      <header className="page-header">
+    <div className="content-wrap management-page paperwork-page studio-page engine-page">
+      <header className="page-header management-heading">
         <div>
-          <p className="eyebrow electric">Automations + Integrations</p>
-          <h2>Set it, watch it, kill it.</h2>
+          <p className="eyebrow">Automations · The engine room</p>
+          <h2>
+            A little less chasing.
+            <br />
+            <em>A little more control.</em>
+          </h2>
           <p className="page-description">
-            Every automation is off until you turn it on. Every run is logged.
-            Nothing sends externally — notifications stay in the app.
+            See what is enabled, review the signals, and decide when to act. The
+            built-in checks create notifications inside the studio.
           </p>
         </div>
+        <Link
+          href="/settings#studio-connections"
+          className="management-text-link"
+        >
+          Connection status <span aria-hidden="true">↗</span>
+        </Link>
       </header>
-
-      <section className="metric-grid" aria-label="Automation metrics">
-        <MetricCard label="Automations" value={String(automations.length)} detail={`${enabledCount} enabled`} tone="violet" />
-        <MetricCard label="Unread" value={String(unreadCount)} detail="Notifications waiting" tone="pink" />
-        <MetricCard label="Runs logged" value={String(runs.length)} detail="Audit trail" tone="cyan" />
-        <MetricCard label="Errors" value={String(errorRuns)} detail="Failed runs" tone={errorRuns > 0 ? "pink" : "green"} />
+      <nav
+        className="management-destinations"
+        aria-label="Automation destinations"
+      >
+        <a href="#engine-signals">Notifications</a>
+        <a href="#engine-registry">Registry</a>
+        <a href="#engine-history">Run history</a>
+        <a href="#engine-connections">Integrations</a>
+      </nav>
+      <section
+        className="metric-grid radar-metrics"
+        aria-label="Automation metrics"
+      >
+        <MetricCard
+          label="Registry"
+          value={registryError ? "—" : String(automations.length)}
+          detail={
+            registryError ? "Read unavailable" : `${enabled} marked enabled`
+          }
+          tone="violet"
+        />
+        <MetricCard
+          label="Unread"
+          value={notificationsError ? "—" : String(unread)}
+          detail="Among 20 latest notifications"
+          tone="pink"
+        />
+        <MetricCard
+          label="Recent runs"
+          value={runsError ? "—" : String(runs.length)}
+          detail="Up to 20 latest records"
+          tone="cyan"
+        />
+        <MetricCard
+          label="Run errors"
+          value={runsError ? "—" : String(errors)}
+          detail="In the displayed run history"
+          tone={errors ? "pink" : "green"}
+        />
       </section>
-
-      <div className="workspace-grid">
-        <div className="workspace-span-7">
-          <section className="panel" aria-label="Automation registry">
-            <div className="panel-heading">
-              <h3>Registry</h3>
-              <span className="pipeline-count">Kill switches included</span>
+      <section
+        id="engine-signals"
+        aria-label="Notifications"
+        className="engine-section"
+      >
+        <DocumentSectionHeading
+          eyebrow="01 · Attention, without the noise"
+          title="Studio signals"
+          detail="20 latest notifications"
+        />
+        {notificationsError ? (
+          <DocumentNotice>
+            Notifications could not load. The unread count is unavailable.
+          </DocumentNotice>
+        ) : (
+          <>
+            <div className="engine-notification-tools">
+              <p className="management-help">
+                {unread} unread in this view. Read notifications remain
+                available below.
+              </p>
+              {unread > 0 ? (
+                <form action={markAllNotificationsRead}>
+                  <PortalSubmitButton pendingLabel="Marking read…">
+                    Mark all notifications read
+                  </PortalSubmitButton>
+                </form>
+              ) : null}
             </div>
-            <ul className="delivery-list">
-              {automations.map((a) => (
-                <li key={a.id} className="delivery-row" style={{ alignItems: "flex-start" }}>
-                  <div className="delivery-row-main">
-                    <p className="delivery-row-title">
-                      {a.name}{" "}
-                      <span className={`delivery-pill ${a.enabled ? "done" : "blocked"}`}>
-                        {a.enabled ? "ON" : "OFF"}
-                      </span>
-                    </p>
-                    <p className="delivery-row-sub">
-                      {KIND_LABELS[a.kind] ?? a.kind} · {a.description}
-                    </p>
-                    <p className="delivery-row-sub">
-                      {a.last_run_at
-                        ? `Last run ${timeAgo(a.last_run_at)} — ${a.last_status ?? "unknown"}`
-                        : "Never run"}
-                    </p>
-                  </div>
-                  <div className="delivery-actions">
-                    <form action={runAutomation}>
-                      <input type="hidden" name="automation_key" value={a.key} />
-                      <button type="submit" className="mini-button">Run now</button>
-                    </form>
-                    <form action={toggleAutomation}>
-                      <input type="hidden" name="automation_id" value={a.id} />
-                      <input type="hidden" name="enabled" value={a.enabled ? "false" : "true"} />
-                      <button
-                        type="submit"
-                        className={`mini-button ${a.enabled ? "danger" : "go"}`}
-                      >
-                        {a.enabled ? "Kill" : "Enable"}
-                      </button>
-                    </form>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="panel" aria-label="Audit trail" style={{ marginTop: 14 }}>
-            <div className="panel-heading">
-              <h3>Audit trail</h3>
-              <span className="pipeline-count">{runs.length} runs</span>
-            </div>
-            <ul className="delivery-list" style={{ maxHeight: 300, overflowY: "auto" }}>
-              {runs.length === 0 ? (
-                <li className="delivery-row">
-                  <p className="pipeline-empty">No runs yet. Hit “Run now” above.</p>
-                </li>
-              ) : (
-                runs.map((r) => (
-                  <li key={r.id} className="delivery-row">
-                    <div className="delivery-row-main">
-                      <p className="delivery-row-title" style={{ fontWeight: 400 }}>
-                        {r.summary || automationName(r.automation_id)}
-                      </p>
-                      <p className="delivery-row-sub">
-                        {automationName(r.automation_id)} · {timeAgo(r.started_at)}
-                      </p>
-                    </div>
-                    <span className={`delivery-pill ${r.status === "ok" ? "done" : r.status === "error" ? "blocked" : "visible"}`}>
-                      {r.status}
-                    </span>
-                  </li>
-                ))
-              )}
-            </ul>
-          </section>
-        </div>
-
-        <div className="workspace-span-5">
-          <section className="panel" aria-label="Notifications">
-            <div className="panel-heading">
-              <h3>Notifications</h3>
-              <div className="delivery-actions">
-                <span className="pipeline-count">{unreadCount} unread</span>
-                {unreadCount > 0 ? (
-                  <form action={markAllNotificationsRead}>
-                    <button type="submit" className="mini-button">Mark all read</button>
-                  </form>
-                ) : null}
-              </div>
-            </div>
-            <ul className="delivery-list" style={{ maxHeight: 480, overflowY: "auto" }}>
-              {notifications.length === 0 ? (
-                <li className="delivery-row">
-                  <p className="pipeline-empty">Quiet. Suspiciously quiet.</p>
-                </li>
-              ) : (
-                notifications.map((n) => (
+            {unread > 0 ? (
+              <p className="management-help">
+                “Mark all” includes unread notifications outside these 20
+                records.
+              </p>
+            ) : null}
+            {notifications.length ? (
+              <ul className="engine-list">
+                {notifications.map((n) => (
                   <li
                     key={n.id}
-                    className="delivery-row"
-                    style={{ opacity: n.read ? 0.55 : 1, alignItems: "flex-start" }}
+                    className="engine-signal"
+                    data-notification-id={n.id}
+                    data-read={n.read}
                   >
-                    <div className="delivery-row-main">
-                      <p className="delivery-row-title" style={{ fontWeight: n.read ? 400 : 600 }}>
-                        {n.href && !n.read ? (
-                          <a href={n.href} style={{ color: "inherit" }}>{n.title}</a>
+                    <span className="engine-signal-state">
+                      {n.read ? "Read" : "Unread"}
+                    </span>
+                    <div>
+                      <h4>
+                        {localDestination(n.href) ? (
+                          <Link href={localDestination(n.href)!}>
+                            {n.title}
+                          </Link>
                         ) : (
                           n.title
                         )}
-                      </p>
-                      {n.body ? <p className="delivery-row-sub">{n.body}</p> : null}
-                      <p className="delivery-row-sub">{timeAgo(n.created_at)}</p>
+                      </h4>
+                      {n.body ? <p>{n.body}</p> : null}
+                      <small>{documentDate(n.created_at, true)}</small>
                     </div>
                     {!n.read ? (
                       <form action={markNotificationRead}>
-                        <input type="hidden" name="notification_id" value={n.id} />
-                        <button type="submit" className="mini-button" aria-label="Mark read">✓</button>
+                        <input
+                          type="hidden"
+                          name="notification_id"
+                          value={n.id}
+                        />
+                        <PortalSubmitButton pendingLabel="Marking read…">
+                          Mark read
+                        </PortalSubmitButton>
                       </form>
                     ) : null}
                   </li>
-                ))
-              )}
-            </ul>
-          </section>
-        </div>
-      </div>
-
-      <section className="panel" aria-label="External integrations" style={{ marginTop: 14 }}>
-        <div className="panel-heading">
-          <h3>External integrations</h3>
-          <span className="pipeline-count">Keys required</span>
-        </div>
-        <div style={{ padding: "14px 18px 18px" }}>
-          <p className="page-description" style={{ margin: "0 0 12px" }}>
-            Email, calendar, invoicing/payments, and automated lead-source imports
-            each need an account and API key before they can run. The automation
-            registry above is ready to host them — pick a provider and hand over
-            a key when you want one wired up.
-          </p>
-          <ul className="delivery-list">
-            <li className="delivery-row">
-              <div className="delivery-row-main">
-                <p className="delivery-row-title">Email</p>
-                <p className="delivery-row-sub">
-                  {emailConnected
-                    ? "Gmail connected — drafts can send with per-send approval. Every send is logged."
-                    : "Needs GMAIL_USER + GMAIL_APP_PASSWORD in .env.local (Google app password)."}
+                ))}
+              </ul>
+            ) : (
+              <div className="management-empty">
+                <h4>No signals to review.</h4>
+                <p>
+                  No notifications were returned. Review the registry and run
+                  history for the current automation state.
                 </p>
               </div>
-              <span className={`delivery-pill ${emailConnected ? "done" : "blocked"}`}>
-                {emailConnected ? "Connected" : "Not connected"}
-              </span>
-            </li>
-            {[
-              { name: "Calendar", note: "Needs Google Calendar OAuth. Consultations could auto-schedule." },
-              { name: "Invoicing / payments", note: "Needs a payment provider's keys. Invoices from milestones." },
-              { name: "Lead sources", note: "Needs API access per source. Imports land in the Radar with dedup." },
-            ].map((i) => (
-              <li key={i.name} className="delivery-row">
-                <div className="delivery-row-main">
-                  <p className="delivery-row-title">{i.name}</p>
-                  <p className="delivery-row-sub">{i.note}</p>
+            )}
+          </>
+        )}
+      </section>
+      <section
+        id="engine-registry"
+        aria-label="Automation registry"
+        className="engine-section"
+      >
+        <DocumentSectionHeading
+          eyebrow="02 · The controls"
+          title="What the studio watches."
+          detail="Manual runs are explicit actions"
+        />
+        <p className="management-help">
+          The enabled flag records availability. It does not verify a schedule.
+          Run now starts one manual check even when the flag is off; it may add
+          in-app notifications and a run record.
+        </p>
+        {registryError ? (
+          <DocumentNotice>
+            Automation registry could not load. Controls and enabled counts are
+            unavailable.
+          </DocumentNotice>
+        ) : automations.length ? (
+          <ol className="engine-list">
+            {automations.map((a, i) => (
+              <li
+                key={a.id}
+                className="engine-registry-row"
+                data-automation-key={a.key}
+              >
+                <span className="radar-index" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="engine-registry-copy">
+                  <div className="studio-row-heading">
+                    <h4>{a.name}</h4>
+                    <span
+                      className="studio-status"
+                      data-state={a.enabled ? "ready" : "off"}
+                    >
+                      {a.enabled ? "Enabled flag on" : "Enabled flag off"}
+                    </span>
+                  </div>
+                  <p>
+                    {KIND_LABELS[a.kind] ?? a.kind} · {a.description}
+                  </p>
+                  <small>
+                    {a.last_run_at
+                      ? `Last run ${documentDate(a.last_run_at, true)} · ${RUN_LABELS[a.last_status ?? ""] ?? "Status not recorded"}`
+                      : "No last run recorded"}
+                  </small>
+                  <details className="engine-controls">
+                    <summary>
+                      Run &amp; availability <span aria-hidden="true">+</span>
+                    </summary>
+                    <p className="management-help">
+                      Run now is a manual action. Changing availability saves
+                      the enabled flag; review scheduling separately.
+                    </p>
+                    <div className="studio-actions">
+                      <form action={runAutomation}>
+                        <input
+                          type="hidden"
+                          name="automation_key"
+                          value={a.key}
+                        />
+                        <PortalSubmitButton pendingLabel="Running check…">
+                          Run now
+                        </PortalSubmitButton>
+                      </form>
+                      <form action={toggleAutomation}>
+                        <input
+                          type="hidden"
+                          name="automation_id"
+                          value={a.id}
+                        />
+                        <input
+                          type="hidden"
+                          name="enabled"
+                          value={a.enabled ? "false" : "true"}
+                        />
+                        <PortalSubmitButton
+                          className={
+                            a.enabled ? "mini-button danger" : "mini-button"
+                          }
+                          pendingLabel="Saving availability…"
+                        >
+                          {a.enabled
+                            ? "Disable automation"
+                            : "Enable automation"}
+                        </PortalSubmitButton>
+                      </form>
+                    </div>
+                  </details>
                 </div>
-                <span className="delivery-pill blocked">Not connected</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className="management-empty">
+            <h4>No automation records.</h4>
+            <p>
+              The registry returned no entries. No availability state can be
+              inferred.
+            </p>
+          </div>
+        )}
+      </section>
+      <section
+        id="engine-history"
+        aria-label="Run history"
+        className="engine-section"
+      >
+        <DocumentSectionHeading
+          eyebrow="03 · The evidence"
+          title="What actually ran."
+          detail="20 latest run records"
+        />
+        {runsError ? (
+          <DocumentNotice>
+            Run history could not load. Run and error counts are unavailable.
+          </DocumentNotice>
+        ) : runs.length ? (
+          <ul className="engine-list">
+            {runs.map((r) => (
+              <li key={r.id} className="engine-run">
+                <div>
+                  <h4>{name(r.automation_id)}</h4>
+                  <p>{r.summary || "No summary recorded."}</p>
+                  <small>
+                    Started {documentDate(r.started_at, true)} ·{" "}
+                    {r.finished_at
+                      ? `Finished ${documentDate(r.finished_at, true)}`
+                      : "Finish time not recorded"}
+                  </small>
+                </div>
+                <span
+                  className="studio-status"
+                  data-state={
+                    r.status === "error"
+                      ? "unavailable"
+                      : r.status === "ok"
+                        ? "ready"
+                        : "off"
+                  }
+                >
+                  {RUN_LABELS[r.status] ?? r.status}
+                </span>
               </li>
             ))}
           </ul>
+        ) : (
+          <div className="management-empty">
+            <h4>No run records returned.</h4>
+            <p>
+              A saved enabled flag is separate from evidence that a check has
+              run.
+            </p>
+          </div>
+        )}
+      </section>
+      <section
+        id="engine-connections"
+        aria-label="External integrations"
+        className="engine-section"
+      >
+        <DocumentSectionHeading
+          eyebrow="04 · Beyond the studio"
+          title="Connections, with context."
+        />
+        <div className="engine-integration-grid">
+          <article>
+            <h4>Email</h4>
+            <span
+              className="studio-status"
+              data-state={emailConfigured ? "ready" : "off"}
+            >
+              {emailConfigured ? "Settings present" : "Not configured"}
+            </span>
+            <p>
+              {emailConfigured
+                ? "Email settings are present. Delivery has not been checked here. Muse offers a separate, explicit send action for saved drafts."
+                : "Email settings are absent. Review connection status before using Muse email delivery."}
+            </p>
+            <Link className="management-text-link" href="/muse#muse-saved">
+              Saved Muse drafts ↗
+            </Link>
+          </article>
+          <article>
+            <h4>Calendar &amp; payments</h4>
+            <span className="studio-status">Separate setup</span>
+            <p>
+              This page does not verify a calendar or payment-provider
+              connection. Review the studio connection notes before planning
+              either workflow.
+            </p>
+            <Link
+              className="management-text-link"
+              href="/settings#studio-connections"
+            >
+              Connection notes ↗
+            </Link>
+          </article>
+          <article>
+            <h4>Opportunity sources</h4>
+            <span className="studio-status">Manual intake available</span>
+            <p>
+              Track approved sources in Radar. This view does not verify source
+              API credentials or scheduled imports.
+            </p>
+            <Link className="management-text-link" href="/opportunities">
+              Open Opportunity Radar ↗
+            </Link>
+          </article>
         </div>
       </section>
     </div>

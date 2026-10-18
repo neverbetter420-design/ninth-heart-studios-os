@@ -4,79 +4,164 @@ import {
   markProposalSent,
   updateProposal,
 } from "@/app/(protected)/(admin)/opportunities/actions";
+import {
+  DocumentCreate,
+  DocumentNotice,
+  DocumentSectionHeading,
+  documentDate,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import type { Proposal } from "@/lib/supabase/types";
 
 export function ProposalSection({
   opportunityId,
   proposals,
+  unavailable = false,
 }: {
   opportunityId: string;
   proposals: Proposal[];
+  unavailable?: boolean;
 }) {
   return (
-    <section className="panel" aria-label="Proposal workspace">
-      <div className="panel-heading">
-        <h3>Proposal workspace</h3>
-        <span className="pipeline-count">{proposals.length}</span>
-      </div>
-      {proposals.length === 0 ? (
-        <p className="pipeline-empty" style={{ padding: "14px 18px" }}>
-          No drafts yet. Win the work before someone cheaper does.
-        </p>
+    <section
+      id="radar-proposals"
+      aria-label="Proposal workspace"
+      className="radar-section"
+    >
+      <DocumentSectionHeading
+        eyebrow="02 · The pitch"
+        title="Write with intention."
+        detail={
+          unavailable
+            ? "Drafts unavailable"
+            : `${proposals.length} ${proposals.length === 1 ? "proposal" : "proposals"}`
+        }
+      />
+      <p className="management-help">
+        Draft and keep a record here. Send through your chosen channel;
+        recording a proposal as sent does not deliver it.
+      </p>
+      {unavailable ? (
+        <DocumentNotice>
+          Proposal drafts could not load. Refresh before creating another draft.
+        </DocumentNotice>
       ) : (
-        proposals.map((p) => (
-          <details key={p.id} className="panel" style={{ margin: 14, borderRadius: 12 }}>
-            <summary className="panel-heading" style={{ cursor: "pointer" }}>
-              <h3>{p.title}</h3>
-              <span className={p.status === "sent" ? "delivery-pill done" : "delivery-pill progress"}>
-                {p.status === "sent" ? "Sent" : "Draft"}
-              </span>
-            </summary>
-            <form action={updateProposal} style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-              <input type="hidden" name="proposal_id" value={p.id} />
+        <>
+          {proposals.length ? (
+            proposals.map((p) => (
+              <details
+                key={p.id}
+                className="studio-saved-draft radar-proposal"
+                data-proposal-id={p.id}
+              >
+                <summary>
+                  <span>
+                    <strong>{p.title}</strong>
+                    <small>
+                      {p.status === "sent" ? "Recorded as sent" : "Draft"} ·
+                      Updated {documentDate(p.updated_at)}
+                    </small>
+                  </span>
+                  <span aria-hidden="true">+</span>
+                </summary>
+                {p.status === "sent" ? (
+                  <div className="studio-draft-body">
+                    {p.content || "No proposal text recorded."}
+                  </div>
+                ) : (
+                  <>
+                    <form
+                      action={updateProposal}
+                      className="radar-proposal-editor"
+                    >
+                      <input type="hidden" name="proposal_id" value={p.id} />
+                      <label className="field">
+                        <span>Proposal title</span>
+                        <input
+                          name="title"
+                          aria-label="Proposal title"
+                          defaultValue={p.title}
+                          maxLength={160}
+                        />
+                      </label>
+                      <label className="field">
+                        <span>Proposal text</span>
+                        <textarea
+                          name="content"
+                          aria-label="Proposal text"
+                          rows={9}
+                          defaultValue={p.content}
+                          placeholder="Scope, timeline, price, and why NHS…"
+                        />
+                      </label>
+                      <div className="studio-actions">
+                        <PortalSubmitButton pendingLabel="Saving draft…">
+                          Save proposal draft
+                        </PortalSubmitButton>
+                      </div>
+                    </form>
+                    <div className="studio-actions">
+                      <form action={markProposalSent}>
+                        <input type="hidden" name="proposal_id" value={p.id} />
+                        <PortalSubmitButton pendingLabel="Recording…">
+                          Record as sent
+                        </PortalSubmitButton>
+                      </form>
+                      <details className="radar-delete">
+                        <summary>Delete this draft</summary>
+                        <p className="management-help">
+                          Permanently removes this proposal draft.
+                        </p>
+                        <form action={deleteProposal}>
+                          <input
+                            type="hidden"
+                            name="proposal_id"
+                            value={p.id}
+                          />
+                          <PortalSubmitButton
+                            className="mini-button danger"
+                            pendingLabel="Deleting…"
+                          >
+                            Delete proposal draft
+                          </PortalSubmitButton>
+                        </form>
+                      </details>
+                    </div>
+                  </>
+                )}
+              </details>
+            ))
+          ) : (
+            <div className="management-empty">
+              <h4>A blank page, with a purpose.</h4>
+              <p>Create a draft when the opportunity deserves the time.</p>
+            </div>
+          )}
+          <DocumentCreate
+            title="Create a proposal draft"
+            detail="Your voice. Your scope. Your terms."
+          >
+            <form action={createProposal} className="radar-stage-form">
+              <input
+                type="hidden"
+                name="opportunity_id"
+                value={opportunityId}
+              />
               <label className="field">
-                <span>Title</span>
-                <input type="text" name="title" defaultValue={p.title} maxLength={160} disabled={p.status === "sent"} />
-              </label>
-              <label className="field">
-                <span>Draft (your voice, not a robot&apos;s)</span>
-                <textarea
-                  name="content"
-                  className="notes-area"
-                  style={{ minHeight: 160 }}
-                  defaultValue={p.content}
-                  disabled={p.status === "sent"}
-                  placeholder="Scope, timeline, price, why NHS…"
+                <span>New proposal title</span>
+                <input
+                  name="title"
+                  maxLength={160}
+                  placeholder="Website design proposal"
                 />
               </label>
-              <div className="delivery-actions">
-                {p.status === "draft" ? (
-                  <>
-                    <button type="submit" className="mini-button go">Save draft</button>
-                  </>
-                ) : null}
-              </div>
+              <PortalSubmitButton pendingLabel="Creating draft…">
+                Create draft
+              </PortalSubmitButton>
             </form>
-            {p.status === "draft" ? (
-              <div className="delivery-actions" style={{ padding: "0 18px 18px" }}>
-                <form action={markProposalSent}>
-                  <input type="hidden" name="proposal_id" value={p.id} />
-                  <button type="submit" className="mini-button go">Mark sent</button>
-                </form>
-                <form action={deleteProposal}>
-                  <input type="hidden" name="proposal_id" value={p.id} />
-                  <button type="submit" className="mini-button danger">Delete</button>
-                </form>
-              </div>
-            ) : null}
-          </details>
-        ))
+          </DocumentCreate>
+        </>
       )}
-      <form action={createProposal} className="delivery-add-form">
-        <input type="hidden" name="opportunity_id" value={opportunityId} />
-        <input type="text" name="title" placeholder="New proposal draft…" maxLength={160} />
-        <button type="submit" className="mini-button go">Draft</button>
-      </form>
     </section>
   );
 }

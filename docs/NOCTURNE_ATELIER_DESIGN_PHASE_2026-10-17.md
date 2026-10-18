@@ -14,6 +14,8 @@
 
 **Studio follow-through:** [Muse and Settings](NOCTURNE_MUSE_SETTINGS_2026-10-18.md) extend the open canvas with separate reasoning, writing and saved-work destinations, plus evidence-based connection status in `app/nocturne-studio.css`.
 
+**Radar and engine-room follow-through:** [Opportunity Radar and Automations](NOCTURNE_RADAR_AUTOMATIONS_2026-10-18.md) separate fit review, proposal records, signals, registry controls and run evidence in `app/nocturne-radar.css`.
+
 **Release mode: DRAFT ONLY.** All edits are on `feature/working-navigation-client-portal`, in draft PR #14. Do not merge, run schema migrations, reset customer accounts, trigger automations, or deploy the Cloudflare Worker without separate production approval and a verified backup.
 
 ## Evidence: owner-directed usability review
