@@ -33,6 +33,7 @@ Never alter the NHS heart/ring/key identity geometry; the glyphs used in this im
 - `app/(protected)/portal/page.tsx`: calmer client home using RLS-scoped projects and outstanding approval requests, with existing routes and auth checks preserved
 - `app/(protected)/portal/projects/[projectId]/page.tsx`: project-destination navigation and native collapsible detail / conversation sections while preserving underlying file, message, form, revision and approval server actions
 - `components/Dashboard.tsx`: operational priorities before secondary Studio Intelligence
+- `app/(protected)/(admin)/projects/[projectId]/page.tsx`: Tasks, Milestones and Approvals remain visible at the top; revisions, files, messages, documents, launch checks and activity are grouped in native expandable workspace sections with existing actions preserved.
 - `scripts/verify-navigation.ts`: source-level regression checks for theme separation, sign-out, client paths and content
 
 ## Functional and visual acceptance
