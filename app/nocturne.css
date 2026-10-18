@@ -1,0 +1,488 @@
+/*
+ * NHS Nocturne / Atelier Edition — design-only preview on draft branch.
+ * Admin: restrained cinematic obsidian / plum.
+ * Client: warm porcelain, parchment, deep plum and quiet champagne.
+ * Never use color alone for meaning; honor reduced-motion and existing RLS.
+ */
+
+.app-shell.nhs-theme-admin {
+  --nhs-outline: rgba(193, 167, 215, .17);
+  background:
+    radial-gradient(ellipse at 85% 12%, rgba(125, 65, 140, .09), transparent 38%),
+    radial-gradient(ellipse at 64% 88%, rgba(73, 39, 99, .06), transparent 45%),
+    #0a0910;
+}
+.nhs-theme-admin .main-shell { background: transparent; }
+.nhs-theme-admin .content-wrap { max-width: 1440px; padding-top: 38px; }
+.nhs-theme-admin .page-header { margin-bottom: 30px; }
+.nhs-theme-admin .panel {
+  border-color: rgba(194, 164, 220, .10);
+  box-shadow: 0 12px 36px rgba(0,0,0,.10);
+}
+.nhs-theme-admin .metric-grid { gap: 14px; }
+.nhs-theme-admin .dashboard-grid { gap: 18px; }
+.nhs-theme-admin .workspace-grid { gap: 20px; }
+.nhs-theme-admin .workspace-grid .panel { min-width: 0; }
+
+/* Account controls are always accessible; no hunt through a long sidebar. */
+.nhs-context-bar {
+  min-height: 61px;
+  padding: 10px clamp(20px, 3vw, 44px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid rgba(193, 167, 215, .12);
+  background: rgba(12, 9, 17, .45);
+}
+.nhs-context-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #bcaac8;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .095em;
+  text-transform: uppercase;
+}
+.nhs-context-symbol {
+  font-size: 18px;
+  color: #b99dcf;
+}
+.nhs-context-account {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  min-width: 0;
+}
+.nhs-context-name {
+  color: #ded6e7;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 190px;
+}
+.nhs-sign-out,
+.nhs-mobile-sign-out {
+  border: 1px solid rgba(196,168,214,.22);
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  color: #f0e9f2;
+  padding: 9px 15px;
+  font-size: 11px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background .18s, border-color .18s;
+}
+.nhs-sign-out:hover, .nhs-mobile-sign-out:hover {
+  border-color: rgba(203,158,220,.55);
+  background: rgba(167,95,205,.12);
+}
+.nhs-sign-out:focus-visible, .nhs-mobile-sign-out:focus-visible {
+  outline: 2px solid #c5a1dd;
+  outline-offset: 3px;
+}
+.nhs-sign-out span { margin-left: 8px; }
+
+/* The quieter, editorial client environment. Scope to role: admin never gets
+ * a misleading client navigation or project-portal appearance. */
+.app-shell.nhs-theme-client {
+  --bg: #f7f3f0;
+  --text: #342939;
+  --muted: #746879;
+  --panel: #fffdfa;
+  --panel-strong: #fffdfa;
+  --line: rgba(79, 55, 79, .12);
+  --line-hot: rgba(120, 74, 129, .38);
+  --cyan: #724777;
+  --violet: #815889;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 93% 9%, rgba(171,125,151,.10), transparent 32%),
+    radial-gradient(circle at 18% 77%, rgba(187,153,123,.08), transparent 31%),
+    #f7f3f0;
+}
+.nhs-theme-client .main-shell {
+  position: relative;
+  background: transparent;
+}
+.nhs-theme-client .content-wrap {
+  max-width: 1330px;
+  padding-top: clamp(27px,3vw,46px);
+}
+.nhs-theme-client .nhs-context-bar {
+  background: rgba(255,252,249,.68);
+  border-color: rgba(82,58,81,.10);
+}
+.nhs-theme-client .nhs-context-location { color: #836c83; }
+.nhs-theme-client .nhs-context-symbol { color: #97768c; }
+.nhs-theme-client .nhs-context-name { color: #49384c; }
+.nhs-theme-client .nhs-sign-out,
+.nhs-theme-client .nhs-mobile-sign-out {
+  background: #fffdfa;
+  color: #55405a;
+  border-color: #dbcdd8;
+}
+.nhs-theme-client .nhs-sign-out:hover,
+.nhs-theme-client .nhs-mobile-sign-out:hover {
+  background: #f2e9f1;
+  border-color: #b896b9;
+}
+.nhs-theme-client .sidebar,
+.nhs-theme-client .nhs-sidebar {
+  background: #211b28;
+  border-color: rgba(245,227,246,.12);
+}
+.nhs-theme-client .sidebar .brand-lockup h1,
+.nhs-theme-client .sidebar .brand-lockup .eyebrow { color: #f5edf4; }
+.nhs-theme-client .nav-section-heading { color: #cbb5d1; }
+.nhs-theme-client .nav-link { color: #d6c8db; }
+.nhs-theme-client .nav-link:hover { color: #fff; background: rgba(233,214,236,.10); }
+.nhs-theme-client .nav-link.active {
+  color: #fff;
+  border-color: rgba(224,195,221,.30);
+  background: rgba(214,172,211,.16);
+}
+.nhs-theme-client .nav-icon { color: #d8b8d8; }
+.nhs-theme-client .system-status { border-color: rgba(255,255,255,.12); background: rgba(255,255,255,.04); }
+.nhs-theme-client .system-status strong { color: #f5eef6; }
+.nhs-theme-client .system-status span:last-child { color: #c9b7cc; }
+.nhs-theme-client .user-chip strong { color: #f6ecf7; }
+.nhs-theme-client .user-chip span { color: #d5bfd7; }
+.nhs-theme-client .sidebar-bottom .sign-out-button {
+  border-color: rgba(255,255,255,.2);
+  color: #f1e9f4;
+}
+.nhs-theme-client .page-header h2,
+.nhs-theme-client .page-header h3 { color: #38283c; }
+.nhs-theme-client .page-description { color: #75697a; }
+.nhs-theme-client .eyebrow.electric { color: #7d5a82; }
+.nhs-theme-client .panel,
+.nhs-theme-client .portal-project-card,
+.nhs-theme-client .portal-shortcut {
+  background: rgba(255,253,250,.93);
+  color: #372d3d;
+  border-color: rgba(77,53,81,.12);
+  box-shadow: 0 14px 38px rgba(58,38,55,.045);
+}
+.nhs-theme-client .panel :is(h2,h3,h4,strong),
+.nhs-theme-client .delivery-row-title,
+.nhs-theme-client .simple-row strong { color: #392b3e; }
+.nhs-theme-client .panel :is(p,small),
+.nhs-theme-client .muted-copy,
+.nhs-theme-client .simple-row span,
+.nhs-theme-client .delivery-row-sub { color: #736879; }
+.nhs-theme-client .panel a:not(.primary-button):not(.secondary-button),
+.nhs-theme-client .text-button { color: #755080; }
+.nhs-theme-client .panel a:hover, .nhs-theme-client .text-button:hover { color: #54355d; }
+.nhs-theme-client .panel .beta-pill,
+.nhs-theme-client .panel .stage-badge,
+.nhs-theme-client .panel .pipeline-count {
+  background: #f4ecf2;
+  border-color: #dfccdd;
+  color: #715478;
+}
+.nhs-theme-client :is(.portal-section-tabs a, .mini-button, .ghost-button) {
+  border-color: #e1d5df;
+  background: #fffefa;
+  color: #583e62;
+}
+.nhs-theme-client :is(.portal-section-tabs a, .mini-button, .ghost-button):hover {
+  background: #f5edf3;
+  border-color: #b893bd;
+  color: #55345c;
+}
+.nhs-theme-client .mini-button.go,
+.nhs-theme-client .primary-button {
+  background: #654269;
+  color: white;
+  border-color: #654269;
+}
+.nhs-theme-client :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select) {
+  color-scheme: light;
+  color: #34293d;
+  background: #fffdfc;
+  border-color: #dacfd9;
+}
+.nhs-theme-client :is(input,textarea,select)::placeholder { color: #897e8b; }
+.nhs-theme-client :is(input,textarea,select):focus-visible { outline: 2px solid #8e6797; outline-offset: 1px; }
+.nhs-theme-client .progress-track { background: #e9dfe8; }
+.nhs-theme-client .portal-section-tabs {
+  position: sticky;
+  z-index: 8;
+  top: 0;
+  background: rgba(247,243,240,.96);
+  backdrop-filter: blur(12px);
+  padding: 12px 0;
+}
+.nhs-theme-client .portal-section-tabs a {
+  border-radius: 999px;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+}
+.nhs-theme-client .portal-section-tabs a:focus-visible { outline: 2px solid #8c6292; }
+.nhs-theme-client .client-detail-grid { gap: 18px; }
+.nhs-theme-client .client-detail-grid .detail-panel { padding: clamp(17px,2vw,27px); }
+.nhs-theme-client .simple-row, .nhs-theme-client .delivery-row { border-color: rgba(78,57,85,.10); }
+.nhs-theme-client .portal-anchor { scroll-margin-top: 95px; }
+
+/* New Atelier homepage uses whitespace and flow instead of crowded card grids. */
+.atelier-home { display: flex; flex-direction: column; gap: clamp(23px,3.5vw,42px); }
+.atelier-hero {
+  isolation: isolate;
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 294px;
+  overflow: hidden;
+  border-radius: 22px 52px 24px 57px;
+  padding: clamp(30px,4vw,55px);
+  color: #fcf8f5;
+  background:
+    radial-gradient(ellipse at 82% 28%, rgba(197,145,181,.27), transparent 29%),
+    radial-gradient(ellipse at 4% 100%, rgba(175,133,168,.15), transparent 44%),
+    linear-gradient(118deg,#251d2b 0%,#47314b 67%,#654963 100%);
+  box-shadow: 0 27px 48px rgba(56,36,55,.12);
+}
+.atelier-hero::before {
+  position: absolute;
+  content: "";
+  pointer-events: none;
+  z-index: -1;
+  inset: 12% -7% -45% 66%;
+  border: 1px solid rgba(246,223,238,.16);
+  border-radius: 48% 52% 50% 45%;
+  transform: rotate(-24deg);
+}
+.atelier-hero::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  inset: 20% -13% -60% 76%;
+  border: 1px solid rgba(246,223,238,.13);
+  border-radius: 60% 38% 65% 40%;
+  transform: rotate(18deg);
+}
+.atelier-overline {
+  margin: 0;
+  color: #91758e;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-weight: 750;
+  font-size: 10px;
+}
+.atelier-hero .atelier-overline { color: #dcc2d8; }
+.atelier-hero-copy { position: relative; z-index: 1; max-width: 710px; }
+.atelier-hero h2 {
+  margin: 15px 0 14px;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(29px,3.45vw,48px);
+  line-height: 1.16;
+  color: #fff8fa;
+}
+.atelier-hero-copy > p:not(.atelier-overline) {
+  color: #ebdfe9;
+  font-size: 14px;
+  line-height: 1.75;
+  margin: 0 0 22px;
+  max-width: 500px;
+}
+.atelier-primary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 46px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  text-decoration: none;
+  background: #f8eff4;
+  color: #523953;
+  font-size: 13px;
+  font-weight: 700;
+  transition: transform .2s, background .2s;
+}
+.atelier-primary-link:hover { color: #3b2a40; background: #fff; transform: translateY(-1px); }
+.atelier-hero-emblem {
+  position: absolute;
+  right: 9%;
+  top: 12%;
+  font-size: clamp(108px,17vw,210px);
+  font-weight: 100;
+  line-height: 1;
+  color: rgba(255,232,246,.085);
+  pointer-events: none;
+}
+.atelier-home-body {
+  display: grid;
+  grid-template-columns: minmax(0,1.65fr) minmax(245px,.8fr);
+  gap: clamp(25px,3.4vw,48px);
+  align-items: stretch;
+}
+.atelier-feature-column { min-width: 0; }
+.atelier-section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 17px;
+}
+.atelier-section-heading a,
+.atelier-text-link {
+  color: #715077;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+.atelier-section-heading a:hover, .atelier-text-link:hover { text-decoration: underline; }
+.atelier-section-heading h3 {
+  margin: 9px 0 0;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(21px,2vw,26px);
+  color: #3b2c3e;
+  font-weight: 500;
+}
+.atelier-feature-project {
+  background: #fffdfa;
+  border: 1px solid #e9dce5;
+  border-radius: 22px;
+  padding: clamp(22px,2.5vw,34px);
+  box-shadow: 0 12px 40px rgba(56,38,55,.045);
+}
+.atelier-project-topline, .atelier-progress-info, .atelier-project-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.atelier-project-topline {
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: .09em;
+  font-size: 10px;
+}
+.atelier-project-tag { color: #a1819c; }
+.atelier-project-stage { color: #604461; text-transform: capitalize; }
+.atelier-feature-project h3 {
+  color: #392c3b;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(21px,2vw,27px);
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 23px 0 9px;
+}
+.atelier-feature-project > p { font-size: 12px; color: #877a89; margin: 0 0 27px; }
+.atelier-progress-info { font-size: 11px; color: #776779; margin-bottom: 10px; }
+.atelier-progress-info strong { color: #4f3854; }
+.atelier-progress-track { height: 5px; border-radius: 8px; overflow: hidden; background: #ebdfe8; }
+.atelier-progress-track > span {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: linear-gradient(90deg,#77547e,#a88aa7);
+}
+.atelier-project-footer {
+  border-top: 1px solid #f0e6ed;
+  margin-top: 24px;
+  padding-top: 21px;
+  font-size: 11px;
+  color: #817581;
+}
+.atelier-project-footer a { text-decoration: none; color: #694773; font-weight: 700; }
+.atelier-project-footer a:hover { text-decoration: underline; }
+.atelier-action-panel {
+  align-self: stretch;
+  border-top: 2px solid #b99dba;
+  padding: 22px 4px 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.atelier-action-panel h3 {
+  color: #3f3045;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(20px,2vw,26px);
+  font-weight: 500;
+  line-height: 1.3;
+  margin: 19px 0 13px;
+}
+.atelier-action-panel > p:not(.atelier-overline) { font-size: 13px; line-height: 1.8; color: #776a79; margin: 0 0 22px; }
+.atelier-action-panel .atelier-text-link { margin-top: auto; }
+.atelier-action-note { font-size: 11px; color: #8e668e; margin-top: 12px; }
+.atelier-destinations { padding: 4px 0 0; }
+.atelier-destination-grid {
+  border-top: 1px solid #e4d7e0;
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+}
+.atelier-destination {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  min-height: 156px;
+  padding: 26px 28px 24px 8px;
+  color: #382b3e;
+  text-decoration: none;
+  border-right: 1px solid #e4d7e0;
+  transition: background .18s;
+}
+.atelier-destination:nth-child(n+2) { padding-left: 28px; }
+.atelier-destination:last-child { border-right: 0; }
+.atelier-destination:hover { background: rgba(255,252,250,.65); }
+.atelier-destination-icon { font-size: 22px; color: #957797; margin-bottom: 8px; }
+.atelier-destination strong { font-size: 15px; font-weight: 700; color: #392e40; }
+.atelier-destination small { font-size: 12px; color: #837486; line-height: 1.5; }
+.atelier-destination .atelier-arrow { position: absolute; right: 14px; top: 25px; color: #916d92; }
+.atelier-notice, .atelier-empty {
+  padding: 28px 30px;
+  border-radius: 17px;
+  border: 1px solid #e5d3e0;
+  background: #fffcfa;
+  color: #59485d;
+}
+.atelier-notice h3, .atelier-empty h3 { color: #422e48; margin: 7px 0; }
+.atelier-empty > span { color: #947796; font-size: 32px; }
+.atelier-notice p, .atelier-empty p { color: #736679; font-size: 13px; }
+
+/* Universal visual controls never trap focus or cause a horizontal scroll. */
+.nhs-theme-client .content-wrap, .nhs-theme-admin .content-wrap { min-width: 0; }
+.nhs-theme-client .content-wrap * { overflow-wrap: anywhere; }
+@media (max-width: 1050px) {
+  .atelier-home-body { grid-template-columns: minmax(0,1.25fr) minmax(220px,.75fr); gap: 25px; }
+}
+@media (max-width: 860px) {
+  .nhs-context-bar { display: none; }
+  .nhs-theme-client .mobile-topbar { background: #211b28; border-color: rgba(240,216,236,.2); }
+  .nhs-theme-client .mobile-brand,
+  .nhs-theme-client .mobile-role { color: #fff4fb; }
+  .nhs-theme-client .navigation-toggle { color: #fff4fb; border-color: rgba(240,216,236,.23); }
+  .nhs-theme-client .nhs-mobile-sign-out { border-color: rgba(240,216,236,.24); background: transparent; color: #f8eff8; }
+  .nhs-theme-client .portal-section-tabs { top: 60px; }
+  .atelier-home-body { grid-template-columns: 1fr; }
+  .atelier-action-panel { padding: 22px 3px 10px; min-height: 175px; }
+}
+@media (max-width: 700px) {
+  .nhs-theme-client .content-wrap, .nhs-theme-admin .content-wrap {
+    padding: 22px 18px 48px;
+  }
+  .atelier-hero { border-radius: 22px 36px 22px 40px; min-height: 300px; padding: 28px 25px; }
+  .atelier-hero-emblem { right: 1%; top: 7%; }
+  .atelier-destination-grid { grid-template-columns: 1fr; }
+  .atelier-destination, .atelier-destination:nth-child(n+2) {
+    min-height: 92px;
+    padding: 18px 38px 17px 10px;
+    border-right: 0;
+    border-bottom: 1px solid #e4d7e0;
+  }
+  .atelier-destination-icon { margin-bottom: 0; }
+  .atelier-project-footer { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atelier-primary-link,.atelier-destination,.nhs-sign-out,.nhs-mobile-sign-out { transition: none; }
+}
