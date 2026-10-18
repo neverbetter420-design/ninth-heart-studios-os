@@ -98,6 +98,8 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     expect(accepted.decided_at).toBeTruthy();
     expect(accepted.client_comment).toBe("Approved through local UI");
     await page.reload();
+    // Nocturne keeps decision history available but collapsed by default.
+    await page.locator("details#project-details > summary").click();
     await expect(page.getByText(approveTitle, { exact: true })).toBeVisible();
     const changeRow = page.getByRole("region", { name: "Approvals needing your decision" })
       .locator("li.delivery-row").filter({ hasText: changeTitle });
@@ -115,6 +117,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     await page.reload();
     await expect(page.getByRole("heading", { name: "Synthetic UI Project A", exact: true })).toBeVisible();
 
+    // Open the optional Atelier conversation section before testing writes.
+    const conversation = page.locator("details.atelier-discussion");
+    await conversation.locator("summary").click();
+    await expect(conversation).toHaveAttribute("open", "");
     const thread = page.getByRole("region", { name: "Messages" });
 
     // Hostile form-field mutation: use Client B's project ID while logged in as A.
@@ -139,6 +145,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     const saved = (await required(srv.from("messages").select("sender_id,body").eq("project_id",projectA).eq("body",note),"persisted message"))[0];
     expect(saved.sender_id).toBe(userA.id);
     await page.reload();
+    await page.locator("details.atelier-discussion > summary").click();
     await expect(page.getByText(note, { exact: true })).toBeVisible();
 
     await page.goto("/portal/approvals");
