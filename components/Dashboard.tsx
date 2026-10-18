@@ -123,25 +123,6 @@ export async function Dashboard() {
           </div>
         </div>
 
-        <aside className="panel muse-panel">
-          <div className="muse-hero">
-            <span className="muse-orb large" />
-            <div>
-              <p className="eyebrow electric">Muse</p>
-              <h3>Studio intelligence</h3>
-            </div>
-          </div>
-          <p className="muse-copy">{recommendation.detail}</p>
-          <div className="muse-suggestion">
-            <span>The one thing</span>
-            <strong>{recommendation.title}</strong>
-            <small>{recommendation.why}</small>
-          </div>
-          <Link className="secondary-button wide muse-link" href="/muse">
-            Open Muse
-          </Link>
-        </aside>
-
         <div className="panel project-panel">
           <div className="panel-heading">
             <div>
@@ -167,6 +148,33 @@ export async function Dashboard() {
             )}
           </div>
         </div>
+
+      </section>
+
+      <details className="nocturne-insights">
+        <summary>
+          <span><strong>Studio intelligence & activity</strong><small>Muse, opportunities, and recent studio events</small></span>
+          <span className="nocturne-insights-toggle" aria-hidden="true">Explore</span>
+        </summary>
+        <div className="nocturne-insights-grid">
+        <aside className="panel muse-panel">
+          <div className="muse-hero">
+            <span className="muse-orb large" />
+            <div>
+              <p className="eyebrow electric">Muse</p>
+              <h3>Studio intelligence</h3>
+            </div>
+          </div>
+          <p className="muse-copy">{recommendation.detail}</p>
+          <div className="muse-suggestion">
+            <span>The one thing</span>
+            <strong>{recommendation.title}</strong>
+            <small>{recommendation.why}</small>
+          </div>
+          <Link className="secondary-button wide muse-link" href="/muse">
+            Open Muse
+          </Link>
+        </aside>
 
         <div className="panel radar-panel">
           <div className="panel-heading">
@@ -210,7 +218,8 @@ export async function Dashboard() {
             )}
           </div>
         </div>
-      </section>
+        </div>
+      </details>
     </div>
   );
 }
