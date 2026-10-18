@@ -24,6 +24,16 @@ export function Sidebar({
       : pathname === item.href || pathname.startsWith(item.href + "/")
   );
   const activeHref = [...matchingItems].sort((a, b) => b.href.length - a.href.length)[0]?.href;
+  const activeSection = visibleItems.find((item) => item.href === activeHref)?.section;
+  const [expandedSections, setExpandedSections] = useState<string[]>(
+    role === "admin" ? [activeSection ?? "Overview"] : sections
+  );
+
+  useEffect(() => {
+    // Follow route navigation automatically while leaving manual section toggles
+    // under the user's control until the next navigation.
+    setExpandedSections(role === "admin" ? [activeSection ?? "Overview"] : sections);
+  }, [role, activeSection]);
 
   useEffect(() => {
     setOpen(false);
@@ -88,10 +98,27 @@ export function Sidebar({
         </div>
 
         <nav className="nav-stack" aria-label="Primary navigation">
-          {sections.map((section) => (
+          {sections.map((section, index) => {
+            const expanded = role !== "admin" || expandedSections.includes(section);
+            return (
             <div className="nav-section" key={section}>
-              <p className="nav-section-heading">{section}</p>
-              <div className="nav-section-links">
+              {role === "admin" ? (
+                <button
+                  type="button"
+                  className="nav-section-heading nav-section-toggle"
+                  aria-expanded={expanded}
+                  aria-controls={`nhs-nav-${role}-${index}`}
+                  onClick={() => setExpandedSections((current) =>
+                    current.includes(section) ? current.filter((name) => name !== section) : [section]
+                  )}
+                >
+                  <span>{section}</span>
+                  <span aria-hidden="true" className="nav-section-chevron">{expanded ? "−" : "+"}</span>
+                </button>
+              ) : (
+                <p className="nav-section-heading">{section}</p>
+              )}
+              <div id={`nhs-nav-${role}-${index}`} className="nav-section-links" hidden={!expanded}>
                 {visibleItems.filter((item) => item.section === section).map((item) => {
                   const active = item.href === activeHref;
                   return (
@@ -109,7 +136,8 @@ export function Sidebar({
                 })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </nav>
 
         <div className="sidebar-bottom">
