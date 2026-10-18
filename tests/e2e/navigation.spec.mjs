@@ -34,8 +34,17 @@ async function openNavigation(page, isMobile) {
 
 async function visitNav(page, isMobile, label, pathname) {
   const nav = await openNavigation(page, isMobile);
-  const item = nav.getByRole("link", { name: label, exact: true });
+  // Admin nav groups may be collapsed in Nocturne. Expand the group
+  // containing the requested destination before testing the link itself.
+  const item = nav.locator(`a.nav-link[href="${pathname}"]`);
   await expect(item).toHaveAttribute("href", pathname);
+  if (!(await item.isVisible())) {
+    const group = nav.locator(".nav-section").filter({ has: item });
+    const toggle = group.locator(".nav-section-toggle");
+    await expect(toggle).toBeVisible();
+    await toggle.click();
+  }
+  await expect(item).toBeVisible();
   await item.click();
   await expect(page).toHaveURL(new RegExp(pathname === "/" ? "/$" : pathname.replaceAll("/", "\\/") + "$"));
   await expect(page.locator("main h2").first()).toBeVisible();
