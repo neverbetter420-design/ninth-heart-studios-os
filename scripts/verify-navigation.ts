@@ -121,6 +121,14 @@ assert.ok(resourceCollection.includes('className="atelier-resource-groups"'), "c
 assert.ok(resourceCollection.includes('className="atelier-resource-rows"'), "client resource directory must have accessible lists");
 assert.ok(resourceCollection.includes('href={itemHref(item)}'), "client resource links must navigate to the original project");
 assert.ok(phase3Styles.includes("prefers-reduced-motion"), "Atelier client transitions require reduced-motion support");
+const adminClientsPage = read("app/(protected)/(admin)/clients/page.tsx");
+const adminProjectsPage = read("app/(protected)/(admin)/projects/page.tsx");
+for (const source of [adminClientsPage, adminProjectsPage]) {
+  assert.ok(source.includes('className="nocturne-create-panel"'), "admin create forms must be discoverable but collapse until needed");
+  assert.ok(source.includes('open={Boolean(formError)}'), "failed create must reveal the form so errors are actionable");
+  assert.ok(source.includes('className="nocturne-create-toggle"'), "creation control must be a focusable native details summary");
+  assert.ok(source.includes("PortalSubmitButton"), "creation forms must keep their pending submit controls");
+}
 const dashboard = read("components/Dashboard.tsx");
 assert.ok(dashboard.includes('className="nocturne-insights"'), "optional admin intelligence should be progressive disclosure");
 const adminProject = read("app/(protected)/(admin)/projects/[projectId]/page.tsx");
