@@ -105,6 +105,7 @@ assert.ok(documentHub.includes('from("documents")') && documentHub.includes('.in
 assert.ok(documentHub.includes('href="/portal/contracts"') && documentHub.includes('href="/portal/forms"'), "contracts and forms must remain accessible through Documents");
 assert.ok(detail.includes('section: requestedSection'), "project deep links must open requested section");
 assert.ok(detail.includes('id="documents"'), "project documents anchor must be present");
+assert.ok(detail.includes('href="?section=details#project-details"'), "project details link must expand target section");
 assert.ok(read("components/portal/PortalResourcePage.tsx").includes('"?section=" + kind'), "deep links must open collapsed resource sections");
 assert.ok(appShell.includes("WorkspaceBreadcrumbs"), "context navigation must load in app shell");
 assert.ok(breadcrumb.includes('aria-label="Breadcrumb"') && breadcrumb.includes('aria-current="page"'), "breadcrumbs must be accessible");
