@@ -36,6 +36,24 @@ Never alter the NHS heart/ring/key identity geometry; the glyphs used in this im
 - `app/(protected)/(admin)/projects/[projectId]/page.tsx`: Tasks, Milestones and Approvals remain visible at the top; revisions, files, messages, documents, launch checks and activity are grouped in native expandable workspace sections with existing actions preserved.
 - `scripts/verify-navigation.ts`: source-level regression checks for theme separation, sign-out, client paths and content
 
+## Phase 2 refinement — navigation without clutter
+
+The following source changes are committed on the draft branch and **not deployed**:
+
+- `app/(protected)/portal/documents/page.tsx` introduces a **real client Documents hub**, listing only the project records visible to the authenticated client through existing RLS. Contracts and Forms retain their real, separate destinations under one Documents menu item, reducing client navigation to six first-level links.
+- Client Home now opens Documents for paperwork; `lib/nav.ts` retains Home, My Projects, Messages, Files, Approvals and Documents.
+- Resource-to-project links use section-aware parameters (e.g., `?section=documents#documents`) so relevant project disclosures open before focusing the target, rather than scrolling into closed content.
+- `components/WorkspaceBreadcrumbs.tsx` shows route-aware, role-specific location breadcrumbs with non-sensitive detail labels, including compact breadcrumbs beneath the mobile menu.
+- The Admin sidebar provides keyboard-operable, `aria-expanded` collapsible navigation groups, initially focused on the active section. Clients keep their short, always-visible grouped navigation.
+- Structural and browser tests now cover document discovery, preserved Contracts/Forms routes, breadcrumb accessibility, and opening collapsed admin groups.
+
+**Acceptance specifics:**
+1. Admin current sidebar group opens for the current route; other groups expand by keyboard and mouse. Mobile drawer should not clip long labels, and Sign Out remains visible.
+2. Client Documents shows only entitled documents; Client B cannot access Client A's documents or linked project pages. No service-role DB reads were introduced.
+3. Clicking a document enters its project with the Documents detail expanded; Messages, Files, Forms and Contracts links open the corresponding expandable resource area.
+4. The Documents hub is an index and navigation surface; it does not replace private Storage access controls, sign contracts, or create files.
+5. Preserve mobile responsiveness and live client project role isolation. **The revised UI has not received owner-side visual approval or production smoke testing yet.**
+
 ## Functional and visual acceptance
 
 1. **Admin desktop/mobile:** sign out accessible from account controls; after sign out, protected routes require reauthentication; sidebar still navigates all admin tools.
