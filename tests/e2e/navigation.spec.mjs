@@ -138,6 +138,13 @@ test("client B cannot open client A's private project", async ({ browser, baseUR
     expect(privateHref).toBeTruthy();
     expect(privateProjectTitle).toBeTruthy();
 
+    // Client Project details must not navigate into a closed disclosure.
+    await a.goto(privateHref);
+    const detailsLink = a.getByRole("link", { name: "Project details", exact: true });
+    await expect(detailsLink).toHaveAttribute("href", "?section=details#project-details");
+    await detailsLink.click();
+    await expect(a.locator("details#project-details")).toHaveAttribute("open", "");
+
     const b = await contextB.newPage();
     await signIn(b, users.clientB);
     await b.goto(privateHref);
