@@ -10,6 +10,8 @@ import { MessageThread } from "@/components/projects/MessageThread";
 import { PortalRevisionSection } from "@/components/projects/PortalRevisionSection";
 import { ContractSign } from "@/components/portal/ContractSign";
 import { FormFill } from "@/components/portal/FormFill";
+import { ProjectJourney } from "@/components/projects/ProjectJourney";
+import { DesignGallery } from "@/components/projects/DesignGallery";
 import { formatBytes } from "@/lib/files";
 import type { ChangeOrder, Contract, FeedbackPin, FormSubmission, FormTemplate, ProjectDocument, ProjectMessage, RevisionRound } from "@/lib/supabase/types";
 
@@ -165,6 +167,7 @@ export default async function ClientProjectPage({
   type PortalFile = {
     id: string;
     filename: string;
+    mime_type: string | null;
     size_bytes: number | null;
     created_at: string;
     uploaded_by: string | null;
@@ -180,7 +183,7 @@ export default async function ClientProjectPage({
   );
 
   return (
-    <div className="content-wrap atelier-project-page">
+    <div className="content-wrap atelier-project-page studio-workspace">
       {uploadError && <p role="alert" className="lead-form-error">{uploadError}</p>}
       {uploadOk && <p role="status" className="notice">{uploadOk}</p>}
       <div className="lead-detail-backline" style={{ marginBottom: 10 }}>
@@ -200,13 +203,18 @@ export default async function ClientProjectPage({
         </div>
       </header>
 
+      <ProjectJourney status={project.status} />
+
       <nav className="atelier-project-nav" aria-label="Project destinations">
         <Link href="?section=details#project-details">Project details</Link>
-        <Link href="/portal/approvals">Approvals</Link>
-        <Link href="/portal/files">Files</Link>
-        <Link href="/portal/messages">Messages</Link>
-        <Link href="/portal/documents">Documents</Link>
+        <Link href={pendingApprovals.length ? "?section=approvals#pending-approvals" : "?section=approvals#approvals"}>Approvals</Link>
+        <Link href="?section=files#files">Files</Link>
+        <Link href="?section=documents#documents">Documents</Link>
+        <Link href="?section=feedback#design-feedback">Design feedback</Link>
+        <Link href="?section=messages#messages">Messages</Link>
       </nav>
+
+      <DesignGallery files={portalFiles} filesHref="?section=files#files" />
 
       {pendingApprovals.length > 0 ? (
         <section id="pending-approvals" className="panel portal-anchor" aria-label="Approvals needing your decision" style={{ marginBottom: 14 }}>
@@ -239,8 +247,8 @@ export default async function ClientProjectPage({
         </section>
       ) : null}
 
-      <details className="atelier-disclosure" id="project-details" open={["details", "documents", "files", "forms", "contracts", "approvals"].includes(requestedSection ?? "")}>
-        <summary><span className="atelier-disclosure-title">Timeline & project details</span><span className="atelier-disclosure-subtitle">Milestones, tasks, decisions, project files, and feedback</span></summary>
+      <details className="atelier-disclosure" id="project-details" open={["details", "approvals"].includes(requestedSection ?? "")}>
+        <summary><span className="atelier-disclosure-title">Your project plan</span><span className="atelier-disclosure-subtitle">Milestones, tasks, updates, and past decisions</span></summary>
         <section className="client-detail-grid">
         <article id="milestones" className="panel detail-panel portal-anchor">
           <h3>Milestones</h3>
@@ -286,6 +294,22 @@ export default async function ClientProjectPage({
           )) : <p className="muted-copy">No follow-ups scheduled.</p>}
         </article>
 
+        <article className="panel detail-panel">
+          <h3>Latest updates</h3>
+          {(updates ?? []).length ? (updates ?? []).map((u) => (
+            <div className="simple-row" key={u.id}>
+              <strong>{u.summary}</strong>
+              <span>{new Date(u.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+            </div>
+          )) : <p className="muted-copy">No updates yet.</p>}
+        </article>
+
+        </section>
+      </details>
+
+      <details className="atelier-disclosure" id="project-resources" open={["documents", "files", "forms", "contracts"].includes(requestedSection ?? "")}>
+        <summary><span className="atelier-disclosure-title">Files & documents</span><span className="atelier-disclosure-subtitle">Shared files, agreements, and forms for this project</span></summary>
+        <section className="client-detail-grid">
         <article id="files" className="panel detail-panel portal-anchor">
           <h3>Files</h3>
           <form action={uploadClientFile} className="mini-form file-upload-form" style={{ marginBottom: 10 }}>
@@ -317,16 +341,6 @@ export default async function ClientProjectPage({
           )) : <p className="muted-copy">No client files uploaded yet.</p>}
         </article>
 
-        <article className="panel detail-panel">
-          <h3>Latest updates</h3>
-          {(updates ?? []).length ? (updates ?? []).map((u) => (
-            <div className="simple-row" key={u.id}>
-              <strong>{u.summary}</strong>
-              <span>{new Date(u.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-            </div>
-          )) : <p className="muted-copy">No updates yet.</p>}
-        </article>
-
         <article id="documents" className="panel detail-panel portal-anchor">
           <h3>Documents</h3>          {(documents ?? []).length ? ((documents ?? []) as ProjectDocument[]).map((doc) => (
             <div className="simple-row" key={doc.id}>
@@ -340,6 +354,15 @@ export default async function ClientProjectPage({
           )) : <p className="muted-copy">No documents shared yet.</p>}
         </article>
 
+        <div id="contracts" className="portal-anchor"><ContractSign contracts={(contracts ?? []) as Contract[]} /></div>
+
+        <div id="forms" className="portal-anchor"><FormFill submissions={submissionsWithTemplates} submitAction={submitFormWithFeedback} /></div>
+        </section>
+      </details>
+
+      <details className="atelier-disclosure" id="design-feedback" open={requestedSection === "feedback"}>
+        <summary><span className="atelier-disclosure-title">Design feedback</span><span className="atelier-disclosure-subtitle">Revision rounds, visual comments, and change requests</span></summary>
+        <section className="client-detail-grid">
         <PortalRevisionSection
           projectId={projectId}
           rounds={revisionRounds}
@@ -349,9 +372,6 @@ export default async function ClientProjectPage({
           addPinAction={addPortalFeedbackPin}
         />
 
-        <div id="contracts" className="portal-anchor"><ContractSign contracts={(contracts ?? []) as Contract[]} /></div>
-
-        <div id="forms" className="portal-anchor"><FormFill submissions={submissionsWithTemplates} submitAction={submitFormWithFeedback} /></div>
         </section>
       </details>
 

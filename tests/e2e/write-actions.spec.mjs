@@ -21,6 +21,11 @@ const testTag = "NHS-WRITE-QA-" + (process.env.GITHUB_RUN_ID || "local") + "-" +
 const route = "/projects/" + projectId;
 const portalRoute = "/portal/projects/" + projectId;
 
+async function revealResources(page) {
+  const group = page.locator("details#workspace-resources");
+  if (await group.count() && await group.getAttribute("open") === null) await group.locator(":scope > summary").click();
+}
+
 async function signIn(page, user) {
   await page.goto("/auth/sign-in");
   await page.locator('input[name="email"]').fill(user[0]);
@@ -56,6 +61,7 @@ async function guardedSetup(page, browser, baseURL) {
 
   await signIn(page, users.admin);
   await page.goto(route);
+  await revealResources(page);
   await expect(page.getByRole("heading", { name: expectedProject, exact: true })).toBeVisible();
   await expect(page.getByText("Client A Test Co.", { exact: false }).first()).toBeVisible();
 }
@@ -66,6 +72,10 @@ async function portalHas(browser, baseURL, text, visible) {
     const page = await context.newPage();
     await signIn(page, users.clientA);
     await page.goto(portalRoute);
+    for (const id of ["project-details", "project-resources"]) {
+      const group = page.locator("details#" + id);
+      if (await group.getAttribute("open") === null) await group.locator(":scope > summary").click();
+    }
     if (visible) await expect(page.getByText(text, { exact: true }).first()).toBeVisible();
     else await expect(page.getByText(text, { exact: true })).toHaveCount(0);
   } finally {
@@ -120,6 +130,7 @@ async function safeRemove(page, sectionName, title) {
   if (before.length === 0) return; // Initial create never persisted.
   expect(before, "Only one QA record may match an exact generated name").toHaveLength(1);
   await page.goto(route);
+  await revealResources(page);
   const section = page.getByRole("region", { name: sectionName });
   const row = namedRow(section, title);
   await expect(row, "A persisted QA row must be reachable for cleanup").toHaveCount(1);
@@ -164,6 +175,7 @@ test.describe("Approved isolated live-action QA", () => {
       await expect(form.getByRole("status")).toContainText("Task added.");
       await expect(namedRow(section, title)).toBeVisible();
       await page.reload();
+      await revealResources(page);
       await expect(namedRow(page.getByRole("region", { name: "Tasks" }), title)).toBeVisible();
       await portalHas(browser, baseURL, title, true);
 
@@ -172,6 +184,7 @@ test.describe("Approved isolated live-action QA", () => {
       await row.getByRole("button", { name: "Set", exact: true }).click();
       await expect(row.getByRole("status")).toContainText("Task status updated.");
       await page.reload();
+      await revealResources(page);
       row = namedRow(page.getByRole("region", { name: "Tasks" }), title);
       // Select the displayed state badge, not the "In progress" option
       // inside the status dropdown (Playwright strict-mode duplicate).
@@ -180,6 +193,7 @@ test.describe("Approved isolated live-action QA", () => {
       await row.getByRole("button", { name: "Hide " + title + " from client" }).click();
       await expect(row.getByRole("status")).toContainText("Task visibility saved.");
       await page.reload();
+      await revealResources(page);
       await portalHas(browser, baseURL, title, false);
     } finally {
       if (attempted) await safeRemove(page, "Tasks", title);
@@ -199,6 +213,7 @@ test.describe("Approved isolated live-action QA", () => {
       await expect(form.getByRole("status")).toContainText("Milestone added.");
       await expect(namedRow(section, title)).toBeVisible();
       await page.reload();
+      await revealResources(page);
       await portalHas(browser, baseURL, title, true);
 
       let row = namedRow(page.getByRole("region", { name: "Milestones" }), title);
@@ -206,6 +221,7 @@ test.describe("Approved isolated live-action QA", () => {
       await row.getByRole("button", { name: "Set", exact: true }).click();
       await expect(row.getByRole("status")).toContainText("Milestone status updated.");
       await page.reload();
+      await revealResources(page);
       row = namedRow(page.getByRole("region", { name: "Milestones" }), title);
       await expect(row.locator("span.delivery-pill.done")).toHaveText("Complete");
     } finally {
@@ -227,6 +243,7 @@ test.describe("Approved isolated live-action QA", () => {
       await expect(form.getByRole("status")).toContainText("Document shared.");
       await expect(namedRow(section, title)).toBeVisible();
       await page.reload();
+      await revealResources(page);
       await expect(namedRow(page.getByRole("region", { name: "Documents" }), title)).toBeVisible();
       await portalHas(browser, baseURL, title, true);
     } finally {
@@ -250,8 +267,10 @@ test.describe("Approved isolated live-action QA", () => {
       attempted = true;
       await form.getByRole("button", { name: "Upload", exact: true }).click();
       await expect(page.getByRole("status").filter({ hasText: "File uploaded successfully." })).toBeVisible();
+      await revealResources(page);
       await expect(namedRow(page.getByRole("region", { name: "Project files" }), filename)).toBeVisible();
       await page.reload();
+      await revealResources(page);
       const fileRow = namedRow(page.getByRole("region", { name: "Project files" }), filename);
       await expect(fileRow.getByRole("link", { name: "Download" })).toHaveAttribute("href", /^https:\/\//);
       await portalHas(browser, baseURL, filename, true);

@@ -2,9 +2,9 @@ import { test, expect } from "@playwright/test";
 import { previewCSS, renderNocturne } from "../helpers/nocturne-render.mjs";
 
 // Actual page/shell markup, synthetic reads only. All network traffic is denied.
-async function show(page, role, scenario = "normal") {
+async function show(page, role, scenario = "normal", view = "home", section = "") {
   await page.route("**/*", (route) => route.abort());
-  const { html } = await renderNocturne(role, scenario);
+  const { html } = await renderNocturne(role, scenario, view, section);
   await page.setContent(`<html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${html}</body></html>`);
   await page.addStyleTag({ content: previewCSS });
 }
@@ -32,6 +32,29 @@ test("Atelier dark sidebar retains readable identity and sign out", async ({ pag
   expect(await signOut.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
   expect((await signOut.boundingBox()).height).toBeGreaterThanOrEqual(44);
 });
+
+for (const role of ["client", "admin"]) {
+  test(role + " project journey and open file workspace fit at narrow widths", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const scenario of ["normal", "long", "populated"]) {
+      await show(page, role, scenario, "project", "files");
+      await expect(page.getByRole("region", { name: "Project journey" })).toBeVisible();
+      await expect(page.locator('.studio-journey li[aria-current="step"]')).toHaveCount(1);
+      await expect(page.getByRole("navigation", { name: "Project destinations" })).toBeVisible();
+      await expect(page.locator(role === "client" ? "details#project-resources" : "details#workspace-resources")).toHaveAttribute("open", "");
+      await expect(page.locator(".studio-gallery img")).toHaveCount(scenario === "populated" ? 1 : 0);
+      for (const width of [1440, 1024, 860, 620, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} ${scenario} project fits at ${width}px`).toBeLessThanOrEqual(width);
+        for (const link of await page.getByRole("navigation", { name: "Project destinations" }).getByRole("link").all()) {
+          await link.scrollIntoViewIfNeeded();
+          await link.focus();
+          expect(await link.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+        }
+      }
+    }
+  });
+}
 
 test("Command Center progress and disclosure fit at desktop and narrow widths", async ({ page }) => {
   await show(page, "admin", "long");

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { updateProjectDetailsWithFeedback } from "@/app/(protected)/(admin)/projects/actions";
 import { PortalActionForm } from "@/components/portal/PortalActionForm";
 import { stageLabel } from "@/lib/delivery";
+import { ProjectJourney } from "./ProjectJourney";
 
 type Props = {
   project: {
@@ -27,7 +28,7 @@ export function ProjectOverview({ project, clientName }: Props) {
           <h2 style={{ margin: "6px 0 8px" }}>{project.name}</h2>
           <span className="stage-badge">{stageLabel(project.status)}</span>
         </div>
-        <div style={{ minWidth: 220 }}>
+        <div className="studio-project-progress">
           <div className="progress-track" aria-label={`${project.progress}% complete`}>
             <span style={{ width: `${project.progress}%` }} />
           </div>
@@ -40,7 +41,9 @@ export function ProjectOverview({ project, clientName }: Props) {
         </div>
       </div>
 
-      <details className="panel" style={{ marginTop: 14 }}>
+      <ProjectJourney status={project.status} />
+
+      <details className="panel studio-project-settings" style={{ marginTop: 14 }}>
         <summary
           className="panel-heading"
           style={{ cursor: "pointer", listStyle: "none" }}

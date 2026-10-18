@@ -106,10 +106,20 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     await expect(page.getByText(docTitleB, { exact: true })).toHaveCount(0);
     const documentRow = page.locator(".atelier-document-row").filter({ hasText: docTitleA });
     await documentRow.getByRole("link", { name: "View in project" }).click();
-    await expect(page.locator('details#project-details')).toHaveAttribute("open", "");
+    await expect(page.locator('details#project-resources')).toHaveAttribute("open", "");
     await expect(page.locator("article#documents")).toContainText(docTitleA);
     await page.goto("/portal/projects/" + projectA);
     await expect(page.getByRole("heading", { name: "Synthetic UI Project A", exact: true })).toBeVisible();
+    await expect(page.getByRole("region", { name: "Project journey" })).toBeVisible();
+    await page.screenshot({ path: "design-preview/atelier-workspace-" + previewSuffix + ".png", fullPage: true });
+    // Each project destination opens its own group without exposing unrelated
+    // client records. Exercise real pointer navigation on desktop and mobile.
+    for (const [label, target] of [["Files", "project-resources"], ["Documents", "project-resources"], ["Design feedback", "design-feedback"], ["Messages", "messages"], ["Project details", "project-details"]]) {
+      await page.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
+      if (target === "messages") await expect(page.locator("details.atelier-discussion")).toHaveAttribute("open", "");
+      else await expect(page.locator("details#" + target)).toHaveAttribute("open", "");
+    }
+    await page.goto("/portal/projects/" + projectA);
 
     const decisions = page.getByRole("region", { name: "Approvals needing your decision" });
     const approveRow = decisions.locator("li.delivery-row").filter({ hasText: approveTitle });
@@ -230,6 +240,10 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.goto("/projects/" + projectA);
       await expect(adminPage.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();
       await adminPage.screenshot({ path: "design-preview/nocturne-admin-project-" + previewSuffix + ".png", fullPage: true });
+      for (const [label, target] of [["Design & feedback", "workspace-collaboration"], ["Files & documents", "workspace-resources"], ["Conversation", "workspace-conversation"], ["Delivery", "workspace-delivery"]]) {
+        await adminPage.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
+        await expect(adminPage.locator("details#" + target)).toHaveAttribute("open", "");
+      }
     } finally {
       await adminContext.close();
     }

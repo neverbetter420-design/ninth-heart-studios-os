@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import type { ClientProject } from "@/lib/supabase/types";
+import { AtelierStudioArt } from "@/components/AtelierStudioArt";
+import { stageLabel } from "@/lib/delivery";
 
 type PendingClientApproval = {
   id: string;
@@ -40,13 +42,11 @@ export default async function ClientPortalPage() {
       <section className="atelier-hero" aria-labelledby="atelier-greeting">
         <div className="atelier-hero-copy">
           <p className="atelier-overline">Ninth Heart Studios · Your private Atelier</p>
-          <h2 id="atelier-greeting">Welcome back, {firstName}.</h2>
-          <p>Your website is taking shape. Find the important updates, decisions, and files without the backstage noise.</p>
-          <Link className="atelier-primary-link" href={featured ? `/portal/projects/${featured.id}` : "/portal/projects"}>
-            {featured ? "View my project" : "Explore my projects"} <span aria-hidden="true">↗</span>
-          </Link>
+          <h2 id="atelier-greeting">Welcome back, <em>{firstName}.</em></h2>
+          <p>Your ideas. Our craft.<br />A little space for your next chapter.</p>
+          {(!featured || error) && <Link className="atelier-primary-link" href="/portal/projects">Explore my projects <span aria-hidden="true">↗</span></Link>}
         </div>
-        <span className="atelier-hero-emblem" aria-hidden="true">✧</span>
+        <AtelierStudioArt />
       </section>
 
       {error ? (
@@ -70,7 +70,7 @@ export default async function ClientPortalPage() {
             <article className="atelier-feature-project">
               <div className="atelier-project-topline">
                 <span className="atelier-project-tag">Current project</span>
-                <span className="atelier-project-stage">{featured.status.replace(/_/g, " ")}</span>
+                <span className="atelier-project-stage">{stageLabel(featured.status)}</span>
               </div>
               <h3>{featured.name}</h3>
               <p>Designed with intention. Built for what's next.</p>
@@ -82,7 +82,7 @@ export default async function ClientPortalPage() {
               </div>
               <div className="atelier-project-footer">
                 <span>{featured.due_date ? `Target ${featured.due_date}` : "Timeline in progress"}</span>
-                <Link href={`/portal/projects/${featured.id}`}>Open workspace <span aria-hidden="true">↗</span></Link>
+                <Link className="atelier-primary-link" href={`/portal/projects/${featured.id}`}>Open workspace <span aria-hidden="true">↗</span></Link>
               </div>
             </article>
           </div>
@@ -94,7 +94,7 @@ export default async function ClientPortalPage() {
             <Link href={nextApproval ? "/portal/approvals" : `/portal/projects/${featured.id}`} className="atelier-text-link">
               {nextApproval ? "Review approval" : "View project updates"} <span aria-hidden="true">→</span>
             </Link>
-            {pendingApprovals.length > 1 ? <span className="atelier-action-note">{pendingApprovals.length} approvals need review</span> : null}
+            {pendingApprovals.length > 1 ? <span className="atelier-action-note">More decisions are waiting in Approvals.</span> : null}
           </aside>
         </div>
       )}

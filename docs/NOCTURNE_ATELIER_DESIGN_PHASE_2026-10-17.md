@@ -4,6 +4,8 @@
 
 **October 18 visual correction:** The Command Center composition described below is superseded by [the Nocturne Command Center correction](NOCTURNE_COMMAND_CENTER_2026-10-18.md). Its single stylesheet is `app/nocturne-command.css`; the superseded framed-hero/ivory-action-surface rules were removed from `app/nocturne-phase3.css`.
 
+**Client and workspace follow-through:** The later [Atelier and Creative Studio implementation](ATELIER_CREATIVE_STUDIO_2026-10-18.md) supersedes the framed client home and mixed project-detail grids. Its composition lives in `app/atelier-studio.css`, with separate project-destination disclosures and the canonical phase journey.
+
 **Release mode: DRAFT ONLY.** All edits are on `feature/working-navigation-client-portal`, in draft PR #14. Do not merge, run schema migrations, reset customer accounts, trigger automations, or deploy the Cloudflare Worker without separate production approval and a verified backup.
 
 ## Evidence: owner-directed usability review
