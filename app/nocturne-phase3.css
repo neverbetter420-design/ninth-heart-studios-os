@@ -319,3 +319,53 @@
   .nhs-theme-admin .nocturne-create-toggle { align-items: flex-start; flex-direction: column; padding: 16px 44px 16px 17px; gap: 5px; }
   .nhs-theme-admin .nocturne-create-toggle > span { margin-left: 0; }
 }
+
+/* Visual acceptance: preserve the dark navigation palette inside Atelier. */
+.nhs-theme-client .sidebar {
+  --text: #f5edf4;
+  --muted: #c9b7cc;
+  --cyan: #d8b8d8;
+  color: var(--text);
+  color-scheme: dark;
+}
+.nhs-theme-client .sidebar .brand-mark { color: #f5edf4; }
+.nhs-theme-client .sidebar-bottom .sign-out-button {
+  background: #302638;
+  color: #f5edf4;
+  border-color: #796780;
+  min-height: 44px;
+}
+.nhs-theme-client .sidebar-bottom .sign-out-button:hover {
+  background: #43334b;
+  color: #fff;
+  border-color: #c9a7d0;
+}
+
+/* Keep Project Pulse within its panel even beside the wider priorities panel. */
+.nhs-theme-admin .project-row {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 9px 14px;
+}
+.nhs-theme-admin .project-row .progress-track { grid-column: 1 / -1; grid-row: 2; }
+.nhs-theme-admin .project-row b { grid-column: 2; grid-row: 1; font-size: 11px; }
+.nhs-theme-admin .project-copy strong { font-size: 12px; }
+.nhs-theme-admin .project-copy span { font-size: 11px; color: #aba0b3; }
+.nhs-theme-admin .metric-card :is(p, span:not(.metric-glow)) { color: #aba0b3; font-size: 11px; }
+.nhs-theme-admin :is(.empty-dashboard-actions, .pipeline-empty, .delivery-row-sub) { color: #aba0b3; }
+.nhs-theme-admin .empty-dashboard-actions span { font-size: 11px; line-height: 1.6; }
+.nhs-theme-admin .nocturne-insights > summary > span:first-child { min-width: 0; }
+.nhs-theme-admin .nocturne-insights-toggle { flex-shrink: 0; white-space: nowrap; }
+
+/* Long client names and titles must wrap without pushing actions off screen. */
+.nhs-theme-client :is(.atelier-hero-copy, .atelier-feature-project, .atelier-action-panel,
+  .atelier-project-row-copy, .atelier-document-row-main, .atelier-resource-group-heading) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.nhs-theme-client :is(.atelier-overline, .atelier-project-tag, .atelier-project-number,
+  .atelier-resource-row-kicker, .atelier-resource-group-heading > span, .atelier-action-note) { color: #7e617e; }
+.nhs-theme-client .atelier-hero .atelier-overline { color: #dcc2d8; }
+@media (max-width: 520px) {
+  .nhs-theme-client :is(.atelier-section-heading, .atelier-project-footer, .atelier-project-topline,
+    .atelier-resource-group-heading) { flex-wrap: wrap; }
+}
