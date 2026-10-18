@@ -94,6 +94,11 @@ assert.ok(nocturneStyles.includes("prefers-reduced-motion"), "accessible reduced
 assert.ok(navEntries.some((x) => x.href === "/portal/forms" && x.section === "Decisions & documents"), "client paperwork grouped in navigation");
 const dashboard = read("components/Dashboard.tsx");
 assert.ok(dashboard.includes('className="nocturne-insights"'), "optional admin intelligence should be progressive disclosure");
+const adminProject = read("app/(protected)/(admin)/projects/[projectId]/page.tsx");
+assert.ok(adminProject.includes('className="nocturne-workspace-focus"'), "admin priorities must be visible in focused work area");
+assert.ok(adminProject.includes('id="workspace-collaboration"'), "project creative collaboration section required");
+assert.ok(adminProject.includes('id="workspace-delivery"'), "project delivery and activity section required");
+
 assert.ok(dashboard.includes('href={"/projects/" + project.id}'), "project cards should link to workspace");
 assert.ok(dashboard.includes('href={"/opportunities/" + item.id}'), "radar cards should link to opportunity");
 assert.ok(!read("components/PageHeader.tsx").includes('<button className="primary-button">'), "dead heading button present");
