@@ -648,3 +648,66 @@
   .nhs-theme-admin .nocturne-insights-grid { padding: 8px 10px 12px; }
   .nhs-theme-admin .nocturne-insights-toggle { padding: 8px 11px; }
 }
+
+
+/* Studio project workspace: strong primary tasks, optional supporting tools. */
+.nhs-theme-admin .nocturne-workspace-focus { margin-top: 25px; }
+.nhs-theme-admin .nocturne-workspace-heading { margin: 0 0 20px; }
+.nhs-theme-admin .nocturne-workspace-heading h3 {
+  margin: 9px 0 8px;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(21px,2.4vw,30px);
+  color: #eee5f1;
+  font-weight: 500;
+}
+.nhs-theme-admin .nocturne-workspace-heading > p:last-child {
+  color: #a99eb1;
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0;
+}
+.nhs-theme-admin .nocturne-workspace-disclosure {
+  margin-top: 23px;
+  border: 1px solid rgba(200,175,210,.13);
+  border-radius: 18px;
+  background: rgba(23,17,30,.48);
+  scroll-margin-top: 22px;
+}
+.nhs-theme-admin .nocturne-workspace-disclosure > summary {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  padding: 23px 56px 23px 23px;
+}
+.nhs-theme-admin .nocturne-workspace-disclosure > summary::-webkit-details-marker { display: none; }
+.nhs-theme-admin .nocturne-workspace-disclosure > summary span { display: grid; gap: 8px; }
+.nhs-theme-admin .nocturne-workspace-disclosure > summary strong {
+  color: #eadfed;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(17px,1.7vw,21px);
+  font-weight: 500;
+}
+.nhs-theme-admin .nocturne-workspace-disclosure > summary small {
+  color: #aa9bb0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.nhs-theme-admin .nocturne-workspace-disclosure > summary::after {
+  content: "+";
+  position: absolute;
+  right: 26px;
+  color: #c2a3cc;
+  font-size: 25px;
+  font-weight: 300;
+}
+.nhs-theme-admin .nocturne-workspace-disclosure[open] > summary::after { content: "−"; }
+.nhs-theme-admin .nocturne-workspace-disclosure > summary:focus-visible { outline: 2px solid #c7a4d4; outline-offset: -3px; }
+.nhs-theme-admin .nocturne-workspace-disclosure > summary:hover { background: rgba(204,172,220,.045); }
+.nhs-theme-admin .nocturne-workspace-disclosure > .workspace-grid { padding: 2px 18px 20px; }
+@media (max-width: 700px) {
+  .nhs-theme-admin .nocturne-workspace-disclosure > summary { padding: 19px 50px 19px 17px; }
+  .nhs-theme-admin .nocturne-workspace-disclosure > .workspace-grid { padding: 2px 10px 15px; }
+}
