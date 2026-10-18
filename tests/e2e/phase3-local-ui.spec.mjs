@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { mkdirSync } from "node:fs";
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -16,7 +17,7 @@ const safe = process.env.CI === "true" &&
 test.describe("Disposable local Supabase client portal decisions and messages", () => {
   test.skip(!safe, "Real portal writes are permitted only against disposable CI localhost:54321.");
 
-  test("client approval + change request + messages persist and remain private", async ({ page, browser, baseURL }) => {
+  test("client approval + change request + messages persist and remain private", async ({ page, browser, baseURL, isMobile }) => {
     test.setTimeout(150000);
     const opts = { auth: { persistSession: false, autoRefreshToken: false } };
     const srv = createClient(apiURL, adminKey, opts);
@@ -73,7 +74,23 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(p.locator(".navigation-shell")).toBeVisible({ timeout: 30000 });
     }
     await signIn(page, emailA);
+
+    // Real client visual previews from a disposable local Supabase project.
+    // No real client records, hosted credentials, or production browser session.
+    mkdirSync("design-preview", { recursive: true });
+    const previewSuffix = isMobile ? "mobile" : "desktop";
+    await page.goto("/portal");
+    await expect(page.getByRole("heading", { name: /Welcome back/ })).toBeVisible();
+    await page.screenshot({ path: "design-preview/atelier-home-" + previewSuffix + ".png", fullPage: true });
+
+    await page.goto("/portal/projects");
+    await expect(page.locator("article.atelier-project-row")).toHaveCount(1);
+    await expect(page.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();
+    await page.screenshot({ path: "design-preview/atelier-projects-" + previewSuffix + ".png", fullPage: true });
+
     await page.goto("/portal/documents");
+    await expect(page.getByRole("heading", { name: "Everything in writing." })).toBeVisible();
+    await page.screenshot({ path: "design-preview/atelier-documents-" + previewSuffix + ".png", fullPage: true });
     await expect(page.getByRole("heading", { name: "Everything in writing." })).toBeVisible();
     await expect(page.getByText(docTitleA, { exact: true })).toBeVisible();
     await expect(page.getByText(docTitleB, { exact: true })).toHaveCount(0);
