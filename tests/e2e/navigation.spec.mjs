@@ -96,11 +96,16 @@ for (const key of ["clientA", "clientB"]) {
       ["Messages", "/portal/messages"],
       ["Files", "/portal/files"],
       ["Approvals", "/portal/approvals"],
-      ["Contracts", "/portal/contracts"],
-      ["Forms", "/portal/forms"],
+      ["Documents", "/portal/documents"],
     ]) {
       await test.step(label, () => visitNav(page, isMobile, label, route));
     }
+    // Consolidated Documents navigation must preserve full contracts/forms routes
+    // without cluttering the sidebar with two additional primary links.
+    await page.goto("/portal/documents");
+    await expect(page.getByRole("heading", { name: "Everything in writing." })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Contracts/ })).toHaveAttribute("href", "/portal/contracts");
+    await expect(page.getByRole("link", { name: /Forms/ })).toHaveAttribute("href", "/portal/forms");
     // Clients must never have a menu entry to the admin lead console.
     const nav = await openNavigation(page, isMobile);
     await expect(nav.getByRole("link", { name: "Lead Intelligence" })).toHaveCount(0);
