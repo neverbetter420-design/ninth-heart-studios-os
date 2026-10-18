@@ -18,6 +18,112 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
+test("Document directories keep creation, archives, filters and errors readable", async ({ page }) => {
+  test.setTimeout(90000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const view of ["contracts", "forms", "templates"]) {
+    for (const scenario of ["populated", "long", "empty", "archived", "filtered", "error", "form-error"]) {
+      await show(page, "admin", scenario, view);
+      const nav = page.getByRole("navigation", { name: "Document tools" });
+      await expect(nav.locator('a[aria-current="page"]')).toHaveCount(1);
+      await expect(nav.getByRole("link")).toHaveCount(3);
+      const creators = page.locator(".nocturne-create-panel");
+      for (const create of await creators.all()) {
+        if (scenario === "form-error") await expect(create).toHaveAttribute("open", "");
+        else { await expect(create).not.toHaveAttribute("open", ""); await create.locator("summary").press("Enter"); }
+        for (const input of await create.locator("input:not([type=hidden]), select, textarea").all()) {
+          expect(await input.evaluate(el => !!el.labels?.length), `${view} has a visible field label`).toBe(true);
+        }
+      }
+      for (const width of [1440, 1024, 860, 620, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth), `${view} ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+      }
+      if (scenario === "error") {
+        await expect(page.getByRole("alert").last()).toContainText("could not load");
+        await expect(page.locator(".metric-card strong").first()).toHaveText("—");
+        await expect(page.locator(".paperwork-row")).toHaveCount(0);
+      }
+      if (scenario === "archived" && view !== "contracts") {
+        await expect(page.locator(".paperwork-row")).toHaveCount(1);
+        await expect(page.locator(".paperwork-row > a")).toHaveAttribute("href", new RegExp(`^/${view}/synthetic-`));
+        const category = page.getByRole("navigation", { name: view === "forms" ? "Form category" : "Template category" });
+        await expect(category.getByRole("link", { name: "Contracts", exact: true })).toHaveAttribute("href", /state=archived/);
+      }
+      if (scenario === "filtered" && view === "forms") await expect(page.locator(".paperwork-row")).toHaveCount(0);
+      const button = creators.first().getByRole("button").first();
+      await button.scrollIntoViewIfNeeded();
+      expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
+      if (await button.isEnabled()) { await button.focus(); expect(await button.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none"); }
+    }
+  }
+});
+
+test("Contract workspaces keep sent terms locked and signature evidence legible", async ({ page }) => {
+  for (const scenario of ["normal", "long", "sent", "signed", "voided", "template-choices-error"]) {
+    await show(page, "admin", scenario, "contract-detail");
+    for (const details of await page.locator(".paperwork-page details").all()) await details.locator("summary").press("Enter");
+    for (const width of [1440, 1024, 860, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `contract ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+    const editable = ["normal", "long", "template-choices-error"].includes(scenario);
+    await expect(page.getByRole("button", { name: "Save draft", exact: true })).toHaveCount(editable ? 1 : 0);
+    await expect(page.getByRole("button", { name: "Send for signature", exact: true })).toHaveCount(editable ? 1 : 0);
+    await expect(page.locator('textarea[name="body"]')).toHaveCount(editable ? 1 : 0);
+    if (scenario === "signed") {
+      await expect(page.getByRole("region", { name: "Signature audit" })).toContainText("Jamie Morgan");
+      await expect(page.locator("#contract-signature code")).toHaveText("a".repeat(64));
+      await expect(page.locator(".paperwork-controls")).toHaveCount(0);
+    }
+    if (scenario === "template-choices-error") await expect(page.getByRole("alert")).toContainText("Text templates could not load");
+    await expect(page.getByRole("link", { name: "Open project" })).toHaveAttribute("href", "/projects/synthetic-a?section=documents#workspace-resources");
+  }
+});
+
+test("Form and text editors keep inactive sending, field controls and private references clear", async ({ page }) => {
+  test.setTimeout(90000);
+  for (const view of ["form-detail", "template-detail"]) {
+    const scenarios = view === "form-detail" ? ["normal", "long", "no-fields", "archived", "imported", "source-error", "projects-error", "submissions-error", "quiet"] : ["normal", "long", "archived"];
+    for (const scenario of scenarios) {
+      await show(page, "admin", scenario, view);
+      for (const details of await page.locator(".paperwork-page details").all()) if (!await details.getAttribute("open").then(v => v !== null)) await details.locator("summary").press("Enter");
+      for (const width of [1440, 1024, 860, 620, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 });
+        expect(await page.evaluate(() => document.documentElement.scrollWidth), `${view} ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+      }
+      if (view === "form-detail") {
+        const send = page.getByRole("region", { name: "Send form", exact: true });
+        const disabled = ["archived", "imported", "source-error", "projects-error", "quiet"].includes(scenario);
+        if (disabled) await expect(send.getByRole("button", { name: "Send form", exact: true })).toBeDisabled();
+        else await expect(send.getByRole("button", { name: "Send form", exact: true })).toBeEnabled();
+        await expect(page.getByLabel("Field type")).toHaveValue("text");
+        await expect(page.getByLabel("Field type").locator("option")).toHaveCount(8);
+        await expect(page.locator('input[name="template_id"]')).not.toHaveCount(0);
+        if (scenario === "imported") {
+          await expect(page.getByRole("link", { name: /Brand reference.pdf/ })).toHaveAttribute("target", "_blank");
+          await expect(page.getByRole("button", { name: "Activate form", exact: true })).toBeVisible();
+        }
+        if (scenario === "source-error") await expect(page.getByRole("alert")).toContainText("source PDF link is unavailable");
+        if (scenario === "submissions-error") await expect(page.getByRole("alert")).toContainText("Submissions could not load");
+        const nav = page.getByRole("navigation", { name: "Form workspace destinations" });
+        await nav.getByRole("link", { name: "Fields", exact: true }).click();
+        await expect(page.locator("#form-fields h3")).toBeInViewport();
+      } else {
+        await expect(page.getByRole("button", { name: scenario === "archived" ? "Restore template" : "Archive template", exact: true })).toBeVisible();
+        await expect(page.getByLabel("Reusable text")).toHaveValue(/Project scope|UnbrokenTemplateBody/);
+      }
+    }
+  }
+});
+
+test("Unavailable document records use recovery boundaries instead of false not-found states", async () => {
+  for (const view of ["contract-detail", "form-detail", "template-detail"]) {
+    await expect(renderNocturne("admin", "error", view)).rejects.toThrow("could not load");
+    await expect(renderNocturne("admin", "empty", view)).rejects.toThrow("Synthetic project not found");
+  }
+});
+
 test("Client directory and workspaces keep projects and access controls usable", async ({ page }) => {
   test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: "reduce" });

@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  DocumentNav,
+  DocumentSectionHeading,
+  documentDate,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { categoryLabel, templateBody } from "@/lib/templates";
 import { createClient } from "@/lib/supabase/server";
 import type { Template } from "@/lib/supabase/types";
@@ -12,69 +18,128 @@ export default async function TemplateDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
-
-  const { data: raw } = await supabase
+  const { data: raw, error } = await supabase
     .from("templates")
     .select("*")
     .eq("id", id)
     .maybeSingle();
+  if (error) throw new Error("Template could not load.");
   if (!raw) notFound();
   const template = raw as Template;
-
   return (
-    <div className="content-wrap">
-      <div className="lead-detail-backline" style={{ marginBottom: 10 }}>
-        <Link href="/templates" className="text-button">← Templates</Link>
-      </div>
-
-      <header className="page-header">
+    <div className="content-wrap management-page paperwork-page paperwork-detail">
+      <Link
+        href={template.active ? "/templates" : "/templates?state=archived"}
+        className="management-back-link"
+      >
+        ← Text templates
+      </Link>
+      <header className="page-header management-heading paperwork-heading">
         <div>
-          <p className="eyebrow electric">Template · {categoryLabel(template.category)}</p>
+          <p className="eyebrow">
+            Text template · {categoryLabel(template.category)} ·{" "}
+            {template.active ? "Active" : "Archived"}
+          </p>
           <h2>{template.name}</h2>
-        </div>
-        <div className="delivery-actions">
-          <form action={setTemplateActive}>
-            <input type="hidden" name="template_id" value={template.id} />
-            <input type="hidden" name="active" value={template.active ? "false" : "true"} />
-            <button type="submit" className="mini-button">
-              {template.active ? "Archive" : "Restore"}
-            </button>
-          </form>
-          <form action={deleteTemplate}>
-            <input type="hidden" name="template_id" value={template.id} />
-            <button type="submit" className="mini-button danger">Delete</button>
-          </form>
+          <p className="page-description">
+            A starting point for the next project. Changes here do not rewrite
+            agreements or documents already created from this text.
+          </p>
         </div>
       </header>
-
-      <section className="panel" aria-label="Edit template">
-        <div className="panel-heading">
-          <h3>Edit</h3>
-          {!template.active ? <span className="pipeline-count">Archived</span> : null}
-        </div>
-        <form action={updateTemplate} style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-          <input type="hidden" name="template_id" value={template.id} />
-          <div className="delivery-add-form" style={{ padding: 0 }}>
-            <input type="text" name="name" defaultValue={template.name} required maxLength={160} />
-            <select name="category" defaultValue={template.category} aria-label="Category">
-              <option value="contract">Contract</option>
-              <option value="document">Document</option>
-            </select>
-          </div>
-          <label className="field">
-            <span>Body</span>
-            <textarea
-              name="body"
-              className="notes-area"
-              style={{ minHeight: 320 }}
-              defaultValue={templateBody(template.content)}
-            />
-          </label>
-          <div>
-            <button type="submit" className="mini-button go">Save</button>
-          </div>
-        </form>
-      </section>
+      <DocumentNav current="templates" />
+      <div className="paperwork-workspace">
+        <section aria-label="Edit template">
+          <DocumentSectionHeading
+            eyebrow="Reusable studio copy"
+            title="The writing room"
+          />
+          <form action={updateTemplate} className="paperwork-form">
+            <input type="hidden" name="template_id" value={template.id} />
+            <div className="paperwork-form-grid">
+              <label className="field">
+                <span>Template name</span>
+                <input
+                  name="name"
+                  defaultValue={template.name}
+                  required
+                  maxLength={160}
+                />
+              </label>
+              <label className="field">
+                <span>Category</span>
+                <select name="category" defaultValue={template.category}>
+                  <option value="contract">Contract</option>
+                  <option value="document">Document</option>
+                </select>
+              </label>
+            </div>
+            <label className="field">
+              <span>Reusable text</span>
+              <textarea
+                name="body"
+                className="paperwork-body-editor"
+                defaultValue={templateBody(template.content)}
+              />
+            </label>
+            <div>
+              <PortalSubmitButton pendingLabel="Saving template…">
+                Save template
+              </PortalSubmitButton>
+            </div>
+          </form>
+        </section>
+        <aside className="paperwork-context">
+          <section aria-label="Template availability">
+            <DocumentSectionHeading title="In the library" />
+            <dl className="paperwork-metadata">
+              <div>
+                <dt>Availability</dt>
+                <dd>{template.active ? "Active" : "Archived"}</dd>
+              </div>
+              <div>
+                <dt>Last updated</dt>
+                <dd>{documentDate(template.updated_at, true)}</dd>
+              </div>
+            </dl>
+            <p>
+              {template.active
+                ? "Available in matching contract and project-document template choices."
+                : "Restore this template to make it available for new work."}
+            </p>
+            <form action={setTemplateActive}>
+              <input type="hidden" name="template_id" value={template.id} />
+              <input
+                type="hidden"
+                name="active"
+                value={template.active ? "false" : "true"}
+              />
+              <PortalSubmitButton
+                pendingLabel={template.active ? "Archiving…" : "Restoring…"}
+              >
+                {template.active ? "Archive template" : "Restore template"}
+              </PortalSubmitButton>
+            </form>
+          </section>
+          <details className="paperwork-controls">
+            <summary>Record controls</summary>
+            <p>
+              Delete permanently removes this text template from the library.
+            </p>
+            <div className="paperwork-control-actions">
+              <form action={deleteTemplate}>
+                <input type="hidden" name="template_id" value={template.id} />
+                <PortalSubmitButton
+                  pendingLabel="Deleting…"
+                  className="mini-button danger"
+                >
+                  Delete template
+                </PortalSubmitButton>
+              </form>
+            </div>
+          </details>
+        </aside>
+      </div>
     </div>
   );
 }

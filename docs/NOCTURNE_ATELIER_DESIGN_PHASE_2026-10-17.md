@@ -10,6 +10,8 @@
 
 **Client and pipeline follow-through:** The [client directory, relationship workspace and vertical phase pipeline](NOCTURNE_CLIENTS_PIPELINE_2026-10-18.md) replace the earlier client lists and horizontal board. Their shared composition lives in `app/nocturne-management.css`.
 
+**Document follow-through:** The [Contracts, Forms and Text Templates workspaces](NOCTURNE_DOCUMENT_WORKSPACES_2026-10-18.md) extend the open management canvas with separate editors, labelled document destinations and reachable inactive/archive records. Their composition lives in `app/nocturne-documents.css`.
+
 **Release mode: DRAFT ONLY.** All edits are on `feature/working-navigation-client-portal`, in draft PR #14. Do not merge, run schema migrations, reset customer accounts, trigger automations, or deploy the Cloudflare Worker without separate production approval and a verified backup.
 
 ## Evidence: owner-directed usability review

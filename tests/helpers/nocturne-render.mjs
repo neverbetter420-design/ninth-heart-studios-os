@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads", "nocturne-management"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents"];
 export const previewCSS = styles.map((name) => readFileSync(resolve(root, `app/${name}.css`), "utf8"))
   .join("\n").replace('@import "tailwindcss";', "");
 
@@ -48,15 +48,29 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
   if (["pipeline", "client-detail"].includes(view) && scenario === "long") rows.projects[0].name = "UnbrokenProjectTitle".repeat(10);
   if (view === "clients" && scenario === "populated") rows.clients = ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({ ...rows.clients[0], id: i ? `synthetic-client-${i}` : "synthetic-client", name, status: i === 2 ? "archived" : "active", projects: Array.from({length: 3-i}, (_, j) => ({ id: `project-${i}-${j}` })) }));
   if (view === "pipeline" && scenario === "stages") rows.projects = ["discovery", "content", "design", "build", "review", "launch", "care", "on_hold", "legacy_phase"].map((status, i) => ({ ...project, id: `synthetic-stage-${i}`, name: `Sample ${status} project`, status, progress: i === 0 ? 120 : i * 10, due_date: "2020-01-01" }));
-  const supabase = { storage: { from: () => ({ createSignedUrl: async () => ({ data: { signedUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=" } }) }) }, from(table) {
+  const documentViews = { contracts: "contracts", "contract-detail": "contracts", forms: "forms", "form-detail": "forms", templates: "templates", "template-detail": "templates" };
+  if (view in documentViews) {
+    const title = scenario === "long" ? "UnbrokenStudioDocumentTitle".repeat(9) : "Website design agreement";
+    const stamp = "2026-10-12T20:00:00Z";
+    rows.contracts = scenario === "empty" ? [] : [{ id: "synthetic-contract", project_id: project.id, title, status: ["sent", "signed", "voided"].includes(scenario) ? scenario : "draft", body: scenario === "long" ? "UnbrokenContractTerms".repeat(35) : "A considered website for Cedar & Stone.\n\nScope, timeline and payment terms are recorded here.", created_at: stamp, sent_at: scenario === "sent" || scenario === "signed" ? stamp : null, signed_at: scenario === "signed" ? stamp : null, signer_name: "Jamie Morgan", signer_email: scenario === "long" ? "signer".repeat(30) + "@example.invalid" : "jamie@example.invalid", signer_ip: "192.0.2.1", signature_hash: "a".repeat(64) }];
+    rows.templates = scenario === "empty" ? [] : [{ id: "synthetic-template", name: scenario === "long" ? title : "Website project agreement", category: "contract", content: { body: scenario === "long" ? "UnbrokenTemplateBody".repeat(35) : "Project scope\n\nA useful starting point for each new website." }, active: scenario !== "archived", created_at: stamp, updated_at: stamp }];
+    rows.form_templates = scenario === "empty" ? [] : [{ id: "synthetic-form", name: scenario === "long" ? title : "Website project intake", category: "document", description: scenario === "long" ? "UnbrokenDescription".repeat(20) : "The essentials for a considered first conversation.", active: !["archived", "imported", "source-error"].includes(scenario), fields: scenario === "no-fields" ? [] : [{ id: "field-name", label: scenario === "long" ? "UnbrokenFieldLabel".repeat(12) : "Business name", type: "text", required: true }, { id: "field-choice", label: "Project goals", type: "select", required: false, options: ["New website", "Redesign"], help: "Choose the closest fit." }], created_at: stamp, updated_at: stamp, source_file_path: ["imported", "source-error"].includes(scenario) ? "templates/synthetic-form/reference.pdf" : null, source_file_name: "Brand reference.pdf" }];
+    rows.form_submissions = scenario === "empty" || scenario === "no-fields" ? [] : [{ id: "synthetic-submission", project_id: project.id, status: "submitted", submitted_at: stamp, signer_name: scenario === "long" ? "UnbrokenSignerName".repeat(15) : "Jamie Morgan", total_cents: 90000, created_at: stamp }];
+    if (scenario === "populated") {
+      rows.contracts.push({ ...rows.contracts[0], id: "synthetic-sent", title: "Mira Studio · Monthly care", status: "sent" }, { ...rows.contracts[0], id: "synthetic-signed", title: "Northline Editions · Website", status: "signed" });
+      rows.templates.push({ ...rows.templates[0], id: "synthetic-document-template", name: "A welcome to the studio", category: "document" });
+      rows.form_templates.push({ ...rows.form_templates[0], id: "synthetic-invoice", name: "Project invoice", category: "invoice" });
+    }
+  }
+  const supabase = { storage: { from: () => ({ createSignedUrl: async () => ({ data: scenario === "source-error" ? null : { signedUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=" } }) }) }, from(table) {
     if (!(table in rows)) throw new Error(`Unexpected preview table: ${table}`);
-    const result = { data: rows[table], count: rows[table].length, error: (scenario === "error" && (table === "projects" || table === "leads")) || (scenario === "members-error" && table === "client_memberships") || (scenario === "client-choices-error" && table === "clients") ? { message: "Synthetic read failure" } : null };
+    const result = { data: rows[table], count: rows[table].length, error: (scenario === "error" && (table === "projects" || table === "leads")) || (scenario === "members-error" && table === "client_memberships") || (scenario === "client-choices-error" && table === "clients") || (scenario === "error" && view in documentViews && table === (view.startsWith("contract") ? "contracts" : view.startsWith("form") ? "form_templates" : "templates")) || (scenario === "projects-error" && table === "projects") || (scenario === "submissions-error" && table === "form_submissions") || (scenario === "template-choices-error" && table === "templates") ? { message: "Synthetic read failure" } : null };
     const chain = { then: (ok, fail) => Promise.resolve(result).then(ok, fail) };
     for (const method of ["select", "eq", "neq", "not", "order", "limit", "in"]) chain[method] = () => chain;
     chain.maybeSingle = () => { result.data = rows[table][0] ?? null; return chain; };
     return chain;
   } };
-  const path = view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
+  const path = view in documentViews ? `/${documentViews[view]}${view.endsWith("-detail") ? "/synthetic-document" : ""}` : view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -84,11 +98,11 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       if (!["react", "react-dom", "react/jsx-runtime"].includes(name)) throw new Error(`Unapproved preview import: ${name}`);
       return require(name);
     };
-    vm.runInNewContext(code, { require: localRequire, module, exports: module.exports, console, Date, URL }, { filename: file });
+    vm.runInNewContext(code, { require: localRequire, module, exports: module.exports, console, Date, URL, URLSearchParams }, { filename: file });
     return module.exports;
   }
   const { AppShell } = load(resolve(root, "components/AppShell.tsx"));
-  const Page = ["clients", "client-detail", "pipeline"].includes(view)
+  const Page = view in documentViews ? load(resolve(root, `app/(protected)/(admin)/${documentViews[view]}/${view.endsWith("-detail") ? "[id]/" : ""}page.tsx`)).default : ["clients", "client-detail", "pipeline"].includes(view)
     ? load(resolve(root, { clients: "app/(protected)/(admin)/clients/page.tsx", "client-detail": "app/(protected)/(admin)/clients/[id]/page.tsx", pipeline: "app/(protected)/(admin)/projects/page.tsx" }[view])).default
     : view === "scanner"
     ? load(resolve(root, "app/(protected)/(admin)/leads/discover/page.tsx")).default
@@ -97,7 +111,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     : view === "project"
     ? load(resolve(root, role === "admin" ? "app/(protected)/(admin)/projects/[projectId]/page.tsx" : "app/(protected)/portal/projects/[projectId]/page.tsx")).default
     : role === "admin" ? load(resolve(root, "components/Dashboard.tsx")).Dashboard : load(resolve(root, "app/(protected)/portal/page.tsx")).default;
-  const content = renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id, leadId: "synthetic-lead-0", id: "synthetic-client" }), searchParams: Promise.resolve({ section, client: scenario === "context" ? "synthetic-client" : undefined, error: scenario === "form-error" ? "Check the submitted fields and try again." : undefined }) }));
+  const content = renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id, leadId: "synthetic-lead-0", id: "synthetic-client" }), searchParams: Promise.resolve({ section, state: scenario === "archived" ? "archived" : undefined, category: scenario === "filtered" ? "contract" : undefined, client: scenario === "context" ? "synthetic-client" : undefined, error: scenario === "form-error" ? "Check the submitted fields and try again." : undefined }) }));
   const user = { name: "Synthetic Review Owner", email: "visual-review@example.invalid" };
   const html = renderToStaticMarkup(React.createElement(AppShell, { role, user }, React.createElement("div", { "data-preview-content": true, dangerouslySetInnerHTML: { __html: content } })));
   return { html, content, role, user, path };

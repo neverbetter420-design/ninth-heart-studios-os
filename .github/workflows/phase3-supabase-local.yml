@@ -78,7 +78,7 @@ jobs:
           test -n "$NHS_LOCAL_SUPABASE_ADMIN_KEY"
           node ../scripts/verify-phase3-supabase-local.mjs
 
-      - name: Test real approval and messaging forms on desktop and mobile
+      - name: Test authenticated studio and document workflows on desktop and mobile
         working-directory: .nhs-phase3-local
         shell: bash
         timeout-minutes: 15

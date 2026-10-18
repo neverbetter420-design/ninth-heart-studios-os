@@ -1,31 +1,31 @@
 import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
+import {
+  DocumentCreate,
+  DocumentNav,
+  DocumentNotice,
+  DocumentSectionHeading,
+  documentDate,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { createContract } from "./actions";
 import { createClient } from "@/lib/supabase/server";
 import type { Contract } from "@/lib/supabase/types";
 
-const STATUS_ORDER = ["draft", "sent", "signed", "voided"];
-
-function statusClass(status: string) {
-  if (status === "signed") return "delivery-pill done";
-  if (status === "sent") return "delivery-pill progress";
-  if (status === "voided") return "delivery-pill blocked";
-  return "delivery-pill visible";
-}
-
 export default async function ContractsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; status?: string }>;
 }) {
-  const { error: formError } = await searchParams;
+  const { error: formError, status } = await searchParams;
   const supabase = await createClient();
-
-  const [{ data: rawContracts }, { data: rawProjects }, { data: rawOpportunities }, { data: rawTemplates }] =
+  const [{ data: rawContracts, error }, projects, opportunities, templates] =
     await Promise.all([
       supabase
         .from("contracts")
-        .select("id, project_id, opportunity_id, title, status, sent_at, signed_at, signer_name, created_at")
+        .select(
+          "id, project_id, opportunity_id, title, status, sent_at, signed_at, signer_name, created_at",
+        )
         .order("updated_at", { ascending: false }),
       supabase.from("projects").select("id, name").order("name"),
       supabase.from("opportunities").select("id, title").order("title"),
@@ -36,97 +36,224 @@ export default async function ContractsPage({
         .eq("active", true)
         .order("name"),
     ]);
-
-  const contracts = (rawContracts ?? []) as Contract[];
-  const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, contracts.filter((c) => c.status === s).length]));
+  const contracts = (error ? [] : (rawContracts ?? [])) as Contract[];
+  const filter = ["draft", "sent", "signed", "voided"].includes(status ?? "")
+    ? status
+    : undefined;
+  const shown = filter
+    ? contracts.filter((c) => c.status === filter)
+    : contracts;
+  const projectChoices = (projects.error ? [] : (projects.data ?? [])) as {
+    id: string;
+    name: string;
+  }[];
+  const opportunityChoices = (
+    opportunities.error ? [] : (opportunities.data ?? [])
+  ) as { id: string; title: string }[];
+  const templateChoices = (templates.error ? [] : (templates.data ?? [])) as {
+    id: string;
+    name: string;
+  }[];
+  const noDestination = projectChoices.length + opportunityChoices.length === 0;
 
   return (
-    <div className="content-wrap">
-      <header className="page-header">
+    <div className="content-wrap management-page paperwork-page">
+      <header className="page-header management-heading paperwork-heading">
         <div>
-          <p className="eyebrow electric">Contracts + E-Signature</p>
-          <h2>Get it in writing.</h2>
+          <p className="eyebrow">Studio agreements</p>
+          <h2>
+            Good work starts
+            <br />
+            <em>in writing.</em>
+          </h2>
           <p className="page-description">
-            In-app click-to-accept signing. Timestamp, signer, IP, and document
-            hash on every signature — no vendor, no fees.
+            Draft the terms, share an agreement, and keep its signature record
+            in one place.
           </p>
         </div>
       </header>
-
-      {formError ? (
-        <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
-          <strong>Heads up.</strong>
-          <span>{decodeURIComponent(formError)}</span>
-        </section>
-      ) : null}
-
+      <DocumentNav current="contracts" />
       <section className="metric-grid" aria-label="Contract metrics">
-        <MetricCard label="Drafts" value={String(counts.draft ?? 0)} detail="Being written" tone="violet" />
-        <MetricCard label="Sent" value={String(counts.sent ?? 0)} detail="Awaiting signature" tone="pink" />
-        <MetricCard label="Signed" value={String(counts.signed ?? 0)} detail="Locked in" tone="cyan" />
-        <MetricCard label="Voided" value={String(counts.voided ?? 0)} detail="Dead deals" tone="green" />
+        {[
+          ["Drafts", "draft", "Being written"],
+          ["Awaiting signature", "sent", "Shared agreements"],
+          ["Signed", "signed", "Signature recorded"],
+        ].map(([label, state, detail]) => (
+          <MetricCard
+            key={state}
+            label={label}
+            value={
+              error
+                ? "—"
+                : String(contracts.filter((c) => c.status === state).length)
+            }
+            detail={detail}
+            tone="violet"
+          />
+        ))}
       </section>
-
-      <section className="panel" aria-label="New contract" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>New contract</h3>
-        </div>
-        <form action={createContract} className="delivery-add-form">
-          <input type="text" name="title" placeholder="Contract title…" required maxLength={160} />
-          <select name="project_id" defaultValue="" aria-label="Project">
-            <option value="">Project…</option>
-            {((rawProjects ?? []) as { id: string; name: string }[]).map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-          <select name="opportunity_id" defaultValue="" aria-label="Opportunity">
-            <option value="">Opportunity…</option>
-            {((rawOpportunities ?? []) as { id: string; title: string }[]).map((o) => (
-              <option key={o.id} value={o.id}>{o.title}</option>
-            ))}
-          </select>
-          <select name="template_id" defaultValue="" aria-label="Template">
-            <option value="">Blank (no template)…</option>
-            {((rawTemplates ?? []) as { id: string; name: string }[]).map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
-          <button type="submit" className="mini-button go">Draft</button>
+      {formError ? <DocumentNotice>{formError}</DocumentNotice> : null}
+      <DocumentCreate
+        title="New contract"
+        detail="Start with a blank draft or a text template"
+        open={Boolean(formError)}
+      >
+        <form action={createContract} className="paperwork-form">
+          <fieldset className="paperwork-fieldset" disabled={noDestination}>
+            <label className="field">
+              <span>Contract title</span>
+              <input
+                name="title"
+                required
+                maxLength={160}
+                placeholder="Website design agreement"
+              />
+            </label>
+            <p className="management-help">
+              Choose a project or opportunity for this agreement. Sending makes
+              it available in the app; it does not send an email.
+            </p>
+            <div className="paperwork-form-grid">
+              <label className="field">
+                <span>Project</span>
+                <select
+                  name="project_id"
+                  defaultValue=""
+                  disabled={Boolean(projects.error)}
+                >
+                  <option value="">Choose a project</option>
+                  {projectChoices.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>Opportunity</span>
+                <select
+                  name="opportunity_id"
+                  defaultValue=""
+                  disabled={Boolean(opportunities.error)}
+                >
+                  <option value="">Choose an opportunity</option>
+                  {opportunityChoices.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <label className="field">
+              <span>Text template (optional)</span>
+              <select
+                name="template_id"
+                defaultValue=""
+                disabled={Boolean(templates.error)}
+              >
+                <option value="">Blank agreement</option>
+                {templateChoices.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div>
+              <PortalSubmitButton pendingLabel="Creating draft…">
+                Create draft
+              </PortalSubmitButton>
+            </div>
+          </fieldset>
+          {projects.error || opportunities.error || templates.error ? (
+            <DocumentNotice>
+              Some draft choices could not load. Refresh to restore the
+              unavailable choices.
+            </DocumentNotice>
+          ) : null}
+          {noDestination && !projects.error && !opportunities.error ? (
+            <p className="management-help">
+              Create a <Link href="/projects">project</Link> or{" "}
+              <Link href="/opportunities">opportunity</Link> before drafting an
+              agreement.
+            </p>
+          ) : null}
         </form>
-      </section>
-
-      <section className="panel" aria-label="Contracts">
-        <div className="panel-heading">
-          <h3>All contracts</h3>
-          <span className="pipeline-count">{contracts.length}</span>
-        </div>
-        <ul className="delivery-list">
-          {contracts.length === 0 ? (
-            <li className="delivery-row">
-              <p className="pipeline-empty">No contracts yet. Verbal agreements are the freelancer&apos;s original sin.</p>
-            </li>
-          ) : (
-            contracts.map((c) => (
-              <li key={c.id} className="delivery-row">
-                <div className="delivery-row-main">
-                  <p className="delivery-row-title">
-                    <Link href={`/contracts/${c.id}`} style={{ color: "inherit", textDecoration: "none" }}>
-                      {c.title}
-                    </Link>
-                  </p>
-                  <p className="delivery-row-sub">
-                    {c.status === "signed" && c.signer_name
-                      ? `Signed by ${c.signer_name}`
+      </DocumentCreate>
+      <section aria-label="Contracts">
+        <DocumentSectionHeading
+          eyebrow="Agreement directory"
+          title="The record of your work"
+          detail={
+            error
+              ? "Unavailable"
+              : `${shown.length} ${shown.length === 1 ? "agreement" : "agreements"}`
+          }
+        />
+        <nav className="paperwork-filters" aria-label="Contract status">
+          {[
+            ["", "All"],
+            ["draft", "Drafts"],
+            ["sent", "Awaiting signature"],
+            ["signed", "Signed"],
+            ["voided", "Voided"],
+          ].map(([key, label]) => (
+            <Link
+              key={key}
+              href={key ? `/contracts?status=${key}` : "/contracts"}
+              aria-current={(filter ?? "") === key ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        {error ? (
+          <DocumentNotice>
+            Contracts could not load. Refresh to try again.
+          </DocumentNotice>
+        ) : shown.length === 0 ? (
+          <div className="management-empty">
+            <h4>
+              {filter
+                ? "No agreements in this stage."
+                : "Your next agreement starts here."}
+            </h4>
+            <p>
+              Open New contract to prepare a draft and attach it to your work.
+            </p>
+          </div>
+        ) : (
+          <ol className="paperwork-list">
+            {shown.map((c, i) => (
+              <li key={c.id} className="paperwork-row">
+                <span className="paperwork-number" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h4>{c.title}</h4>
+                  <p>
+                    {c.status === "signed"
+                      ? `Signed${c.signer_name ? ` by ${c.signer_name}` : ""}`
                       : c.status === "sent"
-                        ? "Waiting on signature"
-                        : `Created ${new Date(c.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                        ? "Waiting for a signature"
+                        : `Created ${documentDate(c.created_at)}`}
                   </p>
                 </div>
-                <span className={statusClass(c.status)}>{c.status}</span>
+                <span className="paperwork-status" data-status={c.status}>
+                  {c.status}
+                </span>
+                <Link
+                  href={`/contracts/${c.id}`}
+                  className="management-text-link"
+                  aria-label={`Open contract: ${c.title}`}
+                >
+                  Open agreement <span aria-hidden="true">↗</span>
+                </Link>
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </ol>
+        )}
       </section>
     </div>
   );
