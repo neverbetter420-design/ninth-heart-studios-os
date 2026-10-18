@@ -167,5 +167,16 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     } finally {
       await ctxB.close();
     }
+
+    // Explicit sign-out affordance must invalidate the session, not just hide UI.
+    const desktopSignOut = page.locator(".nhs-context-bar .nhs-sign-out");
+    if (await desktopSignOut.isVisible()) {
+      await desktopSignOut.click();
+    } else {
+      await page.locator(".mobile-topbar .nhs-mobile-sign-out").click();
+    }
+    await expect(page).toHaveURL(/\\/auth\\/sign-in/, { timeout: 15000 });
+    await page.goto("/portal");
+    await expect(page).toHaveURL(/\\/auth\\/sign-in/);
   });
 });
