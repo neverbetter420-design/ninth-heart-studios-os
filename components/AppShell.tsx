@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { AppRole } from "@/lib/supabase/types";
 import { Sidebar } from "./Sidebar";
+import { WorkspaceBreadcrumbs } from "./WorkspaceBreadcrumbs";
 import { ActionNotifications } from "./ActionNotifications";
 
 export function AppShell({
@@ -19,7 +20,7 @@ export function AppShell({
         <header className="nhs-context-bar" aria-label="Workspace account">
           <div className="nhs-context-location">
             <span className="nhs-context-symbol" aria-hidden="true">✧</span>
-            <span>{role === "admin" ? "Studio Command Center" : "Your private Atelier"}</span>
+            <WorkspaceBreadcrumbs role={role} />
           </div>
           <div className="nhs-context-account">
             <span className="nhs-context-name" title={user.email}>{user.name}</span>
