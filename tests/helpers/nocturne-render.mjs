@@ -8,9 +8,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-scanner"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-scanner", "nocturne-atmosphere"];
+// The visual suite denies network access, so embed only these two local, vetted
+// decorative assets. This allows screenshots to show the same artwork as the app.
+const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg"]);
 export const previewCSS = styles.map((name) => readFileSync(resolve(root, `app/${name}.css`), "utf8"))
-  .join("\n").replace('@import "tailwindcss";', "");
+  .join("\n")
+  .replace('@import "tailwindcss";', "")
+  .replace(/url\(["']?\/visuals\/([a-z0-9-]+\.svg)["']?\)/g, (original, filename) => {
+    if (!approvedArtwork.has(filename)) throw new Error(`Unapproved visual asset: ${filename}`);
+    const svg = readFileSync(resolve(root, "public/visuals", filename), "utf8");
+    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+  });
 
 // Render the actual draft components with in-memory synthetic reads. No hosted
 // SDK, credentials, server actions, database, or network connection is loaded.
