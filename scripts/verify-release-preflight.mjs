@@ -58,6 +58,26 @@ const checks = [
     assert.equal(wrangler.name, "ninth-heart-studios-os");
     assert.equal(wrangler.keep_vars, true);
   }],
+  ["Nocturne preview Worker is isolated from production", () => {
+    const live = JSON.parse(read("wrangler.jsonc"));
+    const preview = JSON.parse(read("wrangler.nocturne-preview.jsonc"));
+    assert.equal(live.name, "ninth-heart-studios-os");
+    assert.equal(preview.name, "nhs-os-nocturne-preview");
+    assert.notEqual(preview.name, live.name, "Preview must never target production Worker");
+    assert.equal(preview.main, live.main);
+    assert.deepEqual(preview.assets, live.assets);
+    assert.equal(preview.compatibility_date, live.compatibility_date);
+    assert.deepEqual(preview.compatibility_flags, live.compatibility_flags);
+    assert.equal(preview.workers_dev, true);
+    assert.deepEqual(preview.routes, [], "Preview cannot attach to an existing domain");
+    assert.equal(preview.keep_vars, false, "Preview cannot retain unrelated existing variables");
+    assert.deepEqual(
+      Object.keys(preview).sort(),
+      ["$schema", "name", "main", "compatibility_date", "compatibility_flags",
+        "workers_dev", "routes", "keep_vars", "assets"].sort(),
+      "Any additional preview bindings, routes or account overrides require explicit review",
+    );
+  }],
   ["Proposed protection remains versioned as a future change", () => {
     const sql = read("supabase/migrations/20261017030000_phase3_client_decision_sender_guard.sql");
     assert.match(sql, /private\.guard_client_approval_decision\(\)/);
