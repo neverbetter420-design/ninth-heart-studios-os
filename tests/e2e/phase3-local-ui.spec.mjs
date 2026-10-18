@@ -18,11 +18,12 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
   test.skip(!safe, "Real portal writes are permitted only against disposable CI localhost:54321.");
 
   test("client approval + change request + messages persist and remain private", async ({ page, browser, baseURL, isMobile }) => {
-    test.setTimeout(150000);
+    test.setTimeout(230000);
     const opts = { auth: { persistSession: false, autoRefreshToken: false } };
     const srv = createClient(apiURL, adminKey, opts);
     const seed = randomUUID();
     const pass = "LocalOnlyStrongPassword!" + randomUUID();
+    const emailAdmin = "ui-admin-" + seed + "@example.invalid";
     const emailA = "ui-a-" + seed + "@example.invalid";
     const emailB = "ui-b-" + seed + "@example.invalid";
     async function required(query, label) {
@@ -31,6 +32,15 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       expect(data, label + " returned no data").toBeTruthy();
       return data;
     }
+    const adminUser = (await required(srv.auth.admin.createUser({
+      email: emailAdmin, password: pass, email_confirm: true, app_metadata: { role: "admin" },
+    }), "seed synthetic preview admin")).user;
+    // Only the disposable localhost project receives trusted admin promotion.
+    const adminProfile = await required(
+      srv.from("profiles").update({ role: "admin" }).eq("id", adminUser.id).select("role").single(),
+      "promote synthetic preview admin"
+    );
+    expect(adminProfile.role).toBe("admin");
     const userA = (await required(srv.auth.admin.createUser({
       email: emailA, password: pass, email_confirm: true, app_metadata: { role: "client" },
     }), "seed A")).user;
@@ -201,6 +211,27 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(b.getByText(changeTitle, { exact: true })).toHaveCount(0);
     } finally {
       await ctxB.close();
+    }
+
+    // Capture the matching admin views using ONLY synthetic CI identities.
+    const adminContext = await browser.newContext({
+      baseURL,
+      viewport: isMobile ? { width: 390, height: 844 } : { width: 1440, height: 900 },
+    });
+    try {
+      const adminPage = await adminContext.newPage();
+      await signIn(adminPage, emailAdmin);
+      await adminPage.goto("/");
+      await expect(adminPage.getByRole("heading", { name: "Your studio, in focus." })).toBeVisible();
+      await adminPage.screenshot({ path: "design-preview/nocturne-admin-home-" + previewSuffix + ".png", fullPage: true });
+      await adminPage.goto("/projects");
+      await expect(adminPage.getByRole("heading", { name: "Delivery without the scavenger hunt." })).toBeVisible();
+      await adminPage.screenshot({ path: "design-preview/nocturne-admin-pipeline-" + previewSuffix + ".png", fullPage: true });
+      await adminPage.goto("/projects/" + projectA);
+      await expect(adminPage.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();
+      await adminPage.screenshot({ path: "design-preview/nocturne-admin-project-" + previewSuffix + ".png", fullPage: true });
+    } finally {
+      await adminContext.close();
     }
 
     // Explicit sign-out affordance must invalidate the session, not just hide UI.
