@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command"];
 export const previewCSS = styles.map((name) => readFileSync(resolve(root, `app/${name}.css`), "utf8"))
   .join("\n").replace('@import "tailwindcss";', "");
 
@@ -18,13 +18,22 @@ export async function renderNocturne(role, scenario = "normal") {
   const longTitle = "Alexandria's extraordinarily detailed studio website and international collection";
   const project = { id: "synthetic-a", client_id: "synthetic-client", name: scenario === "long" ? longTitle : "Synthetic Studio Website", status: "design", progress: 100, due_date: null };
   const rows = {
-    projects: scenario === "empty" ? [] : [project],
+    projects: scenario === "empty" ? [] : scenario === "populated" ? [
+      { ...project, name: "Cedar & Stone Website", progress: 72 },
+      { ...project, id: "synthetic-b", name: "Mira Studio", status: "development", progress: 46 },
+      { ...project, id: "synthetic-c", name: "Northline Editions", status: "discovery", progress: 18 },
+    ] : [project],
     approvals: scenario === "empty" ? [] : [{ id: "synthetic-approval", title: scenario === "long" ? "UnbrokenApprovalTitle".repeat(8) : "Review the homepage design", project_id: project.id }],
     leads: scenario === "populated" ? ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({
       id: `synthetic-lead-${i}`, business_name: name, acquisition_type: "outbound",
       momentum_state: "Waiting on Me", status: "prospect", next_action_kind: "reply",
       created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-    })) : [], opportunities: [], activities: [],
+    })) : [], opportunities: [],
+    activities: scenario === "populated" ? [
+      { id: "synthetic-event-1", summary: "Homepage concept shared with Cedar & Stone", created_at: new Date(Date.now() - 3600000).toISOString() },
+      { id: "synthetic-event-2", summary: "Mira Studio moved into development", created_at: new Date(Date.now() - 7200000).toISOString() },
+      { id: "synthetic-event-3", summary: "Northline Editions discovery notes updated", created_at: new Date(Date.now() - 86400000).toISOString() },
+    ] : [],
   };
   const supabase = { from(table) {
     if (!(table in rows)) throw new Error(`Unexpected preview table: ${table}`);
