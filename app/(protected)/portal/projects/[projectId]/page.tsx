@@ -201,7 +201,7 @@ export default async function ClientProjectPage({
       </header>
 
       <nav className="atelier-project-nav" aria-label="Project destinations">
-        <a href="#project-details">Project details</a>
+        <Link href="?section=details#project-details">Project details</Link>
         <Link href="/portal/approvals">Approvals</Link>
         <Link href="/portal/files">Files</Link>
         <Link href="/portal/messages">Messages</Link>
@@ -239,7 +239,7 @@ export default async function ClientProjectPage({
         </section>
       ) : null}
 
-      <details className="atelier-disclosure" id="project-details" open={["documents", "files", "forms", "contracts", "approvals"].includes(requestedSection ?? "")}>
+      <details className="atelier-disclosure" id="project-details" open={["details", "documents", "files", "forms", "contracts", "approvals"].includes(requestedSection ?? "")}>
         <summary><span className="atelier-disclosure-title">Timeline & project details</span><span className="atelier-disclosure-subtitle">Milestones, tasks, decisions, project files, and feedback</span></summary>
         <section className="client-detail-grid">
         <article id="milestones" className="panel detail-panel portal-anchor">
