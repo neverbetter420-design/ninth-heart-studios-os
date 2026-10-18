@@ -587,3 +587,39 @@ test("Shared navigation keeps workspace names, nested paperwork and return paths
     }
   }
 });
+
+
+test("Decorative Nocturne / Atelier backgrounds render offline in desktop and mobile reviews", async ({ page }, testInfo) => {
+  test.setTimeout(90000);
+  // Each preview uses actual source markup with synthetic data, not hosted accounts.
+  const cases = [
+    ["admin", "home", "nocturne-command"],
+    ["client", "home", "atelier-home"],
+    ["admin", "project", "nocturne-creative-studio"],
+    ["client", "project", "atelier-project-workspace"],
+  ];
+  for (const [role, view, label] of cases) {
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await show(page, role, "populated", view);
+      const shell = page.locator(`.app-shell.nhs-theme-${role}`);
+      await expect(shell).toHaveCount(1);
+      const image = await shell.evaluate((element) => getComputedStyle(element).backgroundImage);
+      expect(image, `${label} background is visible at ${width}px`).toContain("data:image/svg+xml");
+      const media = await shell.evaluate((element) => getComputedStyle(element).backgroundSize);
+      expect(media).not.toBe("auto");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${label} overflow at ${width}px`).toBeLessThanOrEqual(width);
+      if (view === "project") {
+        await expect(page.locator(".studio-workspace")).toHaveCount(1);
+        const workspaceBackdrop = await page.locator(".studio-workspace").evaluate(el => getComputedStyle(el).backgroundImage);
+        expect(workspaceBackdrop).toContain("data:image/svg+xml");
+      }
+      const capture = testInfo.outputPath(`${label}-${width}.png`);
+      await page.screenshot({ path: capture, fullPage: true, animations: "disabled" });
+      await testInfo.attach(`${label}-${width}`, { path: capture, contentType: "image/png" });
+    }
+  }
+  await page.emulateMedia({ contrast: "more" });
+  await show(page, "client", "populated");
+  await expect(page.locator(".app-shell.nhs-theme-client")).toHaveCSS("background-image", "none");
+});
