@@ -5,11 +5,12 @@
  * Decorative SVGs contain no text, interaction or third-party fetches.
  */
 .app-shell.nhs-theme-admin {
+  color-scheme: dark;
   --nhs-atmosphere-canvas: #100d15;
   --nhs-atmosphere-floral: url("/visuals/nocturne-floral-arch.svg");
   background-color: var(--nhs-atmosphere-canvas);
   background-image:
-    linear-gradient(90deg, rgba(13, 11, 18, .97) 0%, rgba(13, 11, 18, .90) 39%, rgba(13, 11, 18, .34) 83%),
+    linear-gradient(90deg, rgba(13, 11, 18, .98) 0%, rgba(13, 11, 18, .94) 39%, rgba(13, 11, 18, .76) 83%),
     radial-gradient(ellipse at 65% 14%, rgba(117, 65, 95, .25), transparent 46%),
     var(--nhs-atmosphere-floral),
     radial-gradient(ellipse at 92% 67%, rgba(70, 37, 65, .22), transparent 60%),
@@ -20,11 +21,12 @@
 }
 
 .app-shell.nhs-theme-client {
+  color-scheme: light;
   --nhs-atmosphere-canvas: #faf6f0;
   --nhs-atmosphere-floral: url("/visuals/atelier-botanical-arch.svg");
   background-color: var(--nhs-atmosphere-canvas);
   background-image:
-    linear-gradient(90deg, rgba(250, 246, 240, .97) 0%, rgba(250, 246, 240, .87) 43%, rgba(250, 246, 240, .34) 100%),
+    linear-gradient(90deg, rgba(250, 246, 240, .98) 0%, rgba(250, 246, 240, .94) 43%, rgba(250, 246, 240, .74) 100%),
     radial-gradient(ellipse at 79% 12%, rgba(220, 178, 179, .22), transparent 44%),
     var(--nhs-atmosphere-floral),
     radial-gradient(ellipse at 25% 83%, rgba(207, 176, 163, .14), transparent 58%),
@@ -38,6 +40,11 @@
    The artwork lives entirely in painted backgrounds, never over controls. */
 .nhs-theme-admin .main-shell,
 .nhs-theme-client .main-shell { background-color: transparent; }
+
+/* The approved floral arch is the welcome artwork. Suppress the earlier silk
+   illustrations so two unrelated compositions do not compete with each other. */
+.nhs-theme-admin .nocturne-studio-art,
+.nhs-theme-client .atelier-studio-art { display: none; }
 
 /* The flagship welcome screens carry the richest botanical details. */
 .nhs-theme-admin .nocturne-command-center .nocturne-overview {
@@ -61,7 +68,7 @@
 /* Workspace decoration is quieter to protect forms, files and communications. */
 .nhs-theme-admin .studio-workspace {
   background-image:
-    linear-gradient(90deg, rgba(13, 11, 18, .96), rgba(13, 11, 18, .84) 63%, rgba(13, 11, 18, .63)),
+    linear-gradient(90deg, rgba(13, 11, 18, .98), rgba(13, 11, 18, .94) 63%, rgba(13, 11, 18, .88)),
     var(--nhs-atmosphere-floral);
   background-size: 100% 100%, min(680px, 60vw) auto;
   background-position: center, right top;
@@ -70,7 +77,7 @@
 
 .nhs-theme-client .studio-workspace {
   background-image:
-    linear-gradient(90deg, rgba(250, 246, 240, .96), rgba(250, 246, 240, .82) 65%, rgba(250, 246, 240, .65)),
+    linear-gradient(90deg, rgba(250, 246, 240, .98), rgba(250, 246, 240, .94) 65%, rgba(250, 246, 240, .88)),
     var(--nhs-atmosphere-floral);
   background-size: 100% 100%, min(680px, 62vw) auto;
   background-position: center, right top;
@@ -88,7 +95,7 @@
 @media (max-width: 620px) {
   .app-shell.nhs-theme-admin {
     background-image:
-      linear-gradient(90deg, rgba(13, 11, 18, .97), rgba(13, 11, 18, .83)),
+      linear-gradient(90deg, rgba(13, 11, 18, .98), rgba(13, 11, 18, .92)),
       var(--nhs-atmosphere-floral),
       linear-gradient(150deg, #100d15, #17101a 58%, #0b0a10);
     background-size: 100% 100%, 575px auto, 100% 100%;
@@ -96,7 +103,7 @@
   }
   .app-shell.nhs-theme-client {
     background-image:
-      linear-gradient(90deg, rgba(250, 246, 240, .96), rgba(250, 246, 240, .78)),
+      linear-gradient(90deg, rgba(250, 246, 240, .98), rgba(250, 246, 240, .92)),
       var(--nhs-atmosphere-floral),
       linear-gradient(150deg, #fdfaf6, #f7eee9 54%, #fdfbf7);
     background-size: 100% 100%, 590px auto, 100% 100%;
@@ -115,7 +122,7 @@
 }
 
 /* An accessible high-contrast preference takes precedence over ornamentation. */
-@media (prefers-contrast: more) {
+@media (prefers-contrast: more), (forced-colors: active) {
   .app-shell.nhs-theme-admin,
   .app-shell.nhs-theme-client,
   .nhs-theme-admin .nocturne-command-center .nocturne-overview,

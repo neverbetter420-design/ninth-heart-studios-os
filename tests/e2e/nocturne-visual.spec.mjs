@@ -7,6 +7,7 @@ async function show(page, role, scenario = "normal", view = "home", section = ""
   const { html } = await renderNocturne(role, scenario, view, section);
   await page.setContent(`<html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>${html}</body></html>`);
   await page.addStyleTag({ content: previewCSS });
+  await page.evaluate(() => document.fonts.ready);
 }
 async function contrast(locator, backgroundSelector) {
   return locator.evaluate((el, selector) => {
@@ -606,6 +607,17 @@ test("Decorative Nocturne / Atelier backgrounds render offline in desktop and mo
       await expect(shell).toHaveCount(1);
       const image = await shell.evaluate((element) => getComputedStyle(element).backgroundImage);
       expect(image, `${label} background is visible at ${width}px`).toContain("data:image/svg+xml");
+      const decoded = await shell.evaluate(async (el) => {
+        const asset = getComputedStyle(el).backgroundImage.match(/url\("(data:image\/svg\+xml,[^"]+)"\)/)?.[1];
+        if (!asset) return false;
+        const artwork = new Image();
+        artwork.src = asset;
+        await artwork.decode();
+        return artwork.naturalWidth === 1100 && artwork.naturalHeight === 950;
+      });
+      expect(decoded, `${label} SVG decodes offline`).toBe(true);
+      await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
+      await expect(page.locator(role === "admin" ? ".nocturne-studio-art" : ".atelier-studio-art")).not.toBeVisible();
       const media = await shell.evaluate((element) => getComputedStyle(element).backgroundSize);
       expect(media).not.toBe("auto");
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `${label} overflow at ${width}px`).toBeLessThanOrEqual(width);
@@ -619,7 +631,61 @@ test("Decorative Nocturne / Atelier backgrounds render offline in desktop and mo
       await testInfo.attach(`${label}-${width}`, { path: capture, contentType: "image/png" });
     }
   }
-  await page.emulateMedia({ contrast: "more" });
-  await show(page, "client", "populated");
-  await expect(page.locator(".app-shell.nhs-theme-client")).toHaveCSS("background-image", "none");
+  for (const preference of [{ contrast: "more" }, { contrast: "no-preference", forcedColors: "active" }]) {
+    await page.emulateMedia(preference);
+    for (const [role, view] of cases) {
+      await show(page, role, "populated", view);
+      await expect(page.locator(`.app-shell.nhs-theme-${role}`)).toHaveCSS("background-image", "none");
+      await expect(page.locator(view === "project" ? ".studio-workspace" : role === "admin" ? ".nocturne-overview" : ".atelier-hero")).toHaveCSS("background-image", "none");
+    }
+  }
+});
+
+test("Project communication, feedback pins and invoice fields remain readable on both canvases", async ({ page }, testInfo) => {
+  for (const role of ["admin", "client"]) {
+    await show(page, role, "populated", "controls");
+    await page.getByRole("article", { name: "Forms", exact: true }).locator("details > summary").press("Enter");
+    for (const sender of await page.locator(".studio-message-sender").all()) {
+      expect(await contrast(sender, ".app-shell")).toBeGreaterThanOrEqual(4.5);
+    }
+    for (const pin of await page.locator(".studio-feedback-pin").all()) {
+      expect(await contrast(pin)).toBeGreaterThanOrEqual(4.5);
+    }
+    const frame = page.getByRole("button", { name: "Deliverable preview — click to place a feedback pin", exact: true });
+    await frame.focus();
+    expect(await frame.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+    for (const width of [1440, 1024, 860, 768, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} controls at ${width}px`).toBeLessThanOrEqual(width);
+      expect((await page.getByRole("textbox", { name: "Line 1 description", exact: true }).boundingBox()).width).toBeGreaterThan(100);
+      for (const input of await page.locator(".studio-line-item-row input, .studio-line-item-row button").all()) {
+        const box = await input.boundingBox();
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width);
+      }
+    }
+    const capture = testInfo.outputPath(`${role}-workspace-controls.png`);
+    await page.screenshot({ path: capture, fullPage: true });
+    await testInfo.attach(`${role}-workspace-controls`, { path: capture, contentType: "image/png" });
+  }
+});
+
+test("The shared atmosphere carries across every admin and client destination", async ({ page }, testInfo) => {
+  test.setTimeout(90000);
+  const width = testInfo.project.name.startsWith("mobile") ? 390 : 1440;
+  await page.setViewportSize({ width, height: 900 });
+  const screens = {
+    admin: ["home", "leads", "lead-detail", "scanner", "clients", "client-detail", "pipeline", "project", "contracts", "contract-detail", "forms", "form-detail", "templates", "template-detail", "muse", "opportunities", "opportunity-detail", "automations", "settings"],
+    client: ["home", "portal-projects", "project", "portal-documents", "portal-messages", "portal-files", "portal-approvals", "portal-contracts", "portal-forms"],
+  };
+  for (const [role, views] of Object.entries(screens)) {
+    for (const view of views) {
+      await show(page, role, "populated", view);
+      await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", role === "client" ? "light" : "dark");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} ${view} at ${width}px`).toBeLessThanOrEqual(width);
+      const capture = testInfo.outputPath(`${role}-${view}-${width}.png`);
+      await page.screenshot({ path: capture, fullPage: true, animations: "disabled" });
+      await testInfo.attach(`${role}-${view}-${width}`, { path: capture, contentType: "image/png" });
+    }
+  }
 });

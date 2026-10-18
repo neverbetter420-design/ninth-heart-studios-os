@@ -6,8 +6,11 @@ on:
       - 'app/**'
       - 'components/**'
       - 'lib/**'
+      - 'public/**'
       - 'tests/e2e/**'
+      - 'tests/helpers/**'
       - 'playwright.config.mjs'
+      - 'playwright.visual.config.mjs'
       - '.github/workflows/browser-qa.yml'
   workflow_dispatch:
     inputs:

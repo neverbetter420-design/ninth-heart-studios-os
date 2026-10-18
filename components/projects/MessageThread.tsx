@@ -48,7 +48,7 @@ export function MessageThread({
               <li key={m.id} className="delivery-row" style={{ alignItems: "flex-start" }}>
                 <div className="delivery-row-main">
                   <p className="delivery-row-sub" style={{ marginBottom: 4 }}>
-                    <strong style={{ color: mine ? "#d9a8ff" : "#9cd2ff" }}>
+                    <strong className={`studio-message-sender ${mine ? "is-self" : "is-other"}`}>
                       {mine ? "You" : otherLabel}
                     </strong>{" "}
                     · {formatTime(m.created_at)}

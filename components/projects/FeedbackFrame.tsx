@@ -39,6 +39,7 @@ export function FeedbackFrame({
         Viewing: <strong>{pageLabel || "Deliverable"}</strong> — click anywhere to drop a pin.
       </p>
       <div
+        className="studio-feedback-canvas"
         role="button"
         tabIndex={0}
         aria-label="Deliverable preview — click to place a feedback pin"
@@ -60,9 +61,6 @@ export function FeedbackFrame({
           position: "relative",
           aspectRatio: "16 / 9",
           borderRadius: 10,
-          border: "1px solid var(--hatch-widget-border, rgba(255,255,255,0.14))",
-          background:
-            "repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0 14px, transparent 14px 28px), rgba(255,255,255,0.02)",
           cursor: "crosshair",
           overflow: "hidden",
         }}
@@ -70,6 +68,7 @@ export function FeedbackFrame({
         {pins.map((pin, i) => (
           <button
             key={pin.id}
+            className={`studio-feedback-pin${pin.resolved ? " is-resolved" : ""}${selectedPinId === pin.id ? " is-selected" : ""}`}
             type="button"
             aria-label={`Pin ${i + 1}: ${pin.comment.slice(0, 60)}${pin.resolved ? " (resolved)" : ""}`}
             title={pin.comment}
@@ -85,13 +84,9 @@ export function FeedbackFrame({
               width: 26,
               height: 26,
               borderRadius: "50%",
-              border: "2px solid #0b0b10",
-              background: pin.resolved ? "#3a3a46" : selectedPinId === pin.id ? "#e8b4ff" : "#b366ff",
-              color: "#0b0b10",
               fontSize: 12,
               fontWeight: 700,
               cursor: "pointer",
-              opacity: pin.resolved ? 0.55 : 1,
             }}
           >
             {i + 1}
@@ -99,6 +94,7 @@ export function FeedbackFrame({
         ))}
         {picked ? (
           <div
+            className="studio-feedback-picked"
             aria-hidden
             style={{
               position: "absolute",
@@ -108,8 +104,6 @@ export function FeedbackFrame({
               width: 26,
               height: 26,
               borderRadius: "50%",
-              border: "2px dashed #e8b4ff",
-              background: "rgba(232,180,255,0.25)",
               pointerEvents: "none",
             }}
           />
