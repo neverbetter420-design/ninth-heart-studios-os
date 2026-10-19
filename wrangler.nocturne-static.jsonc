@@ -6,6 +6,6 @@
   "routes": [],
   "keep_vars": false,
   "assets": {
-    "directory": "./.nhs-nocturne-pages"
+    "directory": "./nocturne-static-preview"
   }
 }
