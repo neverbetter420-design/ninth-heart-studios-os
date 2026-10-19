@@ -3,13 +3,13 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 // Static synthetic design previews cannot contain server functions or production connections.
-const root = ".nhs-nocturne-pages";
+const root = "nocturne-static-preview";
 const config = JSON.parse(readFileSync("wrangler.nocturne-static.jsonc","utf8"));
 assert.equal(config.name,"nhs-nocturne-html-preview");
 assert.deepEqual(config.routes,[]);
 assert.equal(config.keep_vars,false);
 assert.equal(config.workers_dev,true);
-assert.deepEqual(config.assets,{directory:"./.nhs-nocturne-pages"});
+assert.deepEqual(config.assets,{directory:"./nocturne-static-preview"});
 assert.equal(Object.hasOwn(config,"main"),false);
 assert.equal(Object.hasOwn(config,"vars"),false);
 const frames=[];
