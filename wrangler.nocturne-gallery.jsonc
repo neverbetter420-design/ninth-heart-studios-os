@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "nhs-nocturne-visual-review",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "routes": [],
+  "keep_vars": false,
+  "assets": {
+    "directory": "./design-preview"
+  }
+}
