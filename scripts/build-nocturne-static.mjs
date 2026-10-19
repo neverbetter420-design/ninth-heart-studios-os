@@ -4,7 +4,7 @@ import { previewCSS, renderNocturne } from "../tests/helpers/nocturne-render.mjs
 
 // Output is synthetic HTML generated from the actual draft React components.
 // It never initializes a hosted Supabase client or sends external requests.
-const root = ".nhs-nocturne-pages";
+const root = "nocturne-static-preview";
 const routes = {
   admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","settings","opportunities","opportunity-detail","automations","controls"],
   client: ["home","project","portal-projects","portal-documents","portal-messages","portal-files","portal-approvals","portal-contracts","portal-forms","controls"]
