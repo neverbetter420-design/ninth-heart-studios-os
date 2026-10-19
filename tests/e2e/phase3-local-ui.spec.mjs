@@ -181,9 +181,20 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
     // Hostile form-field mutation: Client A substitutes a Client B approval ID.
     // The server action must return an error and leave both approvals unchanged.
     const approvalTarget = approveRow.locator('input[name="approval_id"]');
-    await approvalTarget.evaluate((el, foreignId) => { el.value = foreignId; }, approvalOther);
     await approveRow.locator('input[name="client_comment"]').fill("Tampered client approval");
-    await approveRow.getByRole("button", { name: "Approve", exact: true }).click();
+    // Submit the forged hidden input *in the same browser task* as the edit.
+    // A React/Next re-render between evaluate() and click() can restore the
+    // legitimate hidden value, causing a real approval to succeed and masking
+    // the security assertion. requestSubmit fires the genuine form submit
+    // event and exercises the normal server action using the forged ID.
+    await approveRow.locator("form").evaluate((form, foreignId) => {
+      const target = form.querySelector('input[name="approval_id"]');
+      const submitter = form.querySelector('button[name="decision"][value="approved"]');
+      if (!target || !submitter) throw new Error("Approval controls unavailable");
+      target.value = foreignId;
+      if (target.value !== foreignId) throw new Error("Approval fixture target did not change");
+      form.requestSubmit(submitter);
+    }, approvalOther);
     await expect(approveRow.getByRole("alert")).toContainText("couldn't save that decision");
     const untouchedOwn = (await required(srv.from("approvals").select("status").eq("id",approvalA), "own approval unchanged"))[0];
     const untouchedOther = (await required(srv.from("approvals").select("status").eq("id",approvalOther), "other approval unchanged"))[0];
