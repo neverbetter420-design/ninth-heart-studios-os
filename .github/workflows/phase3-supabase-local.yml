@@ -12,6 +12,7 @@ on:
       - 'scripts/verify-phase3-supabase-local.mjs'
       - 'tests/e2e/phase3-local-ui.spec.mjs'
       - 'tests/helpers/**'
+      - 'scripts/build-nocturne-review.mjs'
       - 'supabase/migrations/**'
   workflow_dispatch:
 
@@ -108,12 +109,18 @@ jobs:
           npx playwright install --with-deps chromium
           npx playwright test tests/e2e/phase3-local-ui.spec.mjs --retries=0
 
-      - name: Upload synthetic Nocturne Atelier desktop and mobile previews
+      - name: Build browsable synthetic Admin and Client visual review
+        if: success()
+        run: node scripts/build-nocturne-review.mjs
+
+      - name: Upload navigable Nocturne Atelier design review with original screenshots
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: nhs-nocturne-atelier-visual-review
-          path: design-preview/*.png
+          path: |
+            design-preview/Open_This_Review.html
+            design-preview/*.png
           if-no-files-found: error
           retention-days: 7
 
