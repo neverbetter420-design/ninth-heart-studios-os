@@ -70,5 +70,16 @@ const pieces = [
   "document.querySelectorAll('[data-role]').forEach(b=>b.addEventListener('click',()=>changeRole(b.dataset.role)));el('screens').addEventListener('change',e=>{chosen=e.target.value;draw()});el('mode').addEventListener('change',e=>{mode=e.target.value;draw()});el('close').addEventListener('click',()=>el('zoom').close());el('zoom').addEventListener('click',e=>{if(e.target===el('zoom'))el('zoom').close()});changeRole('admin');",
   "</script></body></html>",
 ];
-writeFileSync(join(directory, "Open_This_Review.html"), pieces.join("\n"), "utf8");
-console.log("Generated self-contained navigation / screenshot gallery for " + gallery.length + " screens.");
+const rendered = pieces.join("\n");
+writeFileSync(join(directory, "Open_This_Review.html"), rendered, "utf8");
+writeFileSync(join(directory, "index.html"), rendered, "utf8");
+writeFileSync(join(directory, "_headers"), [
+  "/*",
+  "  X-Content-Type-Options: nosniff",
+  "  Referrer-Policy: no-referrer",
+  "  X-Frame-Options: DENY",
+  "  Permissions-Policy: camera=(), microphone=(), geolocation=()",
+  "  Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  "",
+].join("\n"), "utf8");
+console.log("Generated isolated, browsable screenshot gallery for " + gallery.length + " screens.");
