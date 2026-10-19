@@ -13,6 +13,8 @@ on:
       - 'tests/e2e/phase3-local-ui.spec.mjs'
       - 'tests/helpers/**'
       - 'scripts/build-nocturne-review.mjs'
+      - 'scripts/verify-nocturne-gallery.mjs'
+      - 'wrangler.nocturne-gallery.jsonc'
       - 'supabase/migrations/**'
   workflow_dispatch:
 
@@ -113,13 +115,21 @@ jobs:
         if: success()
         run: node scripts/build-nocturne-review.mjs
 
+      - name: Verify isolated screenshot-only Cloudflare Worker bundle without publishing
+        if: success()
+        run: |
+          node scripts/verify-nocturne-gallery.mjs
+          npx wrangler deploy --dry-run --config wrangler.nocturne-gallery.jsonc
+
       - name: Upload navigable Nocturne Atelier design review with original screenshots
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: nhs-nocturne-atelier-visual-review
           path: |
+            design-preview/index.html
             design-preview/Open_This_Review.html
+            design-preview/_headers
             design-preview/*.png
           if-no-files-found: error
           retention-days: 7
