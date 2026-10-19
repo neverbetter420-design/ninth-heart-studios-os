@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nhs-nocturne-html-preview
-          path: .nhs-nocturne-pages/
+          path: nocturne-static-preview/
           if-no-files-found: error
           retention-days: 7
       - name: Record no hosted changes
