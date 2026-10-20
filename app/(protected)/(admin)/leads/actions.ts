@@ -13,6 +13,7 @@ import {
   type QuickLogOutcome,
 } from "@/lib/flowkeep";
 import { createClient } from "@/lib/supabase/server";
+import { analyzeWebsite, normalizeWebsite, scoreSignals } from "@/lib/prospect-scan";
 import type { PortalFeedbackState } from "@/lib/portal-feedback";
 
 function clean(value: FormDataEntryValue | null) {
@@ -220,4 +221,70 @@ export async function logLeadOutcomeWithFeedback(_previous: PortalFeedbackState,
   } catch {
     return { status: "error", message: "Lead activity wasn't saved. Please try again." };
   }
+}
+
+
+/** On-demand website audit for a saved lead. Auto-import only QUEUES this work. */
+export async function auditLeadWebsite(formData: FormData): Promise<void> {
+  const { user } = await requireAdmin();
+  const leadId = clean(formData.get("lead_id"));
+  if (!leadId || !/^[0-9a-f-]{36}$/i.test(leadId)) return;
+  const supabase = await createClient();
+  const { data: lead, error } = await supabase.from("leads")
+    .select("id,website,score,metadata").eq("id", leadId).maybeSingle();
+  if (error || !lead) return;
+  const website = normalizeWebsite(lead.website);
+  if (!website) {
+    redirect("/leads/" + leadId + "?error=" +
+      encodeURIComponent("A safe, independent business website is required for an audit."));
+  }
+  const previous = lead.metadata && typeof lead.metadata === "object" &&
+    !Array.isArray(lead.metadata) ? lead.metadata as Record<string, unknown> : {};
+  const priorAudit = previous.website_audit as { status?: string; started_at?: string } | undefined;
+  if (priorAudit?.status === "running" && priorAudit.started_at &&
+    Date.now() - Date.parse(priorAudit.started_at) < 120000) {
+    redirect("/leads/" + leadId + "?error=" + encodeURIComponent("Website audit is already running."));
+  }
+  const startedAt = new Date().toISOString();
+  const { error: startError } = await supabase.from("leads").update({
+    metadata: {
+      ...previous,
+      website_audit: { status: "running", website, started_at: startedAt },
+    },
+  }).eq("id", leadId).eq("website", lead.website);
+  if (startError) return;
+
+  // Existing analysis hardens target URLs against internal-network fetches.
+  // A temporarily unreachable site is inconclusive, not proof it needs redesign.
+  const signals = await analyzeWebsite(website);
+  const status = signals.reachable ? "complete" : "inconclusive";
+  const score = signals.reachable ? scoreSignals(signals) : lead.score;
+  const latestMetadata = {
+    ...previous,
+    website_audit: {
+      status,
+      website,
+      started_at: startedAt,
+      checked_at: new Date().toISOString(),
+      signals,
+      score: signals.reachable ? scoreSignals(signals) : null,
+    },
+  };
+  const { error: saveError } = await supabase.from("leads").update({
+    metadata: latestMetadata,
+    score,
+  }).eq("id", leadId).eq("website", lead.website);
+  if (saveError) {
+    redirect("/leads/" + leadId + "?error=" +
+      encodeURIComponent("Audit ran, but the result could not be saved. Retry after checking the lead."));
+  }
+  await supabase.from("activities").insert({
+    lead_id: leadId,
+    actor_id: user.id,
+    event_type: "website_audit",
+    summary: status === "complete" ? "Website audit completed" : "Website audit inconclusive",
+    metadata: { status, website, score: signals.reachable ? scoreSignals(signals) : null },
+  });
+  revalidatePath("/leads/" + leadId);
+  revalidatePath("/leads");
 }
