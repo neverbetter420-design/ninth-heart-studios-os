@@ -1,16 +1,15 @@
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth";
+import { LeadFinderReview, type FinderResult, type FinderSearch } from "@/components/leads/LeadFinderReview";
 import { createClient } from "@/lib/supabase/server";
-import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import {
-  NICHES,
   signalBadges,
   scoreSignals,
   normalizeSocialProfile,
   type WebsiteSignals,
 } from "@/lib/prospect-scan";
 import {
-  runScan,
   analyzeProspect,
   generateDraft,
   saveDraft,
@@ -44,10 +43,28 @@ function scoreTone(score: number | null): string {
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ msg?: string; show?: string }>;
+  searchParams: Promise<{ msg?: string; show?: string; search?: string }>;
 }) {
-  const { msg, show } = await searchParams;
+  const { msg, show, search } = await searchParams;
+  const { user } = await requireAdmin();
   const supabase = await createClient();
+  const { data: historyData, error: historyError } = await supabase
+    .from("lead_search_requests")
+    .select("id,source,location,industry,status,result_count,imported_count,auto_import,error_message,created_at")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(10);
+  const searches = (historyData ?? []) as FinderSearch[];
+  const activeSearch = searches.find(item => item.id === search) ?? searches[0] ?? null;
+  const { data: resultData } = activeSearch ? await supabase
+    .from("lead_search_results")
+    .select("id,business_name,source_ref,industry,address,phone,email,website,maps_url,source,discovery_score,duplicate,imported,import_status,details")
+    .eq("search_id", activeSearch.id)
+    .order("discovery_score", { ascending: false })
+    .limit(20) : { data: [] as FinderResult[] };
+  const stagedResults = (resultData ?? []) as FinderResult[];
+  const finderSchemaReady = !historyError;
+  const geoapifyConnected = Boolean(process.env.GEOAPIFY_API_KEY?.trim());
   let query = supabase
     .from("prospects")
     .select(
@@ -96,52 +113,13 @@ export default async function DiscoverPage({
 
       {msg && <p className="notice">{msg}</p>}
 
-      <section className="card scanner-controls" aria-label="Run a scan">
-        <h3>Run a scan</h3>
-        <form action={runScan} className="form-grid">
-          <label>
-            Location
-            <input name="location" defaultValue="Puyallup, WA" required />
-          </label>
-          <label>
-            Radius
-            <select name="radius_mi" defaultValue="10">
-              <option value="5">5 miles</option>
-              <option value="10">10 miles</option>
-              <option value="15">15 miles</option>
-              <option value="25">25 miles</option>
-            </select>
-          </label>
-          <fieldset>
-            <legend>Business types</legend>
-            <div className="check-grid">
-              {(Object.keys(NICHES) as Array<keyof typeof NICHES>).map(
-                (key) => (
-                  <label key={key} className="check">
-                    <input
-                      type="checkbox"
-                      name="niches"
-                      value={key}
-                      defaultChecked={[
-                        "restaurants",
-                        "bars",
-                        "salons",
-                      ].includes(key)}
-                    />
-                    {NICHES[key].label}
-                  </label>
-                ),
-              )}
-            </div>
-          </fieldset>
-          <ScannerSubmitButton />
-          <p className="form-hint">
-            Up to 12 businesses per scan. Missing websites stay low priority
-            while social profiles are checked. Business data © OpenStreetMap
-            contributors (ODbL). Be nice — scans are on-demand, not continuous.
-          </p>
-        </form>
-      </section>
+      <LeadFinderReview
+        searches={searches}
+        results={stagedResults}
+        selectedId={activeSearch?.id}
+        schemaReady={finderSchemaReady}
+        geoapifyConnected={geoapifyConnected}
+      />
 
       <section aria-label="Prospects">
         <div className="section-head">
@@ -160,7 +138,7 @@ export default async function DiscoverPage({
         </div>
 
         <p className="management-help">
-          Up to 60 saved prospects. Current scores are ranked within this view.
+          Saved prospect workspace, separate from the new Lead Finder review queue. Existing scores are ranked within this view.
         </p>
         {readError ? (
           <p className="management-notice" role="alert">
