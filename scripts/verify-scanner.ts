@@ -1,6 +1,7 @@
 // Prospect Scanner verification: scoring, badges, drafts, URL normalization.
 // No database, no network.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { parseFinderForm, websiteHost, isSameBusiness, completenessScore, discoverGeoapify, findBusinesses } from "../lib/lead-finder.ts";
 import {
   NICHES,
@@ -361,5 +362,21 @@ try {
   if(priorGeoKey===undefined)delete process.env.GEOAPIFY_API_KEY;
   else process.env.GEOAPIFY_API_KEY=priorGeoKey;
 }
+
+
+// Import -> audit handoff is staged rather than secretly activating
+// scheduled scans, bulk outreach or a real-time third-party website fetch.
+const finderActionsSource = readFileSync(new URL("../app/(protected)/(admin)/leads/discover/lead-finder-actions.ts", import.meta.url), "utf8");
+const leadActionsSource = readFileSync(new URL("../app/(protected)/(admin)/leads/actions.ts", import.meta.url), "utf8");
+const leadDetailSource = readFileSync(new URL("../app/(protected)/(admin)/leads/[leadId]/page.tsx", import.meta.url), "utf8");
+assert.match(finderActionsSource, /website_audit:\s*\{\s*status:\s*"queued"/, "import creates queued audit metadata");
+assert.doesNotMatch(finderActionsSource, /await\s+analyzeWebsite\s*\(/, "bulk import never fetches all sites");
+assert.match(leadActionsSource, /export async function auditLeadWebsite\(formData: FormData\)/, "manual audit action exists");
+assert.match(leadActionsSource, /const \{ user \} = await requireAdmin\(\)/, "admin authentication required");
+assert.match(leadActionsSource, /const signals = await analyzeWebsite\(website\)/, "audit uses established safe-site analyzer");
+assert.match(leadActionsSource, /status = signals\.reachable \? "complete" : "inconclusive"/,
+  "unreachable sites cannot be scored as bad websites");
+assert.match(leadDetailSource, /<form action=\{auditLeadWebsite\}>/, "lead detail has explicit audit trigger");
+assert.match(leadDetailSource, /Audits are on-demand/, "audit is not automatically scheduled");
 
 console.log("verify:scanner — all checks passed.");
