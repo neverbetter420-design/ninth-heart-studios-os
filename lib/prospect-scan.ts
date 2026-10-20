@@ -275,12 +275,12 @@ export async function refreshSocialProfiles(sourceRef: string | null): Promise<S
   const identity = /^(node|way|relation):(\d+)$/.exec(sourceRef ?? "");
   if (!identity) return [];
   try {
-    const res = await fetchWithTimeout("https://overpass-api.de/api/interpreter", 7000, {
-      method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
-      body: `data=${encodeURIComponent(`[out:json][timeout:5];${identity[1]}(${identity[2]});out tags;`)}`,
-    });
-    if (!res.ok) return [];
-    const data = await res.json() as { elements?: OverpassElement[] };
+    const data = await fetchJsonWithTimeout<{ elements?: OverpassElement[] }>(
+      "https://overpass-api.de/api/interpreter", 7000, {
+        method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
+        body: `data=${encodeURIComponent(`[out:json][timeout:5];${identity[1]}(${identity[2]});out tags;`)}`,
+      }
+    );
     const element = data.elements?.find(e => `${e.type}:${e.id}` === sourceRef);
     return socialProfilesFromTags(element?.tags ?? {});
   } catch { return []; }
