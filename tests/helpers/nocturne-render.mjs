@@ -65,7 +65,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     leads: scenario === "populated" || (view.startsWith("lead") && scenario !== "empty") ? ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({
       id: `synthetic-lead-${i}`, business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(9) : name, acquisition_type: "outbound",
       momentum_state: "Waiting on Me", status: "prospect", next_action_kind: "reply",
-      score: 82 - i * 12, email: scenario === "long" ? "longemail".repeat(12) + "@example.invalid" : "hello@example.invalid", contact_name: "Jamie Morgan", website: "https://example.invalid",
+      score: 82 - i * 12, email: scenario === "long" ? "longemail".repeat(12) + "@example.invalid" : "hello@example.invalid", contact_name: "Jamie Morgan", website: "https://example.invalid", metadata: { website_audit: { status: "queued", website: "https://example.invalid", queued_at: "2026-10-19T22:00:00Z" } },
       created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
     })) : [], opportunities: [],
     activities: scenario === "populated" ? [
