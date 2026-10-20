@@ -83,11 +83,11 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     ],
     lead_search_requests: view === "scanner" && scenario !== "empty" ? [{
       id: "synthetic-review-search", owner_id: "synthetic-review-user", source: "openstreetmap",
-      location: "Puyallup, WA", industry: "Bars & Pubs, Restaurants", status: "complete",
-      result_count: 2, imported_count: 0, auto_import: false,
-      error_message: null, created_at: "2026-10-18T17:00:00Z",
+      location: "Puyallup, WA", industry: "Bars & Pubs, Restaurants", status: scenario === "error" ? "error" : "complete",
+      result_count: scenario === "error" ? 0 : 2, imported_count: 0, auto_import: false,
+      error_message: scenario === "error" ? "Business directory temporarily unavailable. Retry this search." : null, created_at: "2026-10-18T17:00:00Z",
     }] : [],
-    lead_search_results: view === "scanner" && scenario !== "empty" ? [
+    lead_search_results: view === "scanner" && ["normal", "long"].includes(scenario) ? [
       { id: "synthetic-search-a", search_id: "synthetic-review-search", source_ref: "node:123",
         business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone",
         industry: "restaurant", address: "123 Main St, Puyallup, WA", phone: "253-555-0123",
