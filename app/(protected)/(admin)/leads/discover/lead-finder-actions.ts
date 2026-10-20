@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
 import {
-  completenessScore, findBusinesses, isSameBusiness, parseFinderForm,
+  completenessScore, findBusinesses, isSameBusiness, parseFinderForm, websiteHost,
   type FinderParams, type FinderSource,
 } from "@/lib/lead-finder";
 import type { NicheKey } from "@/lib/prospect-scan";
@@ -35,6 +35,7 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
     .maybeSingle();
   if (claimError || !row) return false;
   const result = row as SavedResult;
+  let createdLeadId: string | null = null;
   try {
     // Recheck CRM and prospects AFTER claiming a result.
     const [{ data: leads, error: lErr }, { data: prospects, error: pErr }] = await Promise.all([
@@ -68,6 +69,7 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
       },
     }).select("id").single();
     if (insertError || !lead) throw new Error("Could not save lead.");
+    createdLeadId = lead.id;
     const { error: confirmError } = await db.from("lead_search_results").update({
       imported: true, import_status: "imported", lead_id: lead.id,
       updated_at: new Date().toISOString(),
@@ -75,8 +77,13 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
     if (confirmError) throw new Error("Lead saved, but its search result needs reconciliation.");
     return true;
   } catch {
-    // A write could already have succeeded. Leave claim intact, never retry
-    // blindly and risk creating a duplicate lead.
+    if (!createdLeadId) {
+      // No lead was inserted: make this candidate safely retryable.
+      await db.from("lead_search_results").update({import_status:"ready"})
+        .eq("id",result.id).eq("import_status","importing");
+    }
+    // If a lead was created, keep the claim until an admin can reconcile it:
+    // never retry blindly and risk duplicating that saved lead.
     return false;
   }
 }
@@ -138,7 +145,7 @@ async function executeSearch(db: Db, userId: string, id: string) {
         source: params.source,
         discovery_score: score,
         duplicate: existing,
-        import_status: existing ? "duplicate" : business.website ? "ready" : "needs_verification",
+        import_status: existing ? "duplicate" : websiteHost(business.website) ? "ready" : "needs_verification",
         details: { social_profiles: business.social_profiles },
         updated_at: new Date().toISOString(),
       }, { onConflict: "search_id,source_ref", ignoreDuplicates: true });
