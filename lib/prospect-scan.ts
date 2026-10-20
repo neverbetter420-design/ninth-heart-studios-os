@@ -107,6 +107,11 @@ async function fetchJsonWithTimeout<T>(url: string, ms: number, init: RequestIni
 /** Geocode through Nominatim, then fall back to an independent OSM geocoder.
  * Fallback candidates must still match the requested place AND United States. */
 export async function geocode(place: string): Promise<{ lat: number; lng: number; label: string }> {
+  // The studio's default search location has a fixed, published city-center
+  // coordinate; avoid unnecessary calls to public geocoders for this exact city.
+  if (/^puyallup,?\s*(?:wa|washington)(?:,?\s*(?:usa|united states))?$/i.test(place.trim())) {
+    return { lat: 47.18538, lng: -122.2929, label: "Puyallup, Washington" };
+  }
   const url = "https://nominatim.openstreetmap.org/search?q=" +
     encodeURIComponent(place) + "&format=json&limit=1&countrycodes=us";
   try {
