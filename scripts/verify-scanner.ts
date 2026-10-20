@@ -278,6 +278,14 @@ assert.equal(isSameBusiness(
   {source_ref:"way:202",business_name:"Shared Name",address:"789 Second Street"},
 ), false, "same name at a different OSM location must remain distinct");
 assert.ok(isSameBusiness({website:"https://www.example.com/"},{website:"https://example.com/new"}));
+assert.equal(isSameBusiness(
+  {business_name:"Shared Bakery",address:"123 Main St",website:"https://bakery.example/first"},
+  {business_name:"Shared Bakery",address:"987 Oak Ave",website:"https://bakery.example/second"},
+), false, "franchise branches at different addresses remain distinct");
+assert.equal(isSameBusiness(
+  {business_name:"Bakery One", website:"https://shared.example/bakery"},
+  {business_name:"Restaurant Two", website:"https://shared.example/restaurant"},
+), false, "shared hosting does not erase separately named businesses");
 assert.equal(completenessScore({website:"example.com",phone:"253-555-0123",address:"Main St"}), 70);
 assert.equal(completenessScore({website:null,phone:null,address:"Main St"}), 5);
 
