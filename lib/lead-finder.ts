@@ -68,14 +68,20 @@ export function isSameBusiness(
   b: { source_ref?: string | null; business_name?: string | null; website?: string | null; address?: string | null },
 ): boolean {
   if (a.source_ref && b.source_ref && identityKey(a.source_ref) === identityKey(b.source_ref)) return true;
-  const ah = websiteHost(a.website), bh = websiteHost(b.website);
-  if (ah && bh && ah === bh) return true;
   const name = (v: string | null | undefined) =>
     String(v || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, " ").trim();
   const addr = (v: string | null | undefined) =>
     String(v || "").toLowerCase().replace(/[.,]/g, " ").replace(/\s+/g, " ").trim();
-  return Boolean(name(a.business_name) && name(a.business_name) === name(b.business_name)
-    && addr(a.address) && addr(a.address) === addr(b.address));
+  const aName = name(a.business_name), bName = name(b.business_name);
+  const aAddress = addr(a.address), bAddress = addr(b.address);
+  // Shared brand domains do not mean two street locations are one lead.
+  if (aAddress && bAddress && aAddress !== bAddress) return false;
+  // Distinct business names sharing a website host are not safe to merge.
+  if (aName && bName && aName !== bName) return false;
+  if (aName && bName && aName === bName &&
+      aAddress && bAddress && aAddress === bAddress) return true;
+  const ah = websiteHost(a.website), bh = websiteHost(b.website);
+  return Boolean(ah && bh && ah === bh);
 }
 
 export function completenessScore(b: Pick<DiscoveredBusiness, "website" | "phone" | "address"> &
