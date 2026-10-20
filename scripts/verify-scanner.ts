@@ -228,16 +228,26 @@ await withFetch(() => new Response(JSON.stringify({ elements: [{ type: "node", i
     }
     if (String(url).includes("photon.komoot.io")) {
       return new Response(JSON.stringify({ features: [
-        { properties: { name: "Puyallup", countrycode: "US", state: "Washington" }, geometry: { coordinates: [-122.2929, 47.1854] } },
+        { properties: { name: "Tacoma", countrycode: "US", state: "Washington" }, geometry: { coordinates: [-122.4443, 47.2529] } },
       ] }), { status: 200 });
     }
     throw new Error("Unexpected request");
   };
   try {
-    const point = await geocode("Puyallup, WA");
-    assert.equal(point.lat, 47.1854, "Photon fallback returned the correct place");
-    assert.equal(point.lng, -122.2929);
+    const point = await geocode("Tacoma, WA");
+    assert.equal(point.lat, 47.2529, "Photon fallback returned the correct place");
+    assert.equal(point.lng, -122.4443);
     assert.deepEqual(seen.map(url => new URL(url).hostname), ["nominatim.openstreetmap.org", "photon.komoot.io"]);
+  } finally { globalThis.fetch = previousFetch; }
+}
+
+// Known city center avoids a network round-trip for the studio's default location.
+{
+  globalThis.fetch = async () => { throw new Error("Default Puyallup scan should not geocode over the network"); };
+  try {
+    const point = await geocode("Puyallup, WA");
+    assert.equal(point.lat, 47.18538);
+    assert.equal(point.lng, -122.2929);
   } finally { globalThis.fetch = previousFetch; }
 }
 
@@ -272,7 +282,7 @@ await withFetch(() => new Response(JSON.stringify({ elements: [{ type: "node", i
       /Business discovery services are busy or timed out/,
     );
     await assert.rejects(
-      () => geocode("Puyallup, WA"),
+      () => geocode("Unknownville, WA"),
       /Location lookup is unavailable or ambiguous/,
     );
   } finally { globalThis.fetch = previousFetch; }
