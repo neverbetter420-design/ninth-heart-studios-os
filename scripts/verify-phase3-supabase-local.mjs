@@ -69,6 +69,42 @@ async function denyChange(data,label){
  await deny(await A.from("approvals").update(data).eq("id",approve).select("id"),label);
  assert.deepEqual(await currentApproval(),before,label+" changed persisted row");
 }
+await check("Softr-style Lead Finder staging tables are admin-only", async () => {
+  const searchId = randomUUID();
+  got(await Admin.from("lead_search_requests").insert({
+    id: searchId, owner_id: ids.admin, source: "openstreetmap",
+    location: "Puyallup, WA", industry: "Restaurants", niches: ["restaurants"],
+    radius_mi: 10, result_limit: 20, auto_import: false, top_count: 5,
+  }).select("id"), "create admin-only search fixture");
+  assert.equal(got(await Admin.from("lead_search_requests").select("id").eq("id",searchId),"admin read search").length, 1);
+  assert.equal(got(await A.from("lead_search_requests").select("id").eq("id",searchId),"client A search read").length, 0);
+  assert.equal(got(await B.from("lead_search_requests").select("id").eq("id",searchId),"client B search read").length, 0);
+  await deny(await A.from("lead_search_requests").insert({
+    owner_id: ids.a, source: "openstreetmap", location: "Puyallup, WA",
+    industry: "Bar", niches: ["bars"], radius_mi: 5, result_limit: 5, top_count: 5,
+  }).select("id"),"client cannot create scanner search");
+  await deny(await B.from("lead_search_requests").update({status:"complete"}).eq("id",searchId).select("id"),
+    "client cannot update search history");
+  const resultId = randomUUID();
+  got(await Admin.from("lead_search_results").insert({
+    id: resultId, search_id: searchId, source_ref: "node:123",
+    business_name: "Synthetic Local Studio", source:"openstreetmap",
+    discovery_score: 50, import_status:"ready", website:"https://example.invalid",
+  }).select("id"),"create scanner review result");
+  assert.equal(got(await Admin.from("lead_search_results").select("id").eq("search_id",searchId),
+    "admin reads result").length,1);
+  assert.equal(got(await A.from("lead_search_results").select("id").eq("search_id",searchId),
+    "client A results").length,0);
+  await deny(await B.from("lead_search_results").update({imported:true}).eq("id",resultId).select("id"),
+    "client B cannot import leads");
+  await deny(await A.from("lead_search_results").insert({
+    search_id: searchId,source_ref:"way:456",business_name:"Forbidden",
+    source:"openstreetmap",discovery_score:1,
+  }).select("id"),"client cannot forge review result");
+  got(await Admin.from("lead_search_results").update({import_status:"importing"}).eq("id",resultId).select("id"),
+    "admin can claim result for import");
+});
+
 await check("Real GoTrue user creation, profile roles and JWT sessions",async()=>{
  for(const k of names)assert.ok(got(await userClients[k].auth.getUser(),"getUser "+k).user);
 });
