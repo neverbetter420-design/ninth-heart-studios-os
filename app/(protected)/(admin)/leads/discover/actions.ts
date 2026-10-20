@@ -49,8 +49,9 @@ export async function runScan(formData: FormData): Promise<never> {
 
   let inserted = 0;
   let skipped = 0;
-  for (let i = 0; i < Math.min(found.length, SCAN_CAP); i += 3) {
-    await Promise.all(found.slice(i, i + 3).map(async (b) => {
+  // Reduce total action wall time while keeping concurrency bounded for public sites.
+  for (let i = 0; i < Math.min(found.length, SCAN_CAP); i += 6) {
+    await Promise.all(found.slice(i, i + 6).map(async (b) => {
     const { signals, website } = await analyzeBusinessPresence(b);
     const score = scoreSignals(signals);
     const row = {

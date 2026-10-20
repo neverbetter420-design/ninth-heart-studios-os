@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import {
   NICHES,
+  geocode,
   discoverBusinesses,
   analyzeBusinessPresence,
   normalizeSocialProfile,
@@ -214,5 +215,77 @@ await withFetch(() => new Response(JSON.stringify({ elements: [{ type: "node", i
   assert.deepEqual(await refreshSocialProfiles("node:101);out;"), [], "OSM query identity cannot be injected");
   assert.equal(calls.length, 2);
 });
+
+
+// Network resilience: a Nominatim AbortError should fall back to Photon
+// instead of redirecting the admin with "The operation was aborted".
+{
+  const seen: string[] = [];
+  globalThis.fetch = async (url) => {
+    seen.push(String(url));
+    if (String(url).includes("nominatim.openstreetmap.org")) {
+      throw new DOMException("The operation was aborted", "AbortError");
+    }
+    if (String(url).includes("photon.komoot.io")) {
+      return new Response(JSON.stringify({ features: [
+        { properties: { name: "Tacoma", countrycode: "US", state: "Washington" }, geometry: { coordinates: [-122.4443, 47.2529] } },
+      ] }), { status: 200 });
+    }
+    throw new Error("Unexpected request");
+  };
+  try {
+    const point = await geocode("Tacoma, WA");
+    assert.equal(point.lat, 47.2529, "Photon fallback returned the correct place");
+    assert.equal(point.lng, -122.4443);
+    assert.deepEqual(seen.map(url => new URL(url).hostname), ["nominatim.openstreetmap.org", "photon.komoot.io"]);
+  } finally { globalThis.fetch = previousFetch; }
+}
+
+// Known city center avoids a network round-trip for the studio's default location.
+{
+  globalThis.fetch = async () => { throw new Error("Default Puyallup scan should not geocode over the network"); };
+  try {
+    const point = await geocode("Puyallup, WA");
+    assert.equal(point.lat, 47.18538);
+    assert.equal(point.lng, -122.2929);
+  } finally { globalThis.fetch = previousFetch; }
+}
+
+// Business discovery failover keeps request scope, category and OSM identity.
+{
+  const seen: string[] = [];
+  globalThis.fetch = async (url, init) => {
+    seen.push(String(url));
+    assert.equal(init?.method, "POST");
+    assert.match(String(init?.body), /nwr/);
+    if (String(url).includes("overpass-api.de")) return new Response("Busy", { status: 504 });
+    if (String(url).includes("overpass.private.coffee")) return new Response(JSON.stringify({ elements: [
+      { type: "node", id: 703, tags: { name: "Puyallup Cafe", amenity: "cafe" } },
+    ] }), { status: 200 });
+    throw new Error("Unknown provider");
+  };
+  try {
+    const found = await discoverBusinesses(47.1854, -122.2929, 16093, ["cafes"], 12);
+    assert.equal(found.length, 1);
+    assert.equal(found[0].source_ref, "node:703");
+    assert.equal(seen.length, 2, "exactly one fallback, no unbounded retries");
+  } finally { globalThis.fetch = previousFetch; }
+}
+
+// Both providers unavailable should expose an actionable, stage-specific error,
+// never a raw AbortError, and must not invent a business record.
+{
+  globalThis.fetch = async () => { throw new DOMException("The operation was aborted", "AbortError"); };
+  try {
+    await assert.rejects(
+      () => discoverBusinesses(47.1, -122.3, 2000, ["bars"], 12),
+      /Business discovery services are busy or timed out/,
+    );
+    await assert.rejects(
+      () => geocode("Unknownville, WA"),
+      /Location lookup is unavailable or ambiguous/,
+    );
+  } finally { globalThis.fetch = previousFetch; }
+}
 
 console.log("verify:scanner — all checks passed.");
