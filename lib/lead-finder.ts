@@ -2,7 +2,7 @@ import {
   NICHES, discoverBusinesses, geocode, normalizeSocialProfile,
   normalizeWebsite, socialProfilesFromTags,
   type DiscoveredBusiness, type NicheKey,
-} from "./prospect-scan";
+} from "./prospect-scan.ts";
 
 export type FinderSource = "openstreetmap" | "geoapify";
 export type FinderStatus = "queued" | "searching" | "complete" | "error";
@@ -58,6 +58,7 @@ export function websiteHost(raw: string | null | undefined): string | null {
   if (!safe) return null;
   try {
     const host = new URL(safe).hostname.toLowerCase().replace(/^www\./, "");
+    if (["instagram.com", "facebook.com", "fb.com", "tiktok.com"].includes(host)) return null;
     return host || null;
   } catch { return null; }
 }
