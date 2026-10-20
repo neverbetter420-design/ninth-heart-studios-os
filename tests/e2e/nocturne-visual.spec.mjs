@@ -293,11 +293,28 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
       }
     }
     await expect(page.getByRole("heading", { name: "Better leads. A closer look." })).toBeVisible();
-    const scan = page.getByRole("button", { name: "Scan", exact: true });
+    const finder = page.getByRole("region", { name: "Softr-style Lead Finder" });
+    await expect(finder.getByRole("heading", { name: "Find your next opportunity." })).toBeVisible();
+    await expect(finder.getByLabel("City and state")).toHaveValue("Puyallup, WA");
+    await expect(finder.getByLabel("Data source")).toHaveValue("openstreetmap");
+    await expect(finder.locator('select[name="result_limit"]')).toHaveValue("20");
+    await expect(finder.locator('input[name="auto_import"]')).not.toBeChecked();
+    const scan = finder.getByRole("button", { name: "Find leads", exact: true });
     await scan.focus();
     expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
-    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage)).toBe("none");
-    expect(await page.getByRole("region", { name: "Run a scan" }).evaluate(el => getComputedStyle(el).borderRadius)).toBe("0px");
+    await expect(finder.getByRole("heading", { name: "Recent searches" })).toBeVisible();
+    await expect(finder.getByRole("heading", { name: /Search results/ })).toBeVisible();
+    if (["normal", "long"].includes(scenario)) {
+      const found = finder.locator("article.nhs-finder-result");
+      await expect(found).toHaveCount(2);
+      await expect(found.first()).toContainText("Ready to review");
+      await expect(found.nth(1)).toContainText("Needs verification");
+      await expect(found.first().getByRole("button", { name: /Import lead/ })).toBeVisible();
+      await expect(found.nth(1).getByRole("button", { name: /Import lead/ })).toHaveCount(0);
+      await expect(found.first()).toContainText("Verify profile");
+    } else {
+      await expect(finder.locator("article.nhs-finder-result")).toHaveCount(0);
+    }
     for (const width of [1440, 1024, 620, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `scanner ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
