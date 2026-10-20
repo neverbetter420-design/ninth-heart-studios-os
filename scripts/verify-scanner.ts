@@ -1,6 +1,7 @@
 // Prospect Scanner verification: scoring, badges, drafts, URL normalization.
 // No database, no network.
 import assert from "node:assert/strict";
+import { parseFinderForm, websiteHost, isSameBusiness, completenessScore, discoverGeoapify } from "../lib/lead-finder.ts";
 import {
   NICHES,
   discoverBusinesses,
@@ -247,5 +248,70 @@ await withFetch(() => { throw new DOMException("The operation was aborted", "Abo
   await assert.rejects(geocode("Puyallup, WA"), /Location lookup is temporarily unavailable/);
   assert.equal(calls.length, 1, "a failed location lookup does not launch a business search");
 });
+
+
+// NHS Lead Finder v2: source selection, input bounds, no auto-import by default,
+// no name-only deduplication, and a server-only Geoapify Places adapter.
+const searchForm = new FormData();
+searchForm.set("source", "geoapify");
+searchForm.set("location", "Puyallup, WA");
+searchForm.set("radius_mi", "10");
+searchForm.set("result_limit", "20");
+searchForm.set("top_count", "5");
+searchForm.append("niches", "restaurants");
+searchForm.append("niches", "bars");
+searchForm.append("niches", "not_an_option");
+const request = parseFinderForm(searchForm);
+assert.equal(request.source, "geoapify");
+assert.equal(request.auto_import, false, "no automatic CRM writes without explicit opt-in");
+assert.deepEqual(request.niches, ["restaurants", "bars"]);
+assert.equal(request.result_limit, 20);
+searchForm.set("auto_import", "on");
+assert.equal(parseFinderForm(searchForm).auto_import, true);
+searchForm.set("radius_mi", "999999");
+assert.throws(() => parseFinderForm(searchForm), /Check the search radius/);
+searchForm.set("radius_mi", "10");
+assert.equal(websiteHost("https://instagram.com/example/"), null, "social profile is not a standalone website");
+assert.equal(websiteHost("https://example.com/"), "example.com");
+assert.equal(isSameBusiness(
+  {source_ref:"node:101",business_name:"Shared Name",address:"123 First Street"},
+  {source_ref:"way:202",business_name:"Shared Name",address:"789 Second Street"},
+), false, "same name at a different OSM location must remain distinct");
+assert.ok(isSameBusiness({website:"https://www.example.com/"},{website:"https://example.com/new"}));
+assert.equal(completenessScore({website:"example.com",phone:"253-555-0123",address:"Main St"}), 70);
+assert.equal(completenessScore({website:null,phone:null,address:"Main St"}), 5);
+
+const previousPlacesFetch = globalThis.fetch;
+try {
+  let called = 0;
+  globalThis.fetch = async (input, init) => {
+    called++;
+    assert.equal(String(input), "https://api.geoapify.com/v2/places");
+    assert.equal(init?.method, "POST");
+    assert.equal((init?.headers as Record<string,string>)["x-api-key"], "fixture-key");
+    const requestBody = JSON.parse(String(init?.body));
+    assert.equal(requestBody.filter.type, "circle");
+    assert.equal(requestBody.filter.radius, 16093);
+    assert.ok(requestBody.categories.includes("catering.restaurant"));
+    assert.ok(requestBody.categories.includes("catering.pub"));
+    return new Response(JSON.stringify({ type: "FeatureCollection", features: [{
+      properties: { name:"Cedar & Stone", formatted:"Puyallup, WA",
+        website:"example.com", lat:47.1, lon:-122.3, place_id:"abcdefghi1234",
+        datasource: { raw: { osm_type:"n",osm_id:317,amenity:"restaurant",
+          "contact:instagram":"@cedarstone" } } },
+    }] }), {status:200,headers:{"content-type":"application/json"}});
+  };
+  const found = await discoverGeoapify(47.1,-122.3,16093,["restaurants","bars"],20,"fixture-key");
+  assert.equal(called,1);
+  assert.equal(found.length,1);
+  assert.equal(found[0].source_ref,"node:317");
+  assert.equal(found[0].website,"https://example.com/");
+  assert.equal(found[0].social_profiles[0].status,"unconfirmed");
+  globalThis.fetch = async () => new Response("unavailable",{status:503});
+  await assert.rejects(discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"),
+    /Places provider is unavailable/);
+} finally {
+  globalThis.fetch = previousPlacesFetch;
+}
 
 console.log("verify:scanner — all checks passed.");
