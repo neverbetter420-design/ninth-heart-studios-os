@@ -14,6 +14,8 @@ const appliedVersions = [
   "20261015001941","20261015005039",
 ];
 const proposedVersion = "20261017030000";
+// Explicitly inventoried FUTURE migrations. Not evidence they were applied.
+const reviewedDraftVersions = ["20261020050000"];
 const checks = [
   ["Production migration-history baseline is represented in source", () => {
     for (const version of appliedVersions) {
@@ -21,10 +23,23 @@ const checks = [
         "Missing or duplicate production migration: " + version);
     }
     assert.equal(new Set(appliedVersions).size, appliedVersions.length);
-    assert.equal(migrations.length, appliedVersions.length + 1,
+    assert.equal(migrations.length, appliedVersions.length + 1 + reviewedDraftVersions.length,
       "Unexpected additional SQL migrations require a new approved inventory review.");
     assert.equal(migrations.filter((f) => f.startsWith(proposedVersion + "_")).length, 1,
       "Proposed security change must remain separate from already-applied migrations.");
+    for (const version of reviewedDraftVersions) {
+      assert.equal(migrations.filter((f) => f.startsWith(version + "_")).length, 1,
+        "Each reviewed future schema migration must be explicit and unique: " + version);
+    }
+  }],
+  ["Softr parity draft migration is isolated and admin-only", () => {
+    const sql = read("supabase/migrations/20261020050000_lead_search_review_queue.sql");
+    assert.match(sql, /create table if not exists public\.lead_search_requests/i);
+    assert.match(sql, /create table if not exists public\.lead_search_results/i);
+    assert.match(sql, /alter table public\.lead_search_requests enable row level security/i);
+    assert.match(sql, /alter table public\.lead_search_results enable row level security/i);
+    assert.equal((sql.match(/private\.is_admin\(\)/g) || []).length, 4);
+    assert.doesNotMatch(sql, /(?:\bdrop\s+table\b|\btruncate\b|\bdelete\s+from\b)/i);
   }],
   ["Recovered form-source RLS migration binds to storage object path", () => {
     const sql = read("supabase/migrations/20261014060417_fix_form_source_policy_object_path.sql");
