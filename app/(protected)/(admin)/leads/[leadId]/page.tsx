@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { QuickOutcomeButtons } from "@/components/leads/QuickOutcomeButtons";
 import { formatElapsed, formatPacificDateTime, getSlaState, rankLead, type FlowkeepLead } from "@/lib/flowkeep";
 import { createClient } from "@/lib/supabase/server";
-import { convertLeadToProject, scheduleConsultation } from "../actions";
+import { auditLeadWebsite, convertLeadToProject, scheduleConsultation } from "../actions";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 export default async function LeadDetailPage({
@@ -20,7 +20,7 @@ export default async function LeadDetailPage({
   const [{ data: rawLead }, { data: activities }] = await Promise.all([
     supabase
       .from("leads")
-      .select("id, business_name, contact_name, email, phone, website, acquisition_type, momentum_state, score, status, next_action, next_action_kind, next_action_due, original_inquiry_at, last_outreach_at, last_reply_at, last_activity_at, consultation_at, last_outcome, created_at, updated_at")
+      .select("id, business_name, contact_name, email, phone, website, acquisition_type, momentum_state, score, status, next_action, next_action_kind, next_action_due, original_inquiry_at, last_outreach_at, last_reply_at, last_activity_at, consultation_at, last_outcome, metadata, created_at, updated_at")
       .eq("id", leadId)
       .maybeSingle(),
     supabase
@@ -37,6 +37,15 @@ export default async function LeadDetailPage({
   const sla = getSlaState(lead);
   const momentumElapsed = formatElapsed(new Date(lead.last_activity_at ?? lead.updated_at));
   const websiteHref = lead.website && /^https?:\/\//i.test(lead.website) ? lead.website : null;
+  const leadMetadata = ((rawLead as { metadata?: unknown }).metadata ?? {}) as {
+    website_audit?: {
+      status?: string; website?: string; checked_at?: string;
+      score?: number | null;
+      signals?: { reachable?: boolean; https?: boolean; mobile_viewport?: boolean; builder?: string | null };
+    };
+  };
+  const websiteAudit = leadMetadata.website_audit;
+
 
   return (
     <div className="content-wrap nocturne-leads nocturne-lead-workspace">
@@ -126,6 +135,42 @@ export default async function LeadDetailPage({
               <div><dt>Status</dt><dd>{lead.status}</dd></div>
               <div><dt>Last outcome</dt><dd>{lead.last_outcome ?? "None yet"}</dd></div>
             </dl>
+          </section>
+
+          <section className="lead-contact-panel" aria-labelledby="lead-audit-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">A closer look</p>
+                <h3 id="lead-audit-title">Website audit</h3>
+              </div>
+            </div>
+            <p className="micro-copy">
+              {websiteAudit?.status === "queued" ? "Audit queued after Lead Finder import. Run it when you are ready." :
+                websiteAudit?.status === "running" ? "Website audit is running." :
+                websiteAudit?.status === "complete" ? "Most recent website audit completed." :
+                websiteAudit?.status === "inconclusive" ? "The website could not be verified. No redesign conclusions were drawn." :
+                "No website audit recorded for this lead."}
+            </p>
+            {websiteAudit?.checked_at ? (
+              <p className="micro-copy">Checked {formatPacificDateTime(new Date(websiteAudit.checked_at))}</p>
+            ) : null}
+            {websiteAudit?.status === "complete" && websiteAudit.signals ? (
+              <dl className="lead-detail-list">
+                <div><dt>Opportunity score</dt><dd>{websiteAudit.score ?? "—"} / 100</dd></div>
+                <div><dt>HTTPS</dt><dd>{websiteAudit.signals.https ? "Yes" : "Review"}</dd></div>
+                <div><dt>Mobile viewport</dt><dd>{websiteAudit.signals.mobile_viewport ? "Detected" : "Not detected"}</dd></div>
+                <div><dt>Site builder</dt><dd>{websiteAudit.signals.builder ?? "Not identified"}</dd></div>
+              </dl>
+            ) : null}
+            {websiteHref ? (
+              <form action={auditLeadWebsite}>
+                <input type="hidden" name="lead_id" value={lead.id} />
+                <PortalSubmitButton className="secondary-button wide" pendingLabel="Auditing website…">
+                  {websiteAudit?.status === "complete" ? "Re-run website audit" : "Run website audit"}
+                </PortalSubmitButton>
+              </form>
+            ) : <p className="micro-copy">Add a verified website before running an audit.</p>}
+            <p className="micro-copy">Audits are on-demand. No outreach is sent automatically.</p>
           </section>
 
           <section className="consultation-panel" aria-labelledby="lead-consultation-title">
