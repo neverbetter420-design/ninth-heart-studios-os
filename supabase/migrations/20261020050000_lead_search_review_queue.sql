@@ -61,7 +61,7 @@ create table if not exists public.lead_search_results (
   duplicate boolean not null default false,
   imported boolean not null default false,
   import_status text not null default 'ready'
-    check (import_status in ('ready', 'duplicate', 'imported', 'needs_verification', 'skipped')),
+    check (import_status in ('ready', 'importing', 'duplicate', 'imported', 'needs_verification', 'skipped')),
   prospect_id uuid references public.prospects(id)
     on delete set null,
   lead_id uuid references public.leads(id)
