@@ -11,11 +11,11 @@ const appliedVersions = [
   "20261012070000","20261012080000","20261012080001","20261013033207",
   "20261013040000","20261013050000","20261013050001","20261013060000",
   "20261013232917","20261014060417","20261014070000","20261015001632",
-  "20261015001941","20261015005039",
+  "20261015001941","20261015005039","20261020063055",
 ];
 const proposedVersion = "20261017030000";
-// Explicitly inventoried FUTURE migrations. Not evidence they were applied.
-const reviewedDraftVersions = ["20261020050000"];
+// Explicitly inventoried future migrations (none after this verified apply).
+const reviewedDraftVersions = [];
 const checks = [
   ["Production migration-history baseline is represented in source", () => {
     for (const version of appliedVersions) {
@@ -32,8 +32,8 @@ const checks = [
         "Each reviewed future schema migration must be explicit and unique: " + version);
     }
   }],
-  ["Softr parity draft migration is isolated and admin-only", () => {
-    const sql = read("supabase/migrations/20261020050000_lead_search_review_queue.sql");
+  ["Applied Softr parity migration remains isolated and admin-only", () => {
+    const sql = read("supabase/migrations/20261020063055_lead_search_review_queue.sql");
     assert.match(sql, /create table if not exists public\.lead_search_requests/i);
     assert.match(sql, /create table if not exists public\.lead_search_results/i);
     assert.match(sql, /alter table public\.lead_search_requests enable row level security/i);

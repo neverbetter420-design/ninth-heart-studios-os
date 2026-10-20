@@ -1,6 +1,6 @@
 # Lead Finder 2.0 — release and configuration checklist
 
-**Status: draft, not yet installed on live NHS OS.** PR #20 adds new search-review staging tables and the Softr-style UI/action code. Keep the production database, current Cloudflare Worker, and existing prospects intact until the owner approves each gate below.
+**Status: migration applied, application draft not yet installed on live NHS OS.** PR #20 adds new search-review staging tables and the Softr-style UI/action code. Keep the production database, current Cloudflare Worker, and existing prospects intact until the owner approves each gate below.
 
 ## Source of business results
 
@@ -13,7 +13,7 @@
 1. Review PR #20 changes and synthetic visual artifact. Compare them with Softr's original Search → Recent Searches → Review Results → Import flow. Keep Nocturne's appearance.
 2. Verify the disposable Supabase local Auth/REST job passes, including client denial of lead-search reads/writes, plus the existing security suite. Verify mobile/browser and OpenNext dry-run checks pass.
 3. Owner confirms access to a **restorable** Supabase backup and production `production` GitHub environment protection.
-4. Owner explicitly approves running `supabase/migrations/20261020050000_lead_search_review_queue.sql` on the live Supabase project. Test table creation, grants, RLS, initial zero rows, unchanged counts for `leads`, `prospects`, `clients`, `projects` and `storage.objects`. **Do not apply automatically from ChatGPT or PR creation.**
+4. Owner explicitly approves running `supabase/migrations/20261020063055_lead_search_review_queue.sql` on the live Supabase project. Test table creation, grants, RLS, initial zero rows, unchanged counts for `leads`, `prospects`, `clients`, `projects` and `storage.objects`. **Completed via explicit owner approval.** Supabase assigned schema ledger version `20261020063055` to the exact SQL from originally approved `20261020050000_lead_search_review_queue.sql`. The source file was renamed to match the installed version; no second application is required.
 5. Owner creates a free/approved Geoapify account and key if this provider is desired. Store it as `GEOAPIFY_API_KEY` only in production Worker secrets/settings. Check secret-binding metadata, not the secret value. Confirm availability to the Worker environment before enabling the Geoapify source. No customer credentials are needed in a GitHub issue.
 6. After verifying migrations and key, owner separately approves merging the exact tested PR head to `main`. No auto deploy on merge.
 7. Trigger GitHub's protected manual `deploy-cloudflare.yml` workflow against the exact reviewed **new** `main` SHA with its required three parameters. Never copy an earlier release SHA.
