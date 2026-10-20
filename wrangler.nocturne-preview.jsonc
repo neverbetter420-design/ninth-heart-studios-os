@@ -3,12 +3,21 @@
   "name": "nhs-os-nocturne-preview",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-10-01",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "workers_dev": true,
   "routes": [],
   "keep_vars": false,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
+  },
+  "previews": {
+    "vars": {
+      "NEXT_PUBLIC_SUPABASE_URL": "https://example.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ci_placeholder",
+      "NHS_APP_URL": "https://example.invalid"
+    }
   }
 }

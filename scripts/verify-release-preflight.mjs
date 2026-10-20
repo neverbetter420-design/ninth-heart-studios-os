@@ -71,10 +71,17 @@ const checks = [
     assert.equal(preview.workers_dev, true);
     assert.deepEqual(preview.routes, [], "Preview cannot attach to an existing domain");
     assert.equal(preview.keep_vars, false, "Preview cannot retain unrelated existing variables");
+    assert.deepEqual(preview.previews, {
+      vars: {
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_placeholder",
+        NHS_APP_URL: "https://example.invalid",
+      },
+    }, "Preview Worker must use only inert, test-only backend values");
     assert.deepEqual(
       Object.keys(preview).sort(),
       ["$schema", "name", "main", "compatibility_date", "compatibility_flags",
-        "workers_dev", "routes", "keep_vars", "assets"].sort(),
+        "workers_dev", "routes", "keep_vars", "assets", "previews"].sort(),
       "Any additional preview bindings, routes or account overrides require explicit review",
     );
   }],
