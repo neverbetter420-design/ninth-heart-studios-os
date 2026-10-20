@@ -99,8 +99,13 @@ export async function geocode(place: string): Promise<{ lat: number; lng: number
   const url =
     `https://nominatim.openstreetmap.org/search?` +
     `q=${encodeURIComponent(place)}&format=json&limit=1&countrycodes=us`;
-  const res = await fetchWithTimeout(url, 10000, { headers: { "User-Agent": UA } });
-  if (!res.ok) throw new Error(`Geocode failed: HTTP ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(url, 10000, { headers: { "User-Agent": UA } });
+  } catch {
+    throw new Error("Location lookup is temporarily unavailable. Try again with a city and state.");
+  }
+  if (!res.ok) throw new Error(`Location lookup failed (HTTP ${res.status}). Please try again later.`);
   const rows = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>;
   if (!rows.length) throw new Error(`No location found for "${place}"`);
   return { lat: parseFloat(rows[0].lat), lng: parseFloat(rows[0].lon), label: rows[0].display_name };
@@ -127,13 +132,33 @@ export async function discoverBusinesses(
     NICHES[n].overpass.map((f) => `  ${f}(around:${radiusM},${lat},${lng});`)
   );
   const query = `[out:json][timeout:25];\n(\n${filters.join("\n")}\n);\nout center ${limit};`;
-  const res = await fetchWithTimeout("https://overpass-api.de/api/interpreter", 30000, {
-    method: "POST",
-    headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
-    body: `data=${encodeURIComponent(query)}`,
-  });
-  if (!res.ok) throw new Error(`Overpass failed: HTTP ${res.status}`);
-  const data = (await res.json()) as { elements?: OverpassElement[] };
+  // Public Overpass instances occasionally throttle or time out. Try a second
+  // independent provider once, sequentially, without multiplying API traffic.
+  // These endpoints are fixed, never user-controlled (avoid SSRF).
+  const endpoints = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+  ] as const;
+  let data: { elements?: OverpassElement[] } | null = null;
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetchWithTimeout(endpoint, 12000, {
+        method: "POST",
+        headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
+        body: `data=${encodeURIComponent(query)}`,
+      });
+      if (!res.ok) continue; // Another provider may be available on 429/5xx.
+      const parsed = (await res.json()) as { elements?: OverpassElement[] };
+      if (!Array.isArray(parsed?.elements)) continue;
+      data = parsed;
+      break;
+    } catch {
+      // A timed-out or unreachable provider must not abort the entire scan.
+    }
+  }
+  if (!data) {
+    throw new Error("Business directory is busy or unreachable. Try again shortly, or use a smaller radius.");
+  }
   const out: DiscoveredBusiness[] = [];
   const seen = new Set<string>();
   for (const el of data.elements ?? []) {
