@@ -14,6 +14,7 @@ import {
 } from "@/lib/flowkeep";
 import { createClient } from "@/lib/supabase/server";
 import { analyzeWebsite, normalizeWebsite, scoreSignals } from "@/lib/prospect-scan";
+import { websiteHost } from "@/lib/lead-finder";
 import type { PortalFeedbackState } from "@/lib/portal-feedback";
 
 function clean(value: FormDataEntryValue | null) {
@@ -234,7 +235,7 @@ export async function auditLeadWebsite(formData: FormData): Promise<void> {
     .select("id,website,score,metadata").eq("id", leadId).maybeSingle();
   if (error || !lead) return;
   const website = normalizeWebsite(lead.website);
-  if (!website) {
+  if (!website || !websiteHost(website)) {
     redirect("/leads/" + leadId + "?error=" +
       encodeURIComponent("A safe, independent business website is required for an audit."));
   }
@@ -246,13 +247,13 @@ export async function auditLeadWebsite(formData: FormData): Promise<void> {
     redirect("/leads/" + leadId + "?error=" + encodeURIComponent("Website audit is already running."));
   }
   const startedAt = new Date().toISOString();
-  const { error: startError } = await supabase.from("leads").update({
+  const { data: started, error: startError } = await supabase.from("leads").update({
     metadata: {
       ...previous,
       website_audit: { status: "running", website, started_at: startedAt },
     },
-  }).eq("id", leadId).eq("website", lead.website);
-  if (startError) return;
+  }).eq("id", leadId).eq("website", lead.website).select("id").maybeSingle();
+  if (startError || !started) return;
 
   // Existing analysis hardens target URLs against internal-network fetches.
   // A temporarily unreachable site is inconclusive, not proof it needs redesign.
@@ -270,11 +271,11 @@ export async function auditLeadWebsite(formData: FormData): Promise<void> {
       score: signals.reachable ? scoreSignals(signals) : null,
     },
   };
-  const { error: saveError } = await supabase.from("leads").update({
+  const { data: saved, error: saveError } = await supabase.from("leads").update({
     metadata: latestMetadata,
     score,
-  }).eq("id", leadId).eq("website", lead.website);
-  if (saveError) {
+  }).eq("id", leadId).eq("website", lead.website).select("id").maybeSingle();
+  if (saveError || !saved) {
     redirect("/leads/" + leadId + "?error=" +
       encodeURIComponent("Audit ran, but the result could not be saved. Retry after checking the lead."));
   }
