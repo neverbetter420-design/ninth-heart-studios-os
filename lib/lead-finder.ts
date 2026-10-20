@@ -166,13 +166,41 @@ export async function discoverGeoapify(
   return found;
 }
 
+export async function geocodeGeoapify(place: string, key: string): Promise<{ lat: number; lng: number }> {
+  const url = new URL("https://api.geoapify.com/v1/geocode/search");
+  url.searchParams.set("text", place);
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("format", "geojson");
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
+  let response: Response;
+  try {
+    response = await fetch(url.toString(), {
+      headers: { "x-api-key": key, "Accept": "application/geo+json" },
+      signal: ctrl.signal,
+    });
+  } finally { clearTimeout(timer); }
+  if (!response.ok) throw new Error("Location lookup provider is unavailable. Please retry later.");
+  const data = (await response.json()) as {
+    features?: Array<{ properties?: { lat?: number; lon?: number } }>;
+  };
+  const p = data.features?.[0]?.properties;
+  if (!p || typeof p.lat !== "number" || typeof p.lon !== "number" ||
+    !Number.isFinite(p.lat) || !Number.isFinite(p.lon))
+    throw new Error("No matching location found. Use a city and state.");
+  return { lat: p.lat, lng: p.lon };
+}
+
 export async function findBusinesses(params: FinderParams): Promise<DiscoveredBusiness[]> {
-  const { lat, lng } = await geocode(params.location);
   const radius = Math.round(params.radius_mi * 1609.34);
   if (params.source === "geoapify") {
     const key = process.env.GEOAPIFY_API_KEY?.trim();
     if (!key) throw new Error("Geoapify is not connected. Configure the private API key first.");
+    // Fully independent of Nominatim/Overpass. Both calls use the same
+    // private server-only credential, never a NEXT_PUBLIC_ variable.
+    const { lat, lng } = await geocodeGeoapify(params.location, key);
     return discoverGeoapify(lat, lng, radius, params.niches, params.result_limit, key);
   }
+  const { lat, lng } = await geocode(params.location);
   return discoverBusinesses(lat, lng, radius, params.niches, params.result_limit);
 }
