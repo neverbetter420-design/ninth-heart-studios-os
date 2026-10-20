@@ -259,7 +259,7 @@
 .nhs-finder-results-heading h3 span, .nhs-finder-results-heading small { color: #b9a9c1; font-size: 12px; }
 .nhs-finder-result { padding: 24px 0 26px; border-bottom: 1px solid var(--nocturne-rule); }
 .nhs-finder-result-head { display: flex; justify-content: space-between; align-items: start; gap: 22px; }
-.nhs-finder-result h4 { font-family: Georgia,serif; font-size: 22px; font-weight: 400; color: #e5d2e3; margin: 0 0 5px; }
+.nhs-finder-result h4 { font-family: Georgia,serif; font-size: 22px; font-weight: 400; color: #e5d2e3; margin: 0 0 5px; overflow-wrap: anywhere; }
 .nhs-finder-score { color: #e3cee2; font: 24px Georgia,serif; white-space: nowrap; }
 .nhs-finder-score small { display: block; text-align: right; color: #a89aaa; font: 10px system-ui,sans-serif; }
 .nhs-finder-tags, .nhs-finder-result-links, .nhs-finder-social { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
@@ -285,3 +285,6 @@
   .nhs-finder-fields { grid-template-columns: minmax(0,1fr); }
   .nhs-finder-niches .check-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
+.nhs-finder-results, .nhs-finder-result, .nhs-finder-result-head > div { min-width: 0; }
+.nhs-finder-history-entry :is(a,strong,span), .nhs-finder-result-meta, .nhs-finder-result-links { overflow-wrap: anywhere; }
