@@ -120,6 +120,93 @@ type OverpassElement = {
   tags?: Record<string, string>;
 };
 
+/**
+ * Authenticated Places search for dependable production discovery. Use a
+ * server-side GEOAPIFY_API_KEY secret only; never place it in browser code.
+ */
+const GEOAPIFY_CATEGORIES: Record<NicheKey, string[]> = {
+  restaurants: ["catering.restaurant"],
+  bars: ["catering.bar", "catering.pub"],
+  cafes: ["catering.cafe"],
+  salons: ["service.beauty.hairdresser", "service.beauty"],
+  contractors: ["service.carpenter", "service.electrician", "service.locksmith"],
+  auto_repair: ["service.vehicle.repair.car"],
+  fitness: ["sport.fitness.fitness_centre", "sport.fitness.gym"],
+};
+
+export async function discoverGeoapify(
+  lat: number,
+  lng: number,
+  radiusM: number,
+  niches: NicheKey[],
+  limit: number,
+  apiKey: string,
+): Promise<DiscoveredBusiness[]> {
+  const categories = [...new Set(niches.flatMap(n => GEOAPIFY_CATEGORIES[n]))];
+  if (!categories.length) return [];
+  const res = await fetchWithTimeout("https://api.geoapify.com/v2/places", 12000, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+    body: JSON.stringify({
+      categories,
+      filter: { type: "circle", lon: lng, lat, radius: radiusM },
+      bias: { type: "proximity", lon: lng, lat },
+      limit: Math.min(Math.max(1, limit), 100),
+    }),
+  });
+  if (!res.ok) throw new Error("Places provider unavailable or misconfigured");
+  const data = (await res.json()) as {
+    features?: Array<{
+      properties?: {
+        name?: string;
+        lat?: number;
+        lon?: number;
+        formatted?: string;
+        phone?: string;
+        website?: string;
+        place_id?: string;
+        categories?: string[];
+        datasource?: { sourcename?: string; raw?: Record<string, unknown> };
+      };
+    }>;
+  };
+  if (!Array.isArray(data.features)) throw new Error("Unexpected Places provider response");
+  const results: DiscoveredBusiness[] = [];
+  const seen = new Set<string>();
+  for (const feature of data.features) {
+    const p = feature.properties;
+    const name = typeof p?.name === "string" ? p.name.trim() : "";
+    if (!p || !name) continue;
+    const raw = p.datasource?.raw ?? {};
+    const osmType = raw.osm_type;
+    const osmId = String(raw.osm_id ?? "");
+    const type = osmType === "n" ? "node" : osmType === "w" ? "way" : osmType === "r" ? "relation" : null;
+    const sourceRef = type && /^\d+$/.test(osmId)
+      ? type + ":" + osmId
+      : typeof p.place_id === "string" && /^[a-z0-9_-]{8,256}$/i.test(p.place_id)
+        ? "geoapify:" + p.place_id : null;
+    if (!sourceRef || seen.has(sourceRef)) continue;
+    seen.add(sourceRef);
+    const tags = Object.fromEntries(
+      Object.entries(raw).filter((item): item is [string, string] => typeof item[1] === "string"),
+    );
+    const website = normalizeWebsite(p.website ?? tags.website ?? tags["contact:website"] ?? null);
+    results.push({
+      source_ref: sourceRef,
+      name,
+      category: tags.amenity ?? tags.shop ?? tags.craft ?? tags.leisure ?? p.categories?.[0] ?? "business",
+      address: typeof p.formatted === "string" ? p.formatted : null,
+      phone: p.phone ?? tags.phone ?? tags["contact:phone"] ?? null,
+      website,
+      lat: Number.isFinite(p.lat) ? p.lat! : null,
+      lng: Number.isFinite(p.lon) ? p.lon! : null,
+      social_profiles: socialProfilesFromTags(tags),
+    });
+    if (results.length >= limit) break;
+  }
+  return results;
+}
+
 /** Overpass: businesses of the given niches within radius meters of a point. */
 export async function discoverBusinesses(
   lat: number,
@@ -128,6 +215,17 @@ export async function discoverBusinesses(
   niches: NicheKey[],
   limit = 40
 ): Promise<DiscoveredBusiness[]> {
+  // Opt-in production provider: a private Worker secret enables fast, authenticated
+  // search. Without it, preserve the existing free OpenStreetMap workflow.
+  const geoapifyKey = process.env.GEOAPIFY_API_KEY?.trim();
+  if (geoapifyKey) {
+    try {
+      return await discoverGeoapify(lat, lng, radiusM, niches, limit, geoapifyKey);
+    } catch {
+      // Never expose API keys or raw paid-provider responses in UI errors.
+      // Overpass remains available if this provider is rate-limited or down.
+    }
+  }
   const filters = niches.flatMap((n) =>
     NICHES[n].overpass.map((f) => `  ${f}(around:${radiusM},${lat},${lng});`)
   );
