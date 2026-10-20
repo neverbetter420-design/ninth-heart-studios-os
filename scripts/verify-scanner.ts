@@ -1,7 +1,7 @@
 // Prospect Scanner verification: scoring, badges, drafts, URL normalization.
 // No database, no network.
 import assert from "node:assert/strict";
-import { parseFinderForm, websiteHost, isSameBusiness, completenessScore, discoverGeoapify } from "../lib/lead-finder.ts";
+import { parseFinderForm, websiteHost, isSameBusiness, completenessScore, discoverGeoapify, findBusinesses } from "../lib/lead-finder.ts";
 import {
   NICHES,
   discoverBusinesses,
@@ -312,6 +312,46 @@ try {
     /Places provider is unavailable/);
 } finally {
   globalThis.fetch = previousPlacesFetch;
+}
+
+
+// Geoapify path must not rely on Nominatim's public geocoding availability.
+// Both the geocoder and Places search accept the same PRIVATE x-api-key header.
+const priorGeoKey = process.env.GEOAPIFY_API_KEY;
+const beforeGeoFetch = globalThis.fetch;
+try {
+  process.env.GEOAPIFY_API_KEY = "ci-private-fixture-only";
+  let geocodeCalls = 0;
+  let placesCalls = 0;
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    assert.equal((init?.headers as Record<string,string>)["x-api-key"],"ci-private-fixture-only");
+    assert.ok(!url.includes("ci-private-fixture-only"),"secret never enters the URL");
+    if (url.includes("/v1/geocode/search")) {
+      geocodeCalls++;
+      assert.equal(new URL(url).searchParams.get("text"),"Puyallup, WA");
+      assert.equal(new URL(url).searchParams.get("format"),"geojson");
+      return new Response(JSON.stringify({
+        type:"FeatureCollection",
+        features:[{properties:{lat:47.19,lon:-122.29}}],
+      }), {status:200,headers:{"content-type":"application/json"}});
+    }
+    assert.equal(url,"https://api.geoapify.com/v2/places");
+    placesCalls++;
+    assert.equal(init?.method,"POST");
+    return new Response(JSON.stringify({features:[{
+      properties:{name:"Geoapify Coffee",place_id:"abcdefghi123456",
+        datasource:{raw:{osm_type:"node",osm_id:421,amenity:"cafe"}}},
+    }]}), {status:200,headers:{"content-type":"application/json"}});
+  };
+  const businesses = await findBusinesses({...request,source:"geoapify",niches:["cafes"]});
+  assert.equal(businesses[0].source_ref,"node:421");
+  assert.equal(geocodeCalls,1,"Geoapify geocodes once");
+  assert.equal(placesCalls,1,"Geoapify Places searches once");
+} finally {
+  globalThis.fetch = beforeGeoFetch;
+  if(priorGeoKey===undefined)delete process.env.GEOAPIFY_API_KEY;
+  else process.env.GEOAPIFY_API_KEY=priorGeoKey;
 }
 
 console.log("verify:scanner — all checks passed.");
