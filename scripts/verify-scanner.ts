@@ -215,4 +215,37 @@ await withFetch(() => new Response(JSON.stringify({ elements: [{ type: "node", i
   assert.equal(calls.length, 2);
 });
 
+
+
+// Provider outages must not expose AbortError to the user. Retry the documented
+// independent Overpass mirror once, preserving stable OSM identity and labels.
+await withFetch((url) => {
+  if (url.includes("overpass-api.de")) throw new DOMException("The operation was aborted", "AbortError");
+  return new Response(JSON.stringify({ elements: [
+    { type: "node", id: 317, tags: { name: "Mirror Coffee", amenity: "cafe" } },
+  ] }), { status: 200, headers: { "content-type": "application/json" } });
+}, async () => {
+  const found = await discoverBusinesses(47.1, -122.3, 3000, ["cafes"], 12);
+  assert.equal(found.length, 1, "mirror result accepted");
+  assert.equal(found[0].source_ref, "node:317", "mirror retains OSM identity");
+  assert.ok(calls[0].includes("overpass-api.de"));
+  assert.ok(calls[1].includes("overpass.private.coffee"));
+  assert.equal(calls.length, 2, "only two bounded sequential attempts");
+});
+
+await withFetch(() => { throw new DOMException("The operation was aborted", "AbortError"); }, async () => {
+  await assert.rejects(
+    discoverBusinesses(47.1, -122.3, 3000, ["cafes"], 12),
+    /Business directory is busy or unreachable/,
+    "all failed endpoints produce an actionable message",
+  );
+  assert.equal(calls.length, 2, "never retry indefinitely");
+});
+
+await withFetch(() => { throw new DOMException("The operation was aborted", "AbortError"); }, async () => {
+  const { geocode } = await import("../lib/prospect-scan.ts");
+  await assert.rejects(geocode("Puyallup, WA"), /Location lookup is temporarily unavailable/);
+  assert.equal(calls.length, 1, "a failed location lookup does not launch a business search");
+});
+
 console.log("verify:scanner — all checks passed.");
