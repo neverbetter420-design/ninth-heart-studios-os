@@ -65,6 +65,8 @@ jobs:
               affected: finding.range,
               direct: finding.isDirect,
               nodes: finding.nodes?.slice(0, 4) || [],
+              advisories: (finding.via || []).map(v => typeof v === "string" ? v : `${v.name || ""}: ${v.title || ""} (${v.url || "no URL"})`),
+              fix: finding.fixAvailable,
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
           const lines = [
@@ -80,7 +82,7 @@ jobs:
             "### High and critical advisories",
             findings.length ? "" : "No high/critical advisories reported.",
             ...findings.map(f =>
-              `- **${f.severity.toUpperCase()}** \`${f.name}\` affected \`${f.affected}\`, ${f.direct ? "direct" : "transitive"}, paths: ${f.nodes.join(", ") || "not reported"}`),
+              `- **${f.severity.toUpperCase()}** \`${f.name}\` affected \`${f.affected}\`, ${f.direct ? "direct" : "transitive"}, paths: ${f.nodes.join(", ") || "not reported"}; fix: ${JSON.stringify(f.fix)}; advisories: ${f.advisories.join(" | ") || "via another vulnerable dependency"}`),
             "",
             "This read-only job does not update packages or deploy.",
           ];
