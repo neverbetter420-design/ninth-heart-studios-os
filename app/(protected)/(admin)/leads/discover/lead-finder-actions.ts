@@ -66,6 +66,11 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
       metadata: {
         source: "nhs_lead_finder_v2", source_ref: result.source_ref,
         search_result_id: result.id, address: result.address,
+        website_audit: {
+          status: "queued",
+          website: result.website,
+          queued_at: new Date().toISOString(),
+        },
       },
     }).select("id").single();
     if (insertError || !lead) throw new Error("Could not save lead.");
