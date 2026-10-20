@@ -2,82 +2,112 @@ import Link from "next/link";
 import { OPPORTUNITY_STATUSES, opportunityStatusLabel } from "@/lib/radar";
 import type { Opportunity } from "@/lib/supabase/types";
 
-function scoreClass(score: number | null) {
-  if (score === null) return "delivery-pill";
-  if (score >= 80) return "delivery-pill done";
-  if (score >= 60) return "delivery-pill progress";
-  if (score >= 40) return "delivery-pill visible";
-  return "delivery-pill blocked";
+export function listingUrl(value: string | null) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
 }
 
 export function OpportunityTable({
   opportunities,
   activeFilter,
+  unavailable = false,
 }: {
   opportunities: Opportunity[];
   activeFilter: string | null;
+  unavailable?: boolean;
 }) {
+  const visible = activeFilter
+    ? opportunities.filter((o) => o.status === activeFilter)
+    : opportunities;
   return (
-    <section className="panel" aria-label="Opportunities">
-      <div className="panel-heading">
-        <h3>Tracked opportunities</h3>
-        <div className="delivery-actions">
+    <>
+      <nav className="paperwork-filters" aria-label="Bid stage filter">
+        <Link
+          href="/opportunities#radar-queue"
+          aria-current={!activeFilter ? "page" : undefined}
+        >
+          All
+        </Link>
+        {OPPORTUNITY_STATUSES.map((s) => (
           <Link
-            href="/opportunities"
-            className={`mini-button${!activeFilter ? " go" : ""}`}
+            key={s.key}
+            href={`/opportunities?status=${s.key}#radar-queue`}
+            aria-current={activeFilter === s.key ? "page" : undefined}
           >
-            All
+            {s.label}
           </Link>
-          {OPPORTUNITY_STATUSES.map((s) => (
-            <Link
-              key={s.key}
-              href={`/opportunities?status=${s.key}`}
-              className={`mini-button${activeFilter === s.key ? " go" : ""}`}
-            >
-              {s.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-      <ul className="delivery-list">
-        {opportunities.length === 0 ? (
-          <li className="delivery-row">
-            <p className="pipeline-empty">
-              Radar&apos;s quiet. Track something worth chasing above.
-            </p>
-          </li>
+        ))}
+      </nav>
+      {!unavailable && (
+        <p className="management-help">
+          {visible.length}{" "}
+          {visible.length === 1 ? "opportunity" : "opportunities"} in this view
+        </p>
+      )}
+      {!unavailable &&
+        (visible.length ? (
+          <ol className="radar-directory">
+            {visible.map((o, index) => (
+              <li key={o.id} className="radar-row">
+                <span className="radar-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div className="radar-row-copy">
+                  <h4>
+                    <Link
+                      href={`/opportunities/${o.id}`}
+                      aria-label={`Open opportunity: ${o.title}`}
+                    >
+                      {o.title}
+                      <span aria-hidden="true">↗</span>
+                    </Link>
+                  </h4>
+                  <p>
+                    {o.source}
+                    {listingUrl(o.url) ? (
+                      <>
+                        {" "}
+                        ·{" "}
+                        <a
+                          href={listingUrl(o.url)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View listing
+                        </a>
+                      </>
+                    ) : null}
+                  </p>
+                </div>
+                <div className="radar-score">
+                  <strong>{o.score === null ? "—" : o.score}</strong>
+                  <small>{o.score === null ? "Unscored" : "Fit /100"}</small>
+                </div>
+                <span className="studio-status">
+                  {opportunityStatusLabel(o.status)}
+                </span>
+              </li>
+            ))}
+          </ol>
         ) : (
-          opportunities.map((o) => (
-            <li key={o.id} className="delivery-row">
-              <div className="delivery-row-main">
-                <p className="delivery-row-title">
-                  <Link
-                    href={`/opportunities/${o.id}`}
-                    style={{ color: "inherit", textDecoration: "none" }}
-                  >
-                    {o.title}
-                  </Link>
-                </p>
-                <p className="delivery-row-sub">
-                  {o.source}
-                  {o.url ? (
-                    <>
-                      {" · "}
-                      <a href={o.url} target="_blank" rel="noopener noreferrer">
-                        View listing
-                      </a>
-                    </>
-                  ) : null}
-                </p>
-              </div>
-              <span className={scoreClass(o.score)}>
-                {o.score !== null ? `${o.score}/100` : "Unscored"}
-              </span>
-              <span className="delivery-pill">{opportunityStatusLabel(o.status)}</span>
-            </li>
-          ))
-        )}
-      </ul>
-    </section>
+          <div className="management-empty">
+            <h4>
+              {activeFilter
+                ? "Nothing in this stage."
+                : "Room for the right work."}
+            </h4>
+            <p>
+              {activeFilter
+                ? "Choose another bid stage or review the full shortlist."
+                : "Track a listing above, then score its fit before writing a proposal."}
+            </p>
+          </div>
+        ))}
+    </>
   );
 }

@@ -1,0 +1,73 @@
+name: NHS Phase 3 isolated PostgreSQL security tests
+
+# Synthetic fixture only. No Supabase credentials or network writes.
+# This workflow is separate from deployment and approval/membership QA.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/phase3-postgres-security.yml'
+      - 'supabase/tests/phase3_*'
+      - 'supabase/migrations/20261017030000_phase3_client_decision_sender_guard.sql'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  phase3-security:
+    name: PostgreSQL 17 authorization enforcement (ephemeral)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: nhs-ephemeral-postgres-only
+          POSTGRES_DB: nhs_phase3_qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d nhs_phase3_qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: nhs-ephemeral-postgres-only
+      PGDATABASE: nhs_phase3_qa
+    steps:
+      - name: Checkout unmerged draft code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install PostgreSQL client for ephemeral CI only
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+          psql --version
+
+      - name: Verify isolated PostgreSQL server
+        run: |
+          test "$(psql -Atqc 'show server_version_num' | cut -c 1-2)" = "17"
+          psql -Atqc 'select current_database(),current_user;'
+
+      - name: Create synthetic authorization fixture
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/phase3_isolated_fixture.sql
+
+      - name: Apply exact staged Phase 3 migration, without Supabase connection
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261017030000_phase3_client_decision_sender_guard.sql
+
+      - name: Enforce allowed actions and forbidden mutations under RLS
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/phase3_security_enforcement.test.sql
+
+      - name: Explain isolation boundary
+        if: always()
+        run: |
+          echo 'These tests ran on a synthetic, disposable GitHub Actions PostgreSQL container.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No live Supabase project, GitHub credential secret, customer membership, approval record, or deployment was accessed.' >> "$GITHUB_STEP_SUMMARY"

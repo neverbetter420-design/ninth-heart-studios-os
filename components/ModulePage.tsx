@@ -15,7 +15,7 @@ export function ModulePage({
 }) {
   return (
     <div className="content-wrap">
-      <PageHeader eyebrow={eyebrow} title={title} description={description} action="+ New" />
+      <PageHeader eyebrow={eyebrow} title={title} description={description} />
       <section className="panel module-hero">
         <span className="beta-pill">{status}</span>
         <h3>This module is wired into the new NHS shell.</h3>
@@ -27,7 +27,7 @@ export function ModulePage({
             <div className="module-card-icon">✦</div>
             <h3>{item.title}</h3>
             <p>{item.description}</p>
-            <button className="text-button">Planned for build →</button>
+            <span className="text-button">Planned for build</span>
           </article>
         ))}
       </section>

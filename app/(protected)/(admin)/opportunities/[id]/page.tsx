@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  DocumentNotice,
+  DocumentSectionHeading,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { FitScorer } from "@/components/opportunities/FitScorer";
 import { FitExplanation } from "@/components/opportunities/FitExplanation";
 import { ProposalSection } from "@/components/opportunities/ProposalSection";
+import { listingUrl } from "@/components/opportunities/OpportunityTable";
 import { deleteOpportunity, updateOpportunityStatus } from "../actions";
 import {
   OPPORTUNITY_STATUSES,
@@ -23,78 +29,96 @@ export default async function OpportunityDetailPage({
   const { id } = await params;
   const { error: queryError } = await searchParams;
   const supabase = await createClient();
-
-  const [{ data: rawOpportunity }, { data: rawProposals }] = await Promise.all([
+  const [
+    { data: rawOpportunity, error: opportunityError },
+    { data: rawProposals, error: proposalError },
+  ] = await Promise.all([
     supabase
       .from("opportunities")
-      .select("id, source, external_id, title, url, score, fit, status, metadata, created_at, updated_at")
+      .select(
+        "id, source, external_id, title, url, score, fit, status, metadata, created_at, updated_at",
+      )
       .eq("id", id)
       .maybeSingle(),
     supabase
       .from("proposals")
-      .select("id, opportunity_id, title, content, status, created_at, updated_at")
+      .select(
+        "id, opportunity_id, title, content, status, created_at, updated_at",
+      )
       .eq("opportunity_id", id)
       .order("created_at", { ascending: false }),
   ]);
-
+  if (opportunityError)
+    return (
+      <div className="content-wrap management-page">
+        <Link href="/opportunities" className="management-back-link">
+          ← Opportunity Radar
+        </Link>
+        <DocumentNotice>
+          Opportunity details could not load. Refresh to try again.
+        </DocumentNotice>
+      </div>
+    );
   if (!rawOpportunity) notFound();
   const opportunity = rawOpportunity as Opportunity;
-  const breakdown = ((opportunity.metadata as Record<string, unknown>)?.fit_breakdown ?? {}) as Partial<FitBreakdown>;
-
+  const breakdown = (opportunity.metadata?.fit_breakdown ??
+    {}) as Partial<FitBreakdown>;
+  const url = listingUrl(opportunity.url);
   return (
-    <div className="content-wrap">
-      <div className="lead-detail-backline" style={{ marginBottom: 10 }}>
-        <Link href="/opportunities" className="text-button">← Opportunity Radar</Link>
-      </div>
-
-      {queryError ? (
-        <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
-          <strong>Heads up.</strong>
-          <span>{decodeURIComponent(queryError)}</span>
-        </section>
-      ) : null}
-
-      <header className="page-header">
+    <div className="content-wrap management-page paperwork-page studio-page radar-page">
+      <Link href="/opportunities" className="management-back-link">
+        ← Opportunity Radar
+      </Link>
+      {queryError ? <DocumentNotice>{queryError}</DocumentNotice> : null}
+      <header className="page-header management-heading">
         <div>
-          <p className="eyebrow electric">{opportunity.source} · Opportunity</p>
+          <p className="eyebrow">
+            {opportunity.source} · Opportunity workspace
+          </p>
           <h2>{opportunity.title}</h2>
           <p className="page-description">
-            <span className="stage-badge">{opportunityStatusLabel(opportunity.status)}</span>{" "}
-            {opportunity.score !== null ? `${opportunity.score}/100 · ${fitVerdict(opportunity.score)}` : "Unscored"}
-            {opportunity.url ? (
-              <>
-                {" · "}
-                <a href={opportunity.url} target="_blank" rel="noopener noreferrer">View listing</a>
-              </>
-            ) : null}
+            {opportunityStatusLabel(opportunity.status)} ·{" "}
+            {opportunity.score === null
+              ? "Unscored"
+              : `${opportunity.score}/100 · ${fitVerdict(opportunity.score)}`}
           </p>
         </div>
-        <div className="delivery-actions">
-          <form action={updateOpportunityStatus} className="mini-form">
-            <input type="hidden" name="opportunity_id" value={opportunity.id} />
-            <select name="status" defaultValue={opportunity.status} aria-label="Bid stage">
-              {OPPORTUNITY_STATUSES.map((s) => (
-                <option key={s.key} value={s.key}>{s.label}</option>
-              ))}
-            </select>
-            <button type="submit" className="mini-button go">Move</button>
-          </form>
-          <form action={deleteOpportunity}>
-            <input type="hidden" name="opportunity_id" value={opportunity.id} />
-            <button type="submit" className="mini-button danger">Delete</button>
-          </form>
-        </div>
+        {url ? (
+          <a
+            className="management-text-link"
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View original listing <span aria-hidden="true">↗</span>
+          </a>
+        ) : null}
       </header>
-
-      <FitExplanation
-        opportunityId={opportunity.id}
-        score={opportunity.score}
-        fit={opportunity.fit}
-        breakdown={breakdown}
-      />
-
-      <div className="workspace-grid">
-        <div className="workspace-span-6">
+      <nav
+        className="management-destinations"
+        aria-label="Opportunity destinations"
+      >
+        <a href="#radar-fit">Review the fit</a>
+        <a href="#radar-proposals">Proposal drafts</a>
+        <a href="#radar-record">Bid record</a>
+      </nav>
+      <section
+        id="radar-fit"
+        aria-label="Review the fit"
+        className="radar-section"
+      >
+        <DocumentSectionHeading
+          eyebrow="01 · The decision"
+          title="Does the work fit the studio?"
+          detail="Five dimensions · 20 points each"
+        />
+        <div className="radar-fit-grid">
+          <FitExplanation
+            opportunityId={opportunity.id}
+            score={opportunity.score}
+            fit={opportunity.fit}
+            breakdown={breakdown}
+          />
           <FitScorer
             opportunityId={opportunity.id}
             score={opportunity.score}
@@ -102,13 +126,61 @@ export default async function OpportunityDetailPage({
             breakdown={breakdown}
           />
         </div>
-        <div className="workspace-span-6">
-          <ProposalSection
-            opportunityId={opportunity.id}
-            proposals={(rawProposals ?? []) as Proposal[]}
-          />
-        </div>
-      </div>
+      </section>
+      <ProposalSection
+        opportunityId={opportunity.id}
+        proposals={proposalError ? [] : ((rawProposals ?? []) as Proposal[])}
+        unavailable={Boolean(proposalError)}
+      />
+      <section
+        id="radar-record"
+        aria-label="Bid record"
+        className="radar-section"
+      >
+        <DocumentSectionHeading
+          eyebrow="03 · The record"
+          title="Keep the bid moving."
+        />
+        <form action={updateOpportunityStatus} className="radar-stage-form">
+          <input type="hidden" name="opportunity_id" value={opportunity.id} />
+          <label className="field">
+            <span>Bid stage</span>
+            <select
+              name="status"
+              defaultValue={opportunity.status}
+              aria-label="Bid stage"
+            >
+              {OPPORTUNITY_STATUSES.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <PortalSubmitButton pendingLabel="Moving…">
+            Move stage
+          </PortalSubmitButton>
+        </form>
+        <p className="management-help">
+          Stage changes update this studio record. They do not submit a bid or
+          send a message.
+        </p>
+        <details className="radar-delete">
+          <summary>Remove this opportunity</summary>
+          <p className="management-help">
+            Permanently deletes this opportunity and its proposal records.
+          </p>
+          <form action={deleteOpportunity}>
+            <input type="hidden" name="opportunity_id" value={opportunity.id} />
+            <PortalSubmitButton
+              className="mini-button danger"
+              pendingLabel="Deleting…"
+            >
+              Delete opportunity
+            </PortalSubmitButton>
+          </form>
+        </details>
+      </section>
     </div>
   );
 }

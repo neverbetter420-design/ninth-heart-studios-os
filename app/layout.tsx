@@ -6,6 +6,18 @@ import "./phase3.css";
 import "./phase4.css";
 import "./phase7.css";
 import "./scanner.css";
+import "./navigation.css";
+import "./nocturne.css";
+import "./nocturne-phase3.css";
+import "./nocturne-command.css";
+import "./atelier-studio.css";
+import "./nocturne-leads.css";
+import "./nocturne-management.css";
+import "./nocturne-documents.css";
+import "./nocturne-studio.css";
+import "./nocturne-radar.css";
+import "./nocturne-scanner.css";
+import "./nocturne-atmosphere.css";
 
 const headingFont = Cinzel({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-cinzel", display: "swap" });
 const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });

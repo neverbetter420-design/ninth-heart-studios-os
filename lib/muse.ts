@@ -4,9 +4,9 @@
 // prioritized, summarizes project risk, surfaces stale leads, recommends the
 // next studio action, and drafts follow-ups and proposals.
 //
-// Hard rule: Muse never sends anything externally. Drafts are saved to the
-// database with status "draft". There is no dispatch path in this phase —
-// sending happens manually or arrives with Phase 8 integrations.
+// This reasoning module does not dispatch messages. Draft generation is
+// separate from saving a draft and from the explicit per-recipient Gmail send
+// action in the Muse workspace.
 
 import type { FlowkeepLead, RankedLead } from "./flowkeep";
 import { FIT_DIMENSIONS, fitVerdict, type FitBreakdown, type FitDimensionKey } from "./radar.ts";

@@ -1,0 +1,172 @@
+/* Nocturne Command Center. One composition: open canvas, editorial type,
+   quiet bronze details. Artwork is confined to the welcome, never behind work. */
+.app-shell.nhs-theme-admin {
+  --nocturne-ink: #f0e9e3;
+  --nocturne-muted: #b0a4b4;
+  --nocturne-accent: #c6ab94;
+  --nocturne-rule: #ad91ac2e;
+  --cyan: #d2b9d6;
+  background: radial-gradient(ellipse at 90% 0, #2a1a332e, transparent 45%), #0d0c12;
+  grid-template-columns: 242px minmax(0, 1fr);
+}
+.nhs-theme-admin .navigation-shell { padding: 18px 0 18px 18px; }
+.nhs-theme-admin .navigation-shell > .nhs-sidebar {
+  height: calc(100dvh - 36px);
+  padding: 24px 13px 18px;
+  border: 1px solid #bca6be1c;
+  border-radius: 22px;
+  background: #141118;
+  backdrop-filter: none;
+}
+.nhs-theme-admin .brand-lockup { padding: 0 6px 25px; gap: 11px; }
+.nhs-theme-admin .brand-mark { background: transparent; border-color: #a98da139; box-shadow: none; color: #d8c1d3; border-radius: 50%; }
+.nhs-theme-admin .brand-lockup .eyebrow { font-size: 8px; letter-spacing: .12em; color: #bcacbf; }
+.nhs-theme-admin .brand-lockup h1 { font-size: 17px; letter-spacing: .06em; color: #eee4e8; }
+.nhs-theme-admin .system-status { border: 0; border-radius: 0; border-bottom: 1px solid var(--nocturne-rule); background: transparent; margin: 0 9px 18px; padding: 0 0 22px; }
+.nhs-theme-admin .status-dot { width: 5px; height: 5px; background: #b1bca2; box-shadow: none; }
+.nhs-theme-admin .system-status strong { color: #ddd1df; font-size: 10px; font-weight: 500; }
+.nhs-theme-admin .system-status span:last-child { color: #b0a4b4; font-size: 10px; }
+.nhs-theme-admin .nav-stack { gap: 10px; }
+.nhs-theme-admin .nav-section-toggle { color: #b4a2ba; font-size: 9px; letter-spacing: .15em; padding: 10px; }
+.nhs-theme-admin .nav-section-chevron { font-size: 14px; color: #bfa2bd; }
+.nhs-theme-admin .nav-link { font-size: 12px; padding: 12px 10px; border: 1px solid transparent; gap: 8px; color: #b6aabb; border-radius: 8px; }
+.nhs-theme-admin .nav-link.active { background: #a77f9914; border-color: #bc9fb52b; color: #f0e4e9; }
+.nhs-theme-admin .nav-link.active::before { background: #c6ab94; box-shadow: none; height: 16px; }
+.nhs-theme-admin .nav-icon { color: #c6ab94; font-size: 15px; width: 20px; }
+.nhs-theme-admin .sidebar-bottom { padding: 24px 6px 0; }
+.nhs-theme-admin .user-chip { background: transparent; border: 0; border-top: 1px solid var(--nocturne-rule); border-radius: 0; padding: 18px 0 8px; gap: 9px; }
+.nhs-theme-admin .user-avatar { background: #3f3043; color: #e4d4e5; border-radius: 50%; box-shadow: none; border: 0; }
+.nhs-theme-admin .user-chip strong { font-size: 10px; color: #dcd0df; }
+.nhs-theme-admin .user-chip span { color: #b0a4b4; font-size: 9px; }
+.nhs-theme-admin .tiny-copy { color: #a99baa; font-size: 8px; line-height: 1.6; }
+.nhs-theme-admin .sidebar-bottom .sign-out-button { color: #cfc0d3; border-color: #a88ca82e; min-height: 40px; border-radius: 8px; }
+.nhs-theme-admin .nhs-context-bar { min-height: 76px; padding: 14px clamp(25px, 3.8vw, 60px); background: transparent; border-bottom: 0; }
+.nhs-theme-admin .nhs-context-location { font-size: 10px; color: #b2a0b9; font-weight: 500; letter-spacing: .12em; }
+.nhs-theme-admin .nhs-context-symbol { color: #c6ab94; }
+.nhs-theme-admin .nhs-context-name { font-size: 11px; color: #b9aebf; }
+.nhs-theme-admin .nhs-sign-out { color: #d6cbdc; background: transparent; border-color: #ac91af33; font-size: 10px; }
+
+.nhs-theme-admin .nocturne-command-center { max-width: 1440px; padding: 18px clamp(25px, 3.8vw, 60px) 52px; color: var(--nocturne-ink); }
+.nocturne-command-center .nocturne-overview { position: relative; isolation: isolate; display: flex; align-items: center; min-height: 330px; margin: 0 0 24px; }
+.nocturne-welcome-copy { position: relative; z-index: 1; max-width: 62%; padding: 18px 0 28px; }
+.nocturne-welcome-copy > .eyebrow { color: #bca48f; font-size: 9px; letter-spacing: .18em; font-weight: 500; line-height: 1.8; }
+.nocturne-welcome-copy > .eyebrow span { color: #806e80; margin: 0 10px; }
+.nocturne-welcome-copy h2 { margin: 24px 0 22px; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(46px, 4.9vw, 76px); font-weight: 400; letter-spacing: -.055em; line-height: 1.06; }
+.nocturne-welcome-copy h2 em { display: block; font-weight: 400; color: #d1b9d2; }
+.nocturne-welcome-copy .page-description { color: #b9acbd; font-size: 14px; line-height: 1.85; }
+.nocturne-capture { display: inline-flex; align-items: center; justify-content: space-between; gap: 28px; margin-top: 25px; min-height: 44px; padding: 10px 0; border-bottom: 1px solid #b49a8366; color: #dfc8b4; font-size: 11px; text-decoration: none; }
+.nocturne-capture:hover { border-bottom-color: #e8c7ab; color: #fae4d3; }
+.nocturne-capture span { font-size: 17px; }
+.nocturne-studio-art { position: absolute; right: -22px; top: -30px; bottom: -5px; width: 55%; pointer-events: none; z-index: 0; }
+.nocturne-studio-art svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.nocturne-art-caption { position: absolute; bottom: 16px; right: 15%; color: #b4a0b2; font-size: 9px; font-style: italic; letter-spacing: .045em; }
+.nhs-theme-admin .nocturne-command-center .metric-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin: 0 0 38px; padding: 23px 0; border-top: 1px solid var(--nocturne-rule); border-bottom: 1px solid var(--nocturne-rule); }
+.nocturne-command-center .metric-card { display: grid; grid-template-columns: auto minmax(0, 1fr); align-content: center; gap: 5px 16px; padding: 0 25px; min-height: 53px; border: 0; border-right: 1px solid var(--nocturne-rule); border-radius: 0; background: transparent; box-shadow: none; }
+.nocturne-command-center .metric-card:first-child { padding-left: 0; }
+.nocturne-command-center .metric-card:last-child { border: 0; }
+.nocturne-command-center .metric-glow { display: none; }
+.nocturne-command-center .metric-card strong { grid-row: 1 / 3; margin: 0; font-family: Georgia, serif; font-size: 44px; line-height: 1.1; font-weight: 400; color: #e3d6c7; }
+.nhs-theme-admin .nocturne-command-center .metric-card p { align-self: end; margin: 0; font-size: 10px; letter-spacing: .1em; color: #cabccc; }
+.nhs-theme-admin .nocturne-command-center .metric-card > span { font-size: 11px; color: #b0a4b4; line-height: 1.5; }
+.nhs-theme-admin .nocturne-command-center .dashboard-grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; gap: clamp(28px, 4vw, 64px); }
+.nhs-theme-admin .nocturne-command-center :is(.action-panel, .project-panel) { min-width: 0; min-height: 0; border: 0; border-radius: 0; background: #0d0c12; box-shadow: none; }
+.nocturne-command-center .panel-heading { padding: 0 0 22px; align-items: flex-end; border-bottom: 1px solid var(--nocturne-rule); }
+.nocturne-command-center .panel-heading .eyebrow { color: #c2a78e; font-size: 9px; font-weight: 500; letter-spacing: .12em; }
+.nocturne-command-center .panel-heading h3 { margin: 10px 0 0; font-family: Georgia, serif; font-size: 28px; font-weight: 400; letter-spacing: -.035em; }
+.nocturne-command-center .live-pill { color: #bbadbf; background: transparent; border: 0; padding: 0 0 3px; font-size: 9px; white-space: nowrap; }
+.nocturne-command-center .live-pill i { background: #af97b5; box-shadow: none; width: 4px; height: 4px; }
+.nocturne-command-center .action-list { padding: 0; }
+.nocturne-command-center .action-row { padding: 24px 0; grid-template-columns: 30px minmax(0,1fr) auto; gap: 14px; border-bottom: 1px solid var(--nocturne-rule); }
+.nocturne-command-center .priority-number { align-self: start; width: auto; height: auto; display: block; border: 0; border-radius: 0; background: transparent; box-shadow: none; font-family: Georgia, serif; font-size: 23px; font-weight: 400; color: #bfa28d; }
+.nocturne-command-center .action-copy { gap: 5px; }
+.nocturne-command-center .action-copy strong { color: #e6dce9; font-size: 14px; font-weight: 500; white-space: normal; overflow-wrap: anywhere; }
+.nocturne-command-center .action-copy :is(.action-title, small) { color: #b6a8bb; font-size: 11px; line-height: 1.5; }
+.nocturne-command-center .action-copy .action-title { color: #c5aacf; font-size: 9px; letter-spacing: .12em; }
+.nocturne-command-center .action-row .ghost-button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; border: 0; border-radius: 0; background: transparent; padding: 8px 0 8px 4px; text-decoration: none; font-size: 10px; color: #dcc4ad; }
+.nocturne-command-center .action-row .ghost-button:hover { color: #fff0e1; text-decoration: underline; }
+.nhs-theme-admin .nocturne-command-center .empty-dashboard-actions { display: flex; align-items: flex-start; flex-direction: column; gap: 12px; padding: 28px 0; color: #b6a8bb; }
+.nocturne-command-center .empty-dashboard-actions strong { font-family: Georgia, serif; color: #e2d4e5; font-size: 23px; font-weight: 400; }
+.nocturne-command-center .empty-dashboard-actions > span { max-width: 300px; font-size: 12px; line-height: 1.8; }
+.nocturne-command-center .nocturne-empty-link { color: #dfc7b3; padding: 12px 0; min-height: 44px; text-decoration: none; font-size: 11px; border-bottom: 1px solid #b49a8366; }
+.nocturne-command-center .project-panel .text-button { min-height: 44px; display: inline-flex; align-items: center; color: #c5b0cc; font-size: 10px; text-decoration: none; }
+.nocturne-command-center .project-list { padding: 0; }
+.nhs-theme-admin .nocturne-command-center .project-row { grid-template-columns: minmax(0,1fr) max-content; gap: 14px; padding: 24px 12px 24px 0; border-bottom: 1px solid var(--nocturne-rule); }
+.nhs-theme-admin .nocturne-command-center .project-copy strong { color: #e6dce9; font-size: 14px; font-weight: 500; white-space: normal; overflow-wrap: anywhere; }
+.nhs-theme-admin .nocturne-command-center .project-copy span { color: #b0a4b4; font-size: 10px; line-height: 1.6; margin-top: 4px; }
+.nhs-theme-admin .nocturne-command-center .project-row b { font-family: Georgia, serif; font-size: 18px; font-weight: 400; color: #c4a9c9; }
+.nocturne-command-center .progress-track { height: 2px; background: #a183ac26; }
+.nocturne-command-center .progress-track span { background: linear-gradient(90deg, #8d6ba4, #d3b4c4); box-shadow: none; }
+.nocturne-command-center .pipeline-empty { font-size: 12px; padding: 25px 0; line-height: 1.8; color: #b0a4b4; }
+
+.nocturne-activity { margin-top: 34px; padding-top: 27px; border-top: 1px solid var(--nocturne-rule); display: grid; grid-template-columns: 155px minmax(0,1fr); gap: 25px; }
+.nocturne-activity-heading .eyebrow { color: #b79a84; font-size: 9px; font-weight: 500; letter-spacing: .1em; }
+.nocturne-activity-heading h3 { font-family: Georgia, serif; font-weight: 400; font-size: 20px; letter-spacing: -.02em; margin: 11px 0; }
+.nocturne-activity .activity-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px 25px; align-content: start; }
+.nocturne-activity .activity-row { border: 0; padding: 2px 0; grid-template-columns: 6px minmax(0,1fr); column-gap: 10px; }
+.nocturne-activity .activity-dot { background: #ad8db9; box-shadow: none; width: 4px; height: 4px; margin-top: 5px; }
+.nocturne-activity .activity-row p { color: #c4b6cb; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.nocturne-activity .activity-row time { color: #afa0b5; font-size: 10px; }
+.nocturne-activity-empty { color: #afa0b5; font-size: 11px; line-height: 1.8; grid-column: 1 / -1; margin: 0; }
+.nhs-theme-admin .nocturne-command-center .nocturne-insights { margin-top: 29px; border: 0; border-top: 1px solid var(--nocturne-rule); border-radius: 0; background: transparent; }
+.nocturne-command-center .nocturne-insights > summary { padding: 22px 0; }
+.nocturne-command-center .nocturne-insights > summary strong { font-family: Georgia, serif; font-size: 21px; font-weight: 400; }
+.nocturne-command-center .nocturne-insights > summary small { color: #afa0b5; font-size: 10px; }
+.nocturne-command-center .nocturne-insights-toggle { color: #d8bdc9; border-color: #ac91af4d; }
+.nocturne-command-center .nocturne-insights-grid { padding: 10px 0; }
+.nocturne-command-center .nocturne-insights-grid .panel { background: #18131e; box-shadow: none; border-color: var(--nocturne-rule); border-radius: 12px; }
+.nocturne-command-center .nocturne-insights-grid .panel-heading { padding: 22px; }
+.nocturne-command-center .nocturne-insights-grid .panel-heading h3 { font-size: 24px; }
+
+@media (max-width: 1100px) and (min-width: 861px) {
+  .app-shell.nhs-theme-admin { grid-template-columns: 220px minmax(0,1fr); }
+  .nhs-theme-admin .navigation-shell { padding-left: 12px; }
+  .nocturne-command-center .metric-card { grid-template-columns: 1fr; gap: 5px; padding: 0 16px; }
+  .nocturne-command-center .metric-card strong { grid-row: 1; }
+  .nocturne-command-center .live-pill { display: none; }
+  .nocturne-welcome-copy { max-width: 65%; }
+}
+@media (max-width: 860px) {
+  .app-shell.nhs-theme-admin { grid-template-columns: minmax(0,1fr); }
+  .nhs-theme-admin .navigation-shell { padding: 0; }
+  .nhs-theme-admin .navigation-shell > .nhs-sidebar { height: 100dvh; border-radius: 0 20px 20px 0; padding: 25px 17px; }
+  .nhs-theme-admin .mobile-topbar { background: #141118f5; border-color: var(--nocturne-rule); }
+  .nhs-theme-admin .mobile-brand { color: #e3d4df; font-size: 13px; }
+  .nhs-theme-admin .mobile-brand span { color: #bda3c0; }
+  .nhs-theme-admin .nhs-mobile-sign-out { background: transparent; color: #ddcfe1; border-color: #ac91af4d; }
+  .nhs-theme-admin .nocturne-command-center { padding-top: 12px; }
+  .nocturne-command-center .nocturne-overview { min-height: 330px; }
+  .nocturne-welcome-copy h2 { font-size: clamp(46px, 8.5vw, 68px); }
+  .nocturne-art-caption { right: 5%; }
+}
+@media (max-width: 620px) {
+  .nhs-theme-admin .nocturne-command-center { padding: 10px 22px 36px; }
+  .nocturne-command-center .nocturne-overview { min-height: 355px; margin-bottom: 5px; align-items: flex-start; }
+  .nocturne-welcome-copy { max-width: 100%; width: 100%; padding-top: 22px; }
+  .nocturne-welcome-copy > .eyebrow { max-width: 220px; font-size: 8px; letter-spacing: .1em; }
+  .nocturne-welcome-copy > .eyebrow span { margin: 0 6px; }
+  .nocturne-welcome-copy h2 { font-size: clamp(44px, 10.5vw, 62px); margin: 24px 0 19px; }
+  .nocturne-welcome-copy .page-description { max-width: 220px; font-size: 12px; }
+  .nocturne-capture { margin-top: 17px; }
+  .nocturne-studio-art { top: 65px; bottom: -4px; right: -22px; width: 62%; opacity: .45; z-index: -1; overflow: hidden; }
+  .nocturne-studio-art svg { width: 360px; max-width: none; height: 300px; transform: translateX(-60px); }
+  .nocturne-art-caption { display: none; }
+  .nhs-theme-admin .nocturne-command-center .metric-grid { padding: 21px 0; margin-bottom: 32px; }
+  .nocturne-command-center .metric-card { grid-template-columns: 1fr; gap: 5px; padding: 0 10px; }
+  .nocturne-command-center .metric-card strong { grid-row: 1; font-size: 32px; margin-bottom: 3px; }
+  .nhs-theme-admin .nocturne-command-center .metric-card p { font-size: 8px; letter-spacing: .02em; line-height: 1.6; overflow-wrap: anywhere; }
+  .nhs-theme-admin .nocturne-command-center .metric-card > span { font-size: 9px; line-height: 1.6; }
+  .nhs-theme-admin .nocturne-command-center .dashboard-grid { grid-template-columns: minmax(0,1fr); gap: 34px; }
+  .nocturne-command-center .panel-heading { padding-bottom: 19px; gap: 12px; }
+  .nocturne-command-center .panel-heading h3 { font-size: 27px; }
+  .nocturne-command-center .live-pill { font-size: 8px; }
+  .nocturne-command-center .action-row { gap: 9px; grid-template-columns: 24px minmax(0,1fr) auto; }
+  .nocturne-command-center .action-copy strong { font-size: 13px; }
+  .nocturne-command-center .action-row .ghost-button { font-size: 9px; gap: 5px; }
+  .nocturne-command-center .priority-number { font-size: 21px; }
+  .nocturne-activity { grid-template-columns: minmax(0,1fr); gap: 10px; margin-top: 27px; }
+  .nocturne-activity .activity-list { grid-template-columns: minmax(0,1fr); gap: 18px; }
+  .nocturne-command-center .nocturne-insights > summary strong { font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nhs-theme-admin :is(.nav-link, .nhs-sign-out, .nhs-mobile-sign-out, .nocturne-capture) { transition: none; }
+}

@@ -1,8 +1,9 @@
 import {
-  createDocument,
-  deleteDocument,
+  createDocumentWithFeedback,
+  deleteDocumentWithFeedback,
 } from "@/app/(protected)/(admin)/projects/actions";
 import type { ProjectDocument } from "@/lib/supabase/types";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 
 const KINDS = [
   { value: "contract", label: "Contract" },
@@ -14,6 +15,14 @@ const KINDS = [
 
 function kindLabel(kind: string) {
   return KINDS.find((k) => k.value === kind)?.label ?? kind;
+}
+
+function safeLink(value: string | null) {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : undefined;
+  } catch { return undefined; }
 }
 
 export function DocumentSection({
@@ -46,9 +55,9 @@ export function DocumentSection({
                   {doc.notes ? ` · ${doc.notes}` : ""}
                 </p>
               </div>
-              {doc.external_url ? (
+              {safeLink(doc.external_url) ? (
                 <a
-                  href={doc.external_url}
+                  href={safeLink(doc.external_url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mini-button"
@@ -57,16 +66,17 @@ export function DocumentSection({
                 </a>
               ) : null}
               <div className="delivery-actions">
-                <form action={deleteDocument}>
+                <PortalActionForm action={deleteDocumentWithFeedback} pendingMessage="Removing document…" confirmMessage={`Remove “${doc.title}” from this project? The original linked document and uploaded files will be kept.`}>
                   <input type="hidden" name="document_id" value={doc.id} />
+                  <input type="hidden" name="project_id" value={projectId} />
                   <button type="submit" className="mini-button danger" aria-label={`Delete ${doc.title}`}>✕</button>
-                </form>
+                </PortalActionForm>
               </div>
             </li>
           ))
         )}
       </ul>
-      <form action={createDocument} className="delivery-add-form">
+      <PortalActionForm action={createDocumentWithFeedback} pendingMessage="Sharing document…" lockOnSuccess={false} resetOnSuccess className="delivery-add-form">
         <input type="hidden" name="project_id" value={projectId} />
         <input type="text" name="title" placeholder="Document title…" required maxLength={160} />
         <select name="kind" defaultValue="other" aria-label="Document kind">
@@ -85,7 +95,7 @@ export function DocumentSection({
         <input type="url" name="external_url" placeholder="Link (optional)…" maxLength={500} />
         <input type="text" name="notes" placeholder="Notes (optional — template fills this)…" maxLength={280} />
         <button type="submit" className="mini-button go">Share</button>
-      </form>
+      </PortalActionForm>
     </section>
   );
 }

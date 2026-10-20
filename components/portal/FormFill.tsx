@@ -11,6 +11,8 @@ import {
   type LineItem,
 } from "@/lib/forms";
 import type { FormSubmission, FormTemplate } from "@/lib/supabase/types";
+import type { PortalFeedbackState } from "@/lib/portal-feedback";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 
 type SubmissionView = FormSubmission & { template: FormTemplate; sourceUrl: string | null };
 
@@ -28,36 +30,39 @@ function LineItemsEditor({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="studio-line-items">
       {items.map((item, i) => (
-        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div key={i} className="studio-line-item-row">
           <input
+            className="studio-line-item-description"
             type="text"
             placeholder="Description…"
+            aria-label={`Line ${i + 1} description`}
             value={item.description}
             onChange={(e) => update(i, { description: e.target.value })}
-            style={{ flex: 1 }}
             required={field.required}
           />
           <input
+            className="studio-line-item-quantity"
             type="number"
             min={0}
             step="1"
             placeholder="Qty"
+            aria-label={`Line ${i + 1} quantity`}
             value={item.qty}
             onChange={(e) => update(i, { qty: Number(e.target.value) || 0 })}
-            style={{ width: 70 }}
           />
           <input
+            className="studio-line-item-price"
             type="number"
             min={0}
             step="0.01"
             placeholder="Price $"
+            aria-label={`Line ${i + 1} unit price in dollars`}
             value={item.price_cents / 100}
             onChange={(e) => update(i, { price_cents: Math.round((Number(e.target.value) || 0) * 100) })}
-            style={{ width: 90 }}
           />
-          <span style={{ width: 80, textAlign: "right", fontSize: 13 }}>
+          <span className="studio-line-item-total">
             {formatCents(item.qty * item.price_cents)}
           </span>
           <button
@@ -70,7 +75,7 @@ function LineItemsEditor({
           </button>
         </div>
       ))}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="studio-line-items-footer">
         <button
           type="button"
           className="mini-button"
@@ -136,7 +141,7 @@ export function FormFill({
   submitAction,
 }: {
   submissions: SubmissionView[];
-  submitAction: (formData: FormData) => void;
+  submitAction: (previous: PortalFeedbackState, formData: FormData) => Promise<PortalFeedbackState>;
 }) {
   if (submissions.length === 0) return null;
 
@@ -157,7 +162,7 @@ export function FormFill({
             {s.status === "submitted" ? (
               <ReadOnlySubmission submission={s} sourceUrl={s.sourceUrl} />
             ) : (
-              <form action={submitAction} style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+              <PortalActionForm action={submitAction} pendingMessage="Submitting your form…" className="portal-form-fill" style={{ padding: "0 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
                 <input type="hidden" name="submission_id" value={s.id} />
                 <p className="muted-copy" style={{ fontSize: 12, margin: 0 }}>
                   {categoryLabel(s.template.category)}
@@ -230,7 +235,7 @@ export function FormFill({
                   </button>
                 </div>
                 <p className="muted small">Your answers and submission time are saved with a tamper-evident signature record.</p>
-              </form>
+              </PortalActionForm>
             )}
           </details>
         );

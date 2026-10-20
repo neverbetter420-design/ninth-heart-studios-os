@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
 import { PipelineBoard } from "@/components/projects/PipelineBoard";
-import { ON_HOLD_STAGE } from "@/lib/delivery";
+import { ON_HOLD_STAGE, isForwardStage } from "@/lib/delivery";
 import { createClient } from "@/lib/supabase/server";
 import type { ProjectWithClient } from "@/lib/supabase/types";
 import { createProject } from "./actions";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
 type ProjectRow = {
   id: string;
@@ -24,20 +26,22 @@ function clientName(rel: ProjectRow["clients"]): string | null {
 export default async function ProjectsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; client?: string }>;
 }) {
-  const { error: formError } = await searchParams;
+  const { error: formError, client: requestedClient } = await searchParams;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("projects")
     .select("id, name, status, progress, due_date, client_id, clients(name)")
     .order("updated_at", { ascending: false });
-  const { data: rawClients } = await supabase
+  const { data: rawClients, error: clientsError } = await supabase
     .from("clients")
     .select("id, name")
     .eq("status", "active")
     .order("name");
   const clients = (rawClients ?? []) as { id: string; name: string }[];
+
+  const selectedClient = clients.find(c => c.id === requestedClient);
 
   const projects: ProjectWithClient[] = ((data ?? []) as ProjectRow[]).map((p) => ({
     id: p.id,
@@ -49,68 +53,41 @@ export default async function ProjectsPage({
     client_name: clientName(p.clients),
   }));
 
-  const active = projects.filter((p) => p.status !== ON_HOLD_STAGE).length;
+  const active = projects.filter((p) => isForwardStage(p.status)).length;
   const inReview = projects.filter((p) => p.status === "review").length;
   const inLaunch = projects.filter((p) => p.status === "launch").length;
   const onHold = projects.filter((p) => p.status === ON_HOLD_STAGE).length;
 
   return (
-    <div className="content-wrap">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow electric">Project Pipeline</p>
-          <h2>Delivery without the scavenger hunt.</h2>
-          <p className="page-description">
-            Every build, from discovery to care plan, in one view. Move a card,
-            open the workspace, keep the machine fed.
-          </p>
-        </div>
+    <div className="content-wrap management-page management-pipeline">
+      <header className="page-header management-heading">
+        <div><p className="eyebrow electric">Project Pipeline</p><h2>Every project,<br /><em>in its place.</em></h2><p className="page-description">A clear view from Discovery to Care. Open the work, see what is due, and choose the next phase when it is ready.</p></div>
+        <Link className="management-text-link" href="/clients">Client directory <span aria-hidden="true">↗</span></Link>
       </header>
 
       <section className="metric-grid" aria-label="Pipeline metrics">
-        <MetricCard label="Active Projects" value={String(active)} detail="Across all stages" tone="violet" />
-        <MetricCard label="In Review" value={String(inReview)} detail="Waiting on approvals" tone="pink" />
-        <MetricCard label="Launching" value={String(inLaunch)} detail="Almost out the door" tone="cyan" />
-        <MetricCard label="On Hold" value={String(onHold)} detail="Parked, not dead" tone="green" />
+        <MetricCard label="Active Projects" value={error ? "—" : String(active)} detail={error ? "Data unavailable" : `${onHold} on hold`} tone="violet" />
+        <MetricCard label="In Review" value={error ? "—" : String(inReview)} detail="Projects in review" tone="pink" />
+        <MetricCard label="Launching" value={error ? "—" : String(inLaunch)} detail="Projects in launch" tone="cyan" />
       </section>
+      {formError && <div className="management-notice" role="alert">{formError}</div>}
+      {error && <div className="management-notice" role="alert"><strong>Project data could not load.</strong><span>Refresh to try again.</span></div>}
 
-      {formError ? (
-        <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
-          <strong>Heads up.</strong>
-          <span>{decodeURIComponent(formError)}</span>
-        </section>
-      ) : null}
-
-      {error ? (
-        <section className="panel lead-query-error">
-          <strong>Project data could not load.</strong>
-          <span>{error.message}</span>
-        </section>
-      ) : null}
-
-      <section className="panel" aria-label="New project" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>New project</h3>
-        </div>
-        <form action={createProject} className="delivery-add-form">
-          <input type="text" name="name" placeholder="Project name…" required maxLength={160} />
-          <select name="client_id" required defaultValue="" aria-label="Client" style={{ flex: 1 }}>
-            <option value="" disabled>Choose a client…</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <input type="date" name="due_date" aria-label="Due date" />
-          <button type="submit" className="mini-button go">Create</button>
+      <details className="nocturne-create-panel" id="new-project" open={Boolean(formError) || Boolean(requestedClient)} aria-label="New project">
+        <summary className="nocturne-create-toggle"><strong>New project</strong><span>Make room for the next idea</span></summary>
+        <form action={createProject} className="management-create-form">
+          <fieldset className="management-create-fields" disabled={!!clientsError || !clients.length}>
+          <label className="field"><span>Project name</span><input type="text" name="name" placeholder="Project name" required maxLength={160} /></label>
+          <label className="field"><span>Client</span><select name="client_id" aria-label="Client" required defaultValue={selectedClient?.id ?? ""} disabled={!!clientsError}>
+            <option value="" disabled>Choose a client</option>{clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select></label>
+          <label className="field"><span>Due date (optional)</span><input type="date" name="due_date" /></label>
+          <PortalSubmitButton className="primary-button" pendingLabel="Creating…">Create project</PortalSubmitButton>
+          </fieldset>
         </form>
-        {clients.length === 0 ? (
-          <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>
-            No clients yet — create one on the <a href="/clients">Clients</a> page first.
-          </p>
-        ) : null}
-      </section>
-
-      <PipelineBoard projects={projects} />
+        {clientsError ? <p className="management-notice" role="alert">Client choices could not load. Refresh before creating a project.</p> : !clients.length ? <p className="management-help">Create an active client in the <Link href="/clients">client directory</Link> first.</p> : requestedClient && !selectedClient ? <p className="management-help">Choose an active client for this new project.</p> : null}
+      </details>
+      {!error && <PipelineBoard projects={projects} />}
     </div>
   );
 }

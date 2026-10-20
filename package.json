@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test:visual": "playwright test --config=playwright.visual.config.mjs",
+    "preview:design": "node scripts/preview-nocturne.mjs",
     "seed:test-users": "node --env-file=.env.local scripts/seed-test-users.mjs",
     "verify:security": "node --env-file=.env.local scripts/verify-security.mjs",
     "verify:flowkeep": "node --experimental-strip-types scripts/verify-flowkeep.ts",
@@ -20,6 +22,10 @@
     "verify:delivery": "node --experimental-strip-types scripts/verify-delivery.ts",
     "verify:radar": "node --experimental-strip-types scripts/verify-radar.ts",
     "verify:coverage": "node --experimental-strip-types scripts/verify-coverage.ts",
+    "verify:navigation": "node --experimental-strip-types scripts/verify-navigation.ts",
+    "verify:admin-actions": "node scripts/verify-admin-actions.mjs",
+    "verify:phase3-security": "node scripts/verify-phase3-security.mjs",
+    "verify:release-preflight": "node scripts/verify-release-preflight.mjs",
     "verify:scanner": "node --experimental-strip-types scripts/verify-scanner.ts",
     "verify:password-recovery": "node --experimental-strip-types scripts/verify-password-recovery.mjs",
     "cf:build": "opennextjs-cloudflare build",
@@ -38,7 +44,7 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "1.20.11",
+    "@opennextjs/cloudflare": "1.20.9",
     "@tailwindcss/postcss": "^4.3.0",
     "@types/node": "^22.0.0",
     "@types/nodemailer": "^8.0.2",

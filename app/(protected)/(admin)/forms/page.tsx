@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
-import { categoryLabel } from "@/lib/forms";
+import {
+  DocumentCreate,
+  DocumentNav,
+  DocumentNotice,
+  DocumentSectionHeading,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
+import { categoryLabel, isFormCategory, parseFields } from "@/lib/forms";
 import { createClient } from "@/lib/supabase/server";
 import type { FormSubmission, FormTemplate } from "@/lib/supabase/types";
 import { createFormTemplate, importPdfForm } from "./actions";
@@ -8,132 +15,262 @@ import { createFormTemplate, importPdfForm } from "./actions";
 export default async function FormsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; category?: string }>;
+  searchParams: Promise<{ error?: string; category?: string; state?: string }>;
 }) {
-  const { error: formError, category: categoryFilter } = await searchParams;
+  const { error: formError, category, state } = await searchParams;
   const supabase = await createClient();
-
-  const [{ data: rawTemplates }, { data: rawSubmissions }] = await Promise.all([
+  const [
+    { data: rawTemplates, error },
+    { data: rawSubmissions, error: submissionsError },
+  ] = await Promise.all([
     supabase
       .from("form_templates")
-      .select("id, name, category, description, fields, active, created_at, updated_at")
+      .select(
+        "id, name, category, description, fields, active, created_at, updated_at",
+      )
       .order("updated_at", { ascending: false }),
     supabase
       .from("form_submissions")
       .select("id, status")
       .order("created_at", { ascending: false }),
   ]);
-  const templates = (rawTemplates ?? []) as FormTemplate[];
-  const submissions = (rawSubmissions ?? []) as FormSubmission[];
-
-  const active = templates.filter((t) => t.active);
-  const shown = categoryFilter ? active.filter((t) => t.category === categoryFilter) : active;
-  const pending = submissions.filter((s) => s.status === "pending").length;
-
+  const templates = (error ? [] : (rawTemplates ?? [])) as FormTemplate[];
+  const submissions = (
+    submissionsError ? [] : (rawSubmissions ?? [])
+  ) as FormSubmission[];
+  const archived = state === "archived";
+  const filter = isFormCategory(category) ? category : undefined;
+  const shown = templates.filter(
+    (t) => t.active !== archived && (!filter || t.category === filter),
+  );
+  const categoryHref = (key: string) =>
+    `/forms?${new URLSearchParams({ ...(key ? { category: key } : {}), ...(archived ? { state: "archived" } : {}) })}`;
   return (
-    <div className="content-wrap">
-      <header className="page-header">
+    <div className="content-wrap management-page paperwork-page">
+      <header className="page-header management-heading paperwork-heading">
         <div>
-          <p className="eyebrow electric">Fillable Forms</p>
-          <h2>Your paperwork, but it fills itself in.</h2>
+          <p className="eyebrow">Client paperwork</p>
+          <h2>
+            A little structure.
+            <br />
+            <em>A clearer answer.</em>
+          </h2>
           <p className="page-description">
-            Build branded forms once — contracts, documents, invoices — then
-            send them to a project for the client to fill out and sign.
+            Build a fillable form, review its fields, and collect responses
+            through the client workspace.
           </p>
         </div>
       </header>
-
-      {formError ? (
-        <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
-          <strong>Heads up.</strong>
-          <span>{decodeURIComponent(formError)}</span>
-        </section>
-      ) : null}
-
+      <DocumentNav current="forms" />
       <section className="metric-grid" aria-label="Form metrics">
-        <MetricCard label="Active forms" value={String(active.length)} detail="Ready to send" tone="violet" />
         <MetricCard
-          label="Invoice forms"
-          value={String(active.filter((t) => t.category === "invoice").length)}
-          detail="Billable line items"
+          label="Active forms"
+          value={error ? "—" : String(templates.filter((t) => t.active).length)}
+          detail="Available to send"
+          tone="violet"
+        />
+        <MetricCard
+          label="Awaiting clients"
+          value={
+            submissionsError
+              ? "—"
+              : String(submissions.filter((s) => s.status === "pending").length)
+          }
+          detail="Pending responses"
           tone="pink"
         />
-        <MetricCard label="Awaiting clients" value={String(pending)} detail="Sent, not yet filled" tone="cyan" />
-        <MetricCard label="Submitted" value={String(submissions.filter((s) => s.status === "submitted").length)} detail="Filled + signed" tone="green" />
+        <MetricCard
+          label="Submitted"
+          value={
+            submissionsError
+              ? "—"
+              : String(
+                  submissions.filter((s) => s.status === "submitted").length,
+                )
+          }
+          detail="Responses received"
+          tone="cyan"
+        />
       </section>
-
-      <section className="panel" aria-label="New form" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>New form</h3>
-        </div>
-        <form action={createFormTemplate} className="delivery-add-form">
-          <input type="text" name="name" placeholder="Form name…" required maxLength={160} />
-          <select name="category" defaultValue="contract" aria-label="Category">
-            <option value="contract">Contract</option>
-            <option value="document">Document</option>
-            <option value="invoice">Invoice</option>
-          </select>
-          <input type="text" name="description" placeholder="What is this form for? (optional)" maxLength={280} />
-          <button type="submit" className="mini-button go">Build</button>
+      {formError ? <DocumentNotice>{formError}</DocumentNotice> : null}
+      {submissionsError ? (
+        <DocumentNotice>
+          Submission counts could not load. Refresh to try again.
+        </DocumentNotice>
+      ) : null}
+      <DocumentCreate
+        title="New form"
+        detail="Start with your own fields"
+        open={Boolean(formError)}
+      >
+        <form action={createFormTemplate} className="paperwork-form">
+          <div className="paperwork-form-grid">
+            <label className="field">
+              <span>Form name</span>
+              <input
+                name="name"
+                required
+                maxLength={160}
+                placeholder="Website project intake"
+              />
+            </label>
+            <label className="field">
+              <span>Category</span>
+              <select
+                aria-label="Category"
+                name="category"
+                defaultValue="contract"
+              >
+                <option value="contract">Contract</option>
+                <option value="document">Document</option>
+                <option value="invoice">Invoice</option>
+              </select>
+            </label>
+          </div>
+          <label className="field">
+            <span>Description (optional)</span>
+            <input name="description" maxLength={280} />
+          </label>
+          <div>
+            <PortalSubmitButton pendingLabel="Creating form…">
+              Create form
+            </PortalSubmitButton>
+          </div>
         </form>
-      </section>
-
-      <section className="panel" aria-label="Import PDF" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>Import a PDF</h3>
-        </div>
-        <form action={importPdfForm} className="delivery-add-form" encType="multipart/form-data">
-          <input type="text" name="name" placeholder="Form name…" required maxLength={160} />
-          <select name="category" defaultValue="contract" aria-label="Category">
-            <option value="contract">Contract</option>
-            <option value="document">Document</option>
-            <option value="invoice">Invoice</option>
-          </select>
-          <input type="file" name="pdf" accept="application/pdf,.pdf" required aria-label="PDF file" />
-          <button type="submit" className="mini-button go">Import</button>
+      </DocumentCreate>
+      <DocumentCreate
+        title="Import PDF"
+        detail="Bring in a Canva or Google Docs original"
+        open={Boolean(formError)}
+      >
+        <form action={importPdfForm} className="paperwork-form">
+          <div className="paperwork-form-grid">
+            <label className="field">
+              <span>Imported form name</span>
+              <input name="name" required maxLength={160} />
+            </label>
+            <label className="field">
+              <span>Category</span>
+              <select
+                aria-label="Category"
+                name="category"
+                defaultValue="contract"
+              >
+                <option value="contract">Contract</option>
+                <option value="document">Document</option>
+                <option value="invoice">Invoice</option>
+              </select>
+            </label>
+          </div>
+          <label className="field">
+            <span>PDF file · up to 25 MB</span>
+            <input
+              type="file"
+              name="pdf"
+              accept="application/pdf,.pdf"
+              required
+            />
+          </label>
+          <p className="management-help">
+            Download your Canva or Google Docs design as a PDF. Existing form
+            fields are imported; fields detected in a flat PDF need review.
+            Imports stay inactive until you activate them in the builder.
+          </p>
+          <div>
+            <PortalSubmitButton pendingLabel="Importing PDF…">
+              Import PDF
+            </PortalSubmitButton>
+          </div>
         </form>
-        <p className="muted-copy" style={{ fontSize: 12, padding: "0 18px 14px" }}>
-          Google Docs → Download as PDF. Canva → Download as PDF. Real form
-          fields import exactly; flat PDFs get best-effort detected fields
-          for you to review before activating.
-        </p>
-      </section>
-
-      <section className="panel" aria-label="Forms">
-        <div className="panel-heading">
-          <h3>Forms</h3>
-          <span style={{ display: "flex", gap: 8 }}>
-            <Link href="/forms" className="mini-button">All</Link>
-            <Link href="/forms?category=contract" className="mini-button">Contracts</Link>
-            <Link href="/forms?category=document" className="mini-button">Documents</Link>
-            <Link href="/forms?category=invoice" className="mini-button">Invoices</Link>
-          </span>
-        </div>
-        <ul className="delivery-list">
-          {shown.length === 0 ? (
-            <li className="delivery-row">
-              <p className="pipeline-empty">No forms yet. Build your first one — your branded docs are the content source.</p>
-            </li>
-          ) : (
-            shown.map((t) => (
-              <li key={t.id} className="delivery-row">
-                <div className="delivery-row-main">
-                  <p className="delivery-row-title">
-                    <Link href={`/forms/${t.id}`} style={{ color: "inherit", textDecoration: "none" }}>
-                      {t.name}
-                    </Link>
-                  </p>
-                  <p className="delivery-row-sub">
-                    {categoryLabel(t.category)}
-                    {t.description ? ` · ${t.description}` : ""} ·{" "}
-                    {Array.isArray(t.fields) ? t.fields.length : 0} fields
+      </DocumentCreate>
+      <section aria-label="Forms">
+        <DocumentSectionHeading
+          eyebrow="Form directory"
+          title={
+            archived ? "Inactive & archived forms" : "Ready for a response"
+          }
+          detail={
+            error
+              ? "Unavailable"
+              : `${shown.length} ${shown.length === 1 ? "form" : "forms"}`
+          }
+        />
+        <nav className="paperwork-filters" aria-label="Form availability">
+          {[
+            [false, "Active"],
+            [true, "Inactive & archived"],
+          ].map(([inactive, label]) => (
+            <Link
+              key={String(inactive)}
+              href={`/forms?${new URLSearchParams({ ...(filter ? { category: filter } : {}), ...(inactive ? { state: "archived" } : {}) })}`}
+              aria-current={archived === inactive ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <nav className="paperwork-filters" aria-label="Form category">
+          {[
+            ["", "All categories"],
+            ["contract", "Contracts"],
+            ["document", "Documents"],
+            ["invoice", "Invoices"],
+          ].map(([key, label]) => (
+            <Link
+              key={key}
+              href={categoryHref(key)}
+              aria-current={(filter ?? "") === key ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        {error ? (
+          <DocumentNotice>
+            Forms could not load. Refresh to try again.
+          </DocumentNotice>
+        ) : shown.length === 0 ? (
+          <div className="management-empty">
+            <h4>
+              {archived
+                ? "No inactive forms here."
+                : "Make room for the right questions."}
+            </h4>
+            <p>
+              {archived
+                ? "New PDF imports and archived forms will be available here for review."
+                : "Create a form or import a PDF, then review it in the builder."}
+            </p>
+          </div>
+        ) : (
+          <ol className="paperwork-list">
+            {shown.map((t, i) => (
+              <li key={t.id} className="paperwork-row">
+                <span className="paperwork-number" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h4>{t.name}</h4>
+                  <p>
+                    {categoryLabel(t.category)} · {parseFields(t.fields).length}{" "}
+                    {parseFields(t.fields).length === 1 ? "field" : "fields"}
+                    {t.description ? ` · ${t.description}` : ""}
                   </p>
                 </div>
-                <span className="delivery-pill visible">{categoryLabel(t.category)}</span>
+                <span className="paperwork-status">
+                  {t.active ? "Active" : "Inactive"}
+                </span>
+                <Link
+                  href={`/forms/${t.id}`}
+                  className="management-text-link"
+                  aria-label={`Open form: ${t.name}`}
+                >
+                  Open builder <span aria-hidden="true">↗</span>
+                </Link>
               </li>
-            ))
-          )}
-        </ul>
+            ))}
+          </ol>
+        )}
       </section>
     </div>
   );

@@ -3,6 +3,7 @@ import { LeadInbox } from "@/components/leads/LeadInbox";
 import { MetricCard } from "@/components/MetricCard";
 import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function LeadsPage({
   searchParams,
@@ -23,38 +24,38 @@ export default async function LeadsPage({
   const replies = leads.filter((lead) => lead.next_action_kind === "reply").length;
 
   return (
-    <div className="content-wrap">
-      <header className="page-header">
+    <div className="content-wrap nocturne-leads">
+      <header className="page-header lead-editorial-heading">
         <div>
           <p className="eyebrow electric">Lead Intelligence</p>
-          <h2>Momentum before clutter.</h2>
+          <h2>Every connection,<br /><em>a next step.</em></h2>
           <p className="page-description">
-            Capture fast, rank the real next action, and keep human replies above outbound busywork. Revolutionary, apparently.
+            Keep the conversation moving. Your queue brings replies and time-sensitive follow-ups into focus.
           </p>
         </div>
         <div className="header-actions">
-          <a className="mini-button" href="/leads/discover">⌖ Lead Scanner</a>
+          <Link className="lead-scanner-link" href="/leads/discover">Lead Scanner <span aria-hidden="true">↗</span></Link>
           <a className="primary-button lead-capture-jump" href="#quick-capture">+ Quick capture</a>
         </div>
       </header>
 
       <section className="metric-grid" aria-label="Lead metrics">
-        <MetricCard label="Active Leads" value={String(leads.length)} detail="Ranked by momentum" tone="violet" />
-        <MetricCard label="Waiting on Me" value={String(waitingOnMe)} detail="Human attention required" tone="pink" />
-        <MetricCard label="Replies" value={String(replies)} detail="Always priority one" tone="cyan" />
-        <MetricCard label="Inbound SLA Risk" value={String(inboundAtRisk)} detail="Due soon or overdue" tone="green" />
+        <MetricCard label="Active Leads" value={error ? "—" : String(leads.length)} detail="Ranked by momentum" tone="violet" />
+        <MetricCard label="Waiting on Me" value={error ? "—" : String(waitingOnMe)} detail="Human attention required" tone="pink" />
+        <MetricCard label="Replies" value={error ? "—" : String(replies)} detail="Always priority one" tone="cyan" />
+        <MetricCard label="Inbound SLA Risk" value={error ? "—" : String(inboundAtRisk)} detail="Due soon or overdue" tone="green" />
       </section>
 
       {error ? (
-        <section className="panel lead-query-error">
+        <section className="lead-query-error" role="alert">
           <strong>Lead data could not load.</strong>
           <span>{error.message}</span>
         </section>
       ) : null}
 
       <div className="lead-page-grid">
+        <LeadInbox leads={leads} unavailable={Boolean(error)} />
         <LeadCaptureCard error={formError} />
-        <LeadInbox leads={leads} />
       </div>
     </div>
   );

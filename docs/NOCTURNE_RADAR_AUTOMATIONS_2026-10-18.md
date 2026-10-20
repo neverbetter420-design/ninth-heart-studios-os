@@ -1,0 +1,23 @@
+# Nocturne — Opportunity Radar and Automations
+
+Radar now uses an open shortlist with source, fit score and bid stage on each row. Manual intake opens separately, with visible field labels and the existing approved-source and duplicate guards. Stage filters identify the active view, while metrics describe all loaded opportunities rather than changing meaning with the filter. Unsupported stages fall back to all loaded records with an explicit notice. Unscored averages and failed reads display a dash rather than a false zero. Links to original listings accept only HTTP(S).
+
+The opportunity workspace separates fit review, proposal drafts and the bid record with local destinations. Five fit dimensions retain their existing 0–20 rules and editable midpoint defaults. Their hints are visible beside the inputs. Recorded score explanations remain deterministic. Proposal disclosures show the saved title and full draft text; recorded-as-sent proposals show their persisted content without editing controls. Creating a draft, saving it, recording sent status, stage moves and deletion use the existing server actions. “Record as sent” is explicitly bookkeeping, not delivery. Destructive actions sit in separate disclosures. Opportunity read failures no longer masquerade as missing-record 404s; proposal read failures do not masquerade as no drafts.
+
+Automations separates Notifications, Registry, Run History and Integrations. The page reports actual saved enabled flags and recorded runs, without claiming a verified schedule or claiming all automations are off. Manual Run Now works even when the enabled flag is off; this existing behavior is stated beside the controls. Availability and run controls open separately from registry descriptions. No automation was enabled, disabled or manually run during this design work.
+
+Notifications remain linked after being marked read. Mark-all copy makes clear it includes unread records outside the displayed 20. Registry, history and notification reads have independent failure states and independent counts, so one unavailable source does not blank a successful source. History shows explicit start/finish timestamps in Pacific time and recorded outcomes. The two 20-record display limits are visible. Gmail status uses the shared configuration-presence check, without claiming delivery was tested. Calendar, payment and source-import status are described as separate setup rather than an invented connection check. No secrets or configuration editors appear here.
+
+The composition lives in `app/nocturne-radar.css`, extending the Nocturne management canvas with Georgia headings, ruled rows, restrained plum and 44px controls. The original NHS identity geometry is unchanged. The two action modules, scoring/ranking engines, schema and permission rules are unchanged. Native pending buttons describe work in flight without claiming a confirmed persisted result; the inherited actions still have their existing error-handling limits.
+
+## Verification
+
+Network-blocked source-rendered browser cases inspect 320–1440px layouts, long unbroken opportunity/proposal/notification/run text, keyboard disclosures, all bid destinations, stage filtering and invalid stages, draft/sent/unscored states, HTTP(S) listing links, empty sources and independent read failures. They inspect manual-run and availability controls without submitting them.
+
+The strictly guarded disposable-local Supabase walkthrough adds real manual intake, score save/readback, stage save/readback, proposal creation, text save/reload and recording the proposal as sent. It verifies the existing proposal-stage transition to Submitted, saved text remains visible and sent-record editing is absent. Notifications are seeded locally and marked read through the real UI, then checked after reload. Registry availability/last-run values and all run IDs are compared before/after to prove no automation control was invoked. Desktop/mobile screenshots start at scroll position zero. No hosted credentials or external delivery are used. Existing portal, lead, relationship, document and Muse checks remain.
+
+Final-commit CI results are recorded in draft PR #14. Synthetic previews and automated checks are review evidence, not owner visual acceptance.
+
+## Release boundary
+
+Draft PR #14 only. No merge, deployment, hosted data writes, schema changes, configuration changes, automation activation, manual automation execution or external messages. Production still requires a verified restorable backup and distinct migration/merge/deploy approval. The pending production security migration is not approved by this design work.

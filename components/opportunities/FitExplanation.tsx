@@ -12,54 +12,70 @@ export function FitExplanation({
   fit: string | null;
   breakdown: Partial<FitBreakdown>;
 }) {
-  if (score === null) return null;
-  const explanation = explainFitScore({ opportunityId, score, fitNotes: fit, breakdown });
-
+  if (score === null)
+    return (
+      <aside className="radar-fit-reading" aria-label="Why this score">
+        <p className="eyebrow">Before the proposal</p>
+        <h4>
+          Fit first.
+          <br />
+          Effort second.
+        </h4>
+        <p>
+          Give each dimension a score from 0 to 20. The total reflects your
+          judgment of the work, not a promise of winning it.
+        </p>
+        <p>
+          New dimensions start at 10 as an editable midpoint. Nothing is scored
+          until you save.
+        </p>
+      </aside>
+    );
+  const explanation = explainFitScore({
+    opportunityId,
+    score,
+    fitNotes: fit,
+    breakdown,
+  });
   return (
-    <section className="panel muse-explanation" aria-label="Why this score" style={{ marginBottom: 14 }}>
-      <div className="panel-heading">
-        <h3>Why {score}/100</h3>
-        <span className="pipeline-count">{explanation.verdict}</span>
-      </div>
-      <div style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-        {explanation.strengths.length > 0 ? (
-          <div>
-            <p className="delivery-row-sub" style={{ textTransform: "uppercase", letterSpacing: ".08em", fontSize: 9, marginBottom: 4 }}>
-              Working for it
-            </p>
-            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
-              {explanation.strengths.map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        {explanation.concerns.length > 0 ? (
-          <div>
-            <p className="delivery-row-sub" style={{ textTransform: "uppercase", letterSpacing: ".08em", fontSize: 9, marginBottom: 4 }}>
-              Working against it
-            </p>
-            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>
-              {explanation.concerns.map((c, i) => (
-                <li key={i}>{c}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        {explanation.notes ? (
-          <div>
-            <p className="delivery-row-sub" style={{ textTransform: "uppercase", letterSpacing: ".08em", fontSize: 9, marginBottom: 4 }}>
-              Your notes
-            </p>
-            <p style={{ margin: 0, fontSize: 13, fontStyle: "italic" }}>“{explanation.notes}”</p>
-          </div>
-        ) : null}
-        {explanation.nudge ? (
-          <p style={{ margin: 0, fontSize: 13 }}>
-            <strong>Muse:</strong> {explanation.nudge}
-          </p>
-        ) : null}
-      </div>
-    </section>
+    <aside className="radar-fit-reading" aria-label="Why this score">
+      <p className="eyebrow">Your recorded assessment</p>
+      <h4>
+        {score}
+        <small>/100</small>
+      </h4>
+      <p className="radar-verdict">{explanation.verdict}</p>
+      {explanation.strengths.length ? (
+        <div>
+          <h5>Working for it</h5>
+          <ul>
+            {explanation.strengths.map((s, i) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {explanation.concerns.length ? (
+        <div>
+          <h5>Worth a closer look</h5>
+          <ul>
+            {explanation.concerns.map((c, i) => (
+              <li key={i}>{c}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {explanation.notes ? (
+        <div>
+          <h5>Your notes</h5>
+          <p>{explanation.notes}</p>
+        </div>
+      ) : null}
+      {explanation.nudge ? (
+        <p>
+          <strong>Muse:</strong> {explanation.nudge}
+        </p>
+      ) : null}
+    </aside>
   );
 }

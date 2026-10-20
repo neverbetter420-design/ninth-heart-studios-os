@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
-import { categoryLabel } from "@/lib/templates";
+import {
+  DocumentCreate,
+  DocumentNav,
+  DocumentNotice,
+  DocumentSectionHeading,
+  documentDate,
+} from "@/components/documents/DocumentChrome";
+import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
+import { categoryLabel, isTemplateCategory } from "@/lib/templates";
 import { createClient } from "@/lib/supabase/server";
 import type { Template } from "@/lib/supabase/types";
 import { createTemplate } from "./actions";
@@ -8,127 +16,190 @@ import { createTemplate } from "./actions";
 export default async function TemplatesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; category?: string }>;
+  searchParams: Promise<{ error?: string; category?: string; state?: string }>;
 }) {
-  const { error: formError, category: categoryFilter } = await searchParams;
+  const { error: formError, category, state } = await searchParams;
   const supabase = await createClient();
-
-  const { data: raw } = await supabase
+  const { data: raw, error } = await supabase
     .from("templates")
     .select("id, name, category, content, active, created_at, updated_at")
     .order("updated_at", { ascending: false });
-  const templates = (raw ?? []) as Template[];
-
+  const templates = (error ? [] : (raw ?? [])) as Template[];
   const active = templates.filter((t) => t.active);
-  const archived = templates.filter((t) => !t.active);
-  const shown = categoryFilter
-    ? active.filter((t) => t.category === categoryFilter)
-    : active;
-
+  const archived = state === "archived";
+  const filter = isTemplateCategory(category) ? category : undefined;
+  const shown = templates.filter(
+    (t) => t.active !== archived && (!filter || t.category === filter),
+  );
   return (
-    <div className="content-wrap">
-      <header className="page-header">
+    <div className="content-wrap management-page paperwork-page">
+      <header className="page-header management-heading paperwork-heading">
         <div>
-          <p className="eyebrow electric">Master Templates</p>
-          <h2>Reusable without looking recycled.</h2>
+          <p className="eyebrow">The studio library</p>
+          <h2>
+            Written once.
+            <br />
+            <em>Made yours, every time.</em>
+          </h2>
           <p className="page-description">
-            One controlled library for contracts and studio documents. Write it
-            once, use it on every project.
+            Keep reusable contract terms and document copy ready for the next
+            project. Use Fillable forms when clients need to answer questions.
           </p>
         </div>
       </header>
-
-      {formError ? (
-        <section className="panel lead-query-error" style={{ marginBottom: 14 }}>
-          <strong>Heads up.</strong>
-          <span>{decodeURIComponent(formError)}</span>
-        </section>
-      ) : null}
-
+      <DocumentNav current="templates" />
       <section className="metric-grid" aria-label="Template metrics">
-        <MetricCard label="Active" value={String(active.length)} detail="Ready to use" tone="violet" />
+        <MetricCard
+          label="Active templates"
+          value={error ? "—" : String(active.length)}
+          detail="Reusable studio copy"
+          tone="violet"
+        />
         <MetricCard
           label="Contract templates"
-          value={String(active.filter((t) => t.category === "contract").length)}
-          detail="Prefill contract bodies"
+          value={
+            error
+              ? "—"
+              : String(active.filter((t) => t.category === "contract").length)
+          }
+          detail="Ready for a draft"
           tone="pink"
         />
         <MetricCard
-          label="Document templates"
-          value={String(active.filter((t) => t.category === "document").length)}
-          detail="Prefill document notes"
+          label="Archived"
+          value={
+            error ? "—" : String(templates.filter((t) => !t.active).length)
+          }
+          detail="Available to restore"
           tone="cyan"
         />
-        <MetricCard label="Archived" value={String(archived.length)} detail="Retired, not deleted" tone="green" />
       </section>
-
-      <section className="panel" aria-label="New template" style={{ marginBottom: 14 }}>
-        <div className="panel-heading">
-          <h3>New template</h3>
-        </div>
-        <form action={createTemplate} style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
-          <div className="delivery-add-form" style={{ padding: 0 }}>
-            <input type="text" name="name" placeholder="Template name…" required maxLength={160} />
-            <select name="category" defaultValue="contract" aria-label="Category">
-              <option value="contract">Contract</option>
-              <option value="document">Document</option>
-            </select>
+      {formError ? <DocumentNotice>{formError}</DocumentNotice> : null}
+      <DocumentCreate
+        title="New template"
+        detail="Reusable terms, welcome notes or handoff copy"
+        open={Boolean(formError)}
+      >
+        <form action={createTemplate} className="paperwork-form">
+          <div className="paperwork-form-grid">
+            <label className="field">
+              <span>Template name</span>
+              <input name="name" required maxLength={160} />
+            </label>
+            <label className="field">
+              <span>Category</span>
+              <select
+                aria-label="Category"
+                name="category"
+                defaultValue="contract"
+              >
+                <option value="contract">Contract</option>
+                <option value="document">Document</option>
+              </select>
+            </label>
           </div>
           <label className="field">
-            <span>Body</span>
+            <span>Reusable text</span>
             <textarea
+              aria-label="Reusable text"
               name="body"
-              className="notes-area"
-              style={{ minHeight: 140 }}
-              placeholder="The reusable text — scope, payment terms, welcome packet, handoff checklist…"
+              className="paperwork-short-editor"
+              placeholder="Scope, welcome notes or a handoff checklist…"
             />
           </label>
           <div>
-            <button type="submit" className="mini-button go">Create template</button>
+            <PortalSubmitButton pendingLabel="Creating template…">
+              Create template
+            </PortalSubmitButton>
           </div>
         </form>
-      </section>
-
-      <section className="panel" aria-label="Templates">
-        <div className="panel-heading">
-          <h3>Templates</h3>
-          <span style={{ display: "flex", gap: 8 }}>
-            <Link href="/templates" className="mini-button">All</Link>
-            <Link href="/templates?category=contract" className="mini-button">Contracts</Link>
-            <Link href="/templates?category=document" className="mini-button">Documents</Link>
-          </span>
-        </div>
-        <ul className="delivery-list">
-          {shown.length === 0 ? (
-            <li className="delivery-row">
-              <p className="pipeline-empty">No templates here yet. The first one is the hardest; the rest are copy-paste.</p>
-            </li>
-          ) : (
-            shown.map((t) => (
-              <li key={t.id} className="delivery-row">
-                <div className="delivery-row-main">
-                  <p className="delivery-row-title">
-                    <Link href={`/templates/${t.id}`} style={{ color: "inherit", textDecoration: "none" }}>
-                      {t.name}
-                    </Link>
-                  </p>
-                  <p className="delivery-row-sub">
-                    {categoryLabel(t.category)} · Updated{" "}
-                    {new Date(t.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                  </p>
-                </div>
-                <span className="delivery-pill visible">{categoryLabel(t.category)}</span>
-              </li>
-            ))
-          )}
-        </ul>
-        {archived.length > 0 ? (
-          <div style={{ padding: "0 18px 14px" }}>
-            <p className="muted-copy" style={{ fontSize: 12 }}>
-              Archived: {archived.map((t) => t.name).join(", ")}
+      </DocumentCreate>
+      <section aria-label="Templates">
+        <DocumentSectionHeading
+          eyebrow="Text directory"
+          title={
+            archived ? "From the archive" : "A starting point for good work"
+          }
+          detail={
+            error
+              ? "Unavailable"
+              : `${shown.length} ${shown.length === 1 ? "template" : "templates"}`
+          }
+        />
+        <nav className="paperwork-filters" aria-label="Template availability">
+          {[
+            [false, "Active"],
+            [true, "Archived"],
+          ].map(([inactive, label]) => (
+            <Link
+              key={String(inactive)}
+              href={`/templates?${new URLSearchParams({ ...(filter ? { category: filter } : {}), ...(inactive ? { state: "archived" } : {}) })}`}
+              aria-current={archived === inactive ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <nav className="paperwork-filters" aria-label="Template category">
+          {[
+            ["", "All categories"],
+            ["contract", "Contracts"],
+            ["document", "Documents"],
+          ].map(([key, label]) => (
+            <Link
+              key={key}
+              href={`/templates?${new URLSearchParams({ ...(key ? { category: key } : {}), ...(archived ? { state: "archived" } : {}) })}`}
+              aria-current={(filter ?? "") === key ? "page" : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+        {error ? (
+          <DocumentNotice>
+            Templates could not load. Refresh to try again.
+          </DocumentNotice>
+        ) : shown.length === 0 ? (
+          <div className="management-empty">
+            <h4>
+              {archived
+                ? "Nothing in the archive."
+                : "Your best words belong here."}
+            </h4>
+            <p>
+              {archived
+                ? "Archived templates remain available to open and restore."
+                : "Create a text template and use it as the starting point for contracts or project documents."}
             </p>
           </div>
-        ) : null}
+        ) : (
+          <ol className="paperwork-list">
+            {shown.map((t, i) => (
+              <li key={t.id} className="paperwork-row">
+                <span className="paperwork-number" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h4>{t.name}</h4>
+                  <p>
+                    {categoryLabel(t.category)} · Updated{" "}
+                    {documentDate(t.updated_at)}
+                  </p>
+                </div>
+                <span className="paperwork-status">
+                  {t.active ? "Active" : "Archived"}
+                </span>
+                <Link
+                  href={`/templates/${t.id}`}
+                  className="management-text-link"
+                  aria-label={`Open template: ${t.name}`}
+                >
+                  Open template <span aria-hidden="true">↗</span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        )}
       </section>
     </div>
   );

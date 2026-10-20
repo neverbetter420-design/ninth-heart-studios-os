@@ -3,7 +3,7 @@ import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import { MetricCard } from "./MetricCard";
-import { PageHeader } from "./PageHeader";
+import { NocturneStudioArt } from "./NocturneStudioArt";
 
 function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();
@@ -71,8 +71,7 @@ export async function Dashboard() {
   const metrics = [
     { label: "Active Leads", value: String(rankedLeads.length), detail: `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
     { label: "Waiting on Me", value: String(waitingOnMe), detail: `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
-    { label: "Open Projects", value: String(projectCount ?? 0), detail: "Live Supabase count", tone: "cyan" as const },
-    { label: "Priority Engine", value: String(nextActions.length), detail: "Top actions surfaced", tone: "green" as const },
+    { label: "Open Projects", value: String(projectCount ?? 0), detail: "Across your studio", tone: "cyan" as const },
   ];
 
   const projects = (rawProjects ?? []) as { id: string; name: string; status: string; progress: number; due_date: string | null }[];
@@ -80,49 +79,102 @@ export async function Dashboard() {
   const activities = (rawActivities ?? []) as { id: string; summary: string; created_at: string }[];
 
   return (
-    <div className="content-wrap">
-      <PageHeader
-        eyebrow="Command Center"
-        title="Good evening, Hailey."
-        description="The studio pulse at a glance. Human replies outrank busywork, because apparently software needed to be taught manners."
-        action="+ Quick capture"
-        actionHref="/leads#quick-capture"
-      />
+    <div className="content-wrap nocturne-command-center">
+      <header className="nocturne-overview">
+        <div className="nocturne-welcome-copy">
+          <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
+          <h2>Your studio, <em>in focus.</em></h2>
+          <p className="page-description">A little clarity. A little momentum.<br />Space for your next beautiful thing.</p>
+          <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
+        </div>
+        <NocturneStudioArt />
+      </header>
 
       <section className="metric-grid" aria-label="Studio metrics">
         {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
       </section>
 
-      <section className="dashboard-grid">
-        <div className="panel action-panel">
+      <section className="dashboard-grid" aria-label="Studio priorities and projects">
+        <section className="panel action-panel" aria-labelledby="nocturne-actions-title">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow electric">Priority engine</p>
-              <h3>Next 3 actions</h3>
+              <p className="eyebrow electric">01 · Your attention</p>
+              <h3 id="nocturne-actions-title">Next 3 actions</h3>
             </div>
-            <span className="live-pill"><i /> Live logic</span>
+            <span className="live-pill"><i /> Ranked for you</span>
           </div>
 
           <div className="action-list">
             {nextActions.length ? nextActions.map((item, index) => (
               <article className="action-row" key={item.id}>
-                <div className={`priority-number priority-${item.priorityLabel}`}>{index + 1}</div>
+                <div className={`priority-number priority-${item.priorityLabel}`} aria-hidden="true">0{index + 1}</div>
                 <div className="action-copy">
                   <span className="action-title">{item.actionTitle}</span>
                   <strong>{item.business_name}</strong>
                   <small>{item.actionMeta}</small>
                 </div>
-                <Link className="ghost-button" href={`/leads/${item.id}`}>Open lead</Link>
+                <Link className="ghost-button" href={`/leads/${item.id}`} aria-label={`Open lead: ${item.business_name}`}>Open lead <span aria-hidden="true">↗</span></Link>
               </article>
             )) : (
               <div className="empty-dashboard-actions">
                 <strong>No lead actions yet.</strong>
-                <span>Capture a lead and Flowkeep will rank the next move.</span>
+                <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>
+                <Link href="/leads#quick-capture" className="nocturne-empty-link">Capture a lead <span aria-hidden="true">↗</span></Link>
               </div>
             )}
           </div>
-        </div>
+        </section>
 
+        <section className="panel project-panel" aria-labelledby="nocturne-projects-title">
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">02 · In motion</p>
+              <h3 id="nocturne-projects-title">Project pulse</h3>
+            </div>
+            <Link className="text-button" href="/projects">View pipeline →</Link>
+          </div>
+          <div className="project-list">
+            {projects.length ? projects.map((project) => (
+              <div className="project-row" key={project.id}>
+                <div className="project-copy">
+                  <strong><Link href={"/projects/" + project.id}>{project.name}</Link></strong>
+                  <span>{stageLabel(project.status)} · {dueLabel(project.due_date)}</span>
+                </div>
+                <div className="progress-track" aria-label={`${project.progress}% complete`}>
+                  <span style={{ width: `${project.progress}%` }} />
+                </div>
+                <b>{project.progress}%</b>
+              </div>
+            )) : (
+              <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>
+            )}
+          </div>
+        </section>
+
+      </section>
+
+      <section className="nocturne-activity" aria-labelledby="nocturne-activity-title">
+        <div className="nocturne-activity-heading">
+          <p className="eyebrow">03 · The latest</p>
+          <h3 id="nocturne-activity-title">Around the studio</h3>
+        </div>
+        <div className="activity-list">
+          {activities.length ? activities.map((item) => (
+            <div className="activity-row" key={item.id}>
+              <span className="activity-dot" aria-hidden="true" />
+              <p>{item.summary}</p>
+              <time dateTime={item.created_at}>{relativeTime(item.created_at)}</time>
+            </div>
+          )) : <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>}
+        </div>
+      </section>
+
+      <details className="nocturne-insights">
+        <summary>
+          <span><strong>A little more perspective.</strong><small>Muse recommendations & opportunity radar</small></span>
+          <span className="nocturne-insights-toggle" aria-hidden="true">Explore</span>
+        </summary>
+        <div className="nocturne-insights-grid">
         <aside className="panel muse-panel">
           <div className="muse-hero">
             <span className="muse-orb large" />
@@ -142,32 +194,6 @@ export async function Dashboard() {
           </Link>
         </aside>
 
-        <div className="panel project-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">Delivery</p>
-              <h3>Project pulse</h3>
-            </div>
-            <Link className="text-button" href="/projects">View pipeline →</Link>
-          </div>
-          <div className="project-list">
-            {projects.length ? projects.map((project) => (
-              <div className="project-row" key={project.id}>
-                <div className="project-copy">
-                  <strong>{project.name}</strong>
-                  <span>{stageLabel(project.status)} · {dueLabel(project.due_date)}</span>
-                </div>
-                <div className="progress-track" aria-label={`${project.progress}% complete`}>
-                  <span style={{ width: `${project.progress}%` }} />
-                </div>
-                <b>{project.progress}%</b>
-              </div>
-            )) : (
-              <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>
-            )}
-          </div>
-        </div>
-
         <div className="panel radar-panel">
           <div className="panel-heading">
             <div>
@@ -181,7 +207,7 @@ export async function Dashboard() {
               <div className="radar-row" key={item.id}>
                 <div>
                   <small>{item.source}</small>
-                  <strong>{item.title}</strong>
+                  <strong><Link href={"/opportunities/" + item.id}>{item.title}</Link></strong>
                 </div>
                 <div className="score-ring"><span>{item.score ?? "—"}</span></div>
               </div>
@@ -191,26 +217,8 @@ export async function Dashboard() {
           </div>
         </div>
 
-        <div className="panel activity-panel">
-          <div className="panel-heading">
-            <div>
-              <p className="eyebrow">System</p>
-              <h3>Recent activity</h3>
-            </div>
-          </div>
-          <div className="activity-list">
-            {activities.length ? activities.map((item) => (
-              <div className="activity-row" key={item.id}>
-                <span className="activity-dot" />
-                <p>{item.summary}</p>
-                <time>{relativeTime(item.created_at)}</time>
-              </div>
-            )) : (
-              <p className="pipeline-empty">No activity yet. Actions on leads and projects will show up here.</p>
-            )}
-          </div>
         </div>
-      </section>
+      </details>
     </div>
   );
 }

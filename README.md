@@ -60,3 +60,13 @@ NHS OS is hosted on `https://app.ninthheartstudios.com`, separate from the publi
    This requires the Site URL above. The callback verifies the one-use recovery token on the server; it does not authenticate other users or bypass the existing roles. The default Supabase email template remains supported for same-browser recovery via the direct reset page.
 
 After deploy/configuration, test with an **isolated invited test user**: request a reset on the live hostname, open the newest email link, set a password of at least 12 characters, and sign in again. Test both an invalid/expired URL and a direct visit to `/auth/reset-password` without a link. Never use real client accounts for test resets.
+
+## Nocturne implementation review
+
+The Nocturne: Atelier Edition follow-up is on a draft review branch. See the
+[implementation and review guide](docs/NOCTURNE_IMPLEMENTATION_REVIEW_2026-10-18.md)
+for the local synthetic preview, desktop/mobile screenshots, validation and
+separate production release gates. Run `npm run preview:design` to start the
+read-only visual review at `http://127.0.0.1:4173`; it does not sign in or use
+hosted data. Set `NHS_VISUAL_BUILT_CSS=1` after `npm run build` to include the
+production stylesheet and fonts. These source changes have not been deployed.

@@ -1,0 +1,70 @@
+name: NHS OS isolated OpenNext dependency remediation
+
+# Tests a proposed npm lockfile remediation in an ephemeral CI runner.
+# No GitHub writes, production tokens, database access, or Cloudflare deployments.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/dependency-remediation-probe.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Test pinned OpenNext 1.20.9 (no source changes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Resolve audited compatible OpenNext downgrade in runner only
+        run: npm install --save-dev --save-exact @opennextjs/cloudflare@1.20.9 --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Print precise lockfile changes (for review)
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+          const before = JSON.parse(execFileSync('git', ['show', 'HEAD:package-lock.json'], {encoding:'utf8'}));
+          const after = JSON.parse(fs.readFileSync('package-lock.json','utf8'));
+          const entries = new Set([...Object.keys(before.packages), ...Object.keys(after.packages)]);
+          const changes = [...entries].sort().flatMap(key => {
+            const a = before.packages[key] || null;
+            const b = after.packages[key] || null;
+            return JSON.stringify(a) === JSON.stringify(b) ? [] : [{path:key, previous_version:a?.version, next:b}];
+          });
+          console.log('NHS_LOCKFILE_DIFF_BEGIN');
+          console.log(JSON.stringify({changes,root:after.packages[''],packages_count:Object.keys(after.packages).length}));
+          console.log('NHS_LOCKFILE_DIFF_END');
+          NODE
+          git diff --stat -- package.json package-lock.json
+
+      - name: Verify clean locked install
+        run: npm ci --no-audit --no-fund
+
+      - name: Audit entire updated dependency tree (high+ must be zero)
+        run: npm audit --audit-level=high
+
+      - name: Validate TypeScript and local release guards
+        run: |
+          npm run typecheck
+          npm run verify:release-preflight
+
+      - name: Build and dry-run Cloudflare production bundle without deploying
+        run: |
+          npm run cf:build
+          npm run cf:dry-run

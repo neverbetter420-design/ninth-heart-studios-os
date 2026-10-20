@@ -52,6 +52,16 @@ export type DiscoveredBusiness = {
   website: string | null;
   lat: number | null;
   lng: number | null;
+  social_profiles: SocialProfile[];
+};
+
+export type SocialPlatform = "instagram" | "facebook";
+export type SocialProfile = {
+  platform: SocialPlatform;
+  url: string;
+  source: "listing" | "website" | "manual";
+  status: "matched" | "unconfirmed";
+  evidence: string;
 };
 
 export type WebsiteSignals = {
@@ -67,6 +77,9 @@ export type WebsiteSignals = {
   load_ms: number | null;
   page_bytes: number | null;
   error?: string;
+  social_profiles?: SocialProfile[];
+  social_checked_at?: string;
+  website_source?: "listing" | "social_profile";
 };
 
 const UA = "NinthHeartStudios-OS/1.0 (prospect-scanner; contact: admin@ninthheartstudios.com)";
@@ -146,10 +159,74 @@ export async function discoverBusinesses(
       website: normalizeWebsite(tags.website ?? tags["contact:website"] ?? null),
       lat: el.lat ?? el.center?.lat ?? null,
       lng: el.lon ?? el.center?.lon ?? null,
+      social_profiles: socialProfilesFromTags(tags),
     });
     if (out.length >= limit) break;
   }
   return out;
+}
+
+/** Exact platform hosts only: reject share/login/post links and lookalike domains. */
+export function normalizeSocialProfile(raw: string | null, platform?: SocialPlatform): string | null {
+  if (typeof raw !== "string" || !raw) return null;
+  const value = raw.trim();
+  const handle = value.replace(/^@/, "");
+  const candidate = platform && /^[a-z0-9._-]{1,100}$/i.test(handle) && !/^(?:www\.)?(instagram|facebook)\.com$/i.test(handle)
+    ? `https://www.${platform}.com/${handle}/` : normalizeWebsite(value);
+  if (!candidate) return null;
+  const url = new URL(candidate);
+  const inferred = socialPlatform(url.toString());
+  if (!inferred || (platform && inferred !== platform)) return null;
+  const parts = url.pathname.split("/").filter(Boolean);
+  if (!parts.length) return null;
+  if (inferred === "instagram") {
+    if (parts.length !== 1 || !/^[a-z0-9._]{1,30}$/i.test(parts[0]) || /^(accounts|explore|p|reel|reels|stories|direct|about|developer|web|legal)$/i.test(parts[0])) return null;
+  } else {
+    if (/^(login|login.php|checkpoint|share|sharer|sharer.php|dialog|watch|reel|reels|groups|events|plugins|help|privacy|policies|l.php)$/i.test(parts[0])) return null;
+    if (parts[0] === "profile.php") {
+      const id = url.searchParams.get("id");
+      return id && /^\d+$/.test(id) ? `https://www.facebook.com/profile.php?id=${id}` : null;
+    }
+    if (parts.length !== 1 && !(["pages", "people"].includes(parts[0]) && parts.length === 3 && /^\d+$/.test(parts[2]))) return null;
+    if (parts.some(p => !/^[a-z0-9._-]+$/i.test(p))) return null;
+  }
+  return `https://www.${inferred}.com/${parts.join("/")}/`;
+}
+
+function socialPlatform(raw: string): SocialPlatform | null {
+  try {
+    const host = new URL(raw).hostname.toLowerCase();
+    if (["instagram.com", "www.instagram.com", "m.instagram.com"].includes(host)) return "instagram";
+    if (["facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com"].includes(host)) return "facebook";
+  } catch { /* invalid links are not candidates */ }
+  return null;
+}
+
+export function socialProfilesFromTags(tags: Record<string, string>): SocialProfile[] {
+  const profiles: SocialProfile[] = [];
+  for (const platform of ["instagram", "facebook"] as const) {
+    const url = normalizeSocialProfile(tags[`contact:${platform}`] ?? tags[platform] ?? null, platform);
+    if (url) profiles.push({ platform, url, source: "listing", status: "unconfirmed", evidence: "Listed business profile; not checked yet" });
+  }
+  const website = normalizeSocialProfile(tags.website ?? tags["contact:website"] ?? null);
+  if (website && !profiles.some(p => p.url === website)) profiles.push({ platform: socialPlatform(website)!, url: website, source: "listing", status: "unconfirmed", evidence: "Listed as the business website; not checked yet" });
+  return profiles;
+}
+
+/** Refresh the same OSM object, never a similarly named business or location. */
+export async function refreshSocialProfiles(sourceRef: string | null): Promise<SocialProfile[]> {
+  const identity = /^(node|way|relation):(\d+)$/.exec(sourceRef ?? "");
+  if (!identity) return [];
+  try {
+    const res = await fetchWithTimeout("https://overpass-api.de/api/interpreter", 7000, {
+      method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
+      body: `data=${encodeURIComponent(`[out:json][timeout:5];${identity[1]}(${identity[2]});out tags;`)}`,
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as { elements?: OverpassElement[] };
+    const element = data.elements?.find(e => `${e.type}:${e.id}` === sourceRef);
+    return socialProfilesFromTags(element?.tags ?? {});
+  } catch { return []; }
 }
 
 /** Validate untrusted third-party website links before any server request. */
@@ -281,15 +358,132 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
         copyright_year,
         load_ms,
         page_bytes: bytes,
+        social_profiles: socialProfilesFromHtml(text),
       };
   } catch (error) {
     return { ...empty, error: error instanceof Error ? error.message : "unreachable" };
   }
 }
 
+function decodeHtml(text: string): string {
+  return text.replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#(?:39|x27);|&apos;/gi, "'").replace(/&nbsp;/gi, " ");
+}
+
+function attribute(tag: string, name: string): string | null {
+  return tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, "i"))?.[2] ?? null;
+}
+
+function socialProfilesFromHtml(html: string): SocialProfile[] {
+  const profiles: SocialProfile[] = [];
+  for (const match of html.matchAll(/<a\b[^>]*>/gi)) {
+    const url = normalizeSocialProfile(decodeHtml(attribute(match[0], "href") ?? ""));
+    if (url && !profiles.some(p => p.platform === socialPlatform(url))) profiles.push({ platform: socialPlatform(url)!, url, source: "website", status: "unconfirmed", evidence: "Linked from the business website; not checked yet" });
+  }
+  return profiles;
+}
+
+type PresenceInput = {
+  name: string;
+  address: string | null;
+  phone: string | null;
+  website: string | null;
+  social_profiles?: SocialProfile[];
+};
+
+function words(raw: string): string {
+  return decodeHtml(raw).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+/** A public profile must match the name AND phone/location before it can supply a website. */
+async function checkSocialProfile(profile: SocialProfile, business: PresenceInput): Promise<{ profile: SocialProfile; websites: string[] }> {
+  const unconfirmed = (evidence: string) => ({ profile: { ...profile, status: "unconfirmed" as const, evidence }, websites: [] as string[] });
+  const url = normalizeSocialProfile(profile.url, profile.platform);
+  if (!url) return unconfirmed("Invalid profile link; manual review required");
+  try {
+    let current = url;
+    const signal = AbortSignal.timeout(4500);
+    let response: Response | null = null;
+    for (let hop = 0; hop <= 2; hop++) {
+      response = await fetch(current, { redirect: "manual", headers: { "User-Agent": UA, Accept: "text/html" }, signal });
+      if (![301, 302, 303, 307, 308].includes(response.status)) break;
+      const location = response.headers.get("location");
+      if (!location || hop === 2) return unconfirmed("Profile redirects could not be verified");
+      const next = normalizeSocialProfile(new URL(location, current).toString(), profile.platform);
+      if (!next) return unconfirmed("Profile requires login or redirects away; manual review required");
+      current = next;
+    }
+    if (!response?.ok || !(response.headers.get("content-type") ?? "").toLowerCase().includes("text/html")) return unconfirmed("Public profile unavailable; manual review required");
+    const { text } = await readLimitedHtml(response);
+    // Only visible content and description/title metadata count as identity evidence.
+    // Script bundles can contain unrelated businesses, so never search them for a match.
+    const visible = text.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+    const metadata = [...visible.matchAll(/<meta\b[^>]*>/gi)].map(m => m[0]).filter(tag => /^(og:title|og:description|description)$/i.test(attribute(tag, "name") ?? attribute(tag, "property") ?? "")).map(tag => attribute(tag, "content") ?? "").join(" ");
+    const readable = decodeHtml(metadata + " " + visible.replace(/<[^>]*>/g, " "));
+    const title = decodeHtml(visible.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] ?? "");
+    if (/^(?:instagram|facebook|log\s*in.*|.*login.*|security check|just a moment.*)$/i.test(title.trim()) || /content (?:isn't|is not) available|sorry,? this page isn't available|please wait a few minutes/i.test(readable)) return unconfirmed("Login, unavailable page or automated-access block; manual review required");
+    const name = words(business.name);
+    const content = ` ${words(readable)} `;
+    const profileTitle = [...visible.matchAll(/<meta\b[^>]*>/gi)].map(m => m[0]).filter(tag => attribute(tag, "property")?.toLowerCase() === "og:title").map(tag => attribute(tag, "content") ?? "").join(" ");
+    const nameMatch = name.length >= 4 && ` ${words(title + " " + profileTitle)} `.includes(` ${name} `);
+    const phone = business.phone?.replace(/\D/g, "").slice(-10) ?? "";
+    const phoneMatch = phone.length === 10 && [...readable.matchAll(/\+?\d[\d\s().-]{7,}\d/g)].some(m => m[0].replace(/\D/g, "").slice(-10) === phone);
+    // Discovery addresses are street, city, state, postcode; require a street or city.
+    const addressParts = (business.address ?? "").split(",").map(words);
+    const locationMatch = addressParts.some((part, i) => i < 2 && part.length >= 4 && !/^[a-z]{2}$|^\d+$/.test(part) && content.includes(` ${part} `));
+    if (!nameMatch || !(phoneMatch || locationMatch)) return unconfirmed("Could not match the business name and phone/location; review this profile");
+
+    const websites = new Set<string>();
+    // Only explicit website/identity links count. Links in posts, adverts or
+    // unrelated embedded JSON must never replace the business website.
+    const links: string[] = [];
+    for (const match of visible.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/gi)) {
+      const label = words(attribute(match[0], "aria-label") ?? match[0].replace(/<[^>]*>/g, " "));
+      const rel = (attribute(match[0], "rel") ?? "").split(/\s+/);
+      if (!/^(?:(?:visit|official|business|our) )?(?:our )?website(?: link)?$/.test(label) && !rel.includes("me")) continue;
+      links.push(decodeHtml(attribute(match[0], "href") ?? ""));
+    }
+    for (const raw of links) {
+      let target = normalizeWebsite(raw);
+      if (!target) continue;
+      const parsed = new URL(target);
+      if (["l.facebook.com", "lm.facebook.com", "l.instagram.com"].includes(parsed.hostname)) target = normalizeWebsite(parsed.searchParams.get("u"));
+      if (!target) continue;
+      const host = new URL(target).hostname.toLowerCase();
+      if (/(^|\.)(facebook\.com|instagram\.com|meta\.com|fb\.com|fbcdn\.net|cdninstagram\.com|threads\.net|threads\.com|twitter\.com|x\.com|youtube\.com|tiktok\.com|google\.com|apple\.com|microsoft\.com|linktr\.ee|yelp\.com|doordash\.com|ubereats\.com|opentable\.com|resy\.com|toasttab\.com|squareup\.com|bit\.ly|goo\.gl)$/.test(host)) continue;
+      websites.add(target);
+    }
+    return { profile: { ...profile, url: current, status: "matched", evidence: phoneMatch ? "Public profile matches business name and phone" : "Public profile matches business name and location" }, websites: [...websites] };
+  } catch { return unconfirmed("Public profile check inconclusive; manual review required"); }
+}
+
+/** Check up to one Instagram and one Facebook profile; absence is never proven. */
+export async function analyzeBusinessPresence(business: PresenceInput): Promise<{ website: string | null; signals: WebsiteSignals }> {
+  const listedWebsite = normalizeWebsite(business.website);
+  let website = listedWebsite && !socialPlatform(listedWebsite) ? listedWebsite : null;
+  let signals = await analyzeWebsite(website);
+  const profiles = [...(signals.social_profiles ?? []), ...(business.social_profiles ?? [])];
+  const listedSocial = normalizeSocialProfile(listedWebsite);
+  if (listedSocial) profiles.unshift({ platform: socialPlatform(listedSocial)!, url: listedSocial, source: "listing", status: "unconfirmed", evidence: "Listed as business website" });
+  const candidates = new Map<SocialPlatform, SocialProfile>();
+  for (const p of profiles) {
+    const url = normalizeSocialProfile(p.url, p.platform);
+    if (url && ["instagram", "facebook"].includes(p.platform) && !candidates.has(p.platform)) candidates.set(p.platform, { ...p, url });
+  }
+  const checked = await Promise.all([...candidates.values()].map(p => checkSocialProfile(p, business)));
+  if (!website) {
+    const websites = [...new Set(checked.flatMap(p => p.websites))];
+    // Conflicting links require human review. Do not choose an arbitrary business URL.
+    if (websites.length === 1) {
+      website = websites[0];
+      signals = { ...await analyzeWebsite(website), website_source: "social_profile" };
+    }
+  }
+  return { website, signals: { ...signals, social_profiles: checked.map(p => p.profile), social_checked_at: new Date().toISOString() } };
+}
+
 /** Deterministic 0-100 opportunity score. Higher = better outreach target. */
 export function scoreSignals(s: WebsiteSignals): number {
-  if (!s.has_website) return 35; // No URL listed is not proof of no website.
+  if (!s.has_website) return 10; // Unverified absence stays low priority, even with a social profile.
   if (!s.reachable) return 25; // A temporary check failure is inconclusive.
   let score = 5;
   if (!s.https) score += 12;
@@ -322,7 +516,9 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
 
   const findings: string[] = [];
   if (!s.has_website) {
-    findings.push("I couldn't find a website linked in the business listing. If you already have one, I'd love to take a look.");
+    findings.push(s.social_profiles?.some(p => p.status === "matched")
+      ? "I found your business on social media, but couldn't confirm a separate website from the listing and public profile check. If you already have one, I'd love to take a look."
+      : "I couldn't find a website linked in the business listing. Your website and social profiles still need a closer look before I draw any conclusions.");
   } else if (!s.reachable) {
     findings.push("I couldn't verify the website during a quick check, so I won't guess at what's wrong.");
   } else {
@@ -355,7 +551,7 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
 /** Human-readable signal badges for the UI. */
 export function signalBadges(s: WebsiteSignals): Array<{ label: string; tone: "good" | "warn" | "bad" }> {
   const badges: Array<{ label: string; tone: "good" | "warn" | "bad" }> = [];
-  if (!s.has_website) return [{ label: "No website listed (verify)", tone: "warn" }];
+  if (!s.has_website) return [{ label: "Website unconfirmed · low priority", tone: "warn" }];
   if (!s.reachable) return [{ label: "Website check inconclusive", tone: "warn" }];
   badges.push(s.https ? { label: "HTTPS", tone: "good" } : { label: "No HTTPS", tone: "warn" });
   badges.push(

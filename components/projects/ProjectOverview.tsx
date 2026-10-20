@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { updateProjectDetails } from "@/app/(protected)/(admin)/projects/actions";
+import { updateProjectDetailsWithFeedback } from "@/app/(protected)/(admin)/projects/actions";
+import { PortalActionForm } from "@/components/portal/PortalActionForm";
 import { stageLabel } from "@/lib/delivery";
+import { ProjectJourney } from "./ProjectJourney";
 
 type Props = {
   project: {
@@ -26,7 +28,7 @@ export function ProjectOverview({ project, clientName }: Props) {
           <h2 style={{ margin: "6px 0 8px" }}>{project.name}</h2>
           <span className="stage-badge">{stageLabel(project.status)}</span>
         </div>
-        <div style={{ minWidth: 220 }}>
+        <div className="studio-project-progress">
           <div className="progress-track" aria-label={`${project.progress}% complete`}>
             <span style={{ width: `${project.progress}%` }} />
           </div>
@@ -39,7 +41,9 @@ export function ProjectOverview({ project, clientName }: Props) {
         </div>
       </div>
 
-      <details className="panel" style={{ marginTop: 14 }}>
+      <ProjectJourney status={project.status} />
+
+      <details className="panel studio-project-settings" style={{ marginTop: 14 }}>
         <summary
           className="panel-heading"
           style={{ cursor: "pointer", listStyle: "none" }}
@@ -47,7 +51,7 @@ export function ProjectOverview({ project, clientName }: Props) {
           <h3>Project details</h3>
           <span className="pipeline-count">Edit</span>
         </summary>
-        <form action={updateProjectDetails} style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+        <PortalActionForm action={updateProjectDetailsWithFeedback} lockOnSuccess={false} pendingMessage="Saving project details…" className="project-details-form" style={{ padding: "14px 18px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
           <input type="hidden" name="project_id" value={project.id} />
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <label className="field" style={{ minWidth: 120 }}>
@@ -66,7 +70,7 @@ export function ProjectOverview({ project, clientName }: Props) {
           <div>
             <button type="submit" className="mini-button go">Save details</button>
           </div>
-        </form>
+        </PortalActionForm>
       </details>
     </div>
   );

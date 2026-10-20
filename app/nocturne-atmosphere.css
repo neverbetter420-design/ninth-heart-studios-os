@@ -1,0 +1,134 @@
+/*
+ * NHS OS | Nocturne: Atelier Edition | Decorative Atmosphere
+ * Purely visual, scoped to existing role-aware shells.
+ * Original NHS logo, permissions, routes, data and actions are untouched.
+ * Decorative SVGs contain no text, interaction or third-party fetches.
+ */
+.app-shell.nhs-theme-admin {
+  color-scheme: dark;
+  --nhs-atmosphere-canvas: #100d15;
+  --nhs-atmosphere-floral: url("/visuals/nocturne-floral-arch.svg");
+  background-color: var(--nhs-atmosphere-canvas);
+  background-image:
+    linear-gradient(90deg, rgba(13, 11, 18, .98) 0%, rgba(13, 11, 18, .94) 39%, rgba(13, 11, 18, .76) 83%),
+    radial-gradient(ellipse at 65% 14%, rgba(117, 65, 95, .25), transparent 46%),
+    var(--nhs-atmosphere-floral),
+    radial-gradient(ellipse at 92% 67%, rgba(70, 37, 65, .22), transparent 60%),
+    linear-gradient(150deg, #100d15 0%, #17101a 48%, #0b0a10 100%);
+  background-repeat: no-repeat;
+  background-position: center, center, right top, center, center;
+  background-size: 100% 100%, 100% 100%, min(980px, 93vw) auto, 100% 100%, 100% 100%;
+}
+
+.app-shell.nhs-theme-client {
+  color-scheme: light;
+  --nhs-atmosphere-canvas: #faf6f0;
+  --nhs-atmosphere-floral: url("/visuals/atelier-botanical-arch.svg");
+  background-color: var(--nhs-atmosphere-canvas);
+  background-image:
+    linear-gradient(90deg, rgba(250, 246, 240, .98) 0%, rgba(250, 246, 240, .94) 43%, rgba(250, 246, 240, .74) 100%),
+    radial-gradient(ellipse at 79% 12%, rgba(220, 178, 179, .22), transparent 44%),
+    var(--nhs-atmosphere-floral),
+    radial-gradient(ellipse at 25% 83%, rgba(207, 176, 163, .14), transparent 58%),
+    linear-gradient(150deg, #fdfaf6 0%, #f7eee9 52%, #fdfbf7 100%);
+  background-repeat: no-repeat;
+  background-position: center, center, right top, center, center;
+  background-size: 100% 100%, 100% 100%, min(1030px, 97vw) auto, 100% 100%, 100% 100%;
+}
+
+/* Existing shell/navigation architecture owns all positioning and interaction.
+   The artwork lives entirely in painted backgrounds, never over controls. */
+.nhs-theme-admin .main-shell,
+.nhs-theme-client .main-shell { background-color: transparent; }
+
+/* The approved floral arch is the welcome artwork. Suppress the earlier silk
+   illustrations so two unrelated compositions do not compete with each other. */
+.nhs-theme-admin .nocturne-studio-art,
+.nhs-theme-client .atelier-studio-art { display: none; }
+
+/* The flagship welcome screens carry the richest botanical details. */
+.nhs-theme-admin .nocturne-command-center .nocturne-overview {
+  background-image:
+    linear-gradient(90deg, rgba(14, 11, 19, .97) 0%, rgba(14, 11, 19, .79) 52%, rgba(14, 11, 19, .12) 100%),
+    var(--nhs-atmosphere-floral);
+  background-position: center, right -90px center;
+  background-size: 100% 100%, min(840px, 76vw) auto;
+  background-repeat: no-repeat;
+}
+
+.nhs-theme-client .atelier-hero {
+  background-image:
+    linear-gradient(90deg, rgba(250, 246, 240, .98) 0%, rgba(250, 246, 240, .80) 53%, rgba(250, 246, 240, .10) 100%),
+    var(--nhs-atmosphere-floral);
+  background-position: center, right -65px center;
+  background-size: 100% 100%, min(860px, 85vw) auto;
+  background-repeat: no-repeat;
+}
+
+/* Workspace decoration is quieter to protect forms, files and communications. */
+.nhs-theme-admin .studio-workspace {
+  background-image:
+    linear-gradient(90deg, rgba(13, 11, 18, .98), rgba(13, 11, 18, .94) 63%, rgba(13, 11, 18, .88)),
+    var(--nhs-atmosphere-floral);
+  background-size: 100% 100%, min(680px, 60vw) auto;
+  background-position: center, right top;
+  background-repeat: no-repeat;
+}
+
+.nhs-theme-client .studio-workspace {
+  background-image:
+    linear-gradient(90deg, rgba(250, 246, 240, .98), rgba(250, 246, 240, .94) 65%, rgba(250, 246, 240, .88)),
+    var(--nhs-atmosphere-floral);
+  background-size: 100% 100%, min(680px, 62vw) auto;
+  background-position: center, right top;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 860px) {
+  .app-shell.nhs-theme-admin,
+  .app-shell.nhs-theme-client {
+    background-size: 100% 100%, 100% 100%, 780px auto, 100% 100%, 100% 100%;
+    background-position: center, center, right -275px top 10px, center, center;
+  }
+}
+
+@media (max-width: 620px) {
+  .app-shell.nhs-theme-admin {
+    background-image:
+      linear-gradient(90deg, rgba(13, 11, 18, .98), rgba(13, 11, 18, .92)),
+      var(--nhs-atmosphere-floral),
+      linear-gradient(150deg, #100d15, #17101a 58%, #0b0a10);
+    background-size: 100% 100%, 575px auto, 100% 100%;
+    background-position: center, right -245px top 20px, center;
+  }
+  .app-shell.nhs-theme-client {
+    background-image:
+      linear-gradient(90deg, rgba(250, 246, 240, .98), rgba(250, 246, 240, .92)),
+      var(--nhs-atmosphere-floral),
+      linear-gradient(150deg, #fdfaf6, #f7eee9 54%, #fdfbf7);
+    background-size: 100% 100%, 590px auto, 100% 100%;
+    background-position: center, right -260px top 20px, center;
+  }
+  .nhs-theme-admin .nocturne-command-center .nocturne-overview,
+  .nhs-theme-client .atelier-hero {
+    background-size: 100% 100%, 560px auto;
+    background-position: center, right -235px center;
+  }
+  .nhs-theme-admin .studio-workspace,
+  .nhs-theme-client .studio-workspace {
+    background-size: 100% 100%, 480px auto;
+    background-position: center, right -195px top;
+  }
+}
+
+/* An accessible high-contrast preference takes precedence over ornamentation. */
+@media (prefers-contrast: more), (forced-colors: active) {
+  .app-shell.nhs-theme-admin,
+  .app-shell.nhs-theme-client,
+  .nhs-theme-admin .nocturne-command-center .nocturne-overview,
+  .nhs-theme-client .atelier-hero,
+  .nhs-theme-admin .studio-workspace,
+  .nhs-theme-client .studio-workspace {
+    background-image: none;
+  }
+}

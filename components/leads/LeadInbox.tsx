@@ -7,28 +7,30 @@ function momentumClass(state: string) {
   return "momentum-wait";
 }
 
-export function LeadInbox({ leads }: { leads: RankedLead[] }) {
+export function LeadInbox({ leads, unavailable = false }: { leads: RankedLead[]; unavailable?: boolean }) {
   return (
-    <section className="panel lead-inbox-panel">
+    <section className="lead-inbox-panel" aria-labelledby="lead-inbox-title">
       <div className="panel-heading">
         <div>
           <p className="eyebrow electric">Momentum queue</p>
-          <h3>Lead inbox</h3>
+          <h3 id="lead-inbox-title">The next conversation</h3>
         </div>
-        <span className="live-pill"><i /> Deterministic ranking</span>
+        <span className="lead-queue-count">{unavailable ? "Unavailable" : `${leads.length} active`}</span>
       </div>
 
-      {leads.length === 0 ? (
+      {unavailable ? (
+        <p className="lead-unavailable">Your queue will return when lead data is available. Refresh to try again.</p>
+      ) : leads.length === 0 ? (
         <div className="empty-state">
           <h3>No active leads.</h3>
-          <p>Capture one above. The software can rank leads, but tragically it still cannot invent customers without becoming a scam.</p>
+          <p>Capture a business to start the next conversation. Its first action will appear here.</p>
         </div>
       ) : (
         <div className="lead-inbox-list">
-          {leads.map((lead) => (
+          {leads.map((lead, index) => (
             <article className="lead-inbox-row" key={lead.id}>
-              <div className={`priority-number priority-${lead.priorityLabel}`}>
-                {lead.priorityLabel === "critical" ? "!" : lead.priorityLabel === "high" ? "↑" : "·"}
+              <div className={`lead-queue-rank priority-${lead.priorityLabel}`} aria-label={`${lead.priorityLabel} priority, position ${index + 1}`}>
+                {String(index + 1).padStart(2, "0")}
               </div>
 
               <div className="lead-primary">
@@ -42,10 +44,10 @@ export function LeadInbox({ leads }: { leads: RankedLead[] }) {
 
               <div className="lead-meta-stack">
                 <span>{lead.acquisition_type === "inbound" ? "Inbound" : "Outbound"}</span>
-                <strong>{lead.score ?? "—"}</strong>
+                <strong>{lead.score ?? "—"}<small> / 100</small></strong>
               </div>
 
-              <Link href={`/leads/${lead.id}`} className="ghost-button lead-open-link">Open lead</Link>
+              <Link href={`/leads/${lead.id}`} className="lead-open-link" aria-label={`Open lead: ${lead.business_name}`}>Open lead <span aria-hidden="true">↗</span></Link>
             </article>
           ))}
         </div>
