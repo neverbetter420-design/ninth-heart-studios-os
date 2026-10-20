@@ -12,9 +12,34 @@ const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "n
 // The visual suite denies network access, so embed only these two local, vetted
 // decorative assets. This allows screenshots to show the same artwork as the app.
 const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg"]);
-export const previewCSS = styles.map((name) => readFileSync(resolve(root, `app/${name}.css`), "utf8"))
-  .join("\n")
+const built = process.env.NHS_VISUAL_BUILT_CSS === "1";
+const chunks = resolve(root, ".next/static/chunks");
+function builtStyles() {
+  const manifest = readFileSync(resolve(root, ".next/server/app/(protected)/(admin)/page_client-reference-manifest.js"), "utf8");
+  const match = manifest.match(/"entryCSSFiles":(\{.*?\}),"entryJSFiles"/);
+  if (!match) throw new Error("Build CSS manifest unavailable; run npm run build first");
+  const entries = JSON.parse(match[1]);
+  const layout = Object.keys(entries).find(key => key.endsWith("/app/layout"));
+  if (!layout || !entries[layout].length) throw new Error("Build CSS has no root layout");
+  return entries[layout].map(({ path }) => {
+    if (!/^static\/chunks\/[a-zA-Z0-9_-]+\.css$/.test(path)) throw new Error("Unexpected build CSS path");
+    return readFileSync(resolve(root, ".next", path), "utf8");
+  }).join("\n");
+}
+// Opt in after a clean production build to review its processed CSS and exact
+// self-hosted fonts. Ordinary network-blocked tests use explicit system fallbacks.
+const sourceCSS = built
+  ? builtStyles()
+  : styles.map((name) => readFileSync(resolve(root, `app/${name}.css`), "utf8")).join("\n");
+export const previewTypography = built ? "Production CSS and embedded fonts" : "Source CSS and system fallback fonts";
+export const previewCSS = (sourceCSS + (built
+  ? '\n:root { --font-cinzel: "Cinzel", "Cinzel Fallback"; --font-dm-sans: "DM Sans", "DM Sans Fallback"; }'
+  : '\n:root { --font-cinzel: Georgia; --font-dm-sans: Arial; }'))
   .replace('@import "tailwindcss";', "")
+  .replace(/url\(["']?([^"'()]+\.woff2)["']?\)/g, (_, path) => {
+    if (!built || !/^\.\.\/media\/[a-zA-Z0-9_.-]+\.woff2$/.test(path)) throw new Error(`Unexpected preview font: ${path}`);
+    return `url("data:font/woff2;base64,${readFileSync(resolve(chunks, path)).toString("base64")}")`;
+  })
   .replace(/url\(["']?\/visuals\/([a-z0-9-]+\.svg)["']?\)/g, (original, filename) => {
     if (!approvedArtwork.has(filename)) throw new Error(`Unapproved visual asset: ${filename}`);
     const svg = readFileSync(resolve(root, "public/visuals", filename), "utf8");
@@ -48,7 +73,10 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       { id: "synthetic-event-2", event_type: "project_updated", summary: "Mira Studio moved into development", created_at: new Date(Date.now() - 7200000).toISOString() },
       { id: "synthetic-event-3", event_type: "notes_updated", summary: "Northline Editions discovery notes updated", created_at: new Date(Date.now() - 86400000).toISOString() },
     ] : [],
-    tasks: [], milestones: [], launch_items: [], messages: [], documents: [],
+    tasks: [], milestones: [], launch_items: [], messages: view === "project" && scenario === "populated" ? [
+      { id: "synthetic-message-self", project_id: project.id, sender_id: "synthetic-review-user", body: "The botanical direction feels right. Thank you for sharing it.", created_at: "2026-10-18T15:00:00Z" },
+      { id: "synthetic-message-other", project_id: project.id, sender_id: "synthetic-other", body: "A considered next step: we can review the homepage together.", created_at: "2026-10-18T16:00:00Z" },
+    ] : [], documents: [],
     prospects: scenario === "empty" ? [] : [
       { id: "synthetic-no-site", business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone", address: "Puyallup, WA", category: "bar", website: null, signals: { has_website: false, reachable: false, social_profiles: [{ platform: "facebook", url: "https://www.facebook.com/cedarandstone/", source: "listing", status: "unconfirmed", evidence: "Public profile unavailable; manual review required" }] }, opportunity_score: 35, outreach_status: "none", status: "new" },
       { id: "synthetic-rough-site", business_name: "Mira Studio", website: "https://example.com/", signals: { has_website: true, reachable: true, https: false, mobile_viewport: false, builder: "Wix", title_ok: false, description_ok: false }, opportunity_score: 65, outreach_status: "none", status: "new" },
@@ -56,6 +84,15 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     revision_rounds: [], change_orders: [], contracts: [], form_submissions: [], form_templates: [], templates: [],
     files: view === "project" && scenario === "populated" ? [{ id: "synthetic-image", filename: "Shared design.png", mime_type: "image/png", visibility: "client", size_bytes: 100, created_at: "2026-10-01T12:00:00Z", object_path: "synthetic.png" }] : [],
   };
+  const portalResource = view.startsWith("portal-") ? view.slice(7) : null;
+  if (portalResource && scenario !== "empty") {
+    const stamp = "2026-10-18T15:00:00Z";
+    rows.messages = [{ id: "synthetic-message", project_id: project.id, body: "The botanical direction feels right. Thank you for sharing it.", created_at: stamp }];
+    rows.files = [{ id: "synthetic-file", project_id: project.id, filename: "Homepage concept.png", created_at: stamp }];
+    rows.documents = [{ id: "synthetic-document", project_id: project.id, title: "Project welcome and next steps", kind: "document", created_at: stamp }];
+    rows.contracts = [{ id: "synthetic-contract", project_id: project.id, title: "Website design agreement", status: "sent", created_at: stamp }];
+    rows.form_submissions = [{ id: "synthetic-form", project_id: project.id, status: "sent", created_at: stamp }];
+  }
   if (["pipeline", "client-detail"].includes(view) && scenario === "long") rows.projects[0].name = "UnbrokenProjectTitle".repeat(10);
   if (view === "clients" && scenario === "populated") rows.clients = ["Cedar & Stone", "Mira Studio", "Northline Editions"].map((name, i) => ({ ...rows.clients[0], id: i ? `synthetic-client-${i}` : "synthetic-client", name, status: i === 2 ? "archived" : "active", projects: Array.from({length: 3-i}, (_, j) => ({ id: `project-${i}-${j}` })) }));
   if (view === "pipeline" && scenario === "stages") rows.projects = ["discovery", "content", "design", "build", "review", "launch", "care", "on_hold", "legacy_phase"].map((status, i) => ({ ...project, id: `synthetic-stage-${i}`, name: `Sample ${status} project`, status, progress: i === 0 ? 120 : i * 10, due_date: "2020-01-01" }));
@@ -109,7 +146,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     chain.maybeSingle = () => { result.data = rows[table][0] ?? null; return chain; };
     return chain;
   } };
-  const path = view === "navigation" ? section : view === "opportunity-detail" ? "/opportunities/synthetic-opportunity" : ["muse", "settings", "automations", "opportunities"].includes(view) ? `/${view}` : view in documentViews ? `/${documentViews[view]}${view.endsWith("-detail") ? "/synthetic-document" : ""}` : view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
+  const path = view.startsWith("portal-") ? `/portal/${view.slice(7)}` : view === "navigation" ? section : view === "opportunity-detail" ? "/opportunities/synthetic-opportunity" : ["muse", "settings", "automations", "opportunities"].includes(view) ? `/${view}` : view in documentViews ? `/${documentViews[view]}${view.endsWith("-detail") ? "/synthetic-document" : ""}` : view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -143,7 +180,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     return module.exports;
   }
   const { AppShell } = load(resolve(root, "components/AppShell.tsx"));
-  const Page = view === "opportunity-detail" ? load(resolve(root, "app/(protected)/(admin)/opportunities/[id]/page.tsx")).default : ["muse", "settings", "automations", "opportunities"].includes(view) ? load(resolve(root, `app/(protected)/(admin)/${view}/page.tsx`)).default : view in documentViews ? load(resolve(root, `app/(protected)/(admin)/${documentViews[view]}/${view.endsWith("-detail") ? "[id]/" : ""}page.tsx`)).default : ["clients", "client-detail", "pipeline"].includes(view)
+  const Page = portalResource && !["projects", "documents"].includes(portalResource) ? () => load(resolve(root, "components/portal/PortalResourcePage.tsx")).PortalResourcePage({ kind: portalResource }) : portalResource ? load(resolve(root, `app/(protected)/portal/${portalResource}/page.tsx`)).default : view === "opportunity-detail" ? load(resolve(root, "app/(protected)/(admin)/opportunities/[id]/page.tsx")).default : ["muse", "settings", "automations", "opportunities"].includes(view) ? load(resolve(root, `app/(protected)/(admin)/${view}/page.tsx`)).default : view in documentViews ? load(resolve(root, `app/(protected)/(admin)/${documentViews[view]}/${view.endsWith("-detail") ? "[id]/" : ""}page.tsx`)).default : ["clients", "client-detail", "pipeline"].includes(view)
     ? load(resolve(root, { clients: "app/(protected)/(admin)/clients/page.tsx", "client-detail": "app/(protected)/(admin)/clients/[id]/page.tsx", pipeline: "app/(protected)/(admin)/projects/page.tsx" }[view])).default
     : view === "scanner"
     ? load(resolve(root, "app/(protected)/(admin)/leads/discover/page.tsx")).default
@@ -152,7 +189,26 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     : view === "project"
     ? load(resolve(root, role === "admin" ? "app/(protected)/(admin)/projects/[projectId]/page.tsx" : "app/(protected)/portal/projects/[projectId]/page.tsx")).default
     : role === "admin" ? load(resolve(root, "components/Dashboard.tsx")).Dashboard : load(resolve(root, "app/(protected)/portal/page.tsx")).default;
-  const content = view === "navigation" ? "<h2>Navigation review</h2>" : renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id, leadId: "synthetic-lead-0", id: "synthetic-client" }), searchParams: Promise.resolve({ status: scenario === "filtered" && view === "opportunities" ? "qualified" : scenario === "invalid-stage" ? "constructor" : undefined, section, kind: ["preview", "long"].includes(scenario) && view === "muse" ? "follow_up" : undefined, target: view === "muse" ? scenario === "invalid-target" ? "lead:missing" : ["preview", "long"].includes(scenario) ? "lead:synthetic-muse-lead" : undefined : undefined, state: scenario === "archived" ? "archived" : undefined, category: scenario === "filtered" ? "contract" : undefined, client: scenario === "context" ? "synthetic-client" : undefined, error: scenario === "form-error" ? "Check the submitted fields and try again." : undefined }) }));
+  let content;
+  if (view === "controls") {
+    const { MessageThread } = load(resolve(root, "components/projects/MessageThread.tsx"));
+    const { FeedbackFrame } = load(resolve(root, "components/projects/FeedbackFrame.tsx"));
+    const { FormFill } = load(resolve(root, "components/portal/FormFill.tsx"));
+    const noop = async () => { throw new Error("Preview actions are disabled"); };
+    content = renderToStaticMarkup(React.createElement("div", { className: "content-wrap studio-workspace" },
+      React.createElement(MessageThread, { projectId: project.id, currentUserId: "synthetic-review-user", otherLabel: "Studio", sendAction: noop, messages: [
+        { id: "self", sender_id: "synthetic-review-user", body: "The botanical direction feels right.", created_at: "2026-10-18T15:00:00Z" },
+        { id: "other", sender_id: "other", body: "Thank you. We can review the next step together.", created_at: "2026-10-18T16:00:00Z" },
+      ] }),
+      React.createElement(FeedbackFrame, { pageLabel: "Homepage concept", pins: [
+        { id: "one", x: 25, y: 35, comment: "Review this heading", resolved: false },
+        { id: "two", x: 65, y: 55, comment: "Spacing confirmed", resolved: true },
+      ], picked: null, onPick: noop, selectedPinId: "one", onSelectPin: noop }),
+      React.createElement(FormFill, { submitAction: noop, submissions: [{ id: "synthetic-invoice", status: "sent", sourceUrl: null, template: { id: "synthetic-invoice-template", name: "Project invoice", category: "invoice", fields: [
+        { id: "invoice-lines", label: "Project services", type: "line_items", required: true },
+        { id: "signature", label: "Confirmation", type: "signature", required: true },
+      ] } }] })));
+  } else content = view === "navigation" ? "<h2>Navigation review</h2>" : renderToStaticMarkup(await Page({ params: Promise.resolve({ projectId: project.id, leadId: "synthetic-lead-0", id: "synthetic-client" }), searchParams: Promise.resolve({ status: scenario === "filtered" && view === "opportunities" ? "qualified" : scenario === "invalid-stage" ? "constructor" : undefined, section, kind: ["preview", "long"].includes(scenario) && view === "muse" ? "follow_up" : undefined, target: view === "muse" ? scenario === "invalid-target" ? "lead:missing" : ["preview", "long"].includes(scenario) ? "lead:synthetic-muse-lead" : undefined : undefined, state: scenario === "archived" ? "archived" : undefined, category: scenario === "filtered" ? "contract" : undefined, client: scenario === "context" ? "synthetic-client" : undefined, error: scenario === "form-error" ? "Check the submitted fields and try again." : undefined }) }));
   const user = { name: "Synthetic Review Owner", email: "visual-review@example.invalid" };
   const html = renderToStaticMarkup(React.createElement(AppShell, { role, user }, React.createElement("div", { "data-preview-content": true, dangerouslySetInnerHTML: { __html: content } })));
   const embeddedHTML = html.replaceAll('src="/brand/nhs-original-logo.webp"', 'src="data:image/webp;base64,' + readFileSync(resolve(root, "public/brand/nhs-original-logo.webp")).toString("base64") + '"');

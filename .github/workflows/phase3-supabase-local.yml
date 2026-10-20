@@ -5,9 +5,16 @@ name: NHS Phase 3 local Supabase Auth and API security
 on:
   pull_request:
     paths:
+      - 'app/**'
+      - 'components/**'
+      - 'public/**'
       - '.github/workflows/phase3-supabase-local.yml'
       - 'scripts/verify-phase3-supabase-local.mjs'
       - 'tests/e2e/phase3-local-ui.spec.mjs'
+      - 'tests/helpers/**'
+      - 'scripts/build-nocturne-review.mjs'
+      - 'scripts/verify-nocturne-gallery.mjs'
+      - 'wrangler.nocturne-gallery.jsonc'
       - 'supabase/migrations/**'
   workflow_dispatch:
 
@@ -104,12 +111,26 @@ jobs:
           npx playwright install --with-deps chromium
           npx playwright test tests/e2e/phase3-local-ui.spec.mjs --retries=0
 
-      - name: Upload synthetic Nocturne Atelier desktop and mobile previews
+      - name: Build browsable synthetic Admin and Client visual review
+        if: success()
+        run: node scripts/build-nocturne-review.mjs
+
+      - name: Verify isolated screenshot-only Cloudflare Worker bundle without publishing
+        if: success()
+        run: |
+          node scripts/verify-nocturne-gallery.mjs
+          npx wrangler deploy --dry-run --config wrangler.nocturne-gallery.jsonc
+
+      - name: Upload navigable Nocturne Atelier design review with original screenshots
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: nhs-nocturne-atelier-visual-review
-          path: design-preview/*.png
+          path: |
+            design-preview/index.html
+            design-preview/Open_This_Review.html
+            design-preview/_headers
+            design-preview/*.png
           if-no-files-found: error
           retention-days: 7
 

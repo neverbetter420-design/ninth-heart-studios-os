@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test:visual": "playwright test --config=playwright.visual.config.mjs",
+    "preview:design": "node scripts/preview-nocturne.mjs",
     "seed:test-users": "node --env-file=.env.local scripts/seed-test-users.mjs",
     "verify:security": "node --env-file=.env.local scripts/verify-security.mjs",
     "verify:flowkeep": "node --experimental-strip-types scripts/verify-flowkeep.ts",

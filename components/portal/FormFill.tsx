@@ -30,36 +30,39 @@ function LineItemsEditor({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="studio-line-items">
       {items.map((item, i) => (
-        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div key={i} className="studio-line-item-row">
           <input
+            className="studio-line-item-description"
             type="text"
             placeholder="Description…"
+            aria-label={`Line ${i + 1} description`}
             value={item.description}
             onChange={(e) => update(i, { description: e.target.value })}
-            style={{ flex: 1 }}
             required={field.required}
           />
           <input
+            className="studio-line-item-quantity"
             type="number"
             min={0}
             step="1"
             placeholder="Qty"
+            aria-label={`Line ${i + 1} quantity`}
             value={item.qty}
             onChange={(e) => update(i, { qty: Number(e.target.value) || 0 })}
-            style={{ width: 70 }}
           />
           <input
+            className="studio-line-item-price"
             type="number"
             min={0}
             step="0.01"
             placeholder="Price $"
+            aria-label={`Line ${i + 1} unit price in dollars`}
             value={item.price_cents / 100}
             onChange={(e) => update(i, { price_cents: Math.round((Number(e.target.value) || 0) * 100) })}
-            style={{ width: 90 }}
           />
-          <span style={{ width: 80, textAlign: "right", fontSize: 13 }}>
+          <span className="studio-line-item-total">
             {formatCents(item.qty * item.price_cents)}
           </span>
           <button
@@ -72,7 +75,7 @@ function LineItemsEditor({
           </button>
         </div>
       ))}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="studio-line-items-footer">
         <button
           type="button"
           className="mini-button"

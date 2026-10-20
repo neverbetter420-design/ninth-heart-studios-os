@@ -1,0 +1,53 @@
+name: NHS Nocturne isolated HTML review
+
+# Safe synthetic preview only: no secrets, no hosted Supabase and no deployment.
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'public/**'
+      - 'tests/helpers/nocturne-render.mjs'
+      - 'scripts/build-nocturne-static.mjs'
+      - 'scripts/verify-nocturne-static.mjs'
+      - 'wrangler.nocturne-static.jsonc'
+      - '.github/workflows/nocturne-pages-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-html-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+    steps:
+      - name: Checkout review branch without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install project dependencies without hosted credentials
+        run: npm ci
+      - name: Render the 30 actual synthetic Admin and Client screens
+        run: node scripts/build-nocturne-static.mjs
+      - name: Validate static output and no production connections
+        run: node scripts/verify-nocturne-static.mjs
+      - name: Validate separate static Worker configuration without publishing
+        run: npx wrangler deploy --dry-run --config wrangler.nocturne-static.jsonc
+      - name: Upload actual source-rendered HTML preview package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhs-nocturne-html-preview
+          path: nocturne-static-preview/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Record no hosted changes
+        run: |
+          echo "Isolated source-rendered design: no Supabase, no user data, no secrets, no Cloudflare deployment." >> "$GITHUB_STEP_SUMMARY"

@@ -23,3 +23,6 @@ pnpm-debug.log*
 .dev.vars
 playwright-report/
 test-results/
+
+# Generated, static, synthetic Nocturne review pages
+nocturne-static-preview/

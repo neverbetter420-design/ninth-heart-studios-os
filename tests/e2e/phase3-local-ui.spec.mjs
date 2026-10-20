@@ -633,8 +633,17 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await adminPage.goto("/projects/" + projectA);
       await expect(adminPage.getByRole("heading", { name: "Synthetic UI Project A" })).toBeVisible();
       await captureReviewScreen(adminPage, "design-preview/nocturne-admin-project-" + previewSuffix + ".png");
-      for (const [label, target] of [["Design & feedback", "workspace-collaboration"], ["Files & documents", "workspace-resources"], ["Conversation", "workspace-conversation"], ["Delivery", "workspace-delivery"]]) {
+      // Next.js may finish the route transition after the target <details>
+      // first reports open. Wait for the URL change before testing the native
+      // summary toggle, otherwise the late server response reopens the section.
+      for (const [label, target, section] of [
+        ["Design & feedback", "workspace-collaboration", "creative"],
+        ["Files & documents", "workspace-resources", "files"],
+        ["Conversation", "workspace-conversation", "messages"],
+        ["Delivery", "workspace-delivery", "delivery"],
+      ]) {
         await adminPage.getByRole("navigation", { name: "Project destinations" }).getByRole("link", { name: label, exact: true }).click();
+        await expect(adminPage).toHaveURL(new RegExp("[?&]section=" + section + "(?:#|&|$)"));
         await expect(adminPage.locator("details#" + target)).toHaveAttribute("open", "");
         await adminPage.locator("details#" + target + " > summary").click();
         await expect(adminPage.locator("details#" + target)).not.toHaveAttribute("open", "");
