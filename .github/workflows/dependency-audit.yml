@@ -1,0 +1,91 @@
+name: NHS OS dependency security audit
+
+# Read-only dependency check for the release candidate. No hosted backend,
+# Cloudflare credentials, application deploy, production schema change or data writes.
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/dependency-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-audit:
+    name: Locked npm dependency advisories (high+)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out PR integration or manually dispatched ref
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Verify locked install without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Audit full dependency tree and fail on high/critical vulnerabilities
+        shell: bash
+        run: |
+          set -u
+          npm audit --json > "$RUNNER_TEMP/nhs-npm-audit.json"
+          audit_exit_code=$?
+          export AUDIT_EXIT_CODE="$audit_exit_code"
+          node <<'NODE'
+          const fs = require("node:fs");
+          const file = process.env.RUNNER_TEMP + "/nhs-npm-audit.json";
+          let report;
+          try {
+            report = JSON.parse(fs.readFileSync(file, "utf8"));
+          } catch (error) {
+            console.error("npm audit did not produce valid JSON:", error.message);
+            process.exit(2);
+          }
+          if (report.error || !report.vulnerabilities || !report.metadata?.vulnerabilities) {
+            console.error("npm audit returned an error or an incomplete advisory report.");
+            console.error(report.error?.code || report.error?.summary || "Unknown error");
+            process.exit(2);
+          }
+          const counts = report.metadata.vulnerabilities;
+          const findings = Object.entries(report.vulnerabilities)
+            .filter(([, finding]) => ["high", "critical"].includes(finding.severity))
+            .map(([name, finding]) => ({
+              name,
+              severity: finding.severity,
+              affected: finding.range,
+              direct: finding.isDirect,
+              nodes: finding.nodes?.slice(0, 4) || [],
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+          const lines = [
+            "## NHS OS locked dependency audit",
+            "",
+            "Full npm dependency tree, including build-time and development packages.",
+            "",
+            "| Severity | Count |",
+            "| --- | ---: |",
+            ...["critical", "high", "moderate", "low", "info"].map(level =>
+              `| ${level} | ${counts[level] || 0} |`),
+            "",
+            "### High and critical advisories",
+            findings.length ? "" : "No high/critical advisories reported.",
+            ...findings.map(f =>
+              `- **${f.severity.toUpperCase()}** \`${f.name}\` affected \`${f.affected}\`, ${f.direct ? "direct" : "transitive"}, paths: ${f.nodes.join(", ") || "not reported"}`),
+            "",
+            "This read-only job does not update packages or deploy.",
+          ];
+          const summary = lines.join("\n");
+          console.log(summary);
+          if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary + "\n");
+          if (findings.length) process.exit(1);
+          if (process.env.AUDIT_EXIT_CODE !== "0") process.exit(2);
+          NODE
