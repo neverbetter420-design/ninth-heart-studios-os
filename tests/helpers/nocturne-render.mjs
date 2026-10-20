@@ -81,6 +81,28 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       { id: "synthetic-no-site", business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone", address: "Puyallup, WA", category: "bar", website: null, signals: { has_website: false, reachable: false, social_profiles: [{ platform: "facebook", url: "https://www.facebook.com/cedarandstone/", source: "listing", status: "unconfirmed", evidence: "Public profile unavailable; manual review required" }] }, opportunity_score: 35, outreach_status: "none", status: "new" },
       { id: "synthetic-rough-site", business_name: "Mira Studio", website: "https://example.com/", signals: { has_website: true, reachable: true, https: false, mobile_viewport: false, builder: "Wix", title_ok: false, description_ok: false }, opportunity_score: 65, outreach_status: "none", status: "new" },
     ],
+    lead_search_requests: view === "scanner" && scenario !== "empty" ? [{
+      id: "synthetic-review-search", owner_id: "synthetic-review-user", source: "openstreetmap",
+      location: "Puyallup, WA", industry: "Bars & Pubs, Restaurants", status: "complete",
+      result_count: 2, imported_count: 0, auto_import: false,
+      error_message: null, created_at: "2026-10-18T17:00:00Z",
+    }] : [],
+    lead_search_results: view === "scanner" && scenario !== "empty" ? [
+      { id: "synthetic-search-a", search_id: "synthetic-review-search", source_ref: "node:123",
+        business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone",
+        industry: "restaurant", address: "123 Main St, Puyallup, WA", phone: "253-555-0123",
+        website: "https://example.invalid", email: null,
+        maps_url: "https://www.openstreetmap.org/node/123",
+        source: "openstreetmap", discovery_score: 70, duplicate: false, imported: false,
+        import_status: "ready",
+        details: { social_profiles: [{platform:"instagram",url:"https://www.instagram.com/cedarandstone/",status:"unconfirmed"}] } },
+      { id: "synthetic-search-b", search_id: "synthetic-review-search", source_ref: "way:456",
+        business_name: "Mira Studio", industry: "bar", address: "Puyallup, WA",
+        phone: null, website: null, email: null,
+        maps_url: "https://www.openstreetmap.org/way/456",
+        source: "openstreetmap", discovery_score: 5, duplicate: false, imported: false,
+        import_status: "needs_verification", details: {} },
+    ] : [],
     revision_rounds: [], change_orders: [], contracts: [], form_submissions: [], form_templates: [], templates: [],
     files: view === "project" && scenario === "populated" ? [{ id: "synthetic-image", filename: "Shared design.png", mime_type: "image/png", visibility: "client", size_bytes: 100, created_at: "2026-10-01T12:00:00Z", object_path: "synthetic.png" }] : [],
   };
@@ -176,7 +198,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       if (!["react", "react-dom", "react/jsx-runtime"].includes(name)) throw new Error(`Unapproved preview import: ${name}`);
       return require(name);
     };
-    vm.runInNewContext(code, { require: localRequire, module, exports: module.exports, console, Date, URL, URLSearchParams }, { filename: file });
+    vm.runInNewContext(code, { require: localRequire, module, exports: module.exports, console, Date, URL, URLSearchParams, process: {env: {}} }, { filename: file });
     return module.exports;
   }
   const { AppShell } = load(resolve(root, "components/AppShell.tsx"));
