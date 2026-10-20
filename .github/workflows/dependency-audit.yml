@@ -36,9 +36,10 @@ jobs:
       - name: Audit full dependency tree and fail on high/critical vulnerabilities
         shell: bash
         run: |
-          set -u
+          set +e
           npm audit --json > "$RUNNER_TEMP/nhs-npm-audit.json"
           audit_exit_code=$?
+          set -e
           export AUDIT_EXIT_CODE="$audit_exit_code"
           node <<'NODE'
           const fs = require("node:fs");
