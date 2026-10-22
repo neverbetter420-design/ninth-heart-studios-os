@@ -111,6 +111,36 @@ export function completenessScore(b: Pick<DiscoveredBusiness, "website" | "phone
     (b.opening_hours ? 5 : 0));
 }
 
+// The public/provider APIs can send unexpectedly large JSON bodies. Limit the
+// bytes read before JSON.parse, including chunked responses with no length header.
+const PROVIDER_JSON_MAX_BYTES = 1024 * 1024;
+async function readBoundedProviderJson(response: Response): Promise<unknown> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("Search provider returned an empty response.");
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let body = "";
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > PROVIDER_JSON_MAX_BYTES)
+        throw new Error("Search provider response is too large. Reduce the results limit.");
+      body += decoder.decode(value, { stream: true });
+    }
+    body += decoder.decode();
+  } finally {
+    await reader.cancel().catch(() => {});
+    reader.releaseLock();
+  }
+  try {
+    return JSON.parse(body) as unknown;
+  } catch {
+    throw new Error("Search provider returned invalid JSON.");
+  }
+}
+
 const osmType = (raw: unknown): string | null => {
   if (raw === "n" || raw === "node") return "node";
   if (raw === "w" || raw === "way") return "way";
@@ -140,7 +170,7 @@ export async function discoverGeoapify(
       signal: ctrl.signal,
     });
     if (!response.ok) throw new Error("Places provider is unavailable. Check its configuration or quota.");
-    parsed = await response.json();
+    parsed = await readBoundedProviderJson(response);
   } catch (error) {
     if (ctrl.signal.aborted) throw new Error("Places provider timed out. Please retry.");
     throw error;
@@ -210,7 +240,7 @@ export async function geocodeGeoapify(place: string, key: string): Promise<{ lat
       signal: ctrl.signal,
     });
     if (!response.ok) throw new Error("Location lookup provider is unavailable. Please retry later.");
-    parsed = await response.json();
+    parsed = await readBoundedProviderJson(response);
   } catch (error) {
     if (ctrl.signal.aborted) throw new Error("Location lookup timed out. Please retry.");
     throw error;
