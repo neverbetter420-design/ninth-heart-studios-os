@@ -2,7 +2,7 @@
 // No database, no network.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { parseFinderForm, websiteHost, isSameBusiness, completenessScore, discoverGeoapify, findBusinesses } from "../lib/lead-finder.ts";
+import { parseFinderForm, websiteHost, isSameBusiness, completenessScore, discoverGeoapify, geocodeGeoapify, findBusinesses } from "../lib/lead-finder.ts";
 import {
   NICHES,
   discoverBusinesses,
@@ -363,6 +363,41 @@ try {
   else process.env.GEOAPIFY_API_KEY=priorGeoKey;
 }
 
+
+// Both Geoapify adapters must bound JSON body consumption, not merely the
+// initial response headers. A slow provider used to leave an open scan forever.
+{
+  const originalFetch = globalThis.fetch;
+  const originalTimer = globalThis.setTimeout;
+  try {
+    // Shorten only the adapters' real timeouts while keeping the response body pending.
+    globalThis.setTimeout = ((handler: Parameters<typeof setTimeout>[0], delay?: number) =>
+      originalTimer(handler, delay === 12000 || delay === 10000 ? 5 : delay)) as typeof setTimeout;
+    globalThis.fetch = async (_input, init) => new Response(new ReadableStream({
+      start(controller) {
+        init?.signal?.addEventListener("abort", () =>
+          controller.error(new DOMException("The operation was aborted", "AbortError")), { once: true });
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } });
+    const mustTimeout = async (promise: Promise<unknown>, label: string) => {
+      const guard = originalTimer(() => {}, 100);
+      clearTimeout(guard);
+      let guardTimer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await assert.rejects(Promise.race([promise, new Promise((_resolve, reject) => {
+          guardTimer = originalTimer(() => reject(new Error("Stalled JSON body escaped adapter timeout")), 100);
+        })]), /timed out/, label);
+      } finally {
+        if (guardTimer) clearTimeout(guardTimer);
+      }
+    };
+    await mustTimeout(discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"), "Places JSON timeout");
+    await mustTimeout(geocodeGeoapify("Puyallup, WA","fixture-key"), "Geocoder JSON timeout");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalTimer;
+  }
+}
 
 // Import -> audit handoff is staged rather than secretly activating
 // scheduled scans, bulk outreach or a real-time third-party website fetch.
