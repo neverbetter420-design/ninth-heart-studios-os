@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { websiteHost } from "@/lib/lead-finder";
 import { NICHES, normalizeSocialProfile, type NicheKey } from "@/lib/prospect-scan";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import {
@@ -165,8 +166,9 @@ export function LeadFinderReview({
               selected.status === "searching" ? "Search is running. Refresh shortly." :
               "No business results stored for this search."}
           </p>}
-          {results.map(r => (
-            <article className="nhs-finder-result" key={r.id}>
+          {results.map(r => {
+            const officialWebsite = Boolean(websiteHost(r.website));
+            return <article className="nhs-finder-result" key={r.id}>
               <div className="nhs-finder-result-head">
                 <div>
                   <h4>{r.business_name}</h4>
@@ -178,7 +180,7 @@ export function LeadFinderReview({
                 <span>{r.imported ? "Imported" : r.duplicate ? "Duplicate" :
                   r.import_status === "ready" ? "Ready to review" :
                   r.import_status === "importing" ? "Import pending" : "Needs verification"}</span>
-                <span>{r.website ? "Website listed" : "Website not confirmed"}</span>
+                <span>{officialWebsite ? "Official website listed" : "Official website not confirmed"}</span>
               </div>
               <div className="nhs-finder-result-meta">
                 {r.address && <span>⌖ {r.address}</span>}
@@ -197,10 +199,10 @@ export function LeadFinderReview({
                 </div>
               ) : null}
               <div className="nhs-finder-result-links">
-                {r.website && <a href={r.website} target="_blank" rel="noreferrer">Website ↗</a>}
+                {r.website && <a href={r.website} target="_blank" rel="noreferrer">{officialWebsite ? "Website ↗" : "Listed page ↗"}</a>}
                 {r.maps_url && <a href={r.maps_url} target="_blank" rel="noreferrer">Map ↗</a>}
                 {r.imported ? <span>✓ In Leads</span> :
-                  r.import_status === "ready" && !r.duplicate && r.website && selected?.status === "complete" ? (
+                  r.import_status === "ready" && !r.duplicate && officialWebsite && selected?.status === "complete" ? (
                     <form action={importLeadSearchResult.bind(null, r.id)}>
                       <PortalSubmitButton className="mini-button accent" pendingLabel="Importing…">
                         + Import lead
@@ -208,8 +210,8 @@ export function LeadFinderReview({
                     </form>
                   ) : <span className="muted">Review before importing</span>}
               </div>
-            </article>
-          ))}
+            </article>;
+          })}
         </div>
       </div>
     </section>
