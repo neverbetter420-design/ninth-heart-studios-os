@@ -106,9 +106,9 @@ export async function discoverGeoapify(
   if (!categories.length) return [];
   const ctrl = new AbortController();
   const timeout = setTimeout(() => ctrl.abort(), 12000);
-  let response: Response;
+  let parsed: unknown;
   try {
-    response = await fetch("https://api.geoapify.com/v2/places", {
+    const response = await fetch("https://api.geoapify.com/v2/places", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": key },
       body: JSON.stringify({
@@ -119,9 +119,13 @@ export async function discoverGeoapify(
       }),
       signal: ctrl.signal,
     });
+    if (!response.ok) throw new Error("Places provider is unavailable. Check its configuration or quota.");
+    parsed = await response.json();
+  } catch (error) {
+    if (ctrl.signal.aborted) throw new Error("Places provider timed out. Please retry.");
+    throw error;
   } finally { clearTimeout(timeout); }
-  if (!response.ok) throw new Error("Places provider is unavailable. Check its configuration or quota.");
-  const body = (await response.json()) as {
+  const body = parsed as {
     features?: Array<{
       properties?: {
         name?: string; place_id?: string; formatted?: string;
@@ -179,15 +183,19 @@ export async function geocodeGeoapify(place: string, key: string): Promise<{ lat
   url.searchParams.set("format", "geojson");
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 10000);
-  let response: Response;
+  let parsed: unknown;
   try {
-    response = await fetch(url.toString(), {
+    const response = await fetch(url.toString(), {
       headers: { "x-api-key": key, "Accept": "application/geo+json" },
       signal: ctrl.signal,
     });
+    if (!response.ok) throw new Error("Location lookup provider is unavailable. Please retry later.");
+    parsed = await response.json();
+  } catch (error) {
+    if (ctrl.signal.aborted) throw new Error("Location lookup timed out. Please retry.");
+    throw error;
   } finally { clearTimeout(timer); }
-  if (!response.ok) throw new Error("Location lookup provider is unavailable. Please retry later.");
-  const data = (await response.json()) as {
+  const data = parsed as {
     features?: Array<{ properties?: { lat?: number; lon?: number } }>;
   };
   const p = data.features?.[0]?.properties;
