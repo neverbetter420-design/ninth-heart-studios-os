@@ -359,6 +359,22 @@ try {
   assert.equal(found[0].source_ref,"node:317");
   assert.equal(found[0].website,"https://example.com/");
   assert.equal(found[0].social_profiles[0].status,"unconfirmed");
+  // Both the Places adapter and the geocoder must reject unexpectedly large
+  // chunked JSON bodies without buffering them all into memory.
+  globalThis.fetch = async () => new Response(
+    JSON.stringify({ features: [], padding: "x".repeat(1024 * 1024 + 1) }),
+    { status: 200, headers: { "content-type": "application/json" } },
+  );
+  await assert.rejects(
+    discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"),
+    /response is too large/,
+    "Places responses are capped at 1 MiB",
+  );
+  await assert.rejects(
+    geocodeGeoapify("Puyallup, WA","fixture-key"),
+    /response is too large/,
+    "Geocoding responses are capped at 1 MiB",
+  );
   globalThis.fetch = async () => new Response("unavailable",{status:503});
   await assert.rejects(discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"),
     /Places provider is unavailable/);
