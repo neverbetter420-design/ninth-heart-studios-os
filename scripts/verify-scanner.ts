@@ -380,8 +380,6 @@ try {
       },
     }), { status: 200, headers: { "content-type": "application/json" } });
     const mustTimeout = async (promise: Promise<unknown>, label: string) => {
-      const guard = originalTimer(() => {}, 100);
-      clearTimeout(guard);
       let guardTimer: ReturnType<typeof setTimeout> | undefined;
       try {
         await assert.rejects(Promise.race([promise, new Promise((_resolve, reject) => {
@@ -405,6 +403,8 @@ const finderActionsSource = readFileSync(new URL("../app/(protected)/(admin)/lea
 const leadActionsSource = readFileSync(new URL("../app/(protected)/(admin)/leads/actions.ts", import.meta.url), "utf8");
 const leadDetailSource = readFileSync(new URL("../app/(protected)/(admin)/leads/[leadId]/page.tsx", import.meta.url), "utf8");
 assert.match(finderActionsSource, /website_audit:\s*\{\s*status:\s*"queued"/, "import creates queued audit metadata");
+assert.match(finderActionsSource, /if \(search\.status !== "complete"\)/,
+  "manual import requires a completed search; partial results cannot create leads");
 assert.doesNotMatch(finderActionsSource, /await\s+analyzeWebsite\s*\(/, "bulk import never fetches all sites");
 assert.match(leadActionsSource, /export async function auditLeadWebsite\(formData: FormData\)/, "manual audit action exists");
 assert.match(leadActionsSource, /const \{ user \} = await requireAdmin\(\)/, "admin authentication required");
