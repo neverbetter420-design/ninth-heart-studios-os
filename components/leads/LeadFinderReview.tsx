@@ -152,7 +152,12 @@ export function LeadFinderReview({
         <div className="nhs-finder-results" id="search-results">
           <div className="nhs-finder-results-heading">
             <h3>Search results <span>{selected ? "(" + results.length + ")" : ""}</span></h3>
-            {selected && <small>{selected.location} · {selected.status}</small>}
+            {selected && <div className="nhs-finder-results-tools">
+              <small>{selected.location} · {selected.status}</small>
+              <Link href={"/leads/discover?search=" + encodeURIComponent(selected.id) + "#search-results"}>
+                Refresh results ↻
+              </Link>
+            </div>}
           </div>
           {!selected && <p className="empty-state">Choose a source and location to discover your first businesses.</p>}
           {selected && !results.length && <p className="empty-state">
@@ -195,7 +200,7 @@ export function LeadFinderReview({
                 {r.website && <a href={r.website} target="_blank" rel="noreferrer">Website ↗</a>}
                 {r.maps_url && <a href={r.maps_url} target="_blank" rel="noreferrer">Map ↗</a>}
                 {r.imported ? <span>✓ In Leads</span> :
-                  r.import_status === "ready" && !r.duplicate && r.website ? (
+                  r.import_status === "ready" && !r.duplicate && r.website && selected?.status === "complete" ? (
                     <form action={importLeadSearchResult.bind(null, r.id)}>
                       <PortalSubmitButton className="mini-button accent" pendingLabel="Importing…">
                         + Import lead
