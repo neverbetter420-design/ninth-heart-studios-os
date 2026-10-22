@@ -219,8 +219,12 @@ export async function importLeadSearchResult(id: string): Promise<never> {
     .select("search_id").eq("id", id).maybeSingle();
   if (!result) redirect(finderURL("Business result not found."));
   const { data: search } = await db.from("lead_search_requests")
-    .select("id").eq("id", result.search_id).eq("owner_id", user.id).maybeSingle();
+    .select("id,status").eq("id", result.search_id).eq("owner_id", user.id).maybeSingle();
   if (!search) redirect(finderURL("Search is not available."));
+  // Partially completed searches may have staged candidates but result_count=0.
+  // Never import manually until the request is complete and counts reconcile.
+  if (search.status !== "complete") redirect(finderURL(
+    "Wait until the search finishes before importing a candidate.", search.id));
   const ok = await importOne(db, user.id, search.id, id);
   if (ok) {
     const { count } = await db.from("lead_search_results")
