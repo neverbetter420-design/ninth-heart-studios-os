@@ -63,6 +63,26 @@ export function websiteHost(raw: string | null | undefined): string | null {
   } catch { return null; }
 }
 
+/** Stable, conservative review-import fingerprint. Separate street addresses remain
+ * separate businesses even if they share a brand website. The database must
+ * enforce uniqueness before simultaneous cross-search imports are supported. */
+export function importIdentityKey(b: {
+  business_name?: string | null; address?: string | null; website?: string | null;
+}): string | null {
+  const host = websiteHost(b.website);
+  const normalized = (value: string | null | undefined) =>
+    String(value ?? "").normalize("NFKD").toLowerCase()
+      .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  const name = normalized(b.business_name);
+  if (!host || !name) return null;
+  const address = normalized(b.address);
+  // Bound the fingerprint for future B-tree uniqueness enforcement. A
+  // collision of unusually long strings fails closed rather than importing twice.
+  return address
+    ? `v1|name:${name.slice(0,180)}|address:${address.slice(0,300)}`
+    : `v1|name:${name.slice(0,180)}|host:${host}`;
+}
+
 export function isSameBusiness(
   a: { source_ref?: string | null; business_name?: string | null; website?: string | null; address?: string | null },
   b: { source_ref?: string | null; business_name?: string | null; website?: string | null; address?: string | null },
