@@ -2,7 +2,7 @@
 // No database, no network.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { parseFinderForm, websiteHost, isSameBusiness, completenessScore, discoverGeoapify, geocodeGeoapify, findBusinesses } from "../lib/lead-finder.ts";
+import { parseFinderForm, websiteHost, isSameBusiness, importIdentityKey, completenessScore, discoverGeoapify, geocodeGeoapify, findBusinesses } from "../lib/lead-finder.ts";
 import {
   NICHES,
   discoverBusinesses,
@@ -312,6 +312,24 @@ assert.equal(isSameBusiness(
   {business_name:"Bakery One", website:"https://shared.example/bakery"},
   {business_name:"Restaurant Two", website:"https://shared.example/restaurant"},
 ), false, "shared hosting does not erase separately named businesses");
+assert.equal(importIdentityKey({
+  business_name:"Café Moon",address:"123 Main Street, Puyallup, WA",website:"https://example.com"
+}), importIdentityKey({
+  business_name:"Cafe Moon",address:"123 MAIN STREET PUYALLUP WA",website:"https://www.example.com"
+}), "same business across searches and providers uses the same import identity");
+assert.notEqual(importIdentityKey({
+  business_name:"Cafe Moon",address:"123 Main Street",website:"https://example.com"
+}), importIdentityKey({
+  business_name:"Cafe Moon",address:"987 Oak Street",website:"https://example.com"
+}), "same-brand separate street locations must remain separate");
+assert.equal(importIdentityKey({
+  business_name:"Cafe Moon",address:null,website:"https://example.com"
+}), importIdentityKey({
+  business_name:"Cafe Moon",address:null,website:"https://www.example.com"
+}), "without an address the name and official website deduplicate");
+assert.equal(importIdentityKey({
+  business_name:"Cafe Moon",address:null,website:"https://instagram.com/cafemoon"
+}), null, "a social page is not eligible for independent website import");
 assert.equal(completenessScore({website:"example.com",phone:"253-555-0123",address:"Main St"}), 70);
 assert.equal(completenessScore({website:null,phone:null,address:"Main St"}), 5);
 
@@ -430,6 +448,18 @@ const leadDetailSource = readFileSync(new URL("../app/(protected)/(admin)/leads/
 assert.match(finderActionsSource, /website_audit:\s*\{\s*status:\s*"queued"/, "import creates queued audit metadata");
 assert.match(finderActionsSource, /if \(search\.status !== "complete"\)/,
   "manual import requires a completed search; partial results cannot create leads");
+assert.match(finderActionsSource, /lead\.metadata\?\.import_key === importKey/,
+  "cross-search import rechecks prior CRM fingerprint");
+assert.match(finderActionsSource, /\.in\("import_status", \["importing", "imported"\]\)/,
+  "cross-search staging conflict is checked before a CRM insert");
+assert.match(finderActionsSource, /insertError\?\.code === "23505"/,
+  "unique-key conflicts are handled without blind retries");
+const idempotencyProposal = readFileSync(
+  new URL("../docs/LEAD_FINDER_IDEMPOTENCY_SQL_REVIEW_ONLY.sql", import.meta.url), "utf8");
+assert.match(idempotencyProposal, /REVIEW ONLY/);
+assert.match(idempotencyProposal, /CREATE UNIQUE INDEX IF NOT EXISTS nhs_lead_finder_source_ref_once/);
+assert.match(idempotencyProposal, /CREATE UNIQUE INDEX IF NOT EXISTS nhs_lead_finder_import_key_once/);
+
 assert.doesNotMatch(finderActionsSource, /await\s+analyzeWebsite\s*\(/, "bulk import never fetches all sites");
 assert.match(leadActionsSource, /export async function auditLeadWebsite\(formData: FormData\)/, "manual audit action exists");
 assert.match(leadActionsSource, /const \{ user \} = await requireAdmin\(\)/, "admin authentication required");
