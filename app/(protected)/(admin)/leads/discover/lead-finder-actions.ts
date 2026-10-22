@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
 import {
-  completenessScore, findBusinesses, isSameBusiness, parseFinderForm, websiteHost,
+  completenessScore, findBusinesses, importIdentityKey, isSameBusiness, parseFinderForm, websiteHost,
   type FinderParams, type FinderSource,
 } from "@/lib/lead-finder";
 import type { NicheKey } from "@/lib/prospect-scan";
@@ -24,6 +24,20 @@ const finderURL = (message: string, id?: string) =>
     msg: message.slice(0, 250),
   }).toString();
 
+type ExistingLead = {
+  id: string; business_name: string | null; website: string | null;
+  metadata: Record<string, unknown> | null;
+};
+function fromExistingLead(lead: ExistingLead) {
+  const metadata = lead.metadata && typeof lead.metadata === "object" &&
+    !Array.isArray(lead.metadata) ? lead.metadata : {};
+  return {
+    business_name: lead.business_name, website: lead.website,
+    address: typeof metadata.address === "string" ? metadata.address : null,
+    source_ref: typeof metadata.source_ref === "string" ? metadata.source_ref : null,
+  };
+}
+
 async function importOne(db: Db, userId: string, searchId: string, id: string) {
   // An atomic claim prevents two simultaneous clicks from importing twice.
   const { data: row, error: claimError } = await db.from("lead_search_results")
@@ -35,18 +49,38 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
     .maybeSingle();
   if (claimError || !row) return false;
   const result = row as SavedResult;
+  const importKey = importIdentityKey(result);
+  if (!importKey) {
+    // A social-only page or unsafe URL cannot be treated as an official website.
+    await db.from("lead_search_results").update({ import_status: "needs_verification" })
+      .eq("id", result.id).eq("import_status", "importing");
+    return false;
+  }
   let createdLeadId: string | null = null;
   try {
     // Recheck CRM and prospects AFTER claiming a result.
-    const [{ data: leads, error: lErr }, { data: prospects, error: pErr }] = await Promise.all([
-      db.from("leads").select("id,business_name,website").limit(1000),
+    const [{ data: leads, error: lErr }, { data: prospects, error: pErr },
+      { data: otherClaims, error: claimCheckError }] = await Promise.all([
+      db.from("leads").select("id,business_name,website,metadata").limit(1000),
       db.from("prospects").select("id,source_ref,business_name,website,address").limit(1000),
+      db.from("lead_search_results").select("id,import_status")
+        .eq("source_ref", result.source_ref).neq("id", result.id)
+        .in("import_status", ["importing", "imported"]).limit(1),
     ]);
-    if (lErr || pErr || (leads?.length ?? 0) === 1000 || (prospects?.length ?? 0) === 1000)
+    if (lErr || pErr || claimCheckError ||
+      (leads?.length ?? 0) === 1000 || (prospects?.length ?? 0) === 1000)
       throw new Error("Cannot safely check duplicate records.");
+    if (otherClaims?.length) {
+      // Another search is already importing or has imported this source.
+      // Do not race it or create a second CRM row.
+      throw new Error("A matching search result is already being imported.");
+    }
     const same = (candidate: { business_name?: string | null; website?: string | null; source_ref?: string | null; address?: string | null }) =>
       isSameBusiness(result, candidate);
-    if (leads?.some(same) || prospects?.some(same)) {
+    if (leads?.some(lead => {
+      const existing = fromExistingLead(lead as ExistingLead);
+      return same(existing) || lead.metadata?.import_key === importKey;
+    }) || prospects?.some(same)) {
       await db.from("lead_search_results").update({
         duplicate: true, import_status: "duplicate", updated_at: new Date().toISOString(),
       }).eq("id", result.id).eq("import_status", "importing");
@@ -65,7 +99,7 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
       next_action_kind: "research",
       metadata: {
         source: "nhs_lead_finder_v2", source_ref: result.source_ref,
-        search_result_id: result.id, address: result.address,
+        search_result_id: result.id, import_key: importKey, address: result.address,
         website_audit: {
           status: "queued",
           website: result.website,
@@ -73,6 +107,14 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
         },
       },
     }).select("id").single();
+    if (insertError?.code === "23505") {
+      // The proposed database uniqueness guard turns a concurrent insert into
+      // a safe duplicate, once separately approved and installed.
+      await db.from("lead_search_results").update({
+        duplicate: true, import_status: "duplicate", updated_at: new Date().toISOString(),
+      }).eq("id", result.id).eq("import_status", "importing");
+      return false;
+    }
     if (insertError || !lead) throw new Error("Could not save lead.");
     createdLeadId = lead.id;
     const { error: confirmError } = await db.from("lead_search_results").update({
@@ -121,12 +163,15 @@ async function executeSearch(db: Db, userId: string, id: string) {
     };
     const discovered = await findBusinesses(params);
     const [{ data: leads, error: lErr }, { data: prospects, error: pErr }] = await Promise.all([
-      db.from("leads").select("id,business_name,website").limit(1000),
+      db.from("leads").select("id,business_name,website,metadata").limit(1000),
       db.from("prospects").select("id,source_ref,business_name,address,website").limit(1000),
     ]);
     if (lErr || pErr || (leads?.length ?? 0) === 1000 || (prospects?.length ?? 0) === 1000)
       throw new Error("Saved lead index cannot be verified. Try again later.");
-    const duplicates = [...(leads ?? []), ...(prospects ?? [])];
+    const duplicates = [
+      ...(leads ?? []).map(lead => fromExistingLead(lead as ExistingLead)),
+      ...(prospects ?? []),
+    ];
     for (const business of discovered.slice(0, params.result_limit)) {
       const existing = duplicates.some(other => isSameBusiness({
         source_ref: business.source_ref, business_name: business.name,
