@@ -91,7 +91,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       { id: "synthetic-search-a", search_id: "synthetic-review-search", source_ref: "node:123",
         business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone",
         industry: "restaurant", address: "123 Main St, Puyallup, WA", phone: "253-555-0123",
-        website: "https://example.invalid", email: null,
+        website: "https://example.com/", email: null,
         maps_url: "https://www.openstreetmap.org/node/123",
         source: "openstreetmap", discovery_score: 70, duplicate: false, imported: false,
         import_status: "ready",
