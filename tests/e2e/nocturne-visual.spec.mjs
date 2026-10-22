@@ -304,6 +304,11 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
     expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
     await expect(finder.getByRole("heading", { name: "Recent searches" })).toBeVisible();
     await expect(finder.getByRole("heading", { name: /Search results/ })).toBeVisible();
+    if (scenario !== "empty") {
+      await expect(finder.getByRole("link", { name: /Refresh results/ })).toBeVisible();
+    } else {
+      await expect(finder.getByRole("link", { name: /Refresh results/ })).toHaveCount(0);
+    }
     if (["normal", "long"].includes(scenario)) {
       const found = finder.locator("article.nhs-finder-result");
       await expect(found).toHaveCount(2);
