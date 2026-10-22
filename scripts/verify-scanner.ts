@@ -244,10 +244,35 @@ await withFetch(() => { throw new DOMException("The operation was aborted", "Abo
   assert.equal(calls.length, 2, "never retry indefinitely");
 });
 
+// PR #19 parity: broken Nominatim must fall back to US-validated Photon.
+await withFetch((url) => {
+  if (url.includes("nominatim.openstreetmap.org"))
+    throw new DOMException("The operation was aborted", "AbortError");
+  if (url.includes("photon.komoot.io"))
+    return new Response(JSON.stringify({ features: [{
+      properties: { name: "Tacoma", countrycode: "US", state: "Washington" },
+      geometry: { coordinates: [-122.4443, 47.2529] },
+    }] }), { status: 200 });
+  throw new Error("Unexpected geocoder");
+}, async () => {
+  const { geocode } = await import("../lib/prospect-scan.ts");
+  const location = await geocode("Tacoma, WA");
+  assert.equal(location.lat, 47.2529);
+  assert.equal(location.lng, -122.4443);
+  assert.deepEqual(calls.map(url => new URL(url).hostname),
+    ["nominatim.openstreetmap.org", "photon.komoot.io"]);
+});
+
 await withFetch(() => { throw new DOMException("The operation was aborted", "AbortError"); }, async () => {
   const { geocode } = await import("../lib/prospect-scan.ts");
-  await assert.rejects(geocode("Puyallup, WA"), /Location lookup is temporarily unavailable/);
-  assert.equal(calls.length, 1, "a failed location lookup does not launch a business search");
+  await assert.rejects(geocode("Unknownville, WA"), /Location lookup is unavailable or ambiguous/);
+  assert.equal(calls.length, 2, "location failures attempt only two bounded providers");
+});
+await withFetch(() => { throw new Error("Puyallup geocoding should not hit network"); }, async () => {
+  const { geocode } = await import("../lib/prospect-scan.ts");
+  const point = await geocode("Puyallup, WA");
+  assert.equal(point.lat, 47.18538);
+  assert.equal(calls.length, 0, "default city uses known center without extra requests");
 });
 
 
