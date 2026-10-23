@@ -375,9 +375,25 @@ try {
     /response is too large/,
     "Geocoding responses are capped at 1 MiB",
   );
-  globalThis.fetch = async () => new Response("unavailable",{status:503});
-  await assert.rejects(discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"),
-    /Places provider is unavailable/);
+  // Provider error classes need to be actionable and must never contain keys.
+  for (const [status, pattern] of [
+    [401, /private API key/],
+    [403, /credentials and restrictions/],
+    [429, /rate or credit limit/],
+    [400, /search parameters/],
+    [503, /Places provider is unavailable/],
+  ] as const) {
+    globalThis.fetch = async () => new Response("credential or quota diagnostic, not safe to echo", { status });
+    await assert.rejects(discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"), pattern);
+  }
+  for (const [status, pattern] of [
+    [401, /private API key/],
+    [429, /rate or credit limit/],
+    [503, /Location lookup provider is unavailable/],
+  ] as const) {
+    globalThis.fetch = async () => new Response("upstream diagnostic", { status });
+    await assert.rejects(geocodeGeoapify("Tacoma, WA","fixture-key"), pattern);
+  }
 } finally {
   globalThis.fetch = previousPlacesFetch;
 }
