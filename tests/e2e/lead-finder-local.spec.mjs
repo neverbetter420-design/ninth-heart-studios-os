@@ -44,7 +44,11 @@ test.describe("Lead Finder 2.0: isolated functional acceptance", () => {
     }), "create scanner client")).user;
 
     const name = "Synthetic Cedar & Stone " + seed.slice(0, 8);
-    const sourceRef = "node:123456789";
+    // Each desktop/mobile test owns a distinct OSM identity in the shared
+    // disposable database; the second search *within* that test reuses it.
+    const fixtureNodeId = BigInt("0x" + seed.replaceAll("-", "").slice(0, 15));
+    const sourceRef = "node:" + fixtureNodeId.toString();
+    const socialOnlyRef = "node:" + (fixtureNodeId + 1n).toString();
     const first = await must(service.from("lead_search_requests").insert({
       owner_id: adminUser.id, source: "openstreetmap", location: "Puyallup, WA",
       industry: "Restaurants", niches: ["restaurants"], radius_mi: 5,
@@ -65,7 +69,7 @@ test.describe("Lead Finder 2.0: isolated functional acceptance", () => {
       }] },
     }, {
       search_id: first.id, business_name: "Social-only synthetic business",
-      source_ref: "node:123456790", industry: "restaurant",
+      source_ref: socialOnlyRef, industry: "restaurant",
       address: "Puyallup, WA", website: "https://www.instagram.com/onlysocial/",
       source: "openstreetmap", discovery_score: 5, import_status: "needs_verification",
       details: { social_profiles: [{
