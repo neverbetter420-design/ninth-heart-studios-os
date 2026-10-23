@@ -31,7 +31,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:dry-run": "wrangler deploy --dry-run",
     "cf:deploy": "opennextjs-cloudflare deploy",
-    "cf:preview": "opennextjs-cloudflare preview"
+    "cf:preview": "opennextjs-cloudflare preview",
+    "verify:soft-welcome": "node scripts/verify-soft-welcome.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

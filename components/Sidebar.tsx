@@ -18,6 +18,17 @@ export function Sidebar({
   const visibleItems = navItems.filter((item) => item.roles.includes(role));
   const sections = [...new Set(visibleItems.map((item) => item.section))];
   const home = role === "admin" ? "/" : "/portal";
+  const quickLinks = role === "admin" ? [
+    { href: "/", label: "Home", symbol: "⌂" },
+    { href: "/leads", label: "Leads", symbol: "⌕" },
+    { href: "/projects", label: "Projects", symbol: "▤" },
+    { href: "/muse", label: "Muse", symbol: "✧" },
+  ] : [
+    { href: "/portal", label: "Home", symbol: "⌂" },
+    { href: "/portal/projects", label: "Projects", symbol: "▤" },
+    { href: "/portal/messages", label: "Messages", symbol: "✉" },
+    { href: "/portal/documents", label: "Documents", symbol: "▱" },
+  ];
   const { activeHref } = navigationContext(role, pathname);
   const activeSection = visibleItems.find(
     (item) => item.href === activeHref,
@@ -223,6 +234,16 @@ export function Sidebar({
           <p className="tiny-copy">Ninth Heart Studios · Private workspace</p>
         </div>
       </aside>
+      <nav className="nhs-mobile-quicknav" aria-label="Mobile quick navigation">
+        {quickLinks.map((item) => {
+          const active = pathname === item.href || (item.href !== home && pathname.startsWith(item.href + "/"));
+          return (
+            <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={active ? "is-active" : ""} onClick={() => setOpen(false)}>
+              <span aria-hidden="true">{item.symbol}</span><small>{item.label}</small>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

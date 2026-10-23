@@ -44,7 +44,13 @@ export default async function ClientPortalPage() {
           <p className="atelier-overline">Ninth Heart Studios · Your private Atelier</p>
           <h2 id="atelier-greeting">Welcome back, <em>{firstName}.</em></h2>
           <p>Your ideas. Our craft.<br />A little space for your next chapter.</p>
-          {(!featured || error) && <Link className="atelier-primary-link" href="/portal/projects">Explore my projects <span aria-hidden="true">↗</span></Link>}
+          {featured && !error ? (
+            <Link className="atelier-welcome-cta" href={nextApproval ? "/portal/approvals" : "/portal/projects/" + featured.id}>
+              {nextApproval ? "Review your next decision" : "Enter your project"} <span aria-hidden="true">↗</span>
+            </Link>
+          ) : (
+            <Link className="atelier-welcome-cta" href="/portal/projects">Explore my projects <span aria-hidden="true">↗</span></Link>
+          )}
         </div>
         <AtelierStudioArt />
       </section>
