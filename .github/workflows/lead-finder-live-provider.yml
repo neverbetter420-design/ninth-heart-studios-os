@@ -1,0 +1,39 @@
+name: NHS Lead Finder real provider smoke test
+
+# The only network request is a read-only public OpenStreetMap discovery query.
+# Never access customer data, Supabase, Cloudflare secrets, or production deploy.
+on:
+  pull_request:
+    paths:
+      - 'scripts/probe-lead-finder-live.ts'
+      - 'lib/lead-finder.ts'
+      - 'lib/prospect-scan.ts'
+      - '.github/workflows/lead-finder-live-provider.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-osm:
+    name: Puyallup restaurants · real public OSM search
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      CI: 'true'
+      NHS_LIVE_PROVIDER_READONLY: '1'
+    steps:
+      - name: Checkout only the draft branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Search OpenStreetMap read-only, with no app/database credentials
+        run: |
+          test -z "${SUPABASE_ACCESS_TOKEN:-}"
+          test -z "${SUPABASE_DB_PASSWORD:-}"
+          test -z "${GEOAPIFY_API_KEY:-}"
+          node --experimental-strip-types scripts/probe-lead-finder-live.ts
