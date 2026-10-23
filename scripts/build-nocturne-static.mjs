@@ -5,6 +5,11 @@ import { previewCSS, renderNocturne } from "../tests/helpers/nocturne-render.mjs
 // Output is synthetic HTML generated from the actual draft React components.
 // It never initializes a hosted Supabase client or sends external requests.
 const root = "nocturne-static-preview";
+const screenMarkup = Object.create(null);
+const safeJSON = value => JSON.stringify(value)
+  .replace(/</g, "\\u003c")
+  .replace(/>/g, "\\u003e")
+  .replace(/&/g, "\\u0026");
 const routes = {
   admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","settings","opportunities","opportunity-detail","automations","controls"],
   client: ["home","project","portal-projects","portal-documents","portal-messages","portal-files","portal-approvals","portal-contracts","portal-forms","controls"]
@@ -27,11 +32,13 @@ const stripActions = html => html
  .replace(/\s(?:src|poster)=(["'])https?:\/\/.*?\1/gi,"")
  .replace(/\s(?:srcset|ping|formaction)=(["']).*?\1/gi,"");
 for (const role of Object.keys(routes)) mkdirSync(join(root,"frames",role),{recursive:true});
-writeFileSync(join(root,"visual.css"),previewCSS+"\nbutton[disabled]{cursor:not-allowed!important}a[aria-disabled]{pointer-events:none!important}");
+const visualStyles = previewCSS + "\nbutton[disabled]{cursor:not-allowed!important}a[aria-disabled]{pointer-events:none!important}";
+writeFileSync(join(root,"visual.css"), visualStyles);
 for(const [role,views] of Object.entries(routes)){
   for(const view of views){
     const result=await renderNocturne(role,"populated",view);
     const html=stripActions(result.html);
+    screenMarkup[role + "/" + view] = html;
     const frame='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS OS synthetic visual review</title><link rel="stylesheet" href="../../visual.css"></head><body>'+html+'</body></html>';
     if(/rquscwgdrqkzwjukiqtk|app\.ninthheartstudios\.com|sb_secret_|service_role/i.test(frame))throw new Error("Production identifier in "+role+"/"+view);
     writeFileSync(join(root,"frames",role,view+".html"),frame);
@@ -44,10 +51,12 @@ const html=[
 '<p>Real draft components with synthetic data, rendered as static HTML. Select Admin or Client, a screen, and a viewport. This is a <strong>visual preview only</strong>: links, forms, messages, sign-in, file access and payments are disabled. No production data or services are connected.</p>',
 '<div class="toolbar"><label>Environment<select id="role"><option value="admin">Admin Nocturne</option><option value="client">Client Atelier</option></select></label>',
 '<label>Screen<select id="view"></select></label><label>Viewport<select id="width"><option value="desktop">Responsive desktop</option><option value="tablet">Tablet (768px)</option><option value="mobile">Mobile (390px)</option></select></label></div>',
-'<p class="note">Production NHS OS is separate and remains unchanged.</p><p class="file-warning" id="file-warning" role="alert" hidden>This preview is being opened inside a ZIP archive. Right-click the downloaded ZIP, choose <strong>Extract All</strong>, then open <strong>index.html</strong> inside the extracted folder. Keep the <strong>frames</strong> folder and <strong>visual.css</strong> beside it.</p></header>',
-'<iframe id="preview" class="frame" title="Source-rendered Nocturne screen" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe>',
-'<script>const routes='+JSON.stringify(routes)+';const r=document.getElementById("role"),v=document.getElementById("view"),w=document.getElementById("width"),f=document.getElementById("preview");',
-'function show(){if(!routes[r.value].includes(v.value))return;const zipPath=/\.zip(?:\.cf\d+)?\//i.test(decodeURI(location.pathname));document.getElementById("file-warning").hidden=!zipPath;f.hidden=zipPath;if(zipPath)return;f.src="frames/"+r.value+"/"+v.value+".html";f.style.width=w.value==="mobile"?"390px":w.value==="tablet"?"768px":"calc(100% - 32px)";f.style.maxWidth="calc(100% - 24px)";if(location.protocol!=="file:"){const u=new URL(location.href);u.searchParams.set("role",r.value);u.searchParams.set("view",v.value);history.replaceState(null,"",u);}}',
+'<p class="note">Production NHS OS is separate and remains unchanged.</p><p class="file-warning" id="file-warning" role="alert" hidden>This preview was opened inside a ZIP archive. It is self-contained, but for best results use <strong>Extract All</strong> and open <strong>index.html</strong>.</p></header>',
+'<iframe id="preview" class="frame" title="Source-rendered Nocturne screen" sandbox="" referrerpolicy="no-referrer"></iframe>',
+'<script type="application/json" id="nhs-screen-data">'+safeJSON(screenMarkup)+'</script>',
+'<script type="application/json" id="nhs-style-data">'+safeJSON(visualStyles)+'</script>',
+'<script>const routes='+JSON.stringify(routes)+';const screens=JSON.parse(document.getElementById("nhs-screen-data").textContent);const styles=JSON.parse(document.getElementById("nhs-style-data").textContent);const r=document.getElementById("role"),v=document.getElementById("view"),w=document.getElementById("width"),f=document.getElementById("preview");',
+'function show(){if(!routes[r.value].includes(v.value))return;const zipPath=/\.zip(?:\.cf\d+)?\//i.test(decodeURI(location.pathname));document.getElementById("file-warning").hidden=!zipPath;const markup=screens[r.value+"/"+v.value];if(!markup){f.srcdoc="<p>Preview screen unavailable.</p>";return;}f.srcdoc="<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>"+styles+"</style></head><body>"+markup+"</body></html>";f.style.width=w.value==="mobile"?"390px":w.value==="tablet"?"768px":"calc(100% - 32px)";f.style.maxWidth="calc(100% - 24px)";if(location.protocol==="http:"||location.protocol==="https:"){const u=new URL(location.href);u.searchParams.set("role",r.value);u.searchParams.set("view",v.value);history.replaceState(null,"",u);}}',
 'function populate(){const prior=v.value;v.replaceChildren(...routes[r.value].map(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.replace(/^portal-/,"").replace(/-/g," ");return o}));v.value=routes[r.value].includes(prior)?prior:"home";show()}',
 'r.addEventListener("change",populate);v.addEventListener("change",show);w.addEventListener("change",show);const q=new URLSearchParams(location.search);if(q.get("role")==="client")r.value="client";populate();if(routes[r.value].includes(q.get("view"))){v.value=q.get("view");show()}</script></body></html>'
 ].join("\n");
@@ -57,7 +66,7 @@ writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
   "",
   "1. In Downloads, right-click nhs-nocturne-html-preview.zip and choose Extract All.",
   "2. Open the extracted folder. Open index.html in Chrome or Edge.",
-  "3. Keep index.html, visual.css and the frames folder together; do not move index.html alone.",
+  "3. index.html now includes all 30 screens and styles. It works without a server or separate files.",
   "4. Choose Admin Nocturne or Client Atelier, screen, and viewport from the top controls.",
   "",
   "This is a visual demonstration with synthetic data, not the production app.",
@@ -69,6 +78,6 @@ writeFileSync(join(root,"_headers"),[
 "  Referrer-Policy: no-referrer",
 "  X-Frame-Options: SAMEORIGIN",
 "  Permissions-Policy: camera=(), microphone=(), geolocation=()",
-"  Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; font-src data:; frame-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
+"  Content-Security-Policy: default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src data:; font-src data:; frame-src 'self' about:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
 ""].join("\n"));
 console.log("Generated "+Object.values(routes).reduce((sum,a)=>sum+a.length,0)+" synthetic source-rendered visual pages.");
