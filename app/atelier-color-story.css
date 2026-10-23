@@ -1,0 +1,273 @@
+/*
+ * NHS OS — Nocturne: Soft Welcome Color Story.
+ * An intentional DARK SHELL / WARM WORKSPACE contrast.
+ * 2026 Canva brand remains protected; these are functional supporting tints.
+ * This file loads last to override legacy dark management and atelier CSS.
+ */
+:root {
+  --atelier-ink: #402a39;
+  --atelier-ivory: #f9f4ee;
+  --atelier-paper: #fffaf6;
+  --atelier-champagne: #f0e2e6;
+  --atelier-dusty-rose: #a56c82;
+  --atelier-rose-ink: #784059;
+  --atelier-muted: #705866;
+  --atelier-hairline: #d9c9cf;
+}
+
+/* The unchanged NHS logo and midnight sidebar frame a warmer relationship studio. */
+.nhs-theme-admin .management-client-workspace {
+  max-width: 1490px;
+  padding-bottom: clamp(30px, 4vw, 64px);
+  isolation: isolate;
+}
+
+.nhs-theme-admin .management-client-workspace .management-heading {
+  position: relative;
+  min-height: 276px;
+  margin: 6px 0 20px;
+  padding: clamp(28px, 3.7vw, 54px);
+  align-items: center;
+  overflow: hidden;
+  border-radius: 25px;
+  border: 1px solid #a6769559;
+  background-color: #392538;
+  background-image:
+    linear-gradient(110deg, rgba(29, 17, 34, .97) 0%, rgba(56, 31, 49, .94) 45%, rgba(112, 67, 91, .72) 73%, rgba(190, 146, 161, .46) 100%),
+    url("/visuals/nocturne-floral-arch.svg");
+  background-repeat: no-repeat;
+  background-position: center, right -140px center;
+  background-size: cover, min(740px, 70vw) auto;
+  box-shadow: 0 25px 75px rgba(8, 3, 13, .25);
+}
+
+.nhs-theme-admin .management-client-workspace .management-heading > div,
+.nhs-theme-admin .management-client-workspace .management-heading > a {
+  position: relative;
+  z-index: 1;
+}
+
+.nhs-theme-admin .management-client-workspace .management-heading .eyebrow {
+  color: #f3c9d9;
+  font-size: 10px;
+}
+.nhs-theme-admin .management-client-workspace .management-heading h2 {
+  color: #fff7f4;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(34px, 3.7vw, 56px);
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+.nhs-theme-admin .management-client-workspace .management-heading .page-description {
+  color: #f2dfe8;
+  font-size: 13px;
+  max-width: 510px;
+}
+.nhs-theme-admin .management-client-workspace .management-heading .management-primary-link {
+  color: #412838;
+  background: #f7e9e7;
+  border-color: #f7e9e7;
+  border-radius: 9px;
+  font-weight: 600;
+  box-shadow: 0 10px 20px #11091533;
+}
+.nhs-theme-admin .management-client-workspace .management-heading .management-primary-link:hover {
+  background: #ffffff;
+  color: #382333;
+}
+.nhs-theme-admin .management-client-workspace .management-destinations {
+  margin: 0 0 26px;
+  border: 0;
+  padding: 0 8px 5px;
+  gap: 8px clamp(14px, 2vw, 28px);
+}
+.nhs-theme-admin .management-client-workspace .management-destinations a {
+  color: #f0d5e0;
+  min-height: 44px;
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+}
+.nhs-theme-admin .management-client-workspace .management-destinations a:hover,
+.nhs-theme-admin .management-client-workspace .management-destinations a:focus-visible {
+  color: #ffffff;
+  border-bottom-color: #d7a4b9;
+}
+
+/* High-contrast ivory work canvas: immediately obvious on the Admin Client page. */
+.nhs-theme-admin .management-client-workspace .management-client-grid {
+  --nocturne-rule: var(--atelier-hairline);
+  color-scheme: light;
+  color: var(--atelier-ink);
+  padding: clamp(22px, 3.4vw, 46px);
+  border-radius: 25px;
+  background-color: var(--atelier-ivory);
+  background-image:
+    radial-gradient(ellipse at 100% 0%, rgba(192, 137, 155, .17), transparent 49%),
+    linear-gradient(145deg, #fffaf6 0%, #f9f4ee 60%, #f4e9ea 100%);
+  border: 1px solid #eddae0;
+  box-shadow: 0 30px 85px rgba(11, 7, 16, .23);
+  align-items: stretch;
+  gap: clamp(24px, 3.5vw, 60px);
+}
+.nhs-theme-admin .management-client-workspace .management-client-work {
+  gap: 46px;
+}
+.nhs-theme-admin .management-client-workspace .management-client-context {
+  background: var(--atelier-champagne);
+  padding: clamp(18px, 2.3vw, 30px);
+  border: 1px solid #e2ccd5;
+  border-radius: 19px;
+  gap: 38px;
+  align-self: start;
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .eyebrow {
+  color: var(--atelier-rose-ink);
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+.nhs-theme-admin .management-client-workspace .management-section-heading {
+  border-bottom: 1px solid #d4c0c8;
+  padding-bottom: 19px;
+}
+.nhs-theme-admin .management-client-workspace .management-section-heading h3 {
+  color: var(--atelier-ink);
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(20px, 2.1vw, 28px);
+  letter-spacing: -.025em;
+}
+.nhs-theme-admin .management-client-workspace .management-section-heading > span,
+.nhs-theme-admin .management-client-workspace .management-project-copy p,
+.nhs-theme-admin .management-client-workspace .management-project-progress > div > span,
+.nhs-theme-admin .management-client-workspace .management-contact-list dt,
+.nhs-theme-admin .management-client-workspace .management-help,
+.nhs-theme-admin .management-client-workspace .management-empty-copy,
+.nhs-theme-admin .management-client-workspace .management-member-row p,
+.nhs-theme-admin .management-client-workspace .management-member-row small {
+  color: var(--atelier-muted);
+}
+.nhs-theme-admin .management-client-workspace .management-project-copy h4 a,
+.nhs-theme-admin .management-client-workspace .management-member-row strong,
+.nhs-theme-admin .management-client-workspace .management-contact-list dd,
+.nhs-theme-admin .management-client-workspace .management-status-copy {
+  color: var(--atelier-ink);
+}
+.nhs-theme-admin .management-client-workspace .management-project-copy h4 a {
+  font-size: 14px;
+}
+.nhs-theme-admin .management-client-workspace .management-project-copy h4 a:hover,
+.nhs-theme-admin .management-client-workspace .management-contact-list a,
+.nhs-theme-admin .management-client-workspace .management-help a {
+  color: #70354f;
+}
+.nhs-theme-admin .management-client-workspace .management-project-copy h4 a > span {
+  color: #9d506c;
+}
+.nhs-theme-admin .management-client-workspace .management-project-progress strong {
+  color: #6c405b;
+  font-size: 22px;
+}
+.nhs-theme-admin .management-client-workspace .management-project-progress .progress-track {
+  height: 5px;
+  background: #e6d6dd;
+}
+.nhs-theme-admin .management-client-workspace .management-project-progress .progress-track span {
+  background: linear-gradient(90deg, #8a5277, #d32c5a);
+}
+.nhs-theme-admin .management-client-workspace .management-project-row {
+  border-color: var(--atelier-hairline);
+  padding-block: 21px;
+}
+.nhs-theme-admin .management-client-workspace .management-member-row,
+.nhs-theme-admin .management-client-workspace .management-contact-list > div {
+  border-color: var(--atelier-hairline);
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .field > span {
+  color: var(--atelier-ink);
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .field :is(input, select) {
+  color-scheme: light;
+  color: #382333;
+  background: #fffdfb;
+  border-color: #bfa1af;
+  min-height: 46px;
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .field :is(input, select)::placeholder {
+  color: #816b77;
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .mini-button {
+  color: #fffaf6;
+  background: #422c3b;
+  border-color: #422c3b;
+  border-radius: 8px;
+  min-height: 44px;
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .mini-button:hover {
+  background: #62405a;
+  border-color: #62405a;
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .mini-button.danger {
+  color: #fff9fa;
+  background: #874054;
+  border-color: #874054;
+}
+.nhs-theme-admin .management-client-workspace .management-client-grid .mini-button:disabled {
+  color: #635260;
+  background: #e5d8dc;
+  border-color: #d3c2ca;
+}
+
+/* Client experience remains airy rather than fluorescent pink. */
+.nhs-theme-client .atelier-home .atelier-destinations {
+  background: #fffaf7c9;
+  border: 1px solid #e7d4db;
+  border-radius: 19px;
+  padding: clamp(22px, 2.5vw, 30px);
+}
+.nhs-theme-client .atelier-home .atelier-destination-grid {
+  border-top-color: #d8c1ca;
+}
+.nhs-theme-client .atelier-home .atelier-destination {
+  border-right-color: #d8c1ca;
+}
+.nhs-theme-client .atelier-home .atelier-project-stage {
+  color: #74445f;
+}
+
+/* Intentional accessibility and small-screen behavior. */
+.nhs-theme-admin .management-client-workspace :is(a, button, input, select):focus-visible {
+  outline: 3px solid #b96f9b;
+  outline-offset: 3px;
+}
+@media (max-width: 1000px) {
+  .nhs-theme-admin .management-client-workspace .management-client-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .nhs-theme-admin .management-client-workspace .management-heading {
+    padding: 24px;
+    min-height: 255px;
+    background-position: center, right -270px center;
+    background-size: cover, 600px auto;
+    border-radius: 18px;
+  }
+  .nhs-theme-admin .management-client-workspace .management-heading h2 { font-size: clamp(29px, 7.5vw, 42px); }
+  .nhs-theme-admin .management-client-workspace .management-client-grid {
+    padding: 20px;
+    border-radius: 18px;
+    gap: 28px;
+  }
+  .nhs-theme-admin .management-client-workspace .management-client-context { padding: 20px; }
+  .nhs-theme-client .atelier-home .atelier-destinations { padding: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nhs-theme-admin .management-client-workspace *,
+  .nhs-theme-client .atelier-home .atelier-destinations * { transition: none; animation: none; }
+}
+@media (forced-colors: active) {
+  .nhs-theme-admin .management-client-workspace .management-heading,
+  .nhs-theme-admin .management-client-workspace .management-client-grid,
+  .nhs-theme-admin .management-client-workspace .management-client-context {
+    background: Canvas; color: CanvasText; border: 1px solid CanvasText;
+  }
+}

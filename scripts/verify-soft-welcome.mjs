@@ -30,3 +30,9 @@ assert.match(css, /prefers-reduced-motion: reduce/);
 assert.match(css, /safe-area-inset-bottom/);
 assert.match(css, /atelier-botanical-arch\.svg/);
 console.log("Soft Welcome source-safety assertions passed.");
+
+const colorStory = read("app/atelier-color-story.css");
+assert.match(read("app/layout.tsx"), /import "\.\/atelier-color-story\.css"/);
+assert.match(colorStory, /management-client-workspace \.management-client-grid/);
+assert.match(colorStory, /--atelier-ivory: #f9f4ee/);
+assert.match(colorStory, /color-scheme: light/);

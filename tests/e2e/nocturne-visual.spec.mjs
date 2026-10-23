@@ -689,3 +689,21 @@ test("The shared atmosphere carries across every admin and client destination", 
     }
   }
 });
+
+// The Admin Client Workspace must visibly differ from the former all-black workspace.
+test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", async ({ page }) => {
+  await show(page, "admin", "populated", "client-detail");
+  const layout = page.locator(".management-client-workspace");
+  await expect(layout).toBeVisible();
+  const hero = layout.locator(".management-heading");
+  const canvas = layout.locator(".management-client-grid");
+  await expect(hero).toBeVisible();
+  await expect(canvas).toBeVisible();
+  expect(await canvas.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(249, 244, 238)");
+  expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(57, 37, 56)");
+  expect(await canvas.evaluate(el => getComputedStyle(el).color)).toBe("rgb(64, 42, 57)");
+  for (const width of [1440, 1024, 620, 390, 320]) {
+    await page.setViewportSize({ width, height: 850 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `Relationship Atelier overflow at ${width}px`).toBeLessThanOrEqual(width);
+  }
+});
