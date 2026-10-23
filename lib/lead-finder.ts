@@ -260,9 +260,15 @@ export async function findBusinesses(params: FinderParams): Promise<DiscoveredBu
   if (params.source === "geoapify") {
     const key = process.env.GEOAPIFY_API_KEY?.trim();
     if (!key) throw new Error("Geoapify is not connected. Configure the private API key first.");
-    // Fully independent of Nominatim/Overpass. Both calls use the same
-    // private server-only credential, never a NEXT_PUBLIC_ variable.
-    const { lat, lng } = await geocodeGeoapify(params.location, key);
+    // The default Puyallup search has a previously verified city-center
+    // coordinate in geocode(). Reuse it without another paid API request or
+    // geocoder dependency; other locations still use Geoapify geocoding.
+    // Neither path contacts Overpass, and the key stays server-side.
+    const knownPuyallup = /^puyallup,?\s*(?:wa|washington)(?:,?\s*(?:usa|united states))?$/i
+      .test(params.location.trim());
+    const { lat, lng } = knownPuyallup
+      ? await geocode(params.location)
+      : await geocodeGeoapify(params.location, key);
     return discoverGeoapify(lat, lng, radius, params.niches, params.result_limit, key);
   }
   const { lat, lng } = await geocode(params.location);
