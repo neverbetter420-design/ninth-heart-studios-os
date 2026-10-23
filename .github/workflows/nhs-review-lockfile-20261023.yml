@@ -1,0 +1,42 @@
+name: NHS review-only lockfile upgrade
+on:
+  push:
+    branches:
+      - design/soft-welcome-atelier-20261023
+    paths:
+      - package.json
+permissions:
+  contents: write
+jobs:
+  refresh-lock:
+    if: github.repository == 'neverbetter420-design/ninth-heart-studios-os'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout only approved draft review branch
+        uses: actions/checkout@v4
+        with:
+          ref: design/soft-welcome-atelier-20261023
+          persist-credentials: true
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve audited patched Next.js and regenerate lockfile
+        run: |
+          test "$(node -p "require('./package.json').dependencies.next")" = "16.4.3"
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm audit --audit-level=high
+      - name: Commit only dependency lockfile to review branch
+        run: |
+          git status --short
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo 'Lockfile already up to date.'
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: regenerate lockfile for patched Next.js 16.4.3"
+          git push origin HEAD:refs/heads/design/soft-welcome-atelier-20261023

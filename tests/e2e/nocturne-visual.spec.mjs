@@ -385,7 +385,7 @@ for (const role of ["client", "admin"]) {
       await expect(page.locator('.studio-journey li[aria-current="step"]')).toHaveCount(1);
       await expect(page.getByRole("navigation", { name: "Project destinations" })).toBeVisible();
       await expect(page.locator(role === "client" ? "details#project-resources" : "details#workspace-resources")).toHaveAttribute("open", "");
-      await expect(page.locator(".studio-gallery img")).toHaveCount(scenario === "populated" ? 1 : 0);
+      await expect(page.locator(".studio-gallery-images img")).toHaveCount(scenario === "populated" ? 1 : 0);
       for (const width of [1440, 1024, 860, 620, 390, 320]) {
         await page.setViewportSize({ width, height: 900 });
         expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} ${scenario} project fits at ${width}px`).toBeLessThanOrEqual(width);
@@ -424,7 +424,7 @@ test("Atelier long titles, empty and error states fit at 320px", async ({ page }
   for (const scenario of ["long", "empty", "error"]) {
     await show(page, "client", scenario);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
-    await expect(page.locator(".atelier-primary-link")).toBeVisible();
+    await expect(page.locator(".atelier-welcome-cta")).toBeVisible();
     if (scenario === "long") await expect(page.getByRole("link", { name: "Review approval" })).toBeVisible();
     if (scenario === "empty") await expect(page.getByRole("heading", { name: "Your story begins here." })).toBeVisible();
     if (scenario === "error") await expect(page.getByRole("alert")).toContainText("Projects are temporarily unavailable.");

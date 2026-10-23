@@ -29,7 +29,7 @@ export function ActionNotifications() {
     <div className="action-notification nhs-soft-notice" data-tone={notice.kind}>
       <span className="nhs-notice-icon" aria-hidden="true">{notice.kind === "success" ? "✓" : "!"}</span>
       <p role={notice.kind === "error" ? "alert" : "status"}>{notice.message}</p>
-      <button type="button" className="mini-button" onClick={() => setNotice(null)} aria-label="Dismiss notification">Dismiss</button>
+      <button type="button" className="mini-button" onClick={() => setNotice(null)} aria-label="Dismiss confirmation">Dismiss</button>
     </div>
   ) : null;
 }
