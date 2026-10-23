@@ -66,9 +66,9 @@ export function LeadFinderReview({
         <div className="nhs-finder-fields">
           <label>Data source
             <select name="source" defaultValue={geoapifyConnected ? "geoapify" : "openstreetmap"}>
-              <option value="openstreetmap">OpenStreetMap · Free, best effort</option>
+              <option value="openstreetmap">OpenStreetMap · Free community service (may be unavailable)</option>
               <option value="geoapify" disabled={!geoapifyConnected}>
-                {geoapifyConnected ? "Geoapify · Connected" : "Geoapify · API key required"}
+                {geoapifyConnected ? "Geoapify · Recommended, connected" : "Geoapify · Private API key required"}
               </option>
             </select>
           </label>
@@ -122,7 +122,7 @@ export function LeadFinderReview({
             Find leads
           </PortalSubmitButton>
           <p className="form-hint">Results appear in a separate review area. No automated outreach or recurring scans.
-            Social profiles require identity verification. Free Overpass services can be unavailable.</p>
+            Social profiles require identity verification. Geoapify uses your configured API credits; free OpenStreetMap servers may be unavailable.</p>
         </div>
       </form>
 
