@@ -25,6 +25,36 @@ try {
   results = await findBusinesses(params);
 } catch (error) {
   const reason = error instanceof Error ? error.message : String(error);
+  // A single lightweight request per independent public mirror helps distinguish
+  // shared-cloud egress blocking from an overloaded main Overpass endpoint.
+  // This diagnostic never substitutes results into the app or marks the smoke
+  // test successful: the actual draft provider function must still work.
+  const query = '[out:json][timeout:8];node["amenity"="restaurant"](around:1609,47.18538,-122.2929);out center 2;';
+  const alternatives = [
+    ["FOSSGIS lz4", "https://lz4.overpass-api.de/api/interpreter"],
+    ["OSM Japan", "https://overpass.osm.jp/api/interpreter"],
+  ] as const;
+  const diagnostics = await Promise.all(alternatives.map(async ([label, endpoint]) => {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "NinthHeartStudios-OS/1.0 (contact: admin@ninthheartstudios.com)",
+        },
+        body: "data=" + encodeURIComponent(query),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!response.ok) return label + ": HTTP " + response.status;
+      const raw = await response.text();
+      if (raw.length > 100000) return label + ": unexpectedly large diagnostic response";
+      const parsed = JSON.parse(raw);
+      return label + ": HTTP 200, " + (Array.isArray(parsed.elements) ? parsed.elements.length + " OSM objects" : "non-OSM JSON");
+    } catch (e) {
+      return label + ": " + (e instanceof Error ? e.message : String(e)).slice(0, 100);
+    }
+  }));
+  console.log("Independent provider diagnostics (no app or database writes):", diagnostics);
   const summary = [
     "## NHS Lead Finder 2.0 — real provider smoke test",
     "",
@@ -34,6 +64,7 @@ try {
     "- Search: Puyallup, WA · Restaurants · 5 miles · up to 5",
     "- Safety: read-only; no Supabase, no CRM import, no outreach",
     "- Failure: " + reason.replace(/[|\r\n]/g, " ").slice(0, 250),
+    ...diagnostics.map(d => "- Optional alternate endpoint: " + d.replace(/[|\r\n]/g, " ")),
     "",
   ].join("\n");
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
