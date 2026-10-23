@@ -84,31 +84,69 @@ export type WebsiteSignals = {
 
 const UA = "NinthHeartStudios-OS/1.0 (prospect-scanner; contact: admin@ninthheartstudios.com)";
 
-async function fetchWithTimeout(url: string, ms: number, init: RequestInit = {}): Promise<Response> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms);
+/** Bound the response BODY as well as connection establishment; the old helper
+ * cleared its timer before response.json() was read. Avoid leaking raw AbortError
+ * wording into the admin interface when public OpenStreetMap services time out. */
+async function fetchJsonWithTimeout<T>(url: string, ms: number, init: RequestInit = {}): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
   try {
-    return await fetch(url, { ...init, signal: ctrl.signal, redirect: "follow" });
+    const response = await fetch(url, { ...init, signal: controller.signal, redirect: "follow" });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    return (await response.json()) as T;
+  } catch (error) {
+    if (controller.signal.aborted || (error instanceof Error && error.name === "AbortError")) {
+      throw new Error("Timed out after " + Math.ceil(ms / 1000) + " seconds");
+    }
+    throw error;
   } finally {
-    clearTimeout(t);
+    clearTimeout(timer);
   }
 }
 
-/** Nominatim: "Puyallup, WA" -> { lat, lng }. Free, no key. */
+/** Geocode through Nominatim, then fall back to an independent OSM geocoder.
+ * Fallback candidates must still match the requested place AND United States. */
 export async function geocode(place: string): Promise<{ lat: number; lng: number; label: string }> {
-  const url =
-    `https://nominatim.openstreetmap.org/search?` +
-    `q=${encodeURIComponent(place)}&format=json&limit=1&countrycodes=us`;
-  let res: Response;
-  try {
-    res = await fetchWithTimeout(url, 10000, { headers: { "User-Agent": UA } });
-  } catch {
-    throw new Error("Location lookup is temporarily unavailable. Try again with a city and state.");
+  // The studio's default search location has a fixed, published city-center
+  // coordinate; avoid unnecessary calls to public geocoders for this exact city.
+  if (/^puyallup,?\s*(?:wa|washington)(?:,?\s*(?:usa|united states))?$/i.test(place.trim())) {
+    return { lat: 47.18538, lng: -122.2929, label: "Puyallup, Washington" };
   }
-  if (!res.ok) throw new Error(`Location lookup failed (HTTP ${res.status}). Please try again later.`);
-  const rows = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>;
-  if (!rows.length) throw new Error(`No location found for "${place}"`);
-  return { lat: parseFloat(rows[0].lat), lng: parseFloat(rows[0].lon), label: rows[0].display_name };
+  const url = "https://nominatim.openstreetmap.org/search?q=" +
+    encodeURIComponent(place) + "&format=json&limit=1&countrycodes=us";
+  try {
+    const rows = await fetchJsonWithTimeout<Array<{ lat: string; lon: string; display_name: string }>>(
+      url, 8000, { headers: { "User-Agent": UA } }
+    );
+    const row = rows[0];
+    const lat = Number(row?.lat), lng = Number(row?.lon);
+    if (Number.isFinite(lat) && Number.isFinite(lng) && lat >= 18 && lat <= 72 && lng >= -180 && lng <= -60) {
+      return { lat, lng, label: row.display_name || place };
+    }
+  } catch { /* Public Nominatim can throttle or time out; try Photon once. */ }
+
+  try {
+    const data = await fetchJsonWithTimeout<{
+      features?: Array<{ geometry?: { coordinates?: number[] }; properties?: {
+        name?: string; city?: string; countrycode?: string; state?: string;
+      } }>;
+    }>(
+      "https://photon.komoot.io/api/?q=" + encodeURIComponent(place + ", United States") + "&limit=5",
+      6500, { headers: { "User-Agent": UA } }
+    );
+    const name = place.split(",")[0].trim().toLowerCase();
+    for (const feature of data.features ?? []) {
+      const p = feature.properties;
+      const coordinates = feature.geometry?.coordinates;
+      const lat = Number(coordinates?.[1]), lng = Number(coordinates?.[0]);
+      if (p?.countrycode?.toLowerCase() !== "us" ||
+          ![p.name, p.city].some(value => value?.toLowerCase() === name) ||
+          !Number.isFinite(lat) || !Number.isFinite(lng) ||
+          lat < 18 || lat > 72 || lng < -180 || lng > -60) continue;
+      return { lat, lng, label: [p.name || p.city, p.state, "United States"].filter(Boolean).join(", ") };
+    }
+  } catch { /* Both providers can be temporarily unavailable. */ }
+  throw new Error("Location lookup is unavailable or ambiguous. Try a city and state, then scan again.");
 }
 
 type OverpassElement = {
@@ -131,7 +169,7 @@ export async function discoverBusinesses(
   const filters = niches.flatMap((n) =>
     NICHES[n].overpass.map((f) => `  ${f}(around:${radiusM},${lat},${lng});`)
   );
-  const query = `[out:json][timeout:25];\n(\n${filters.join("\n")}\n);\nout center ${limit};`;
+  const query = `[out:json][timeout:18];\n(\n${filters.join("\n")}\n);\nout center ${limit};`;
   // Public Overpass instances occasionally throttle or time out. Try a second
   // independent provider once, sequentially, without multiplying API traffic.
   // These endpoints are fixed, never user-controlled (avoid SSRF).
@@ -142,13 +180,11 @@ export async function discoverBusinesses(
   let data: { elements?: OverpassElement[] } | null = null;
   for (const endpoint of endpoints) {
     try {
-      const res = await fetchWithTimeout(endpoint, 12000, {
+      const parsed = await fetchJsonWithTimeout<{ elements?: OverpassElement[] }>(endpoint, 12000, {
         method: "POST",
         headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
         body: `data=${encodeURIComponent(query)}`,
       });
-      if (!res.ok) continue; // Another provider may be available on 429/5xx.
-      const parsed = (await res.json()) as { elements?: OverpassElement[] };
       if (!Array.isArray(parsed?.elements)) continue;
       data = parsed;
       break;
@@ -243,12 +279,12 @@ export async function refreshSocialProfiles(sourceRef: string | null): Promise<S
   const identity = /^(node|way|relation):(\d+)$/.exec(sourceRef ?? "");
   if (!identity) return [];
   try {
-    const res = await fetchWithTimeout("https://overpass-api.de/api/interpreter", 7000, {
-      method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
-      body: `data=${encodeURIComponent(`[out:json][timeout:5];${identity[1]}(${identity[2]});out tags;`)}`,
-    });
-    if (!res.ok) return [];
-    const data = await res.json() as { elements?: OverpassElement[] };
+    const data = await fetchJsonWithTimeout<{ elements?: OverpassElement[] }>(
+      "https://overpass-api.de/api/interpreter", 7000, {
+        method: "POST", headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
+        body: `data=${encodeURIComponent(`[out:json][timeout:5];${identity[1]}(${identity[2]});out tags;`)}`,
+      }
+    );
     const element = data.elements?.find(e => `${e.type}:${e.id}` === sourceRef);
     return socialProfilesFromTags(element?.tags ?? {});
   } catch { return []; }

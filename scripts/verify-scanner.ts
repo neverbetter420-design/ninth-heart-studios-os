@@ -1,6 +1,8 @@
 // Prospect Scanner verification: scoring, badges, drafts, URL normalization.
 // No database, no network.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { parseFinderForm, websiteHost, isSameBusiness, importIdentityKey, completenessScore, discoverGeoapify, geocodeGeoapify, findBusinesses } from "../lib/lead-finder.ts";
 import {
   NICHES,
   discoverBusinesses,
@@ -242,10 +244,265 @@ await withFetch(() => { throw new DOMException("The operation was aborted", "Abo
   assert.equal(calls.length, 2, "never retry indefinitely");
 });
 
+// PR #19 parity: broken Nominatim must fall back to US-validated Photon.
+await withFetch((url) => {
+  if (url.includes("nominatim.openstreetmap.org"))
+    throw new DOMException("The operation was aborted", "AbortError");
+  if (url.includes("photon.komoot.io"))
+    return new Response(JSON.stringify({ features: [{
+      properties: { name: "Tacoma", countrycode: "US", state: "Washington" },
+      geometry: { coordinates: [-122.4443, 47.2529] },
+    }] }), { status: 200 });
+  throw new Error("Unexpected geocoder");
+}, async () => {
+  const { geocode } = await import("../lib/prospect-scan.ts");
+  const location = await geocode("Tacoma, WA");
+  assert.equal(location.lat, 47.2529);
+  assert.equal(location.lng, -122.4443);
+  assert.deepEqual(calls.map(url => new URL(url).hostname),
+    ["nominatim.openstreetmap.org", "photon.komoot.io"]);
+});
+
 await withFetch(() => { throw new DOMException("The operation was aborted", "AbortError"); }, async () => {
   const { geocode } = await import("../lib/prospect-scan.ts");
-  await assert.rejects(geocode("Puyallup, WA"), /Location lookup is temporarily unavailable/);
-  assert.equal(calls.length, 1, "a failed location lookup does not launch a business search");
+  await assert.rejects(geocode("Unknownville, WA"), /Location lookup is unavailable or ambiguous/);
+  assert.equal(calls.length, 2, "location failures attempt only two bounded providers");
 });
+await withFetch(() => { throw new Error("Puyallup geocoding should not hit network"); }, async () => {
+  const { geocode } = await import("../lib/prospect-scan.ts");
+  const point = await geocode("Puyallup, WA");
+  assert.equal(point.lat, 47.18538);
+  assert.equal(calls.length, 0, "default city uses known center without extra requests");
+});
+
+
+// NHS Lead Finder v2: source selection, input bounds, no auto-import by default,
+// no name-only deduplication, and a server-only Geoapify Places adapter.
+const searchForm = new FormData();
+searchForm.set("source", "geoapify");
+searchForm.set("location", "Puyallup, WA");
+searchForm.set("radius_mi", "10");
+searchForm.set("result_limit", "20");
+searchForm.set("top_count", "5");
+searchForm.append("niches", "restaurants");
+searchForm.append("niches", "bars");
+searchForm.append("niches", "not_an_option");
+const request = parseFinderForm(searchForm);
+assert.equal(request.source, "geoapify");
+assert.equal(request.auto_import, false, "no automatic CRM writes without explicit opt-in");
+assert.deepEqual(request.niches, ["restaurants", "bars"]);
+assert.equal(request.result_limit, 20);
+searchForm.set("auto_import", "on");
+assert.equal(parseFinderForm(searchForm).auto_import, true);
+searchForm.set("radius_mi", "999999");
+assert.throws(() => parseFinderForm(searchForm), /Check the search radius/);
+searchForm.set("radius_mi", "10");
+assert.equal(websiteHost("https://instagram.com/example/"), null, "social profile is not a standalone website");
+assert.equal(websiteHost("https://example.com/"), "example.com");
+assert.equal(isSameBusiness(
+  {source_ref:"node:101",business_name:"Shared Name",address:"123 First Street"},
+  {source_ref:"way:202",business_name:"Shared Name",address:"789 Second Street"},
+), false, "same name at a different OSM location must remain distinct");
+assert.ok(isSameBusiness({website:"https://www.example.com/"},{website:"https://example.com/new"}));
+assert.equal(isSameBusiness(
+  {business_name:"Shared Bakery",address:"123 Main St",website:"https://bakery.example/first"},
+  {business_name:"Shared Bakery",address:"987 Oak Ave",website:"https://bakery.example/second"},
+), false, "franchise branches at different addresses remain distinct");
+assert.equal(isSameBusiness(
+  {business_name:"Bakery One", website:"https://shared.example/bakery"},
+  {business_name:"Restaurant Two", website:"https://shared.example/restaurant"},
+), false, "shared hosting does not erase separately named businesses");
+assert.equal(importIdentityKey({
+  business_name:"Café Moon",address:"123 Main Street, Puyallup, WA",website:"https://example.com"
+}), importIdentityKey({
+  business_name:"Cafe Moon",address:"123 MAIN STREET PUYALLUP WA",website:"https://www.example.com"
+}), "same business across searches and providers uses the same import identity");
+assert.notEqual(importIdentityKey({
+  business_name:"Cafe Moon",address:"123 Main Street",website:"https://example.com"
+}), importIdentityKey({
+  business_name:"Cafe Moon",address:"987 Oak Street",website:"https://example.com"
+}), "same-brand separate street locations must remain separate");
+assert.equal(importIdentityKey({
+  business_name:"Cafe Moon",address:null,website:"https://example.com"
+}), importIdentityKey({
+  business_name:"Cafe Moon",address:null,website:"https://www.example.com"
+}), "without an address the name and official website deduplicate");
+assert.equal(importIdentityKey({
+  business_name:"Cafe Moon",address:null,website:"https://instagram.com/cafemoon"
+}), null, "a social page is not eligible for independent website import");
+assert.equal(completenessScore({website:"example.com",phone:"253-555-0123",address:"Main St"}), 70);
+assert.equal(completenessScore({website:null,phone:null,address:"Main St"}), 5);
+
+const previousPlacesFetch = globalThis.fetch;
+try {
+  let called = 0;
+  globalThis.fetch = async (input, init) => {
+    called++;
+    assert.equal(String(input), "https://api.geoapify.com/v2/places");
+    assert.equal(init?.method, "POST");
+    assert.equal((init?.headers as Record<string,string>)["x-api-key"], "fixture-key");
+    const requestBody = JSON.parse(String(init?.body));
+    assert.equal(requestBody.filter.type, "circle");
+    assert.equal(requestBody.filter.radius, 16093);
+    assert.ok(requestBody.categories.includes("catering.restaurant"));
+    assert.ok(requestBody.categories.includes("catering.pub"));
+    return new Response(JSON.stringify({ type: "FeatureCollection", features: [{
+      properties: { name:"Cedar & Stone", formatted:"Puyallup, WA",
+        website:"example.com", lat:47.1, lon:-122.3, place_id:"abcdefghi1234",
+        datasource: { raw: { osm_type:"n",osm_id:317,amenity:"restaurant",
+          "contact:instagram":"@cedarstone" } } },
+    }] }), {status:200,headers:{"content-type":"application/json"}});
+  };
+  const found = await discoverGeoapify(47.1,-122.3,16093,["restaurants","bars"],20,"fixture-key");
+  assert.equal(called,1);
+  assert.equal(found.length,1);
+  assert.equal(found[0].source_ref,"node:317");
+  assert.equal(found[0].website,"https://example.com/");
+  assert.equal(found[0].social_profiles[0].status,"unconfirmed");
+  // Both the Places adapter and the geocoder must reject unexpectedly large
+  // chunked JSON bodies without buffering them all into memory.
+  globalThis.fetch = async () => new Response(
+    JSON.stringify({ features: [], padding: "x".repeat(1024 * 1024 + 1) }),
+    { status: 200, headers: { "content-type": "application/json" } },
+  );
+  await assert.rejects(
+    discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"),
+    /response is too large/,
+    "Places responses are capped at 1 MiB",
+  );
+  await assert.rejects(
+    geocodeGeoapify("Puyallup, WA","fixture-key"),
+    /response is too large/,
+    "Geocoding responses are capped at 1 MiB",
+  );
+  // Provider error classes need to be actionable and must never contain keys.
+  for (const [status, pattern] of [
+    [401, /private API key/],
+    [403, /credentials and restrictions/],
+    [429, /rate or credit limit/],
+    [400, /search parameters/],
+    [503, /Places provider is unavailable/],
+  ] as const) {
+    globalThis.fetch = async () => new Response("credential or quota diagnostic, not safe to echo", { status });
+    await assert.rejects(discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"), pattern);
+  }
+  for (const [status, pattern] of [
+    [401, /private API key/],
+    [429, /rate or credit limit/],
+    [503, /Location lookup provider is unavailable/],
+  ] as const) {
+    globalThis.fetch = async () => new Response("upstream diagnostic", { status });
+    await assert.rejects(geocodeGeoapify("Tacoma, WA","fixture-key"), pattern);
+  }
+} finally {
+  globalThis.fetch = previousPlacesFetch;
+}
+
+
+// Geoapify path must not rely on Nominatim's public geocoding availability.
+// Both the geocoder and Places search accept the same PRIVATE x-api-key header.
+const priorGeoKey = process.env.GEOAPIFY_API_KEY;
+const beforeGeoFetch = globalThis.fetch;
+try {
+  process.env.GEOAPIFY_API_KEY = "ci-private-fixture-only";
+  let geocodeCalls = 0;
+  let placesCalls = 0;
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    assert.equal((init?.headers as Record<string,string>)["x-api-key"],"ci-private-fixture-only");
+    assert.ok(!url.includes("ci-private-fixture-only"),"secret never enters the URL");
+    if (url.includes("/v1/geocode/search")) {
+      geocodeCalls++;
+      assert.equal(new URL(url).searchParams.get("text"),"Tacoma, WA");
+      assert.equal(new URL(url).searchParams.get("format"),"geojson");
+      return new Response(JSON.stringify({
+        type:"FeatureCollection",
+        features:[{properties:{lat:47.19,lon:-122.29}}],
+      }), {status:200,headers:{"content-type":"application/json"}});
+    }
+    assert.equal(url,"https://api.geoapify.com/v2/places");
+    placesCalls++;
+    assert.equal(init?.method,"POST");
+    return new Response(JSON.stringify({features:[{
+      properties:{name:"Geoapify Coffee",place_id:"abcdefghi123456",
+        datasource:{raw:{osm_type:"node",osm_id:421,amenity:"cafe"}}},
+    }]}), {status:200,headers:{"content-type":"application/json"}});
+  };
+  const businesses = await findBusinesses({...request,source:"geoapify",niches:["cafes"]});
+  assert.equal(businesses[0].source_ref,"node:421");
+  assert.equal(geocodeCalls,0,"Known Puyallup center skips costly geocoding");
+  assert.equal(placesCalls,1,"Geoapify Places searches once");
+  const otherCity = await findBusinesses({...request,location:"Tacoma, WA",source:"geoapify",niches:["cafes"]});
+  assert.equal(otherCity[0].source_ref,"node:421");
+  assert.equal(geocodeCalls,1,"Other cities still use protected Geoapify geocoding");
+  assert.equal(placesCalls,2,"Every search uses the selected Geoapify Places provider");
+} finally {
+  globalThis.fetch = beforeGeoFetch;
+  if(priorGeoKey===undefined)delete process.env.GEOAPIFY_API_KEY;
+  else process.env.GEOAPIFY_API_KEY=priorGeoKey;
+}
+
+
+// Both Geoapify adapters must bound JSON body consumption, not merely the
+// initial response headers. A slow provider used to leave an open scan forever.
+{
+  const originalFetch = globalThis.fetch;
+  const originalTimer = globalThis.setTimeout;
+  try {
+    // Shorten only the adapters' real timeouts while keeping the response body pending.
+    globalThis.setTimeout = ((handler: Parameters<typeof setTimeout>[0], delay?: number) =>
+      originalTimer(handler, delay === 12000 || delay === 10000 ? 5 : delay)) as typeof setTimeout;
+    globalThis.fetch = async (_input, init) => new Response(new ReadableStream({
+      start(controller) {
+        init?.signal?.addEventListener("abort", () =>
+          controller.error(new DOMException("The operation was aborted", "AbortError")), { once: true });
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } });
+    const mustTimeout = async (promise: Promise<unknown>, label: string) => {
+      let guardTimer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await assert.rejects(Promise.race([promise, new Promise((_resolve, reject) => {
+          guardTimer = originalTimer(() => reject(new Error("Stalled JSON body escaped adapter timeout")), 100);
+        })]), /timed out/, label);
+      } finally {
+        if (guardTimer) clearTimeout(guardTimer);
+      }
+    };
+    await mustTimeout(discoverGeoapify(47.1,-122.3,2000,["bars"],10,"fixture-key"), "Places JSON timeout");
+    await mustTimeout(geocodeGeoapify("Puyallup, WA","fixture-key"), "Geocoder JSON timeout");
+  } finally {
+    globalThis.fetch = originalFetch;
+    globalThis.setTimeout = originalTimer;
+  }
+}
+
+// Import -> audit handoff is staged rather than secretly activating
+// scheduled scans, bulk outreach or a real-time third-party website fetch.
+const finderActionsSource = readFileSync(new URL("../app/(protected)/(admin)/leads/discover/lead-finder-actions.ts", import.meta.url), "utf8");
+const leadActionsSource = readFileSync(new URL("../app/(protected)/(admin)/leads/actions.ts", import.meta.url), "utf8");
+const leadDetailSource = readFileSync(new URL("../app/(protected)/(admin)/leads/[leadId]/page.tsx", import.meta.url), "utf8");
+assert.match(finderActionsSource, /website_audit:\s*\{\s*status:\s*"queued"/, "import creates queued audit metadata");
+assert.match(finderActionsSource, /if \(search\.status !== "complete"\)/,
+  "manual import requires a completed search; partial results cannot create leads");
+assert.match(finderActionsSource, /lead\.metadata\?\.import_key === importKey/,
+  "cross-search import rechecks prior CRM fingerprint");
+assert.match(finderActionsSource, /\.in\("import_status", \["importing", "imported"\]\)/,
+  "cross-search staging conflict is checked before a CRM insert");
+assert.match(finderActionsSource, /insertError\?\.code === "23505"/,
+  "unique-key conflicts are handled without blind retries");
+const idempotencyProposal = readFileSync(
+  new URL("../docs/LEAD_FINDER_IDEMPOTENCY_SQL_REVIEW_ONLY.sql", import.meta.url), "utf8");
+assert.match(idempotencyProposal, /REVIEW ONLY/);
+assert.match(idempotencyProposal, /CREATE UNIQUE INDEX IF NOT EXISTS nhs_lead_finder_source_ref_once/);
+assert.match(idempotencyProposal, /CREATE UNIQUE INDEX IF NOT EXISTS nhs_lead_finder_import_key_once/);
+
+assert.doesNotMatch(finderActionsSource, /await\s+analyzeWebsite\s*\(/, "bulk import never fetches all sites");
+assert.match(leadActionsSource, /export async function auditLeadWebsite\(formData: FormData\)/, "manual audit action exists");
+assert.match(leadActionsSource, /const \{ user \} = await requireAdmin\(\)/, "admin authentication required");
+assert.match(leadActionsSource, /const signals = await analyzeWebsite\(website\)/, "audit uses established safe-site analyzer");
+assert.match(leadActionsSource, /status = signals\.reachable \? "complete" : "inconclusive"/,
+  "unreachable sites cannot be scored as bad websites");
+assert.match(leadDetailSource, /<form action=\{auditLeadWebsite\}>/, "lead detail has explicit audit trigger");
+assert.match(leadDetailSource, /Audits are on-demand/, "audit is not automatically scheduled");
 
 console.log("verify:scanner — all checks passed.");

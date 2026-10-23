@@ -11,6 +11,7 @@ on:
       - '.github/workflows/phase3-supabase-local.yml'
       - 'scripts/verify-phase3-supabase-local.mjs'
       - 'tests/e2e/phase3-local-ui.spec.mjs'
+      - 'tests/e2e/lead-finder-local.spec.mjs'
       - 'tests/helpers/**'
       - 'scripts/build-nocturne-review.mjs'
       - 'scripts/verify-nocturne-gallery.mjs'
@@ -109,7 +110,7 @@ jobs:
           cd ..
           npm install --no-save --package-lock=false @playwright/test@1.56.1
           npx playwright install --with-deps chromium
-          npx playwright test tests/e2e/phase3-local-ui.spec.mjs --retries=0
+          npx playwright test tests/e2e/phase3-local-ui.spec.mjs tests/e2e/lead-finder-local.spec.mjs --retries=0
 
       - name: Build browsable synthetic Admin and Client visual review
         if: success()

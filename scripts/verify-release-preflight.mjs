@@ -11,9 +11,11 @@ const appliedVersions = [
   "20261012070000","20261012080000","20261012080001","20261013033207",
   "20261013040000","20261013050000","20261013050001","20261013060000",
   "20261013232917","20261014060417","20261014070000","20261015001632",
-  "20261015001941","20261015005039",
+  "20261015001941","20261015005039","20261020063055",
 ];
 const proposedVersion = "20261017030000";
+// Explicitly inventoried future migrations (none after this verified apply).
+const reviewedDraftVersions = [];
 const checks = [
   ["Production migration-history baseline is represented in source", () => {
     for (const version of appliedVersions) {
@@ -21,10 +23,23 @@ const checks = [
         "Missing or duplicate production migration: " + version);
     }
     assert.equal(new Set(appliedVersions).size, appliedVersions.length);
-    assert.equal(migrations.length, appliedVersions.length + 1,
+    assert.equal(migrations.length, appliedVersions.length + 1 + reviewedDraftVersions.length,
       "Unexpected additional SQL migrations require a new approved inventory review.");
     assert.equal(migrations.filter((f) => f.startsWith(proposedVersion + "_")).length, 1,
       "Proposed security change must remain separate from already-applied migrations.");
+    for (const version of reviewedDraftVersions) {
+      assert.equal(migrations.filter((f) => f.startsWith(version + "_")).length, 1,
+        "Each reviewed future schema migration must be explicit and unique: " + version);
+    }
+  }],
+  ["Applied Softr parity migration remains isolated and admin-only", () => {
+    const sql = read("supabase/migrations/20261020063055_lead_search_review_queue.sql");
+    assert.match(sql, /create table if not exists public\.lead_search_requests/i);
+    assert.match(sql, /create table if not exists public\.lead_search_results/i);
+    assert.match(sql, /alter table public\.lead_search_requests enable row level security/i);
+    assert.match(sql, /alter table public\.lead_search_results enable row level security/i);
+    assert.equal((sql.match(/private\.is_admin\(\)/g) || []).length, 4);
+    assert.doesNotMatch(sql, /(?:\bdrop\s+table\b|\btruncate\b|\bdelete\s+from\b)/i);
   }],
   ["Recovered form-source RLS migration binds to storage object path", () => {
     const sql = read("supabase/migrations/20261014060417_fix_form_source_policy_object_path.sql");
