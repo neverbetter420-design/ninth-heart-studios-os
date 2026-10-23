@@ -231,7 +231,14 @@ async function executeSearch(db: Db, userId: string, id: string) {
     return "Found " + Math.min(discovered.length, params.result_limit) + " businesses. " +
       imported + " imported to Leads.";
   } catch (error) {
-    const message = error instanceof Error ? error.message.slice(0, 400) : "Search provider unavailable.";
+    let message = error instanceof Error ? error.message.slice(0, 400) : "Search provider unavailable.";
+    if (request.source === "openstreetmap" &&
+        message.startsWith("Business directory is busy or unreachable") &&
+        process.env.GEOAPIFY_API_KEY?.trim()) {
+      // Make the alternative obvious without silently consuming paid API
+      // credits: the admin must start a new, explicitly Geoapify search.
+      message = "OpenStreetMap is unavailable. Select Geoapify under Data source and search again.";
+    }
     await db.from("lead_search_requests").update({
       status: "error", error_message: message,
       completed_at: new Date().toISOString(), updated_at: new Date().toISOString(),
