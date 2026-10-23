@@ -141,6 +141,18 @@ async function readBoundedProviderJson(response: Response): Promise<unknown> {
   }
 }
 
+/** Return actionable provider errors without including credentials or response bodies. */
+function geoapifyResponseError(status: number, operation: "Places" | "Location lookup"): Error {
+  const provider = operation === "Places" ? "Places provider" : "Location lookup provider";
+  if (status === 401 || status === 403)
+    return new Error(provider + " rejected the private API key. Check Geoapify credentials and restrictions.");
+  if (status === 429)
+    return new Error(provider + " reached its rate or credit limit. Review Geoapify usage and retry later.");
+  if (status === 400 || status === 422)
+    return new Error(provider + " rejected the search parameters. Check the city, categories and radius.");
+  return new Error(provider + " is unavailable. Please retry later.");
+}
+
 const osmType = (raw: unknown): string | null => {
   if (raw === "n" || raw === "node") return "node";
   if (raw === "w" || raw === "way") return "way";
@@ -169,7 +181,7 @@ export async function discoverGeoapify(
       }),
       signal: ctrl.signal,
     });
-    if (!response.ok) throw new Error("Places provider is unavailable. Check its configuration or quota.");
+    if (!response.ok) throw geoapifyResponseError(response.status, "Places");
     parsed = await readBoundedProviderJson(response);
   } catch (error) {
     if (ctrl.signal.aborted) throw new Error("Places provider timed out. Please retry.");
@@ -239,7 +251,7 @@ export async function geocodeGeoapify(place: string, key: string): Promise<{ lat
       headers: { "x-api-key": key, "Accept": "application/geo+json" },
       signal: ctrl.signal,
     });
-    if (!response.ok) throw new Error("Location lookup provider is unavailable. Please retry later.");
+    if (!response.ok) throw geoapifyResponseError(response.status, "Location lookup");
     parsed = await readBoundedProviderJson(response);
   } catch (error) {
     if (ctrl.signal.aborted) throw new Error("Location lookup timed out. Please retry.");
