@@ -31,18 +31,15 @@ try {
   // test successful: the actual draft provider function must still work.
   const query = '[out:json][timeout:8];node["amenity"="restaurant"](around:1609,47.18538,-122.2929);out center 2;';
   const alternatives = [
-    ["FOSSGIS lz4", "https://lz4.overpass-api.de/api/interpreter"],
-    ["OSM Japan", "https://overpass.osm.jp/api/interpreter"],
+    ["OSM DE GET", "https://overpass-api.de/api/interpreter"],
+    ["Private.coffee GET", "https://overpass.private.coffee/api/interpreter"],
+    ["FOSSGIS GET", "https://lz4.overpass-api.de/api/interpreter"],
   ] as const;
   const diagnostics = await Promise.all(alternatives.map(async ([label, endpoint]) => {
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "NinthHeartStudios-OS/1.0 (contact: admin@ninthheartstudios.com)",
-        },
-        body: "data=" + encodeURIComponent(query),
+      const response = await fetch(endpoint + "?data=" + encodeURIComponent(query), {
+        method: "GET",
+        headers: { "User-Agent": "NinthHeartStudios-OS/1.0 (contact: admin@ninthheartstudios.com)" },
         signal: AbortSignal.timeout(10000),
       });
       if (!response.ok) return label + ": HTTP " + response.status;
