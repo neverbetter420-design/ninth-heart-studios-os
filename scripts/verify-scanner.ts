@@ -397,7 +397,7 @@ try {
     assert.ok(!url.includes("ci-private-fixture-only"),"secret never enters the URL");
     if (url.includes("/v1/geocode/search")) {
       geocodeCalls++;
-      assert.equal(new URL(url).searchParams.get("text"),"Puyallup, WA");
+      assert.equal(new URL(url).searchParams.get("text"),"Tacoma, WA");
       assert.equal(new URL(url).searchParams.get("format"),"geojson");
       return new Response(JSON.stringify({
         type:"FeatureCollection",
@@ -414,8 +414,12 @@ try {
   };
   const businesses = await findBusinesses({...request,source:"geoapify",niches:["cafes"]});
   assert.equal(businesses[0].source_ref,"node:421");
-  assert.equal(geocodeCalls,1,"Geoapify geocodes once");
+  assert.equal(geocodeCalls,0,"Known Puyallup center skips costly geocoding");
   assert.equal(placesCalls,1,"Geoapify Places searches once");
+  const otherCity = await findBusinesses({...request,location:"Tacoma, WA",source:"geoapify",niches:["cafes"]});
+  assert.equal(otherCity[0].source_ref,"node:421");
+  assert.equal(geocodeCalls,1,"Other cities still use protected Geoapify geocoding");
+  assert.equal(placesCalls,2,"Every search uses the selected Geoapify Places provider");
 } finally {
   globalThis.fetch = beforeGeoFetch;
   if(priorGeoKey===undefined)delete process.env.GEOAPIFY_API_KEY;
