@@ -71,8 +71,17 @@ async function importOne(db: Db, userId: string, searchId: string, id: string) {
       (leads?.length ?? 0) === 1000 || (prospects?.length ?? 0) === 1000)
       throw new Error("Cannot safely check duplicate records.");
     if (otherClaims?.length) {
-      // Another search is already importing or has imported this source.
-      // Do not race it or create a second CRM row.
+      // Another search has already saved the same source identity.
+      // Permanently mark completed imports as duplicates rather than inviting
+      // the admin to click Import repeatedly on a never-eligible result.
+      if (otherClaims.some(other => other.import_status === "imported")) {
+        await db.from("lead_search_results").update({
+          duplicate: true, import_status: "duplicate", updated_at: new Date().toISOString(),
+        }).eq("id", result.id).eq("import_status", "importing");
+        return false;
+      }
+      // A concurrent in-flight claim is not yet confirmed; leave this
+      // candidate retryable without risking a second CRM insertion.
       throw new Error("A matching search result is already being imported.");
     }
     const same = (candidate: { business_name?: string | null; website?: string | null; source_ref?: string | null; address?: string | null }) =>
