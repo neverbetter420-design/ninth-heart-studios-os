@@ -29,21 +29,21 @@ assert.equal(frames.length,30);
 assert.ok(frames.includes("admin/home.html")&&frames.includes("client/home.html"));
 const index=readFileSync(join(root,"index.html"),"utf8");
 assert.ok(index.includes("synthetic data"));
-assert.ok(index.includes("f.srcdoc="), "Iframe must use self-contained srcdoc, not local file URLs");
-assert.ok(!index.includes('f.src="frames/"'), "Preview must not load local frames");
-assert.ok(index.includes('sandbox=""'), "Frame must keep scripts and navigation sandboxed");
-const screenMatch = index.match(/<script type="application\/json" id="nhs-screen-data">([\s\S]*?)<\/script>/);
-const styleMatch = index.match(/<script type="application\/json" id="nhs-style-data">([\s\S]*?)<\/script>/);
-assert.ok(screenMatch && styleMatch, "All screen markup and style must be embedded in index.html");
-const screens = JSON.parse(screenMatch[1]);
-const styles = JSON.parse(styleMatch[1]);
-assert.deepEqual(Object.keys(screens).sort(), frames.map(name => name.slice(0, -5)).sort());
-assert.equal(styles, readFileSync(join(root, "visual.css"), "utf8"));
-for (const [key, markup] of Object.entries(screens)) {
-  assert.ok(markup.includes("app-shell"), "Rendered shell missing from " + key);
-  assert.ok(!/<script\b/i.test(markup), "Executable script found in " + key);
-  assert.ok(!/rquscwgdrqkzwjukiqtk|sb_secret_|service_role|app\.ninthheartstudios\.com/i.test(markup), "Production identifier in " + key);
+assert.ok(index.includes('<main id="preview" aria-label="NHS synthetic screen preview">'), "Default screen must be visible in HTML");
+assert.ok(!/<iframe\b/i.test(index), "Preview must not contain a frame");
+assert.ok(index.includes("surface.replaceChildren(selected.content.cloneNode(true))"),"Screen switching must clone templates in-page");
+assert.ok(index.includes("<style>"+css+"</style>"), "CSS must be embedded in index");
+const templates=[...index.matchAll(/<template data-nhs-screen="([^"]+)">([\s\S]*?)<\/template>/g)];
+assert.equal(templates.length,frames.length,"Exactly 30 embedded templates expected");
+assert.deepEqual(templates.map(t=>t[1]).sort(),frames.map(n=>n.slice(0,-5)).sort());
+for(const [,key,markup] of templates){
+ assert.ok(markup.includes("app-shell"),"Missing rendered app shell in "+key);
+ assert.ok(!/<script\b/i.test(markup),"Scripts forbidden in "+key);
+ assert.ok(!/rquscwgdrqkzwjukiqtk|sb_secret_|service_role|app\.ninthheartstudios\.com/i.test(markup),"Production identifier in "+key);
 }
+const initial=index.slice(index.indexOf('<main id="preview"'),index.indexOf("</main>",index.indexOf('<main id="preview"')));
+assert.ok(initial.includes("nhs-theme-admin")&&initial.includes("app-shell"),"Default HTML must show Admin before JavaScript");
+assert.ok(initial.includes("Command Center"),"Default HTML must show meaningful content");
 assert.ok(index.includes("Extract All"), "A compressed ZIP warning must be present");
 assert.ok(index.includes("visual preview only"));
 assert.ok(!/NEXT_PUBLIC_SUPABASE|rquscwgdrqkzwjukiqtk/i.test(index));

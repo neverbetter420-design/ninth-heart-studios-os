@@ -1,35 +1,40 @@
 import { test, expect } from "@playwright/test";
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-// Exercise file:// directly: previous web-served checks could not detect the blank local preview.
 test.beforeAll(() => {
-  if (!existsSync(resolve("nocturne-static-preview/index.html"))) {
-    execFileSync(process.execPath, ["scripts/build-nocturne-static.mjs"], { cwd: process.cwd(), timeout: 120_000 });
-  }
+  execFileSync(process.execPath, ["scripts/build-nocturne-static.mjs"], { cwd: process.cwd(), timeout: 120_000 });
 });
 
-test("self-contained offline preview renders Admin and Client without external requests", async ({ page }) => {
+test("extracted offline preview always renders Admin and switches to warm Client without frames", async ({page,browser}) => {
   test.setTimeout(90_000);
-  const outbound = [];
-  page.on("request", request => {
-    if (/^https?:/.test(request.url())) outbound.push(request.url());
-  });
-  await page.goto(pathToFileURL(resolve("nocturne-static-preview/index.html")).href);
-  const frame = page.frameLocator("#preview");
-  await expect(frame.locator(".app-shell")).toBeVisible();
-  await expect(frame.locator(".nhs-theme-admin")).toHaveCount(1);
-  await expect(page.locator("#preview")).toHaveAttribute("sandbox", "");
+  const errors=[], external=[];
+  page.on("pageerror",error=>errors.push(error.message));
+  page.on("request",req=>{if(/^https?:/.test(req.url()))external.push(req.url());});
+  const url=pathToFileURL(resolve("nocturne-static-preview/index.html")).href;
+  await page.goto(url);
+  await expect(page.locator("iframe")).toHaveCount(0);
+  await expect(page.locator("#preview .app-shell.nhs-theme-admin")).toBeVisible();
+  await expect(page.locator("#preview")).toContainText("Command Center");
   await page.locator("#role").selectOption("client");
-  await expect(frame.locator(".nhs-theme-client")).toBeVisible();
-  await expect(frame.locator(".atelier-home")).toBeVisible();
-  await page.locator("#view").selectOption("project");
-  await expect(frame.locator(".studio-workspace")).toBeVisible();
+  await expect(page.locator("#preview .app-shell.nhs-theme-client")).toBeVisible();
+  await expect(page.locator("#preview .atelier-home")).toBeVisible();
+  await page.locator("#role").selectOption("admin");
+  await page.locator("#view").selectOption("client-detail");
+  const surface=page.locator("#preview .management-client-grid");
+  await expect(surface).toBeVisible();
+  await expect(surface).toHaveCSS("background-color","rgb(249, 244, 238)");
+  await expect(page.locator("#preview")).toContainText("Cedar & Stone");
   await page.locator("#width").selectOption("mobile");
-  const doc = await page.locator("#preview").getAttribute("srcdoc");
-  expect(doc).toContain("studio-workspace");
-  expect(doc).not.toContain('href="../../visual.css"');
-  expect(outbound).toEqual([]);
+  await expect(page.locator("#preview")).toHaveCSS("width","390px");
+  expect(external).toEqual([]);
+  expect(errors).toEqual([]);
+  const noJS=await browser.newContext({javaScriptEnabled:false});
+  try {
+    const local=await noJS.newPage();
+    await local.goto(url);
+    await expect(local.locator("#preview .app-shell.nhs-theme-admin")).toBeVisible();
+    await expect(local.locator("#preview")).toContainText("Command Center");
+  } finally { await noJS.close(); }
 });

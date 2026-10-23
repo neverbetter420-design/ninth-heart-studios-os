@@ -44,21 +44,62 @@ for(const [role,views] of Object.entries(routes)){
     writeFileSync(join(root,"frames",role,view+".html"),frame);
   }
 }
+
+if (!screenMarkup["admin/home"]?.includes("app-shell")) throw new Error("Default admin page missing");
+if (/<\/style\b/i.test(visualStyles)) throw new Error("Unsafe CSS close tag");
+const templates = Object.entries(screenMarkup).map(([key,markup]) => {
+  if (/<\/template\b/i.test(markup)) throw new Error("Unsafe markup: "+key);
+  return '<template data-nhs-screen="'+escape(key)+'">'+markup+'</template>';
+}).join("\n");
+const chromeCSS = [
+  "*{box-sizing:border-box}",
+  "html,body{margin:0;min-height:100%;background:#100b16;color:#f7eaf1;font-family:Arial,sans-serif}",
+  ".nhs-preview-header{padding:24px clamp(16px,4vw,54px);background:linear-gradient(110deg,#150e1b,#422c42);border-bottom:1px solid #8a6b83}",
+  ".nhs-preview-header h1{color:#fff4f1;font:400 clamp(28px,3.5vw,43px)/1.2 Georgia,serif;margin:10px 0}",
+  ".nhs-preview-header p{color:#e9d7e5;max-width:950px;line-height:1.65}",
+  ".nhs-preview-eyebrow{color:#ecd0c9!important;font-size:11px;letter-spacing:.14em;text-transform:uppercase}",
+  ".nhs-preview-controls{display:flex;flex-wrap:wrap;align-items:end;gap:14px;margin-top:18px}",
+  ".nhs-preview-controls label{display:grid;gap:6px;color:#fff0f4;font-size:13px}",
+  ".nhs-preview-controls select{min-width:160px;min-height:46px;border:1px solid #ac8ba8;background:#31233b;color:white;padding:11px;border-radius:9px;font:inherit}",
+  ".nhs-preview-note{font-size:12px;color:#f2dfeb!important}",
+  ".nhs-preview-note a{color:#ffdce9;text-decoration:underline}",
+  "#nhs-preview-stage{padding:24px 16px 40px;display:flex;justify-content:center}",
+  "#preview{display:block;width:100%;max-width:100%;min-height:570px;background:#100d15;border:1px solid #8d7188;border-radius:17px;overflow:auto;box-shadow:0 20px 65px #04010880}",
+  "#preview>.app-shell{min-height:650px}",
+  ".nhs-preview-file-warning{padding:12px;background:#633c55;color:white;border:1px solid #c79bb2;border-radius:9px}",
+  ".nhs-preview-file-warning[hidden]{display:none}",
+  "@media(max-width:600px){.nhs-preview-header{padding:16px}.nhs-preview-controls select{min-width:125px}#nhs-preview-stage{padding:16px 8px}}"
+].join("\n");
+const controller=[
+  '(function(){',
+  'const r=document.getElementById("role"),v=document.getElementById("view"),w=document.getElementById("width");',
+  'const surface=document.getElementById("preview"),standalone=document.getElementById("standalone-link");',
+  'const templates=new Map(Array.from(document.querySelectorAll("template[data-nhs-screen]")).map(node=>[node.getAttribute("data-nhs-screen"),node]));',
+  'function render(){const selected=templates.get(r.value+"/"+v.value);if(!selected)return;',
+  'surface.replaceChildren(selected.content.cloneNode(true));',
+  'surface.style.width=w.value==="mobile"?"390px":w.value==="tablet"?"768px":"100%";',
+  'standalone.setAttribute("href","frames/"+r.value+"/"+v.value+".html");',
+  'if(location.protocol==="http:"||location.protocol==="https:"){const url=new URL(location.href);url.searchParams.set("role",r.value);url.searchParams.set("view",v.value);history.replaceState(null,"",url);}}',
+  'function populate(){const prior=v.value;v.replaceChildren(...routes[r.value].map(key=>{const option=document.createElement("option");option.value=key;option.textContent=key.replace(/^portal-/,"").replace(/-/g," ");return option;}));v.value=routes[r.value].includes(prior)?prior:"home";render();}',
+  'r.addEventListener("change",populate);v.addEventListener("change",render);w.addEventListener("change",render);',
+  'const params=new URLSearchParams(location.search);if(params.get("role")==="client")r.value="client";populate();if(routes[r.value].includes(params.get("view"))){v.value=params.get("view");render();}',
+  'document.getElementById("file-warning").hidden=!/\\.zip(?:\\.cf\\d+)?\\//i.test(decodeURI(location.pathname));',
+  '})();'
+].join("\n");
 const html=[
-'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS Nocturne Atelier · Visual Preview</title>',
-'<style>*{box-sizing:border-box}body{margin:0;background:#150e1b;color:#fbf0e7;font:14px/1.5 system-ui,sans-serif}header{padding:22px clamp(18px,4vw,56px);border-bottom:1px solid #604660;background:linear-gradient(110deg,#160e1b,#38243d)}h1{font:400 clamp(27px,4vw,44px)/1.15 Georgia,serif;margin:10px 0}p{color:#e0cee0;max-width:900px}.eyebrow{font-size:10px;letter-spacing:.18em;color:#eed5c1;text-transform:uppercase}.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.toolbar label{display:grid;gap:5px;color:#f0d8e7;font-size:12px}select{border:1px solid #95748e;border-radius:7px;min-height:44px;min-width:165px;padding:9px;background:#32233b;color:#fff;font:inherit}.frame{display:block;margin:22px auto 38px;border:1px solid #755479;border-radius:8px;background:#fff;box-shadow:0 18px 58px #0704099c;width:calc(100% - 32px);min-height:600px;height:72vh}.frame[hidden]{display:none}.note{font-size:12px;color:#e9cdbf}.file-warning:not([hidden]){display:block;border:1px solid #eeb0ce;background:#50293f;color:#fff;padding:14px 18px;max-width:950px;border-radius:10px}.file-warning[hidden]{display:none}@media(max-width:600px){header{padding:16px}.frame{height:73dvh}}</style></head>',
-'<body><header><div class="eyebrow">Ninth Heart Studios · Nocturne: Atelier Edition</div><h1>Interactive layout review</h1>',
-'<p>Real draft components with synthetic data, rendered as static HTML. Select Admin or Client, a screen, and a viewport. This is a <strong>visual preview only</strong>: links, forms, messages, sign-in, file access and payments are disabled. No production data or services are connected.</p>',
-'<div class="toolbar"><label>Environment<select id="role"><option value="admin">Admin Nocturne</option><option value="client">Client Atelier</option></select></label>',
-'<label>Screen<select id="view"></select></label><label>Viewport<select id="width"><option value="desktop">Responsive desktop</option><option value="tablet">Tablet (768px)</option><option value="mobile">Mobile (390px)</option></select></label></div>',
-'<p class="note">Production NHS OS is separate and remains unchanged.</p><p class="file-warning" id="file-warning" role="alert" hidden>This preview was opened inside a ZIP archive. It is self-contained, but for best results use <strong>Extract All</strong> and open <strong>index.html</strong>.</p></header>',
-'<iframe id="preview" class="frame" title="Source-rendered Nocturne screen" sandbox="" referrerpolicy="no-referrer"></iframe>',
-'<script type="application/json" id="nhs-screen-data">'+safeJSON(screenMarkup)+'</script>',
-'<script type="application/json" id="nhs-style-data">'+safeJSON(visualStyles)+'</script>',
-'<script>const routes='+JSON.stringify(routes)+';const screens=JSON.parse(document.getElementById("nhs-screen-data").textContent);const styles=JSON.parse(document.getElementById("nhs-style-data").textContent);const r=document.getElementById("role"),v=document.getElementById("view"),w=document.getElementById("width"),f=document.getElementById("preview");',
-'function show(){if(!routes[r.value].includes(v.value))return;const zipPath=/\.zip(?:\.cf\d+)?\//i.test(decodeURI(location.pathname));document.getElementById("file-warning").hidden=!zipPath;const markup=screens[r.value+"/"+v.value];if(!markup){f.srcdoc="<p>Preview screen unavailable.</p>";return;}f.srcdoc="<!doctype html><html lang=\'en\'><head><meta charset=\'utf-8\'><meta name=\'viewport\' content=\'width=device-width,initial-scale=1\'><style>"+styles+"</style></head><body>"+markup+"</body></html>";f.style.width=w.value==="mobile"?"390px":w.value==="tablet"?"768px":"calc(100% - 32px)";f.style.maxWidth="calc(100% - 24px)";if(location.protocol==="http:"||location.protocol==="https:"){const u=new URL(location.href);u.searchParams.set("role",r.value);u.searchParams.set("view",v.value);history.replaceState(null,"",u);}}',
-'function populate(){const prior=v.value;v.replaceChildren(...routes[r.value].map(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.replace(/^portal-/,"").replace(/-/g," ");return o}));v.value=routes[r.value].includes(prior)?prior:"home";show()}',
-'r.addEventListener("change",populate);v.addEventListener("change",show);w.addEventListener("change",show);const q=new URLSearchParams(location.search);if(q.get("role")==="client")r.value="client";populate();if(routes[r.value].includes(q.get("view"))){v.value=q.get("view");show()}</script></body></html>'
+  '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS Nocturne Atelier · Visual Preview</title>',
+  "<style>"+visualStyles+"</style>","<style>"+chromeCSS+"</style></head>",
+  '<body><header class="nhs-preview-header">',
+  '<p class="nhs-preview-eyebrow">Ninth Heart Studios · Nocturne: Atelier Edition</p><h1>Interactive layout review</h1>',
+  '<p>Actual draft components with synthetic data. Choose Admin or Client, screen, and viewport. This is a <strong>visual preview only</strong>: sign-in, forms, messages, file access and payments are disabled. Production data is not connected.</p>',
+  '<div class="nhs-preview-controls"><label>Environment<select id="role"><option value="admin">Admin Nocturne</option><option value="client">Client Atelier</option></select></label>',
+  '<label>Screen<select id="view"><option value="home">home</option></select></label>',
+  '<label>Viewport<select id="width"><option value="desktop">Responsive desktop</option><option value="tablet">Tablet (768px)</option><option value="mobile">Mobile (390px)</option></select></label></div>',
+  '<p class="nhs-preview-note">Production NHS OS is separate and unchanged. <a id="standalone-link" href="frames/admin/home.html">Open current screen separately ↗</a></p>',
+  '<p id="file-warning" class="nhs-preview-file-warning" role="alert" hidden>For best results, choose <strong>Extract All</strong> on the ZIP, then open the extracted index.html.</p>',
+  '</header><div id="nhs-preview-stage"><main id="preview" aria-label="NHS synthetic screen preview">'+screenMarkup["admin/home"]+'</main></div>',
+  '<div id="nhs-screen-templates" hidden>'+templates+'</div>',
+  '<script>const routes='+JSON.stringify(routes)+';'+controller+'</script></body></html>'
 ].join("\n");
 writeFileSync(join(root,"index.html"),html);
 writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
