@@ -32,26 +32,37 @@ for(const [role,views] of Object.entries(routes)){
   for(const view of views){
     const result=await renderNocturne(role,"populated",view);
     const html=stripActions(result.html);
-    const frame='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS OS synthetic visual review</title><link rel="stylesheet" href="/visual.css"></head><body>'+html+'</body></html>';
+    const frame='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS OS synthetic visual review</title><link rel="stylesheet" href="../../visual.css"></head><body>'+html+'</body></html>';
     if(/rquscwgdrqkzwjukiqtk|app\.ninthheartstudios\.com|sb_secret_|service_role/i.test(frame))throw new Error("Production identifier in "+role+"/"+view);
     writeFileSync(join(root,"frames",role,view+".html"),frame);
   }
 }
 const html=[
 '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS Nocturne Atelier · Visual Preview</title>',
-'<style>*{box-sizing:border-box}body{margin:0;background:#150e1b;color:#fbf0e7;font:14px/1.5 system-ui,sans-serif}header{padding:22px clamp(18px,4vw,56px);border-bottom:1px solid #604660;background:linear-gradient(110deg,#160e1b,#38243d)}h1{font:400 clamp(27px,4vw,44px)/1.15 Georgia,serif;margin:10px 0}p{color:#e0cee0;max-width:900px}.eyebrow{font-size:10px;letter-spacing:.18em;color:#eed5c1;text-transform:uppercase}.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.toolbar label{display:grid;gap:5px;color:#f0d8e7;font-size:12px}select{border:1px solid #95748e;border-radius:7px;min-height:44px;min-width:165px;padding:9px;background:#32233b;color:#fff;font:inherit}.frame{display:block;margin:22px auto 38px;border:1px solid #755479;border-radius:8px;background:#fff;box-shadow:0 18px 58px #0704099c;width:calc(100% - 32px);min-height:600px;height:72vh}.note{font-size:12px;color:#e9cdbf}@media(max-width:600px){header{padding:16px}.frame{height:73dvh}}</style></head>',
+'<style>*{box-sizing:border-box}body{margin:0;background:#150e1b;color:#fbf0e7;font:14px/1.5 system-ui,sans-serif}header{padding:22px clamp(18px,4vw,56px);border-bottom:1px solid #604660;background:linear-gradient(110deg,#160e1b,#38243d)}h1{font:400 clamp(27px,4vw,44px)/1.15 Georgia,serif;margin:10px 0}p{color:#e0cee0;max-width:900px}.eyebrow{font-size:10px;letter-spacing:.18em;color:#eed5c1;text-transform:uppercase}.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:end}.toolbar label{display:grid;gap:5px;color:#f0d8e7;font-size:12px}select{border:1px solid #95748e;border-radius:7px;min-height:44px;min-width:165px;padding:9px;background:#32233b;color:#fff;font:inherit}.frame{display:block;margin:22px auto 38px;border:1px solid #755479;border-radius:8px;background:#fff;box-shadow:0 18px 58px #0704099c;width:calc(100% - 32px);min-height:600px;height:72vh}.note{font-size:12px;color:#e9cdbf}.file-warning:not([hidden]){display:block;border:1px solid #eeb0ce;background:#50293f;color:#fff;padding:14px 18px;max-width:950px;border-radius:10px}.file-warning[hidden]{display:none}@media(max-width:600px){header{padding:16px}.frame{height:73dvh}}</style></head>',
 '<body><header><div class="eyebrow">Ninth Heart Studios · Nocturne: Atelier Edition</div><h1>Interactive layout review</h1>',
 '<p>Real draft components with synthetic data, rendered as static HTML. Select Admin or Client, a screen, and a viewport. This is a <strong>visual preview only</strong>: links, forms, messages, sign-in, file access and payments are disabled. No production data or services are connected.</p>',
 '<div class="toolbar"><label>Environment<select id="role"><option value="admin">Admin Nocturne</option><option value="client">Client Atelier</option></select></label>',
 '<label>Screen<select id="view"></select></label><label>Viewport<select id="width"><option value="desktop">Responsive desktop</option><option value="tablet">Tablet (768px)</option><option value="mobile">Mobile (390px)</option></select></label></div>',
-'<p class="note">Production NHS OS is separate and remains unchanged.</p></header>',
+'<p class="note">Production NHS OS is separate and remains unchanged.</p><p class="file-warning" id="file-warning" role="alert" hidden>This preview is being opened inside a ZIP archive. Right-click the downloaded ZIP, choose <strong>Extract All</strong>, then open <strong>index.html</strong> inside the extracted folder. Keep the <strong>frames</strong> folder and <strong>visual.css</strong> beside it.</p></header>',
 '<iframe id="preview" class="frame" title="Source-rendered Nocturne screen" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe>',
 '<script>const routes='+JSON.stringify(routes)+';const r=document.getElementById("role"),v=document.getElementById("view"),w=document.getElementById("width"),f=document.getElementById("preview");',
-'function show(){if(!routes[r.value].includes(v.value))return;f.src="/frames/"+r.value+"/"+v.value+".html";f.style.width=w.value==="mobile"?"390px":w.value==="tablet"?"768px":"calc(100% - 32px)";f.style.maxWidth="calc(100% - 24px)";const u=new URL(location.href);u.searchParams.set("role",r.value);u.searchParams.set("view",v.value);history.replaceState(null,"",u);}',
+'function show(){if(!routes[r.value].includes(v.value))return;const zipPath=/\.zip(?:\.cf\d+)?\//i.test(decodeURI(location.pathname));document.getElementById("file-warning").hidden=!zipPath;f.hidden=zipPath;if(zipPath)return;f.src="frames/"+r.value+"/"+v.value+".html";f.style.width=w.value==="mobile"?"390px":w.value==="tablet"?"768px":"calc(100% - 32px)";f.style.maxWidth="calc(100% - 24px)";if(location.protocol!=="file:"){const u=new URL(location.href);u.searchParams.set("role",r.value);u.searchParams.set("view",v.value);history.replaceState(null,"",u);}}',
 'function populate(){const prior=v.value;v.replaceChildren(...routes[r.value].map(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.replace(/^portal-/,"").replace(/-/g," ");return o}));v.value=routes[r.value].includes(prior)?prior:"home";show()}',
 'r.addEventListener("change",populate);v.addEventListener("change",show);w.addEventListener("change",show);const q=new URLSearchParams(location.search);if(q.get("role")==="client")r.value="client";populate();if(routes[r.value].includes(q.get("view"))){v.value=q.get("view");show()}</script></body></html>'
 ].join("\n");
 writeFileSync(join(root,"index.html"),html);
+writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
+  "NHS NOCTURNE ATELIER — LOCAL VISUAL PREVIEW",
+  "",
+  "1. In Downloads, right-click nhs-nocturne-html-preview.zip and choose Extract All.",
+  "2. Open the extracted folder. Open index.html in Chrome or Edge.",
+  "3. Keep index.html, visual.css and the frames folder together; do not move index.html alone.",
+  "4. Choose Admin Nocturne or Client Atelier, screen, and viewport from the top controls.",
+  "",
+  "This is a visual demonstration with synthetic data, not the production app.",
+  "Links, actions, sign-in and payments do not operate in this preview.",
+].join("\n")+"\n");
 writeFileSync(join(root,"_headers"),[
 "/*",
 "  X-Content-Type-Options: nosniff",
