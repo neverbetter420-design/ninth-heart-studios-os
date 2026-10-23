@@ -32,7 +32,7 @@ assert.ok(index.includes("synthetic data"));
 assert.ok(index.includes('<main id="preview" aria-label="NHS synthetic screen preview">'), "Default screen must be visible in HTML");
 assert.ok(!/<iframe\b/i.test(index), "Preview must not contain a frame");
 assert.ok(index.includes("surface.replaceChildren(selected.content.cloneNode(true))"),"Screen switching must clone templates in-page");
-assert.ok(index.includes("<style>"+css+"</style>"), "CSS must be embedded in index");
+assert.ok(index.includes("<style>"+readFileSync(join(root,"visual.css"),"utf8")+"</style>"), "CSS must be embedded in index");
 const templates=[...index.matchAll(/<template data-nhs-screen="([^"]+)">([\s\S]*?)<\/template>/g)];
 assert.equal(templates.length,frames.length,"Exactly 30 embedded templates expected");
 assert.deepEqual(templates.map(t=>t[1]).sort(),frames.map(n=>n.slice(0,-5)).sort());
