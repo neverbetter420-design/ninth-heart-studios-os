@@ -1,7 +1,9 @@
-name: NHS Lead Finder real provider smoke test
+name: NHS Lead Finder public provider diagnostic
 
-# The only network request is a read-only public OpenStreetMap discovery query.
-# Never access customer data, Supabase, Cloudflare secrets, or production deploy.
+# External community Overpass availability is not deterministic PR CI.
+# PR mode reports explicit unavailable/verified outcomes without disguising
+# outages as application bugs. Manual strict mode is an acceptance gate that
+# fails if no real named listings are returned.
 on:
   pull_request:
     paths:
@@ -10,20 +12,27 @@ on:
       - 'lib/prospect-scan.ts'
       - '.github/workflows/lead-finder-live-provider.yml'
   workflow_dispatch:
+    inputs:
+      strict:
+        description: 'Fail unless actual live OpenStreetMap listings are returned'
+        type: boolean
+        default: true
+        required: true
 
 permissions:
   contents: read
 
 jobs:
   live-osm:
-    name: Puyallup restaurants · real public OSM search
+    name: Public OSM availability (diagnostic only on PR)
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 5
     env:
       CI: 'true'
       NHS_LIVE_PROVIDER_READONLY: '1'
+      NHS_PROVIDER_STRICT: ${{ github.event_name == 'workflow_dispatch' && inputs.strict == true && '1' || '0' }}
     steps:
-      - name: Checkout only the draft branch
+      - name: Checkout untrusted draft branch without persisted credentials
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -31,9 +40,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Search OpenStreetMap read-only, with no app/database credentials
+      - name: Check actual OSM search and report availability
+        id: provider
+        shell: bash
         run: |
           test -z "${SUPABASE_ACCESS_TOKEN:-}"
           test -z "${SUPABASE_DB_PASSWORD:-}"
           test -z "${GEOAPIFY_API_KEY:-}"
           node --experimental-strip-types scripts/probe-lead-finder-live.ts
+      - name: Explicitly report live-provider release gate
+        if: always()
+        shell: bash
+        run: |
+          if [[ "${{ steps.provider.outputs.live_provider_status }}" == "available" ]]; then
+            echo "Actual OSM listing retrieval was verified in this run." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**LIVE PROVIDER RELEASE GATE: NOT VERIFIED.**" >> "$GITHUB_STEP_SUMMARY"
+            echo "A green PR diagnostic does not mean live listing discovery passed." >> "$GITHUB_STEP_SUMMARY"
+          fi
