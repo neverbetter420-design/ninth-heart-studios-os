@@ -36,3 +36,11 @@ assert.match(read("app/layout.tsx"), /import "\.\/atelier-color-story\.css"/);
 assert.match(colorStory, /management-client-workspace \.management-client-grid/);
 assert.match(colorStory, /--atelier-ivory: #f9f4ee/);
 assert.match(colorStory, /color-scheme: light/);
+
+const experience = read("app/nocturne-soft-atelier.css");
+assert.match(read("app/layout.tsx"), /import "\.\/nocturne-soft-atelier\.css"/);
+assert.match(read("components/Dashboard.tsx"), /className="nhs-command-surface"/);
+assert.match(experience, /nocturne-command-center \.nhs-command-surface/);
+assert.match(experience, /--nhs-ivory: #f9f4ee/);
+assert.match(experience, /studio-workspace-admin/);
+assert.match(experience, /atelier-home \.atelier-feature-project/);

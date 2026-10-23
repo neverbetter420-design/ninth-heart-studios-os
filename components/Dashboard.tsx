@@ -90,6 +90,7 @@ export async function Dashboard() {
         <NocturneStudioArt />
       </header>
 
+      <div className="nhs-command-surface">
       <section className="metric-grid" aria-label="Studio metrics">
         {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
       </section>
@@ -219,6 +220,7 @@ export async function Dashboard() {
 
         </div>
       </details>
+      </div>
     </div>
   );
 }

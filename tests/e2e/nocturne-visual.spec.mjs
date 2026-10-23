@@ -707,3 +707,29 @@ test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", 
     expect(await page.evaluate(() => document.documentElement.scrollWidth), `Relationship Atelier overflow at ${width}px`).toBeLessThanOrEqual(width);
   }
 });
+
+test("Nocturne home unmistakably combines a rose entrance and warm ivory executive studio", async ({ page }) => {
+  await show(page, "admin", "populated", "home");
+  const hero = page.locator(".nocturne-command-center .nocturne-overview");
+  const work = page.locator(".nocturne-command-center .nhs-command-surface");
+  await expect(hero).toBeVisible();
+  await expect(work).toBeVisible();
+  await expect(hero).toHaveCSS("background-color", "rgb(57, 37, 56)");
+  await expect(work).toHaveCSS("background-color", "rgb(249, 244, 238)");
+  await expect(work.locator(".metric-grid")).toContainText("Active Leads");
+  await expect(work.locator(".dashboard-grid")).toContainText("Next 3 actions");
+  await expect(work.locator(".dashboard-grid")).toContainText("Project pulse");
+  for (const width of [1440, 1024, 768, 390, 320]) {
+    await page.setViewportSize({width,height:850});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth),
+      `Nocturne Soft Atelier overflows at ${width}px`).toBeLessThanOrEqual(width);
+  }
+});
+
+test("soft client portal and admin project workspace share warm palette", async ({ page }) => {
+  await show(page, "client", "populated", "home");
+  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgb(255, 250, 246)");
+  await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgb(255, 250, 247)");
+  await show(page, "admin", "populated", "project");
+  await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(249, 244, 238)");
+});
