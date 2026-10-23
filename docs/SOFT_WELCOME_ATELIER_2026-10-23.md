@@ -7,7 +7,7 @@ Dark, elegant administrative environment meets a warm ivory, champagne and dusty
 1. Client welcome: real client first name and live project/approval CTA, warm ivory focal hero, reduced-motion entrance.
 2. Project journey: seven canonical statuses (Discovery, Content, Design, Build, Review, Launch, Care Plan) and accessible expanders with phase guidance. **Position is not proof a milestone is completed.**
 3. Design gallery: enlarge already-authorized project images using a native dialog and optionally compare two current project files. Signed URLs and RLS-scoped file queries are unchanged. The gallery does not invent preview assets or make decisions on behalf of the client.
-4. Muse: prominent but unobtrusive admin-only link to the existing /muse workspace. No new AI integration or automated suggestions are implied.
+4. Muse: admin-only, accessible small concierge panel with existing follow-up, proposal and client check-in draft destinations. No automated sending or new AI integration.
 5. Notifications: existing confirmed action-success events and optional error events, accessible live regions and manual dismiss.
 6. Mobile: four role-aware quick destinations, preserving the full drawer and existing sign-out controls. Safe-area support, keyboard focus states and reduced motion.
 

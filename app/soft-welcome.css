@@ -135,3 +135,22 @@
   .nhs-theme-client .atelier-feature-project { box-shadow: none; }
   .nhs-mobile-quicknav a.is-active { outline: 2px solid currentColor; }
 }
+
+/* Small, accessible Muse panel instead of another floating full-page dashboard. */
+.nhs-muse-area { position: relative; }
+.nhs-muse-area .nhs-muse-shortcut { cursor: pointer; font: inherit; }
+.nhs-muse-popover {
+  position: absolute; z-index: 70; right: 0; top: calc(100% + 12px);
+  width: min(325px, calc(100vw - 32px)); padding: 22px;
+  background: #211526; border: 1px solid #9d5a90;
+  border-radius: 16px; box-shadow: 0 24px 75px #0009;
+  color: #f4eef6;
+}
+.nhs-muse-overline { margin: 0; color: #d8add6; font-size: 10px; font-weight: 700; letter-spacing: .15em; }
+.nhs-muse-popover h3 { margin: 13px 0 7px; font-family: var(--font-cinzel),Georgia,serif; font-size: 19px; }
+.nhs-muse-popover > p:not(.nhs-muse-overline) { font-size: 12px; color: #d0c4d7; line-height: 1.6; margin: 0 0 17px; }
+.nhs-muse-actions { display: grid; gap: 5px; }
+.nhs-muse-actions a,.nhs-muse-all { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 10px 12px; border-radius: 9px; text-decoration: none; font-size: 12px; color: #f4eef6; border: 1px solid #6d476e; }
+.nhs-muse-actions a:hover,.nhs-muse-all:hover { background: #563550; }
+.nhs-muse-all { color: #e7bedc; border-color: transparent; margin-top: 12px; padding-inline: 0; }
+.nhs-muse-popover a:focus-visible { outline: 2px solid #f1c8e6; outline-offset: 2px; }
