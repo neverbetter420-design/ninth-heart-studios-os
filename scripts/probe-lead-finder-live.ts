@@ -1,113 +1,87 @@
-// Read-only live smoke test for the NHS Lead Finder business provider.
-// Runs the actual production discovery functions against a public provider.
-// Does not connect to Supabase or write leads; no secrets, payment, or outreach.
+// NHS Lead Finder: independent read-only public OSM availability diagnostic.
+// A provider outage must be shown honestly, but must not be confused with
+// broken deterministic application tests or block unrelated pull requests.
+// Manual strict mode DOES fail unless actual live businesses are retrieved.
+// No Supabase credentials, CRM writes, imports, automated outreach or deploys.
 import assert from "node:assert/strict";
 import { appendFileSync } from "node:fs";
 import { findBusinesses, completenessScore, websiteHost } from "../lib/lead-finder.ts";
 import type { FinderParams } from "../lib/lead-finder.ts";
 
 if (process.env.GITHUB_ACTIONS !== "true" || process.env.NHS_LIVE_PROVIDER_READONLY !== "1") {
-  throw new Error("Read-only provider smoke test must run in the isolated GitHub Actions job.");
+  throw new Error("This provider-only diagnostic must run in its isolated GitHub workflow.");
 }
+const strict = process.env.NHS_PROVIDER_STRICT === "1";
 const params: FinderParams = {
-  source: "openstreetmap",
-  location: "Puyallup, WA",
-  industry: "Restaurants",
-  niches: ["restaurants"],
-  radius_mi: 5,
-  result_limit: 5,
-  auto_import: false,
-  top_count: 5,
+  source: "openstreetmap", location: "Puyallup, WA",
+  industry: "Restaurants", niches: ["restaurants"],
+  radius_mi: 5, result_limit: 5, auto_import: false, top_count: 5,
 };
-const start = Date.now();
-let results: Awaited<ReturnType<typeof findBusinesses>>;
-try {
-  results = await findBusinesses(params);
-} catch (error) {
-  const reason = error instanceof Error ? error.message : String(error);
-  // A single lightweight request per independent public mirror helps distinguish
-  // shared-cloud egress blocking from an overloaded main Overpass endpoint.
-  // This diagnostic never substitutes results into the app or marks the smoke
-  // test successful: the actual draft provider function must still work.
-  const query = '[out:json][timeout:8];node["amenity"="restaurant"](around:1609,47.18538,-122.2929);out center 2;';
-  const alternatives = [
-    ["OSM DE GET", "https://overpass-api.de/api/interpreter"],
-    ["Private.coffee GET", "https://overpass.private.coffee/api/interpreter"],
-    ["FOSSGIS GET", "https://lz4.overpass-api.de/api/interpreter"],
-  ] as const;
-  const diagnostics = await Promise.all(alternatives.map(async ([label, endpoint]) => {
-    try {
-      const response = await fetch(endpoint + "?data=" + encodeURIComponent(query), {
-        method: "GET",
-        headers: { "User-Agent": "NinthHeartStudios-OS/1.0 (contact: admin@ninthheartstudios.com)" },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!response.ok) return label + ": HTTP " + response.status;
-      const raw = await response.text();
-      if (raw.length > 100000) return label + ": unexpectedly large diagnostic response";
-      const parsed = JSON.parse(raw);
-      return label + ": HTTP 200, " + (Array.isArray(parsed.elements) ? parsed.elements.length + " OSM objects" : "non-OSM JSON");
-    } catch (e) {
-      return label + ": " + (e instanceof Error ? e.message : String(e)).slice(0, 100);
-    }
-  }));
-  console.log("Independent provider diagnostics (no app or database writes):", diagnostics);
+const started = Date.now();
+
+function report(status: "available" | "unavailable", lines: string[]) {
+  const elapsed = ((Date.now() - started) / 1000).toFixed(1);
   const summary = [
-    "## NHS Lead Finder 2.0 — real provider smoke test",
+    "## NHS Lead Finder · real OpenStreetMap connectivity",
     "",
-    "**Result: FAILED (provider connectivity or response).**",
+    status === "available"
+      ? "**LIVE PROVIDER VERIFIED:** Actual named businesses were returned."
+      : "**LIVE PROVIDER NOT VERIFIED:** Public Overpass was unreachable or returned no listings.",
     "",
-    "- Source: OpenStreetMap Overpass, using the draft app's actual discovery code",
-    "- Search: Puyallup, WA · Restaurants · 5 miles · up to 5",
-    "- Safety: read-only; no Supabase, no CRM import, no outreach",
-    "- Failure: " + reason.replace(/[|\r\n]/g, " ").slice(0, 250),
-    ...diagnostics.map(d => "- Optional alternate endpoint: " + d.replace(/[|\r\n]/g, " ")),
+    "- Search: Puyallup restaurants · 5 miles · up to 5 businesses",
+    "- Mode: " + (strict ? "STRICT manual acceptance" : "Non-blocking PR availability diagnostic"),
+    "- Duration: " + elapsed + " seconds",
+    "- This workflow never connects to Supabase or imports leads",
+    "- **Release policy:** A successful real-provider acceptance test is still required; this diagnostic alone cannot authorize merge or deployment.",
+    "",
+    ...lines,
     "",
   ].join("\n");
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
-  throw new Error("Real OSM provider smoke test failed: " + reason);
+  if (process.env.GITHUB_OUTPUT)
+    appendFileSync(process.env.GITHUB_OUTPUT, "live_provider_status=" + status + "\n");
+  console.log(summary);
 }
-assert.ok(results.length > 0, "Real provider returned no named businesses within this search.");
-assert.ok(results.length <= 5, "Search exceeded configured result limit.");
-assert.equal(new Set(results.map(r => r.source_ref)).size, results.length, "Duplicate provider source refs");
-for (const b of results) {
-  assert.match(b.source_ref, /^(node|way|relation):\d+$/, "Actual OSM identity");
-  assert.ok(b.name.trim(), "Business name is present");
-  if (b.website) assert.ok(b.website.startsWith("https://") || b.website.startsWith("http://"), "Normalized public website");
+
+let businesses: Awaited<ReturnType<typeof findBusinesses>> | undefined;
+try {
+  businesses = await findBusinesses(params);
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  // Only the known, bounded Overpass-provider unavailability is non-blocking in
+  // regular PR CI. Every unexpected programming error still fails this job.
+  if (message !== "Business directory is busy or unreachable. Try again shortly, or use a smaller radius.")
+    throw error;
+  report("unavailable", ["- Upstream: " + message, "- **Next action:** Test Geoapify with a private QA key in an isolated environment."]);
+  if (strict) throw new Error("Strict live-provider acceptance FAILED: Overpass unavailable.");
+  console.log("::warning title=External OSM outage::Real OSM search not verified. Release remains blocked.");
 }
-const display = results.map((b) => ({
-  business: b.name,
-  category: b.category,
-  address: b.address,
-  website: b.website,
-  website_listed: Boolean(websiteHost(b.website)),
-  phone_listed: Boolean(b.phone),
-  social_profiles: b.social_profiles.map(x => ({ platform: x.platform, status: x.status })),
-  completeness_score: completenessScore(b),
-  osm_reference: b.source_ref,
-}));
-const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-console.log(JSON.stringify({ search: params, elapsed_seconds: Number(elapsed), results: display }, null, 2));
-const summary = [
-  "## NHS Lead Finder 2.0 — real provider smoke test",
-  "",
-  "**Result: PASSED (live Overpass data).**",
-  "",
-  "- Search: Puyallup, WA · Restaurants · 5 miles · max 5",
-  "- Provider: public OpenStreetMap Overpass (actual draft scanner code)",
-  "- Returned: " + results.length + " named listings in " + elapsed + " seconds",
-  "- Import mode: OFF; no Supabase connection, CRM writes, or outreach",
-  "- Website and social links are listing claims, **not independently identity-verified**",
-  "",
-  "| Business | Contact score | Website listed | Social profiles | OSM source |",
-  "|---|---:|---|---|---|",
-  ...results.map(b => {
-    const clean = (v: string) => v.replace(/[|\r\n]/g, " ").slice(0, 95);
-    return "| " + clean(b.name) + " | " + completenessScore(b) +
-      "/100 | " + (websiteHost(b.website) ? "Yes" : "No") +
-      " | " + b.social_profiles.map(p => p.platform + " (unconfirmed)").join(", ") +
-      " | " + b.source_ref + " |";
-  }),
-  "",
-].join("\n");
-if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+
+if (businesses) {
+  assert.ok(businesses.length <= params.result_limit, "Provider exceeded the configured result limit");
+  assert.equal(new Set(businesses.map(b => b.source_ref)).size, businesses.length, "Duplicate provider source identity");
+  for (const business of businesses) {
+    assert.match(business.source_ref, /^(node|way|relation):\d+$/, "Valid OSM source reference");
+    assert.ok(business.name.trim(), "Every result needs a name");
+    if (business.website) assert.match(business.website, /^https?:\/\//, "Normalized listed website URL");
+    assert.ok(business.social_profiles.every(p => p.status === "unconfirmed"),
+      "Listed social links must remain unverified");
+  }
+  if (businesses.length === 0) {
+    report("unavailable", ["- Provider responded, but returned zero named restaurants.",
+      "- **Next action:** Verify categories, query coverage, and alternate provider before release."]);
+    if (strict) throw new Error("Strict live-provider acceptance FAILED: zero businesses.");
+    console.log("::warning title=No real OSM listings::Live search returned zero named businesses; release gate remains blocked.");
+  } else {
+    report("available", [
+      "- Actual businesses returned: **" + businesses.length + "**",
+      "- Website and social fields are **unverified listing claims**, not checked identities.",
+      "",
+      "| Business | Contact details score | Website listed | OSM reference |",
+      "|---|---:|---|---|",
+      ...businesses.map(b => "| " + b.name.replace(/[|\r\n]/g, " ").slice(0,100) +
+        " | " + completenessScore(b) + "/100 | " + (websiteHost(b.website) ? "Yes" : "No") +
+        " | " + b.source_ref + " |"),
+    ]);
+  }
+}
