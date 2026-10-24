@@ -14,7 +14,14 @@ async function signIn(page, user) {
   await page.goto("/auth/sign-in");
   await expect(page.getByRole("heading", { name: "Enter NHS OS" })).toBeVisible();
   await page.locator('input[name="email"]').fill(user.email);
-  await page.locator('input[name="password"]').fill(user.password);
+  const password = page.locator('input[name="password"]');
+  await password.fill(user.password);
+  // A browser-side login length restriction blocks form submission without an auth request.
+  // Do not print credential values, lengths or email addresses in CI logs.
+  const blocked = await password.evaluate((element) => element.validity.tooShort);
+  if (blocked) {
+    throw new Error("LIVE RELEASE MISMATCH: this sign-in page rejected an existing test password before submission. Deploy the separately approved login fix before live acceptance.");
+  }
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).not.toHaveURL(/\/auth\/(?:sign-in|unauthorized)/, { timeout: 25_000 });
   await expect(page.locator(".navigation-shell")).toBeVisible();
