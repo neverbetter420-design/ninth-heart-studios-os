@@ -1,0 +1,463 @@
+/*
+ * Ninth Heart Studios | Nocturne: Soft Welcome — Experience palette.
+ * Dark cinematic shell -> rose editorial arrival -> warm ivory working room.
+ * Scope intentionally limited to known stable page layouts.
+ * Preserve original NHS logo, data, functionality and brand color definitions.
+ * Supporting colors derive from approved 2026 Soft Atelier direction.
+ */
+:root {
+  --nhs-midnight: #120c18;
+  --nhs-plum: #392538;
+  --nhs-velvet: #70435b;
+  --nhs-rose-light: #be92a1;
+  --nhs-paper: #fffaf6;
+  --nhs-ivory: #f9f4ee;
+  --nhs-champagne: #f0e2e6;
+  --nhs-dusty: #a56c82;
+  --nhs-ink: #402a39;
+  --nhs-muted-ink: #705866;
+  --nhs-line: #dbc9d0;
+}
+
+/* Keep the protected brand-mark and navigation in the dark environment.
+ * Stop the giant floral wallpaper from competing with work content. */
+.app-shell.nhs-theme-admin {
+  background: linear-gradient(150deg, #120c18 0%, #1c1121 52%, #100b17 100%);
+}
+.nhs-theme-admin .navigation-shell > .nhs-sidebar {
+  background: linear-gradient(180deg, #211728, #140e1a 75%);
+  border-color: #72546f45;
+  box-shadow: 0 18px 54px #07050a52;
+}
+.nhs-theme-admin .nav-link.active {
+  background: #b686a52d;
+  border-color: #d1a9bb65;
+  color: #fff6f7;
+}
+.nhs-theme-admin .nav-link.active::before {
+  background: #d5a0b9;
+  box-shadow: none;
+}
+
+/* The command-center welcome is a distinct, contained romantic entrance. */
+.nhs-theme-admin .nocturne-command-center {
+  --nocturne-ink: #fff4f0;
+  max-width: 1530px;
+  padding-top: 16px;
+  padding-bottom: 64px;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-overview {
+  min-height: clamp(280px, 29vw, 385px);
+  margin-bottom: 26px;
+  padding: clamp(26px, 4vw, 56px);
+  overflow: hidden;
+  border-radius: 25px;
+  border: 1px solid #e0b6c05c;
+  background-color: #392538;
+  background-image:
+    linear-gradient(105deg, rgba(34,19,37,.99) 0%, rgba(57,32,50,.96) 47%, rgba(112,67,91,.79) 72%, rgba(190,146,161,.40) 100%),
+    url("/visuals/nocturne-floral-arch.svg");
+  background-position: center, right -90px center;
+  background-size: cover, min(790px,72vw) auto;
+  background-repeat: no-repeat;
+  box-shadow: 0 25px 75px rgba(6,3,10,.26);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy {
+  max-width: min(620px, 70%);
+  padding: 0;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy > .eyebrow {
+  color: #f0c8da;
+  font-size: 10px;
+  letter-spacing: .14em;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy > .eyebrow span {
+  color: #d9aec2;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy h2 {
+  color: #fff8f4;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(39px, 4vw, 60px);
+  line-height: 1.17;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy h2 em {
+  color: #f1c9dc;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy .page-description {
+  color: #f6e4e9;
+  line-height: 1.7;
+  font-size: 14px;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-capture {
+  display: inline-flex;
+  min-height: 46px;
+  border: 1px solid #f0d6dc;
+  border-radius: 10px;
+  padding: 11px 17px;
+  background: #f7e8e7;
+  color: #432b3c;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 22px;
+  text-decoration: none;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-capture:hover {
+  color: #382333;
+  border-color: white;
+  background: #fff9f6;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-studio-art {
+  display: none;
+}
+
+/* This single generous ivory surface replaces the previous endless black rows. */
+.nhs-theme-admin .nocturne-command-center .nhs-command-surface {
+  --nocturne-ink: var(--nhs-ink);
+  --nocturne-muted: var(--nhs-muted-ink);
+  --nocturne-accent: #884c6b;
+  --nocturne-rule: var(--nhs-line);
+  --cyan: #7c5471;
+  color: var(--nhs-ink);
+  color-scheme: light;
+  border-radius: 25px;
+  border: 1px solid #eddae0;
+  background-color: var(--nhs-ivory);
+  background-image:
+    radial-gradient(ellipse at 100% 0%, rgba(195,151,170,.20), transparent 42%),
+    linear-gradient(145deg, #fffaf6 0%, #f9f4ee 59%, #f4e9eb 100%);
+  box-shadow: 0 28px 76px rgba(5,3,8,.26);
+  padding: clamp(22px, 3.6vw, 50px);
+}
+
+/* Clear executive scorecard: three readings, no neon boxes. */
+.nhs-theme-admin .nocturne-command-center .metric-grid {
+  border-color: var(--nhs-line);
+  padding: 12px 0 27px;
+  margin-bottom: 34px;
+}
+.nhs-theme-admin .nocturne-command-center .metric-card {
+  border-right-color: var(--nhs-line);
+  background: transparent;
+}
+.nhs-theme-admin .nocturne-command-center .metric-card strong {
+  color: #61405a;
+}
+.nhs-theme-admin .nocturne-command-center .metric-card p {
+  color: #70445c;
+  font-size: 10px;
+  font-weight: 700;
+}
+.nhs-theme-admin .nocturne-command-center .metric-card > span {
+  color: var(--nhs-muted-ink);
+  font-size: 11px;
+}
+.nhs-theme-admin .nocturne-command-center .dashboard-grid {
+  gap: clamp(25px, 3.5vw, 54px);
+}
+.nhs-theme-admin .nocturne-command-center :is(.action-panel,.project-panel) {
+  color: var(--nhs-ink);
+  background: transparent;
+  border-color: var(--nhs-line);
+}
+.nhs-theme-admin .nocturne-command-center .panel-heading {
+  border-color: var(--nhs-line);
+}
+.nhs-theme-admin .nocturne-command-center .panel-heading h3 {
+  color: var(--nhs-ink);
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(21px, 2.2vw, 27px);
+  letter-spacing: -.015em;
+}
+.nhs-theme-admin .nocturne-command-center .panel-heading .eyebrow {
+  color: #92526d;
+  font-weight: 700;
+}
+.nhs-theme-admin .nocturne-command-center .live-pill {
+  color: #75536a;
+}
+.nhs-theme-admin .nocturne-command-center .action-row,
+.nhs-theme-admin .nocturne-command-center .project-row {
+  border-bottom-color: var(--nhs-line);
+}
+.nhs-theme-admin .nocturne-command-center .priority-number {
+  color: #86526d;
+}
+.nhs-theme-admin .nocturne-command-center .action-copy strong,
+.nhs-theme-admin .nocturne-command-center .project-copy strong,
+.nhs-theme-admin .nocturne-command-center .project-copy strong a {
+  color: #422b3a;
+}
+.nhs-theme-admin .nocturne-command-center .action-copy .action-title {
+  color: #884c68;
+}
+.nhs-theme-admin .nocturne-command-center .action-copy small,
+.nhs-theme-admin .nocturne-command-center .project-copy span,
+.nhs-theme-admin .nocturne-command-center .pipeline-empty {
+  color: var(--nhs-muted-ink);
+}
+.nhs-theme-admin .nocturne-command-center .action-row .ghost-button,
+.nhs-theme-admin .nocturne-command-center .project-panel .text-button {
+  color: #77445f;
+  font-weight: 600;
+}
+.nhs-theme-admin .nocturne-command-center .action-row .ghost-button:hover,
+.nhs-theme-admin .nocturne-command-center .project-panel .text-button:hover {
+  color: #4d243d;
+}
+.nhs-theme-admin .nocturne-command-center .project-row b {
+  color: #6d4059;
+}
+.nhs-theme-admin .nocturne-command-center .progress-track {
+  height: 5px;
+  background: #e5d5db;
+}
+.nhs-theme-admin .nocturne-command-center .progress-track span {
+  background: linear-gradient(90deg,#95577b,#d32c5a);
+  box-shadow: none;
+}
+.nhs-theme-admin .nocturne-command-center .empty-dashboard-actions,
+.nhs-theme-admin .nocturne-command-center .empty-dashboard-actions > span,
+.nhs-theme-admin .nocturne-command-center .nocturne-activity-empty {
+  color: var(--nhs-muted-ink);
+}
+.nhs-theme-admin .nocturne-command-center .empty-dashboard-actions strong {
+  color: var(--nhs-ink);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-empty-link {
+  color: #75415f;
+  border-bottom-color: #ba9eae;
+}
+
+/* Gentle activity, Muse and Radar. Information, not wallpaper. */
+.nhs-theme-admin .nocturne-command-center .nocturne-activity {
+  border-color: var(--nhs-line);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-activity-heading h3 {
+  color: var(--nhs-ink);
+  font-family: var(--font-cinzel), Georgia, serif;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-activity-heading .eyebrow {
+  color: #92526d;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-activity .activity-row p {
+  color: #54394b;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-activity .activity-row time {
+  color: var(--nhs-muted-ink);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-activity .activity-dot {
+  background: #a86c88;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-insights {
+  border-color: var(--nhs-line);
+  color: var(--nhs-ink);
+  background: transparent;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-insights > summary,
+.nhs-theme-admin .nocturne-command-center .nocturne-insights > summary strong {
+  color: var(--nhs-ink);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-insights > summary small,
+.nhs-theme-admin .nocturne-command-center .nocturne-insights-toggle {
+  color: var(--nhs-muted-ink);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-insights-grid .panel {
+  background: var(--nhs-champagne);
+  border: 1px solid #e2cbd4;
+  color: var(--nhs-ink);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-insights-grid :is(.panel-heading h3,.muse-copy,.muse-suggestion strong,.radar-row strong) {
+  color: var(--nhs-ink);
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-insights-grid :is(.muse-suggestion,.radar-row) {
+  color: var(--nhs-ink);
+  background: #fffaf7;
+  border-color: #d9c4cc;
+}
+.nhs-theme-admin .nocturne-command-center .nocturne-insights-grid :is(.muse-suggestion small,.radar-row small) {
+  color: var(--nhs-muted-ink);
+}
+
+/* Admin project work inherits Soft Atelier paper, not a dark floral wallpaper.
+ * Existing real project files/actions/permissions are unchanged. */
+.nhs-theme-admin .studio-workspace-admin {
+  --studio-ink: #402a39;
+  --studio-muted: #705866;
+  --studio-accent: #854d6b;
+  --studio-rule: #dccbd2;
+  --studio-surface: #f0e2e6;
+  --studio-focus: #814862;
+  background-color: var(--nhs-ivory);
+  background-image: linear-gradient(145deg, #fffaf6, #f9f4ee 68%, #f1e5ea);
+  border: 1px solid #ead8de;
+  border-radius: 22px;
+  padding: clamp(20px, 3.4vw, 48px);
+  color: var(--nhs-ink);
+  color-scheme: light;
+  box-shadow: 0 25px 70px rgba(6,4,9,.18);
+}
+.nhs-theme-admin .studio-workspace-admin :is(.studio-journey,.panel,.studio-workspace-nav,.nocturne-workspace-disclosure) {
+  border-color: var(--studio-rule);
+}
+.nhs-theme-admin .studio-workspace-admin :is(.studio-workspace-nav a,.studio-project-settings,.page-description,.muted-copy) {
+  color: var(--studio-muted);
+}
+.nhs-theme-admin .studio-workspace-admin :is(.panel-heading h3,.nocturne-workspace-heading h3,.workspace-title-row h2,.studio-gallery-heading h3) {
+  color: var(--studio-ink);
+}
+.nhs-theme-admin .studio-workspace-admin .mini-button.go {
+  color: white;
+  background: #744460;
+  border-color: #744460;
+}
+.nhs-theme-admin .studio-workspace-admin :is(input,select,textarea) {
+  background: #fffdfb;
+  color: #382333;
+  border-color: #bfa5b0;
+  color-scheme: light;
+}
+.nhs-theme-admin .studio-workspace-admin :is(.field span,.field label) {
+  color: #5d3d51;
+}
+.nhs-theme-admin .studio-workspace-admin .progress-track {
+  background: #e4d5dc;
+}
+.nhs-theme-admin .studio-workspace-admin .progress-track > span {
+  background: linear-gradient(90deg, #8e5678,#d32c5a);
+}
+
+/* Preserve dark admin functionality on other screens but give page entrances
+ * recognizable rose-plum architecture without changing dense form surfaces. */
+.nhs-theme-admin .content-wrap:not(.nocturne-command-center):not(.management-client-workspace):not(.studio-workspace-admin) > .page-header {
+  border-radius: 18px;
+  padding: clamp(20px, 2.4vw, 32px);
+  border: 1px solid #9e728a66;
+  background: linear-gradient(115deg, #2d1a31, #5b344b);
+  margin-bottom: 22px;
+}
+
+/* The client portal is the luminous room beyond the midnight entrance. */
+.nhs-theme-client .atelier-home {
+  --studio-ink: #402a39;
+  color: #402a39;
+}
+.nhs-theme-client .atelier-home .atelier-hero {
+  border: 1px solid #e6ced8;
+  border-radius: 24px;
+  min-height: clamp(280px, 30vw, 390px);
+  background-color: #fffaf6;
+  background-image:
+    linear-gradient(96deg, rgba(255,250,246,.98) 0%, rgba(255,250,246,.93) 46%, rgba(245,229,234,.58) 76%, rgba(213,174,189,.28) 100%),
+    url("/visuals/atelier-botanical-arch.svg");
+  background-position: center, right -65px center;
+  background-size: cover, min(920px,80vw) auto;
+  box-shadow: 0 24px 70px #67495b20;
+}
+.nhs-theme-client .atelier-home .atelier-hero h2 {
+  color: #402a39;
+  font-size: clamp(32px, 4.3vw, 57px);
+}
+.nhs-theme-client .atelier-home .atelier-welcome-cta {
+  color: #fffaf6;
+  background: #432b3b;
+}
+.nhs-theme-client .atelier-home .atelier-feature-project {
+  border: 1px solid #e6ced8;
+  background: #fffaf7;
+  padding: 25px;
+  border-radius: 18px;
+}
+.nhs-theme-client .atelier-home .atelier-action-panel {
+  border: 1px solid #e5cbd5;
+  border-radius: 18px;
+  padding: 25px;
+  background: var(--nhs-champagne);
+}
+.nhs-theme-client .atelier-home .atelier-progress-track {
+  height: 6px;
+}
+.nhs-theme-client .atelier-home .atelier-progress-track > span {
+  background: linear-gradient(90deg,#9c6583,#d32c5a);
+}
+
+/* Subtle accessible interaction and responsive layout. */
+.nhs-theme-admin .nhs-command-surface :is(a,button,summary):focus-visible,
+.nhs-theme-admin .studio-workspace-admin :is(a,button,summary,input):focus-visible,
+.nhs-theme-client .atelier-home :is(a,button,summary):focus-visible {
+  outline: 3px solid #af648a;
+  outline-offset: 3px;
+}
+@media (max-width: 950px) {
+  .nhs-theme-admin .nocturne-command-center .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .nhs-theme-admin .nocturne-command-center .nocturne-overview {
+    min-height: 315px;
+    padding: 24px;
+    background-size: cover, 570px auto;
+    background-position: center, right -235px center;
+  }
+  .nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy {
+    width: 100%;
+    max-width: 92%;
+  }
+  .nhs-theme-admin .nocturne-command-center .nocturne-welcome-copy h2 {
+    font-size: clamp(35px, 8vw, 49px);
+  }
+  .nhs-theme-admin .nocturne-command-center .nhs-command-surface {
+    border-radius: 18px;
+    padding: 21px 17px;
+  }
+  .nhs-theme-client .atelier-home .atelier-hero {
+    background-size: cover, 540px auto;
+    background-position: center, right -250px center;
+  }
+}
+@media (max-width: 420px) {
+  .nhs-theme-admin .nocturne-command-center .metric-grid {
+    grid-template-columns: repeat(3,minmax(0,1fr));
+  }
+  .nhs-theme-admin .nocturne-command-center .metric-card {
+    grid-template-columns: 1fr;
+    padding: 0 8px;
+    min-width: 0;
+  }
+  .nhs-theme-admin .nocturne-command-center .metric-card strong { font-size: 27px; }
+  .nhs-theme-admin .nocturne-command-center .metric-card p { font-size: 9px; }
+  .nhs-theme-admin .nocturne-command-center .metric-card > span { font-size: 9px; }
+  .nhs-theme-admin .nocturne-command-center .nocturne-overview {
+    margin-bottom: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nhs-theme-admin .nocturne-command-center *,
+  .nhs-theme-client .atelier-home * {
+    animation: none; transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .nhs-theme-admin .nhs-command-surface,
+  .nhs-theme-admin .nocturne-command-center .nocturne-overview,
+  .nhs-theme-client .atelier-home .atelier-hero {
+    background-image: none; border: 2px solid CanvasText;
+  }
+}
+
+/* High-contrast preferences should remove the artwork added by this final stylesheet,
+   not be overridden by its higher-specificity default welcome rules. */
+@media (prefers-contrast: more), (forced-colors: active) {
+  .app-shell.nhs-theme-admin,
+  .app-shell.nhs-theme-client,
+  .nhs-theme-admin .nocturne-command-center .nocturne-overview,
+  .nhs-theme-client .atelier-home .atelier-hero,
+  .nhs-theme-admin .studio-workspace-admin {
+    background-image: none;
+  }
+}

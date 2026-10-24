@@ -1,0 +1,156 @@
+/*
+ * Ninth Heart Studios — Soft Welcome Atelier, 2026-10-23.
+ * Additive interface treatment. Never replace the original logo, routes, data or role permissions.
+ * Illustrative architectural backgrounds remain decorative only.
+ */
+:root {
+  --nhs-welcome-ivory: #f9f5f1;
+  --nhs-welcome-champagne: #f0e5e9;
+  --nhs-welcome-dusty-rose: #a46d84;
+  --nhs-welcome-dark-plum: #392333;
+  --nhs-welcome-ink: #382534;
+}
+.nhs-theme-client .atelier-home { gap: clamp(26px, 4vw, 46px); }
+.nhs-theme-client .atelier-hero {
+  min-height: clamp(260px, 32vw, 400px);
+  padding: clamp(28px, 4vw, 60px);
+  border: 1px solid rgba(98, 59, 83, .16);
+  border-radius: clamp(18px, 2vw, 28px);
+  background-color: var(--nhs-welcome-ivory);
+  background-image:
+    linear-gradient(90deg, rgba(249,245,241,.98) 0%, rgba(249,245,241,.95) 43%, rgba(249,245,241,.45) 82%),
+    url("/visuals/atelier-botanical-arch.svg");
+  background-position: center, right top;
+  background-size: cover, min(850px,78vw) auto;
+  background-repeat: no-repeat;
+  box-shadow: 0 22px 70px rgba(42,18,34,.08);
+}
+.nhs-theme-client .atelier-hero-copy { max-width: 68%; }
+.nhs-theme-client .atelier-hero h2 {
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: clamp(34px, 4.1vw, 62px);
+  font-weight: 500;
+  letter-spacing: -.025em;
+  line-height: 1.14;
+  color: var(--nhs-welcome-ink);
+}
+.nhs-theme-client .atelier-hero h2 em {
+  font-family: Georgia,serif;
+  color: #955d78;
+  font-weight: 400;
+  letter-spacing: -.045em;
+}
+.nhs-theme-client .atelier-overline { color: #795a6d; }
+.nhs-theme-client .atelier-welcome-cta {
+  display: inline-flex; gap: 26px; align-items: center;
+  margin-top: 22px; min-height: 46px; padding: 11px 18px;
+  border-radius: 10px; background: var(--nhs-welcome-dark-plum);
+  color: white; text-decoration: none; font-size: 13px; font-weight: 600;
+  box-shadow: 0 10px 24px rgba(57,35,51,.14);
+}
+.nhs-theme-client .atelier-welcome-cta:hover { background: #54334b; }
+.nhs-theme-client .atelier-welcome-cta:focus-visible { outline: 3px solid #885b8c; outline-offset: 3px; }
+.nhs-theme-client .atelier-feature-project {
+  background: rgba(255,255,255,.53);
+  border: 1px solid rgba(115,74,100,.17);
+  border-radius: 18px;
+  padding: clamp(20px,2.5vw,32px);
+  box-shadow: 0 18px 44px rgba(58,31,49,.05);
+}
+.nhs-theme-client .atelier-progress-track > span { background: linear-gradient(90deg,#a46d84,#d32c5a); }
+.nhs-theme-client .atelier-destination { transition: color .2s ease, transform .2s ease; }
+.nhs-theme-client .atelier-destination:hover { transform: translateY(-2px); }
+.nhs-theme-client .atelier-action-panel { border-radius: 18px; }
+.nhs-theme-client .atelier-hero-copy,
+.nhs-theme-client .atelier-feature-project { animation: nhs-soft-entrance .5s ease-out both; }
+@keyframes nhs-soft-entrance {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Journey phase summaries are native disclosure controls, accessible without JavaScript. */
+.nhs-journey-intro, .nhs-gallery-intro { color: var(--studio-muted); font-size: 12px; line-height: 1.65; margin: -4px 0 18px; max-width: 670px; }
+.studio-journey-stages .nhs-phase-detail { position: relative; min-width: 0; }
+.nhs-phase-detail summary { list-style: none; cursor: pointer; display: grid; gap: 5px; min-height: 48px; padding: 4px 6px 6px 0; }
+.nhs-phase-detail summary::-webkit-details-marker { display:none; }
+.nhs-phase-detail summary:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 4px; }
+.nhs-phase-detail .nhs-phase-more { font-weight: 700; color: var(--studio-muted); font-size: 13px; }
+.nhs-phase-detail[open] .nhs-phase-more { transform: rotate(45deg); }
+.nhs-phase-detail p { font-size: 11px; line-height: 1.55; max-width: 220px; color: var(--studio-ink); margin: 6px 0; }
+.nhs-phase-detail small { font-size: 10px; color: var(--studio-muted); display: block; }
+.studio-journey-stages li:has(.nhs-phase-detail[open]) { z-index: 2; }
+.studio-journey-stages li:has(.nhs-phase-detail[open]) .nhs-phase-detail { border-radius: 10px; padding: 7px; background: var(--studio-surface); box-shadow: 0 6px 22px #0001; }
+/* Private gallery: choose a design, enlarge it, or compare two real images. */
+.nhs-gallery-trigger { display: block; width: 100%; border: 0; padding: 0; background: none; text-align: left; font: inherit; cursor: zoom-in; }
+.nhs-gallery-trigger:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 4px; }
+.nhs-gallery-dialog { width: min(1100px,calc(100vw - 32px)); max-width: 1100px; max-height: min(90dvh,970px); overflow: auto; padding: clamp(16px,3vw,28px); border: 1px solid #b69aad66; border-radius: 20px; background: #f9f5f1; color: #392333; box-shadow: 0 28px 110px #0008; }
+.nhs-gallery-dialog::backdrop { background: rgba(5,4,10,.82); backdrop-filter: blur(6px); }
+.nhs-gallery-dialog-head, .nhs-gallery-dialog-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.nhs-gallery-dialog-head { margin-bottom: 18px; }
+.nhs-gallery-dialog-head h3 { overflow-wrap: anywhere; font-family: var(--font-cinzel),Georgia,serif; font-size: clamp(20px,3vw,28px); margin: 5px 0; }
+.nhs-gallery-close,.nhs-gallery-dialog-actions a,.nhs-gallery-dialog-actions button { min-height: 44px; padding: 10px 14px; border: 1px solid #aa8b9d; border-radius: 9px; background: #fff9; color: #392333; font: inherit; font-size: 12px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.nhs-gallery-dialog :is(button,a):focus-visible { outline: 3px solid #885b8c; outline-offset: 2px; }
+.nhs-gallery-canvas { display: grid; gap: 14px; grid-template-columns: minmax(0,1fr); background: #eee6ea; padding: 14px; border-radius: 12px; }
+.nhs-gallery-canvas.is-comparing { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.nhs-gallery-canvas figure { margin: 0; min-width: 0; }
+.nhs-gallery-canvas img { display: block; width: 100%; max-height: 58dvh; object-fit: contain; border-radius: 8px; }
+.nhs-gallery-canvas figcaption { font-size: 11px; margin-top: 8px; overflow-wrap: anywhere; }
+.nhs-gallery-dialog-actions { margin-top: 18px; justify-content: flex-end; }
+.nhs-gallery-dialog-actions button:hover,.nhs-gallery-dialog-actions a:hover { background: #f0e5e9; }
+/* Muse is a direct, labelled admin destination; no assistant overlay hiding content. */
+.nhs-muse-shortcut { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 9px 14px; text-decoration: none; color: #e8d3ed; border-radius: 99px; background: rgba(131,7,244,.12); border: 1px solid rgba(185,43,225,.4); font-size: 12px; }
+.nhs-muse-shortcut span { color: #d7a5f7; font-size: 17px; }
+.nhs-muse-shortcut:hover { background: rgba(131,7,244,.22); }
+.nhs-muse-shortcut:focus-visible { outline: 2px solid #d7a5f7; outline-offset: 3px; }
+.nhs-soft-notice { border-color: #9a6d88; background: #251828; color: #f4eef6; max-width: min(480px, calc(100vw - 32px)); }
+.nhs-soft-notice[data-tone="error"] { border-color: #c45a6e; }
+.nhs-notice-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #804b6d; color: white; }
+.nhs-soft-notice[data-tone="error"] .nhs-notice-icon { background: #aa3b52; }
+/* Role-aware mobile quick navigation. The existing drawer remains the full sitemap. */
+.nhs-mobile-quicknav { display: none; }
+@media (max-width: 860px) {
+  .nhs-mobile-quicknav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 65; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); gap: 4px; background: #110c17f5; border-top: 1px solid #86617b55; box-shadow: 0 -12px 32px #0002; }
+  .nhs-mobile-quicknav a { display: flex; flex-direction: column; gap: 2px; align-items: center; justify-content: center; min-height: 48px; border-radius: 9px; color: #e2c9db; text-decoration: none; font-size: 19px; }
+  .nhs-mobile-quicknav a small { font-size: 10px; line-height: 1.2; }
+  .nhs-mobile-quicknav a.is-active { background: #503045; color: #fff; }
+  .nhs-mobile-quicknav a:focus-visible { outline: 2px solid #f4eef6; outline-offset: -2px; }
+  .app-shell .main-shell { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .nhs-muse-shortcut { display: none; }
+  .nhs-soft-notice { bottom: calc(86px + env(safe-area-inset-bottom)); right: 16px; }
+}
+@media (max-width: 700px) {
+  .nhs-theme-client .atelier-hero { min-height: 300px; padding: 26px 23px; background-position: center, right -160px center; background-size: cover, 560px auto; }
+  .nhs-theme-client .atelier-hero-copy { max-width: 92%; }
+  .nhs-theme-client .atelier-hero h2 { font-size: clamp(30px,8vw,45px); }
+  .nhs-theme-client .atelier-hero-copy > p:not(.atelier-overline) { max-width: 260px; }
+  .studio-journey-stages .nhs-phase-detail summary { font-size: 11px; }
+  .nhs-gallery-canvas.is-comparing { grid-template-columns: minmax(0,1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nhs-theme-client .atelier-hero-copy,.nhs-theme-client .atelier-feature-project { animation: none; }
+  .nhs-theme-client .atelier-destination { transition: none; }
+  .nhs-gallery-dialog::backdrop { backdrop-filter: none; }
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .nhs-theme-client .atelier-hero { background-image: none; }
+  .nhs-theme-client .atelier-feature-project { box-shadow: none; }
+  .nhs-mobile-quicknav a.is-active { outline: 2px solid currentColor; }
+}
+
+/* Small, accessible Muse panel instead of another floating full-page dashboard. */
+.nhs-muse-area { position: relative; }
+.nhs-muse-area .nhs-muse-shortcut { cursor: pointer; font: inherit; }
+.nhs-muse-popover {
+  position: absolute; z-index: 70; right: 0; top: calc(100% + 12px);
+  width: min(325px, calc(100vw - 32px)); padding: 22px;
+  background: #211526; border: 1px solid #9d5a90;
+  border-radius: 16px; box-shadow: 0 24px 75px #0009;
+  color: #f4eef6;
+}
+.nhs-muse-overline { margin: 0; color: #d8add6; font-size: 10px; font-weight: 700; letter-spacing: .15em; }
+.nhs-muse-popover h3 { margin: 13px 0 7px; font-family: var(--font-cinzel),Georgia,serif; font-size: 19px; }
+.nhs-muse-popover > p:not(.nhs-muse-overline) { font-size: 12px; color: #d0c4d7; line-height: 1.6; margin: 0 0 17px; }
+.nhs-muse-actions { display: grid; gap: 5px; }
+.nhs-muse-actions a,.nhs-muse-all { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 10px 12px; border-radius: 9px; text-decoration: none; font-size: 12px; color: #f4eef6; border: 1px solid #6d476e; }
+.nhs-muse-actions a:hover,.nhs-muse-all:hover { background: #563550; }
+.nhs-muse-all { color: #e7bedc; border-color: transparent; margin-top: 12px; padding-inline: 0; }
+.nhs-muse-popover a:focus-visible { outline: 2px solid #f1c8e6; outline-offset: 2px; }

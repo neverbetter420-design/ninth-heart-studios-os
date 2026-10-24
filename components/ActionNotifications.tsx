@@ -2,19 +2,34 @@
 
 import { useEffect, useState } from "react";
 
-/** Keep confirmed feedback visible after an affected row disappears or moves. */
+type Notice = { message: string; kind: "success" | "error" };
+
+/** Accessible, dismissible confirmations that remain visible after a row updates. */
 export function ActionNotifications() {
-  const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState<Notice | null>(null);
+
   useEffect(() => {
-    const onSuccess = (event: Event) => setMessage((event as CustomEvent<string>).detail);
+    const onSuccess = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (typeof detail === "string" && detail.trim()) setNotice({ message: detail, kind: "success" });
+    };
+    const onError = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (typeof detail === "string" && detail.trim()) setNotice({ message: detail, kind: "error" });
+    };
     window.addEventListener("nhs-action-success", onSuccess);
-    return () => window.removeEventListener("nhs-action-success", onSuccess);
+    window.addEventListener("nhs-action-error", onError);
+    return () => {
+      window.removeEventListener("nhs-action-success", onSuccess);
+      window.removeEventListener("nhs-action-error", onError);
+    };
   }, []);
 
-  return message ? (
-    <div className="action-notification">
-      <p role="status" aria-live="polite">{message}</p>
-      <button type="button" className="mini-button" onClick={() => setMessage("")} aria-label="Dismiss confirmation">Dismiss</button>
+  return notice ? (
+    <div className="action-notification nhs-soft-notice" data-tone={notice.kind}>
+      <span className="nhs-notice-icon" aria-hidden="true">{notice.kind === "success" ? "✓" : "!"}</span>
+      <p role={notice.kind === "error" ? "alert" : "status"}>{notice.message}</p>
+      <button type="button" className="mini-button" onClick={() => setNotice(null)} aria-label="Dismiss confirmation">Dismiss</button>
     </div>
   ) : null;
 }

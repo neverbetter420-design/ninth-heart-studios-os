@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { MuseConcierge } from "./MuseConcierge";
+import { RoomIdentity } from "./RoomIdentity";
 import type { AppRole } from "@/lib/supabase/types";
 import { Sidebar } from "./Sidebar";
 import { WorkspaceBreadcrumbs } from "./WorkspaceBreadcrumbs";
@@ -21,8 +23,10 @@ export function AppShell({
           <div className="nhs-context-location">
             <span className="nhs-context-symbol" aria-hidden="true">✧</span>
             <WorkspaceBreadcrumbs role={role} />
+            <RoomIdentity role={role} />
           </div>
           <div className="nhs-context-account">
+            {role === "admin" && <MuseConcierge />}
             <span className="nhs-context-name" title={user.email}>{user.name}</span>
             <form action="/auth/sign-out" method="post">
               <button type="submit" className="nhs-sign-out">Sign out <span aria-hidden="true">↗</span></button>
