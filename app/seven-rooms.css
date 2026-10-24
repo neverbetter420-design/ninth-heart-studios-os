@@ -1,0 +1,231 @@
+/*
+  NHS NOCTURNE / SEVEN ROOMS
+  Route-specific visual worlds using approved complementary palettes.
+  Original heart/ring/skull-key logo, roles, routes and functional UI stay unchanged.
+  Imported last, after all legacy and prior Nocturne styles.
+*/
+
+/* Shared structure. A room changes atmosphere, never how navigation works. */
+.nhs-room-identity {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  font: 600 10px/1.45 var(--font-dm-sans), Arial, sans-serif;
+  letter-spacing: .105em; text-transform: uppercase;
+  padding: 7px 12px; border-radius: 30px;
+  border: 1px solid var(--room-accent, #b78fa8);
+  color: var(--room-badge-ink, #f5e6ee);
+  background: var(--room-badge-bg, #4a3049);
+}
+.nhs-room-symbol { font-size: 17px; line-height: 1; color: var(--room-accent,#c6a6bb); }
+.app-shell:has(.nhs-room-identity) { --room-radius: 20px; }
+.app-shell:has(.nhs-room-identity) .main-shell {
+  background: var(--room-backdrop);
+  transition: background-color .22s ease;
+}
+.app-shell:has(.nhs-room-identity) .nav-link.active::before {
+  background: var(--room-accent);
+  box-shadow: none;
+}
+.app-shell:has(.nhs-room-identity) .nav-link.active {
+  border-color: color-mix(in srgb, var(--room-accent), transparent 57%);
+  background: color-mix(in srgb, var(--room-accent), transparent 88%);
+}
+.app-shell:has(.nhs-room-identity) .nhs-context-bar {
+  border-bottom-color: color-mix(in srgb, var(--room-accent), transparent 79%);
+}
+.app-shell:has(.nhs-room-identity) :is(a,button,input,textarea,select,summary):focus-visible {
+  outline: 2px solid var(--room-accent); outline-offset: 3px;
+}
+.app-shell:has(.nhs-room-identity) .nhs-room-identity { flex-shrink: 0; }
+
+/* 01 · MIDNIGHT OBSERVATORY: cinematic, smoky plum, quiet rose constellations. */
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) {
+  --room-accent: #d2a0bc; --room-badge-bg: #38233d; --room-badge-ink: #f9edf5;
+  --room-backdrop: radial-gradient(ellipse at 90% 5%, #48304a 0%, #1f1428 43%, #110d1a 88%);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-overview {
+  background-color: #21152a;
+  background-image: linear-gradient(100deg,#1a1225 0%,#3b2541ef 50%,#81516b99 100%),
+    url("/visuals/nocturne-floral-arch.svg");
+  border-color: #9c738d;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nhs-command-surface {
+  --nocturne-ink: #f5eaf3; --nocturne-muted: #d9c3d3; --nocturne-rule: #775f75;
+  background: linear-gradient(145deg,#291d34,#251a30 75%,#38253d);
+  color: #f7ebf4; border-color: #75516d;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center
+:is(.metric-card strong,.panel-heading h3,.action-copy strong,.project-copy strong,
+.project-copy strong a,.nocturne-activity-heading h3,.nocturne-insights summary strong,
+.nocturne-insights .panel-heading h3,.nocturne-insights .muse-suggestion strong) { color: #f8eef4; }
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center
+:is(.metric-card p,.metric-card > span,.action-copy small,.project-copy span,
+.nocturne-activity .activity-row time,.nocturne-insights summary small) { color: #dfcad9; }
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center
+:is(.action-row,.project-row,.metric-grid,.panel-heading,.nocturne-insights,.nocturne-activity) { border-color: #715a74; }
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-insights-grid .panel {
+  background: #38273f; border-color: #7c5f7d;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center
+:is(.muse-suggestion,.radar-row) { background:#412c45;color:#f4e5f0;border-color:#8b6987; }
+
+/* 02 · ELECTRIC CONSERVATORY: magnetic violet intelligence, distinct from Muse. */
+.app-shell:has(.nhs-room-identity[data-room="electric"]) {
+  --room-accent: #db8fff; --room-badge-bg: #361b57; --room-badge-ink: #f8eafa;
+  --room-backdrop: radial-gradient(circle at 90% 8%,#39205f 0%,#190f2f 46%,#110a20 100%);
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.lead-editorial-heading,.management-heading) {
+  background: linear-gradient(112deg,#21123b,#55256b 62%,#7f397a);
+  border:1px solid #9d5cba; border-radius:23px; padding:clamp(23px,3.6vw,43px);
+  margin-bottom:26px;
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .management-page .management-heading h2,
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .nocturne-leads .lead-editorial-heading h2 { color:#fbf0ff; }
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.management-page .eyebrow,.nocturne-leads .eyebrow) { color:#e9b5f9; }
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.management-page .page-description,.nocturne-leads .page-description) {color:#ead5ef;}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .nocturne-leads .metric-card strong {color:#eab8ff;}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.scanner-controls,.prospect-card,.lead-capture-card,.radar-page .panel,.nocturne-leads .panel) {
+  background:linear-gradient(145deg,#261633,#211529); border:1px solid #66426f; border-radius:17px;
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.scanner-page .mini-button.accent,.scanner-page .primary-button,.nocturne-leads .primary-button) {
+  background:#7f3d9e;color:#fff6ff;border-color:#b96eda;
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.scanner-page .score,.radar-page .metric-card strong) {color:#e7aff7;}
+
+/* 03 · ROSE SALON: warm relationship care and gentle editorial forms. */
+.app-shell:has(.nhs-room-identity[data-room="rose"]) {
+  --room-accent: #b87f99; --room-badge-bg: #f0dbe4; --room-badge-ink: #563148;
+  --room-backdrop: linear-gradient(145deg,#f8efec,#f0e1e4 65%,#e7ced8);
+}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .nhs-context-bar {color:#4c2c42;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-page,
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-client-workspace {color:#462d3b;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-page .management-heading:not(.management-client-workspace .management-heading) {
+  background:linear-gradient(120deg,#f4dfe6,#d6a6bb);
+  border:1px solid #d2a4b7;border-radius:24px;padding:clamp(22px,3.4vw,43px);
+}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients :is(.management-heading h2,.management-heading em) {color:#57364b;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients .page-description {color:#65485a;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients :is(.metric-card strong,.management-section-heading h3,.management-client-copy h4,.management-client-stats strong,.nocturne-create-toggle strong) {color:#58374b;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients :is(.metric-card p,.metric-card > span,.management-client-copy p,.management-client-copy small,.management-client-stats,.management-client-status,.management-help) {color:#725666;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients :is(.management-directory,.nocturne-create-panel) {
+  background:#fff9f6;border:1px solid #e5ccd5;border-radius:19px;padding:clamp(18px,2.5vw,30px);
+}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients :is(.field input,.field select) {background:#fffdfb;color:#422a3b;border-color:#b89aab;color-scheme:light;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients .management-client-row {border-color:#dec6d0;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients .metric-grid {border-color:#d6b9c7;}
+
+/* 04 · ARTIST'S ATELIER: ink architecture, smoky mauve canvas, creative sequencing. */
+.app-shell:has(.nhs-room-identity[data-room="artist"]) {
+  --room-accent: #bda1af; --room-badge-bg: #3a303e; --room-badge-ink: #f7e9f1;
+  --room-backdrop:linear-gradient(145deg,#342b39 0%,#493747 28%,#e8dfe2 29%,#f1e9e7 100%);
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline {
+  background:#f1e9e7;color:#493949;border:1px solid #d7bfc9;border-radius:24px;
+  margin:22px clamp(16px,3vw,46px);padding:clamp(20px,3vw,40px);max-width:unset;
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .management-heading {
+  padding:clamp(21px,3vw,35px); border-radius:19px;
+  background:linear-gradient(110deg,#312936,#6d5366 90%);
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .management-heading h2 {color:#f9eff4;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .page-description {color:#ebdbe4;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline :is(.metric-card strong,.nocturne-create-toggle strong) {color:#5d4355;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline :is(.metric-card p,.metric-card > span,.management-help) {color:#705b6b;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline :is(.field input,.field select) {background:#fffdf9;color:#4a3142;border-color:#bba2b0;color-scheme:light;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .studio-workspace-admin {
+  background:linear-gradient(145deg,#f4eeeb,#eadce0);color:#402d3d;border-color:#c6adba;
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .studio-workspace-admin :is(.studio-journey,.studio-gallery) {
+  border-color:#ccb6c1; background:#fffbf8;
+}
+
+/* 05 · PRIVATE ARCHIVE: parchment, burgundy, antique brass, document clarity. */
+.app-shell:has(.nhs-room-identity[data-room="archive"]) {
+  --room-accent:#b69a68; --room-badge-bg:#47313d; --room-badge-ink:#f3e8d6;
+  --room-backdrop:linear-gradient(150deg,#d3c1b3,#f3e8da 25%,#f9f0e4 85%);
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {
+  color:#4a3035;background:#f7edde;border:1px solid #cdb6a0;
+  border-radius:23px;padding:clamp(22px,3.4vw,45px);
+  margin:20px clamp(14px,3vw,44px);max-width:unset;
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .management-heading {
+  background:linear-gradient(105deg,#4a263b,#7a4250 70%,#9a7068);
+  border-radius:18px;padding:clamp(22px,2.8vw,38px);border:1px solid #b99987;
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .management-heading h2 {color:#f9eedd;}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .page-description {color:#f1e3dc;}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(.paperwork-row,.paperwork-form,.paperwork-workspace,.paperwork-filters) {
+  background:#fffaf1;border-color:#dac7b6;color:#4b343a;
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(.metric-card strong,.paperwork-row h4,.paperwork-row strong,.management-section-heading h3,.paperwork-nav strong) {color:#5d3445;}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(.metric-card p,.metric-card > span,.paperwork-row p,.management-help,.paperwork-nav span,.paperwork-page .field > span) {color:#6f5759;}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(input,textarea,select) {
+  background:#fffefa;color:#4e323b;border-color:#bfa692;color-scheme:light;
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(.mini-button.go,.primary-button) {background:#703d50;color:#fffaf1;border-color:#703d50;}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(.paperwork-number,.paperwork-status) {color:#744d45;}
+
+/* 06 · VELVET ROOM: a violet sanctuary for Muse, not a neon lead scanner. */
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) {
+  --room-accent:#c9a0e6; --room-badge-bg:#472b60; --room-badge-ink:#f4e9ff;
+  --room-backdrop:radial-gradient(circle at 70% 0%,#513367 0%,#251732 47%,#130d21 94%);
+}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom .management-heading {
+  min-height:230px;padding:clamp(26px,4vw,50px);border-radius:25px;
+  background:linear-gradient(107deg,#251333,#553b70 66%,#8966a3);
+  border:1px solid #9e79b6;
+}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom .management-heading h2 {color:#f9efff;}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom .page-description {color:#ecdbf2;}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(.studio-focus,.studio-compose,.studio-intelligence-grid,.studio-writing-note,.studio-saved,.paperwork-form) {
+  border-color:#72528b; background:#2d203d;color:#f7eafa;border-radius:16px;
+}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(.studio-focus h3,.studio-row-heading h4,.studio-insight-row strong,.studio-saved-draft summary strong,.studio-writing-note h4) {color:#f8edff;}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(.studio-focus p,.studio-insight-row p,.studio-writing-note p,.management-help) {color:#e0cce8;}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(.mini-button.go,.primary-button) {background:#735194;color:#fff9ff;border-color:#ac8acb;}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(input,textarea,select) {background:#20172e;color:#fff7ff;border-color:#8f6fa7;color-scheme:dark;}
+
+/* 07 · PRIVATE ATELIER: pale champagne, luminous ivory, blush botanical welcome. */
+.app-shell:has(.nhs-room-identity[data-room="private"]) {
+  --room-accent:#c18ca3; --room-badge-bg:#f0dee6; --room-badge-ink:#5b3b50;
+  --room-backdrop:linear-gradient(150deg,#fffdfa,#fcf6f3 50%,#f4e5eb);
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-hero {
+  background-color:#fffdf9;
+  background-image:linear-gradient(105deg,#fffdfa 0%,#fff9f6ea 52%,#f2dce3a6 100%),
+    url("/visuals/atelier-botanical-arch.svg");
+  border-color:#e7cdd7;box-shadow:0 24px 72px #7b4d6626;
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-feature-project {
+  background:#fffdfa; border-color:#e5cbd5; box-shadow:0 15px 35px #78546b12;
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home :is(.atelier-destinations,.atelier-action-panel) {
+  background:#f9eef1;border-color:#e4cbd4;
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .studio-workspace-client {
+  border-color:#e4d1dc;background:#fffaf6;color:#493546;
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .nhs-context-bar {color:#5c465a;}
+
+@media (max-width:1050px) {
+ .nhs-room-identity {font-size:9px;max-width:220px;white-space:normal;}
+}
+@media (max-width:700px) {
+ .nhs-room-identity {padding:6px 9px;font-size:9px;max-width:160px;}
+ .app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline,
+ .app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {
+   margin:12px 8px;border-radius:16px;padding:18px;
+ }
+ .app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.lead-editorial-heading,.management-heading) {
+   border-radius:15px;padding:21px;
+ }
+}
+@media (prefers-reduced-motion:reduce) {
+ .app-shell:has(.nhs-room-identity) .main-shell {transition:none;}
+}
+@media (forced-colors:active), (prefers-contrast:more) {
+ .app-shell:has(.nhs-room-identity) .main-shell {background-image:none;}
+ .app-shell:has(.nhs-room-identity) .nhs-room-identity {border:1px solid currentColor;}
+ .app-shell:has(.nhs-room-identity) :is(.nocturne-overview,.atelier-hero,.management-heading,.lead-editorial-heading) {background-image:none;}
+}
