@@ -30,3 +30,12 @@ For an actual release-readiness check rather than a green run with skipped role 
 6. For production deployment, separately authorize the reviewed commit and use the manual deployment workflow only after security/email checks; strict browser QA does not publish code or change records.
 
 The sign-in form intentionally does **not** enforce a minimum password length on existing passwords. That rule belongs in password creation/reset flows; browser-side sign-in length limits can lock out legitimate older accounts. An anonymous browser regression test verifies that the sign-in password field allows a shorter value without attempting authentication.
+
+## October 24 live failure and safe rerun gate
+
+- A manually dispatched `target=live` run on `main` (run 40086405876, twice failed) tested the **older deployed Cloudflare application**, not draft PR #22. The old `main` sign-in input requires a browser-side 12-character password minimum; the proposed PR removes it.
+- The direct Supabase API tests authenticated the existing QA users, but the corresponding browser tests remained at the sign-in page. Do **not** reset accounts or create substitutes based on that alone.
+- A read-only production SQL check confirmed that **Client B** has one project task but none marked `client_visible=true`. The strict seeded-task test is therefore correctly blocked by incomplete QA fixture data. Do not flip visibility or add test tasks without separate authorization.
+- The PR adds `scripts/verify-live-auth-release.mjs`, which checks **only** public sign-in and recovery HTML and rejects the known old browser validation rule before expensive authenticated browser tests. It does not sign in, test email delivery, write any data, or prove that a release is correct.
+- Before a real live re-test, obtain **separate explicit merge and deployment authorization** for the reviewed fix, independently confirm the Cloudflare version advanced and approve a controlled Client B QA-only visible task if that strict positive fixture requirement is retained.
+- Never treat a green local browser run or the fact that test secrets exist as proof that the authenticated **live** tests passed.
