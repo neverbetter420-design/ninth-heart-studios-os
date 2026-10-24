@@ -17,3 +17,16 @@ The browser workflow also runs `action-feedback.spec.mjs` against the actual sha
 Unauthenticated checks always run. If GitHub Actions secrets are not yet configured, authenticated browser tests explicitly appear as **skipped**, not passed.
 
 Do not deploy or merge solely on the basis of a green browser workflow: review mobile screenshots, user experience, and the remaining form workflows first.
+
+## Strict authenticated production acceptance
+
+For an actual release-readiness check rather than a green run with skipped role tests:
+
+1. Create or retain three dedicated invited QA accounts: Admin, Client A, and Client B, with access limited to controlled test projects. Never use a real customer's credentials.
+2. Configure the six `E2E_*_EMAIL` and `E2E_*_PASSWORD` GitHub Actions repository secrets listed above.
+3. Open **Actions → NHS OS browser QA (Playwright) → Run workflow** on the reviewed main branch. Select **target: live** and **require_authenticated_coverage: true**.
+4. The workflow fails before the browser starts if a required test identity is missing or the target is not the live hostname. With identities configured, the admin and both client route tests and cross-client private-project isolation must execute on desktop and mobile.
+5. Review the job summary and `nhs-playwright-report` artifact. A successful strict run is evidence for **read-only** navigation/isolation only. Do not treat intentionally skipped, separately gated write-action tests as passed.
+6. For production deployment, separately authorize the reviewed commit and use the manual deployment workflow only after security/email checks; strict browser QA does not publish code or change records.
+
+The sign-in form intentionally does **not** enforce a minimum password length on existing passwords. That rule belongs in password creation/reset flows; browser-side sign-in length limits can lock out legitimate older accounts. An anonymous browser regression test verifies that the sign-in password field allows a shorter value without attempting authentication.
