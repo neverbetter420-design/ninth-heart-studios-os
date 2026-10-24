@@ -44,7 +44,16 @@ for(const [,key,markup] of templates){
 const initial=index.slice(index.indexOf('<main id="preview"'),index.indexOf("</main>",index.indexOf('<main id="preview"')));
 assert.ok(initial.includes("nhs-theme-admin")&&initial.includes("app-shell"),"Default HTML must show Admin before JavaScript");
 assert.ok(initial.includes("Command Center"),"Default HTML must show meaningful content");
-assert.ok(index.includes("Extract All"), "A compressed ZIP warning must be present");
+assert.ok(index.includes("Extract All"),"Compressed ZIP warning must be present");
+assert.ok(index.includes('href="seven-rooms.html"'),"Interactive preview must link to the seven-room gallery");
+const comparison=readFileSync(join(root,"seven-rooms.html"),"utf8");
+for(const room of ["observatory","electric","rose","artist","archive","velvet","private"]){
+ assert.ok(comparison.includes('data-room-card="'+room+'"'),"Missing gallery entry "+room);
+ assert.ok(comparison.includes('data-room="'+room+'"'),"Missing actual rendered room "+room);
+}
+assert.equal((comparison.match(/data-room-card=/g)||[]).length,7);
+assert.ok(!/<iframe\b/i.test(comparison),"Comparison must work offline without frames");
+assert.ok(!/\shref=(["'])https?:\/\//i.test(comparison),"No outbound gallery link");
 assert.ok(index.includes("visual preview only"));
 assert.ok(!/NEXT_PUBLIC_SUPABASE|rquscwgdrqkzwjukiqtk/i.test(index));
 const css=readFileSync(join(root,"visual.css"),"utf8");
@@ -54,6 +63,6 @@ const headers=readFileSync(join(root,"_headers"),"utf8");
 assert.ok(headers.includes("connect-src 'none'"));
 assert.ok(headers.includes("form-action 'none'"));
 assert.ok(headers.includes("frame-ancestors 'self'"));
-assert.equal(readdirSync(root).sort().join(","),["_headers","frames","index.html","visual.css","OPEN_PREVIEW_FIRST.txt"].sort().join(","));
+assert.equal(readdirSync(root).sort().join(","),["_headers","frames","index.html","seven-rooms.html","visual.css","OPEN_PREVIEW_FIRST.txt"].sort().join(","));
 assert.ok(statSync(join(root,"index.html")).size>100000, "Single-file preview must contain rendered screens and CSS");
 console.log("NHS HTML visual preview verified: 30 actual source-rendered synthetic screens, no remote calls.");

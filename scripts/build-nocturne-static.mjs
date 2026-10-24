@@ -95,20 +95,67 @@ const html=[
   '<div class="nhs-preview-controls"><label>Environment<select id="role"><option value="admin">Admin Nocturne</option><option value="client">Client Atelier</option></select></label>',
   '<label>Screen<select id="view"><option value="home">home</option></select></label>',
   '<label>Viewport<select id="width"><option value="desktop">Responsive desktop</option><option value="tablet">Tablet (768px)</option><option value="mobile">Mobile (390px)</option></select></label></div>',
-  '<p class="nhs-preview-note">Production NHS OS is separate and unchanged. <a id="standalone-link" href="frames/admin/home.html">Open current screen separately ↗</a></p>',
+  '<p class="nhs-preview-note">Production NHS OS is separate and unchanged. <a href="seven-rooms.html">Compare all seven rooms ✦</a> · <a id="standalone-link" href="frames/admin/home.html">Open current screen separately ↗</a></p>',
   '<p id="file-warning" class="nhs-preview-file-warning" role="alert" hidden>For best results, choose <strong>Extract All</strong> on the ZIP, then open the extracted index.html.</p>',
   '</header><div id="nhs-preview-stage"><main id="preview" aria-label="NHS synthetic screen preview">'+screenMarkup["admin/home"]+'</main></div>',
   '<div id="nhs-screen-templates" hidden>'+templates+'</div>',
   '<script>const routes='+JSON.stringify(routes)+';'+controller+'</script></body></html>'
 ].join("\n");
 writeFileSync(join(root,"index.html"),html);
+
+const reviewRooms=[
+  ["observatory","admin","home","Midnight Observatory","Command Center","Cinematic midnight, smoky plum and soft rose","#d2a0bc"],
+  ["electric","admin","scanner","Electric Conservatory","Lead Intelligence","Aubergine, electric violet and expressive magenta","#db8fff"],
+  ["rose","admin","clients","Rose Salon","Client Relationships","Warm champagne, dusty rose and thoughtful hospitality","#b87f99"],
+  ["artist","admin","pipeline","Artist's Atelier","Project Delivery","Smoky mauve, ink framing and curated creative work","#bda1af"],
+  ["archive","admin","contracts","Private Archive","Documents & Contracts","Elegant parchment, burgundy ink and antique brass","#b69a68"],
+  ["velvet","admin","muse","Velvet Room","Muse","Black violet, lilac light and a private creative atmosphere","#c9a0e6"],
+  ["private","client","home","Private Atelier","Client Portal","Luminous ivory, champagne and botanical blush","#c18ca3"]
+];
+const roomReviewCSS=[
+"*{box-sizing:border-box}",
+"body{margin:0;background:#120c19;color:#f6eaf3;font-family:Arial,sans-serif}",
+".review-head{max-width:1560px;margin:auto;padding:38px 24px 24px}",
+".review-head h1{font:400 clamp(30px,4vw,55px)/1.2 Georgia,serif;color:#fff4f8;margin:12px 0}",
+".review-head p{font-size:14px;max-width:900px;line-height:1.65;color:#ddc9d9}",
+".review-head a,.room-review footer a{color:#f6daed}",
+".review-grid{max-width:1560px;margin:auto;padding:0 24px 65px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:22px}",
+".room-review{--swatch:#b78fa8;min-width:0;border:1px solid #72566d;border-top:4px solid var(--swatch);border-radius:18px;overflow:hidden;background:#23182b}",
+".room-review header{padding:21px 22px 16px}",
+".room-review header span{font:700 10px/1.5 Arial,sans-serif;color:var(--swatch);letter-spacing:.13em;text-transform:uppercase}",
+".room-review h2{font:400 27px/1.2 Georgia,serif;color:#fff7fa;margin:10px 0 8px}",
+".room-review p{font-size:12px;line-height:1.6;color:#e5d5e2;margin:0}",
+".room-preview-slice{height:276px;overflow:hidden;border-block:1px solid #70516d;background:#2c2035}",
+".room-preview-scale{width:1120px;zoom:.38;pointer-events:none;user-select:none}",
+".room-review footer{padding:15px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px}",
+".room-review footer span{font-size:11px;color:#d6bfd0}",
+".room-review footer a{font-size:12px;min-height:44px;display:inline-flex;align-items:center;text-decoration:underline}",
+"@media(max-width:520px){.review-head{padding:24px 15px}.review-grid{padding:0 12px 32px;gap:15px}.room-preview-slice{height:204px}.room-preview-scale{zoom:.27}.room-review h2{font-size:23px}}"
+].join("\n");
+const reviewCards=reviewRooms.map(([id,role,view,title,category,description,accent],i)=>{
+  const markup=screenMarkup[role+"/"+view];
+  if(!markup || !markup.includes('data-room="'+id+'"'))throw new Error("Missing route identity for "+id);
+  return '<article data-room-card="'+id+'" class="room-review" style="--swatch:'+accent+'">'+
+    '<header><span>'+String(i+1).padStart(2,"0")+' / '+escape(category)+'</span><h2>'+escape(title)+'</h2><p>'+escape(description)+'</p></header>'+
+    '<div class="room-preview-slice" aria-label="Actual synthetic '+escape(title)+' preview"><div class="room-preview-scale">'+markup+'</div></div>'+
+    '<footer><span>Source-rendered desktop crop</span><a href="index.html?role='+role+'&view='+view+'">Open full room ↗</a></footer></article>';
+}).join("\n");
+writeFileSync(join(root,"seven-rooms.html"), [
+ '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Seven Rooms | NHS Nocturne Review</title>',
+ '<style>'+visualStyles+'</style><style>'+roomReviewCSS+'</style></head><body>',
+ '<header class="review-head"><p>✧ NINTH HEART STUDIOS / DESIGN REVIEW</p><h1>Seven moods. One unmistakable studio.</h1>',
+ '<p>Actual source-rendered NHS app screens with synthetic data. These are desktop crops, not decorative mockups. Open a full room from its card. Phone-width captures are separately verified in browser QA. Nothing here is connected to production.</p>',
+ '<p><a href="index.html">← Open interactive preview</a></p></header>',
+ '<main class="review-grid" aria-label="Seven distinct NHS room previews">'+reviewCards+'</main></body></html>'
+].join("\n"));
+
 writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
   "NHS NOCTURNE ATELIER — LOCAL VISUAL PREVIEW",
   "",
   "1. In Downloads, right-click nhs-nocturne-html-preview.zip and choose Extract All.",
   "2. Open the extracted folder. Open index.html in Chrome or Edge.",
   "3. index.html now includes all 30 screens and styles. It works without a server or separate files.",
-  "4. Choose Admin Nocturne or Client Atelier, screen, and viewport from the top controls.",
+  "4. Open seven-rooms.html for the all-room comparison, or use index.html screen controls.",
   "",
   "This is a visual demonstration with synthetic data, not the production app.",
   "Links, actions, sign-in and payments do not operate in this preview.",
