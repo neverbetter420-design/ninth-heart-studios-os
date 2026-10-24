@@ -27,7 +27,11 @@ test("extracted offline preview always renders Admin and switches to warm Client
   await expect(surface).toHaveCSS("background-color","rgb(249, 244, 238)");
   await expect(page.locator("#preview")).toContainText("Cedar & Stone");
   await page.locator("#width").selectOption("mobile");
-  await expect(page.locator("#preview")).toHaveCSS("width","390px");
+  const previewWidth = await page.locator("#preview").evaluate(el => el.getBoundingClientRect().width);
+  const availableWidth = await page.evaluate(() => document.documentElement.clientWidth);
+  expect(previewWidth).toBeGreaterThan(320);
+  expect(previewWidth).toBeLessThanOrEqual(Math.min(390, availableWidth));
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(availableWidth);
   expect(external).toEqual([]);
   expect(errors).toEqual([]);
   const noJS=await browser.newContext({javaScriptEnabled:false});

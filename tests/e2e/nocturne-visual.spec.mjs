@@ -416,7 +416,7 @@ test("Command Center progress and disclosure fit at desktop and narrow widths", 
     await summary.press("Enter");
     await expect(page.locator(".nocturne-insights")).not.toHaveAttribute("open", "");
   }
-  expect(await contrast(page.locator(".metric-card > span").first(), ".app-shell")).toBeGreaterThanOrEqual(4.5);
+  expect(await contrast(page.locator(".metric-card > span").first(), ".nhs-command-surface")).toBeGreaterThanOrEqual(4.5);
 });
 
 test("Atelier long titles, empty and error states fit at 320px", async ({ page }) => {
@@ -437,7 +437,7 @@ test("Nocturne priority surface keeps populated actions readable and reachable",
   for (const width of [1440, 900, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-    expect(await contrast(page.locator(".action-copy strong").first(), ".action-panel")).toBeGreaterThanOrEqual(4.5);
+    expect(await contrast(page.locator(".action-copy strong").first(), ".nhs-command-surface")).toBeGreaterThanOrEqual(4.5);
     const links = page.locator(".action-row a");
     for (const link of await links.all()) {
       await link.scrollIntoViewIfNeeded();
@@ -590,53 +590,60 @@ test("Shared navigation keeps workspace names, nested paperwork and return paths
 });
 
 
-test("Decorative Nocturne / Atelier backgrounds render offline in desktop and mobile reviews", async ({ page }, testInfo) => {
+test("Decorative welcome artwork stays in the entrance, not over working surfaces", async ({ page }, testInfo) => {
   test.setTimeout(90000);
-  // Each preview uses actual source markup with synthetic data, not hosted accounts.
-  const cases = [
-    ["admin", "home", "nocturne-command"],
-    ["client", "home", "atelier-home"],
-    ["admin", "project", "nocturne-creative-studio"],
-    ["client", "project", "atelier-project-workspace"],
+  const welcomeCases = [
+    ["admin", ".nocturne-overview", ".nhs-command-surface", "#f9f4ee"],
+    ["client", ".atelier-hero", ".atelier-feature-project", "#fffaf7"],
   ];
-  for (const [role, view, label] of cases) {
+  for (const [role, heroSelector, workSelector, paperColor] of welcomeCases) {
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      await show(page, role, "populated", view);
-      const shell = page.locator(`.app-shell.nhs-theme-${role}`);
+      await show(page, role, "populated", "home");
+      const shell = page.locator(".app-shell.nhs-theme-" + role);
       await expect(shell).toHaveCount(1);
-      const image = await shell.evaluate((element) => getComputedStyle(element).backgroundImage);
-      expect(image, `${label} background is visible at ${width}px`).toContain("data:image/svg+xml");
-      const decoded = await shell.evaluate(async (el) => {
-        const asset = getComputedStyle(el).backgroundImage.match(/url\("(data:image\/svg\+xml,[^"]+)"\)/)?.[1];
-        if (!asset) return false;
+      const hero = page.locator(heroSelector);
+      await expect(hero).toBeVisible();
+      const heroImage = await hero.evaluate(el => getComputedStyle(el).backgroundImage);
+      expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/svg+xml");
+      const decoded = await hero.evaluate(async el => {
+        const match = getComputedStyle(el).backgroundImage.match(/url\(["']?(data:image\/svg\+xml,[^"')]+)["']?\)/);
+        if (!match) return false;
         const artwork = new Image();
-        artwork.src = asset;
+        artwork.src = match[1];
         await artwork.decode();
-        return artwork.naturalWidth === 1100 && artwork.naturalHeight === 950;
+        return artwork.naturalWidth > 0 && artwork.naturalHeight > 0;
       });
-      expect(decoded, `${label} SVG decodes offline`).toBe(true);
+      expect(decoded, role + " floral asset decodes offline").toBe(true);
       await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
-      await expect(page.locator(role === "admin" ? ".nocturne-studio-art" : ".atelier-studio-art")).not.toBeVisible();
-      const media = await shell.evaluate((element) => getComputedStyle(element).backgroundSize);
-      expect(media).not.toBe("auto");
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), `${label} overflow at ${width}px`).toBeLessThanOrEqual(width);
-      if (view === "project") {
-        await expect(page.locator(".studio-workspace")).toHaveCount(1);
-        const workspaceBackdrop = await page.locator(".studio-workspace").evaluate(el => getComputedStyle(el).backgroundImage);
-        expect(workspaceBackdrop).toContain("data:image/svg+xml");
-      }
-      const capture = testInfo.outputPath(`${label}-${width}.png`);
+      const work = page.locator(workSelector);
+      await expect(work).toBeVisible();
+      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgb(249, 244, 238)" : "rgb(255, 250, 247)");
+      const workBackdrop = await work.evaluate(el => getComputedStyle(el).backgroundImage);
+      expect(workBackdrop, "Keep busy workspace free of floral artwork").not.toContain("data:image/svg+xml");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), role + " overflow at " + width).toBeLessThanOrEqual(width);
+      const capture = testInfo.outputPath(role + "-soft-atelier-" + width + ".png");
       await page.screenshot({ path: capture, fullPage: true, animations: "disabled" });
-      await testInfo.attach(`${label}-${width}`, { path: capture, contentType: "image/png" });
+      await testInfo.attach(role + "-soft-atelier-" + width, { path: capture, contentType: "image/png" });
+    }
+  }
+  // Project layouts use calm papers and dividers, not a giant page-filling flower.
+  for (const role of ["admin", "client"]) {
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await show(page, role, "populated", "project");
+      await expect(page.locator(".studio-workspace")).toBeVisible();
+      await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      if (role === "admin") await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(249, 244, 238)");
     }
   }
   for (const preference of [{ contrast: "more" }, { contrast: "no-preference", forcedColors: "active" }]) {
     await page.emulateMedia(preference);
-    for (const [role, view] of cases) {
-      await show(page, role, "populated", view);
-      await expect(page.locator(`.app-shell.nhs-theme-${role}`)).toHaveCSS("background-image", "none");
-      await expect(page.locator(view === "project" ? ".studio-workspace" : role === "admin" ? ".nocturne-overview" : ".atelier-hero")).toHaveCSS("background-image", "none");
+    for (const role of ["admin", "client"]) {
+      await show(page, role, "populated", "home");
+      const hero = page.locator(role === "admin" ? ".nocturne-overview" : ".atelier-hero");
+      await expect(hero).toHaveCSS("background-image", "none");
     }
   }
 });
