@@ -25,7 +25,7 @@ export default async function SignInPage({
           </label>
           <label>
             <span>Password</span>
-            <input name="password" type="password" autoComplete="current-password" required minLength={12} />
+            <input name="password" type="password" autoComplete="current-password" required />
           </label>
           <button className="primary-button wide" type="submit">Sign in</button>
         </form>
