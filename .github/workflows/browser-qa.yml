@@ -22,6 +22,11 @@ on:
         options:
           - local
           - live
+      require_authenticated_coverage:
+        description: 'Require real admin and two-client read-only navigation and isolation checks (live only)'
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
@@ -59,6 +64,10 @@ jobs:
       - name: Install project dependencies
         run: npm ci
 
+      - name: Verify live auth release compatibility (read-only)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'live' }}
+        run: node scripts/verify-live-auth-release.mjs
+
       - name: Install isolated Playwright test runner
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
 
@@ -75,6 +84,31 @@ jobs:
           if [[ -z "$E2E_CLIENT_A_EMAIL" || -z "$E2E_CLIENT_A_PASSWORD" || -z "$E2E_CLIENT_B_EMAIL" || -z "$E2E_CLIENT_B_PASSWORD" ]]; then
             echo "Full client isolation browser tests: SKIPPED (configure both test client accounts)." >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Enforce authenticated live acceptance prerequisites
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.require_authenticated_coverage }}
+        shell: bash
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          if [[ "$TARGET" != "live" ]]; then
+            echo "::error::Strict authenticated acceptance must target the deployed live app."
+            exit 1
+          fi
+          missing=0
+          for key in E2E_ADMIN_EMAIL E2E_ADMIN_PASSWORD E2E_CLIENT_A_EMAIL E2E_CLIENT_A_PASSWORD E2E_CLIENT_B_EMAIL E2E_CLIENT_B_PASSWORD; do
+            if [[ -z "${!key:-}" ]]; then
+              echo "::error::Missing required isolated QA credential: $key"
+              missing=1
+            fi
+          done
+          if [[ "$missing" != 0 ]]; then
+            echo "Strict live acceptance was NOT executed because test-account secrets are incomplete." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "Strict live acceptance: all three test identities configured; admin/client navigation and client isolation must run." >> "$GITHUB_STEP_SUMMARY"
+          echo "Destructive write-action specs remain intentionally disabled." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Test navigation in desktop and mobile Chromium
         run: npx playwright test

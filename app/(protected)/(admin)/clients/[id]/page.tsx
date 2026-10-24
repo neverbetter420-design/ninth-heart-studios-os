@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ProjectDirectoryRow } from "@/components/projects/ProjectDirectoryRow";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth";
 import { addClientMemberWithFeedback, removeClientMemberWithFeedback, setClientStatusWithFeedback } from "../actions";
 import { PortalActionForm, PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
@@ -12,6 +13,7 @@ export default async function ClientDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
+  await requireAdmin();
   const { id } = await params;
   const { error: formError } = await searchParams;
   const supabase = await createClient();

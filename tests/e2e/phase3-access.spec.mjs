@@ -57,7 +57,11 @@ async function read(query, label) {
 async function signInBrowser(page, credential) {
   await page.goto("/auth/sign-in");
   await page.locator('input[name="email"]').fill(credential.email);
-  await page.locator('input[name="password"]').fill(credential.password);
+  const password = page.locator('input[name="password"]');
+  await password.fill(credential.password);
+  if (await password.evaluate((element) => element.validity.tooShort)) {
+    throw new Error("LIVE RELEASE MISMATCH: password input blocks existing authenticated QA users before form submission. Install the separately approved login fix; do not reset test accounts.");
+  }
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.locator(".navigation-shell")).toBeVisible({ timeout: 25_000 });
 }
@@ -110,7 +114,7 @@ test.describe("Phase 3 read-only client isolation", () => {
         api.from("tasks").select("id,project_id,client_visible").eq("project_id",own.projectId),
         "own visible tasks",
       );
-      expect(tasks.length, "Seeded client-visible task required").toBeGreaterThan(0);
+      expect(tasks.length, "Dedicated QA fixture has no client-visible task. This is missing test data, not failed login or cross-client authorization. Do not change production fixtures without separate approval.").toBeGreaterThan(0);
       expect(tasks.every((task) => task.client_visible === true)).toBe(true);
 
       const leads = await read(api.from("leads").select("id").limit(2), "admin-only leads");

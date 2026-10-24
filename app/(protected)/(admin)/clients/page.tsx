@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MetricCard } from "@/components/MetricCard";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth";
 import { createClient as createClientAction } from "./actions";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 
@@ -16,6 +17,8 @@ type ClientRow = {
 };
 
 export default async function ClientsPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  // App Router layouts and pages may render concurrently: protect the query at its source.
+  await requireAdmin();
   const { error: formError } = await searchParams;
   const supabase = await createClient();
   const { data: rawClients, error: clientsError } = await supabase

@@ -14,7 +14,14 @@ async function signIn(page, user) {
   await page.goto("/auth/sign-in");
   await expect(page.getByRole("heading", { name: "Enter NHS OS" })).toBeVisible();
   await page.locator('input[name="email"]').fill(user.email);
-  await page.locator('input[name="password"]').fill(user.password);
+  const password = page.locator('input[name="password"]');
+  await password.fill(user.password);
+  // A browser-side login length restriction blocks form submission without an auth request.
+  // Do not print credential values, lengths or email addresses in CI logs.
+  const blocked = await password.evaluate((element) => element.validity.tooShort);
+  if (blocked) {
+    throw new Error("LIVE RELEASE MISMATCH: this sign-in page rejected an existing test password before submission. Deploy the separately approved login fix before live acceptance.");
+  }
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).not.toHaveURL(/\/auth\/(?:sign-in|unauthorized)/, { timeout: 25_000 });
   await expect(page.locator(".navigation-shell")).toBeVisible();
@@ -57,7 +64,13 @@ test("public sign-in page loads and has usable controls", async ({ page }) => {
   await page.goto("/auth/sign-in");
   await expect(page.getByRole("heading", { name: "Enter NHS OS" })).toBeVisible();
   await expect(page.locator('input[name="email"]')).toBeVisible();
-  await expect(page.locator('input[name="password"]')).toBeVisible();
+  const password = page.locator('input[name="password"]');
+  await expect(password).toBeVisible();
+  // Sign-in must not reject legitimate existing short passwords in browser validation.
+  // Strength rules apply when setting/changing a password, not when authenticating.
+  await expect(password).not.toHaveAttribute("minlength");
+  await password.fill("legacy8!");
+  expect(await password.evaluate((element) => element.validity.tooShort)).toBe(false);
   await expect(page.getByRole("button", { name: "Sign in" })).toBeEnabled();
   await expect(page.getByRole("link", { name: "Forgot password?" })).toHaveAttribute("href", "/auth/forgot-password");
   await page.getByRole("link", { name: "Forgot password?" }).click();
@@ -66,10 +79,15 @@ test("public sign-in page loads and has usable controls", async ({ page }) => {
 });
 
 test("anonymous users cannot access admin dashboard or client portal", async ({ page }) => {
-  await page.goto("/");
-  await expect(page).toHaveURL(/\/auth\/sign-in/);
-  await page.goto("/portal");
-  await expect(page).toHaveURL(/\/auth\/sign-in/);
+  // Guard nested destinations as well as the two home pages.
+  for (const path of [
+    "/", "/leads", "/leads/discover", "/projects", "/clients",
+    "/portal", "/portal/projects", "/portal/messages", "/portal/files",
+    "/portal/approvals", "/portal/documents",
+  ]) {
+    await page.goto(path);
+    await expect(page, `Anonymous access to ${path} must redirect`).toHaveURL(/\/auth\/sign-in/);
+  }
 });
 
 test("admin navigation loads each section (read-only)", async ({ page, isMobile }) => {
