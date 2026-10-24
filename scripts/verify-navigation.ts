@@ -123,6 +123,19 @@ assert.ok(resourceCollection.includes('className="atelier-resource-rows"'), "cli
 assert.ok(resourceCollection.includes('href={itemHref(item)}'), "client resource links must navigate to the original project");
 assert.ok(phase3Styles.includes("prefers-reduced-motion"), "Atelier client transitions require reduced-motion support");
 const adminClientsPage = read("app/(protected)/(admin)/clients/page.tsx");
+const adminClientDetailPage = read("app/(protected)/(admin)/clients/[id]/page.tsx");
+// A route-group layout redirect is not sufficient to prevent concurrent
+// protected page data loaders from running on anonymous requests.
+for (const [name, source] of [
+  ["client directory", adminClientsPage],
+  ["client details", adminClientDetailPage],
+] as const) {
+  assert.ok(source.includes('import { requireAdmin } from "@/lib/auth"'), name + " needs its own auth guard");
+  const guard = source.indexOf("await requireAdmin()");
+  const query = source.indexOf("await createClient()");
+  assert.ok(guard > 0 && query > guard, name + " must authorize before reading private data");
+}
+
 const adminProjectsPage = read("app/(protected)/(admin)/projects/page.tsx");
 for (const source of [adminClientsPage, adminProjectsPage]) {
   assert.ok(source.includes('className="nocturne-create-panel"'), "admin create forms must be discoverable but collapse until needed");
