@@ -606,8 +606,10 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(hero).toBeVisible();
       const heroImage = await hero.evaluate(el => getComputedStyle(el).backgroundImage);
       expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/svg+xml");
+      // The percent-encoded SVG includes literal parentheses from gradient functions.
+      // Capture the complete quoted CSS URL; ending at the first ")" corrupts the image.
       const decoded = await hero.evaluate(async el => {
-        const match = getComputedStyle(el).backgroundImage.match(/url\(["']?(data:image\/svg\+xml,[^"')]+)["']?\)/);
+        const match = getComputedStyle(el).backgroundImage.match(/url\(["'](data:image\/svg\+xml,[^"']+)["']\)/);
         if (!match) return false;
         const artwork = new Image();
         artwork.src = match[1];
