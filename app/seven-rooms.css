@@ -123,6 +123,7 @@
 .app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline {
   background:#f1e9e7;color:#493949;border:1px solid #d7bfc9;border-radius:24px;
   margin:22px clamp(16px,3vw,46px);padding:clamp(20px,3vw,40px);max-width:unset;
+  width:auto;min-width:0;box-sizing:border-box;
 }
 .app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .management-heading {
   padding:clamp(21px,3vw,35px); border-radius:19px;
@@ -149,6 +150,7 @@
   color:#4a3035;background:#f7edde;border:1px solid #cdb6a0;
   border-radius:23px;padding:clamp(22px,3.4vw,45px);
   margin:20px clamp(14px,3vw,44px);max-width:unset;
+  width:auto;min-width:0;box-sizing:border-box;
 }
 .app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .management-heading {
   background:linear-gradient(105deg,#4a263b,#7a4250 70%,#9a7068);
@@ -228,5 +230,20 @@
 @media (forced-colors:active), (prefers-contrast:more) {
  .app-shell:has(.nhs-room-identity) .main-shell {background-image:none;}
  .app-shell:has(.nhs-room-identity) .nhs-room-identity {border:1px solid currentColor;}
- .app-shell:has(.nhs-room-identity) :is(.nocturne-overview,.atelier-hero,.management-heading,.lead-editorial-heading) {background-image:none;}
+ .app-shell:has(.nhs-room-identity) :is(.nocturne-overview,.atelier-hero,.management-heading,.lead-editorial-heading) {background-image:none!important;}
+}
+
+/* Make the complete labelled mobile checkbox usable beneath the sticky mobile header. */
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-checkbox {
+  cursor:pointer;min-height:48px;scroll-margin-block-start:108px;
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-checkbox input[type="checkbox"] {
+  position:relative;z-index:1;flex:0 0 22px;width:22px;height:22px;
+  margin:0;accent-color:#7c4055;scroll-margin-block-start:108px;
+}
+@media (max-width:860px) {
+ .app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page section[id],
+ .app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .paperwork-checkbox {
+   scroll-margin-block-start:120px;
+ }
 }

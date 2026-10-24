@@ -478,7 +478,9 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await expect(adminPage.getByRole("heading", { name: formName, exact: true })).toBeVisible();
       const formId = new URL(adminPage.url()).pathname.split("/").pop();
       await adminPage.getByLabel("Field label", { exact: true }).fill("Business name");
-      await adminPage.getByLabel("Required field", { exact: true }).check();
+      // The wrapped label is the touch target and must toggle the genuine input.
+      await adminPage.locator("label.paperwork-checkbox").filter({ hasText: "Required field" }).click();
+      await expect(adminPage.getByLabel("Required field", { exact: true })).toBeChecked();
       await adminPage.getByRole("button", { name: "Add field", exact: true }).click();
       await expect.poll(async () => (await required(srv.from("form_templates").select("fields").eq("id", formId), "form field persisted"))[0].fields.length).toBe(1);
       const formFields = (await required(srv.from("form_templates").select("fields").eq("id", formId), "required form field"))[0].fields;
