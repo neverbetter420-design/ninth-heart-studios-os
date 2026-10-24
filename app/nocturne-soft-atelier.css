@@ -449,3 +449,15 @@
     background-image: none; border: 2px solid CanvasText;
   }
 }
+
+/* High-contrast preferences should remove the artwork added by this final stylesheet,
+   not be overridden by its higher-specificity default welcome rules. */
+@media (prefers-contrast: more), (forced-colors: active) {
+  .app-shell.nhs-theme-admin,
+  .app-shell.nhs-theme-client,
+  .nhs-theme-admin .nocturne-command-center .nocturne-overview,
+  .nhs-theme-client .atelier-home .atelier-hero,
+  .nhs-theme-admin .studio-workspace-admin {
+    background-image: none;
+  }
+}
