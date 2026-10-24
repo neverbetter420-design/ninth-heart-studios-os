@@ -50,7 +50,8 @@
 }
 .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nhs-command-surface {
   --nocturne-ink: #f5eaf3; --nocturne-muted: #d9c3d3; --nocturne-rule: #775f75;
-  background: linear-gradient(145deg,#291d34,#251a30 75%,#38253d);
+  background-color: #251a30;
+  background-image: linear-gradient(145deg,#291d34,#251a30 75%,#38253d);
   color: #f7ebf4; border-color: #75516d;
 }
 .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center
@@ -133,7 +134,7 @@
 .app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline :is(.metric-card p,.metric-card > span,.management-help) {color:#705b6b;}
 .app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline :is(.field input,.field select) {background:#fffdf9;color:#4a3142;border-color:#bba2b0;color-scheme:light;}
 .app-shell:has(.nhs-room-identity[data-room="artist"]) .studio-workspace-admin {
-  background:linear-gradient(145deg,#f4eeeb,#eadce0);color:#402d3d;border-color:#c6adba;
+  background-color:#f4eeeb;background-image:linear-gradient(145deg,#f4eeeb,#eadce0);color:#402d3d;border-color:#c6adba;
 }
 .app-shell:has(.nhs-room-identity[data-room="artist"]) .studio-workspace-admin :is(.studio-journey,.studio-gallery) {
   border-color:#ccb6c1; background:#fffbf8;

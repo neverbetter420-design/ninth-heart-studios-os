@@ -620,7 +620,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
-      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgb(249, 244, 238)" : "rgb(255, 250, 247)");
+      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgb(37, 26, 48)" : "rgb(255, 253, 250)");
       const workBackdrop = await work.evaluate(el => getComputedStyle(el).backgroundImage);
       expect(workBackdrop, "Keep busy workspace free of floral artwork").not.toContain("data:image/svg+xml");
       expect(await page.evaluate(() => document.documentElement.scrollWidth), role + " overflow at " + width).toBeLessThanOrEqual(width);
@@ -637,7 +637,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".studio-workspace")).toBeVisible();
       await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-      if (role === "admin") await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(249, 244, 238)");
+      if (role === "admin") await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(244, 238, 235)");
     }
   }
   for (const preference of [{ contrast: "more" }, { contrast: "no-preference", forcedColors: "active" }]) {
@@ -717,14 +717,14 @@ test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", 
   }
 });
 
-test("Nocturne home unmistakably combines a rose entrance and warm ivory executive studio", async ({ page }) => {
+test("Midnight Observatory has cinematic welcome and contrasting velvet workspace", async ({ page }) => {
   await show(page, "admin", "populated", "home");
   const hero = page.locator(".nocturne-command-center .nocturne-overview");
   const work = page.locator(".nocturne-command-center .nhs-command-surface");
   await expect(hero).toBeVisible();
   await expect(work).toBeVisible();
-  await expect(hero).toHaveCSS("background-color", "rgb(57, 37, 56)");
-  await expect(work).toHaveCSS("background-color", "rgb(249, 244, 238)");
+  await expect(hero).toHaveCSS("background-color", "rgb(33, 21, 42)");
+  await expect(work).toHaveCSS("background-color", "rgb(37, 26, 48)");
   await expect(work.locator(".metric-grid")).toContainText("Active Leads");
   await expect(work.locator(".dashboard-grid")).toContainText("Next 3 actions");
   await expect(work.locator(".dashboard-grid")).toContainText("Project pulse");
@@ -737,10 +737,10 @@ test("Nocturne home unmistakably combines a rose entrance and warm ivory executi
 
 test("soft client portal and admin project workspace share warm palette", async ({ page }) => {
   await show(page, "client", "populated", "home");
-  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgb(255, 250, 246)");
-  await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgb(255, 250, 247)");
+  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgb(255, 253, 249)");
+  await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgb(255, 253, 250)");
   await show(page, "admin", "populated", "project");
-  await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(249, 244, 238)");
+  await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(244, 238, 235)");
 });
 
 
