@@ -64,6 +64,10 @@ jobs:
       - name: Install project dependencies
         run: npm ci
 
+      - name: Verify live auth release compatibility (read-only)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'live' }}
+        run: node scripts/verify-live-auth-release.mjs
+
       - name: Install isolated Playwright test runner
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
 
