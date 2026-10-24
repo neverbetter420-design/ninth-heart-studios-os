@@ -742,3 +742,37 @@ test("soft client portal and admin project workspace share warm palette", async 
   await show(page, "admin", "populated", "project");
   await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(249, 244, 238)");
 });
+
+
+test("Seven studio rooms are distinct, readable and captured at desktop and phone widths", async ({ page }, testInfo) => {
+  test.setTimeout(180000);
+  const rooms=[
+    ["observatory","admin","home","#d2a0bc"],
+    ["electric","admin","scanner","#db8fff"],
+    ["rose","admin","clients","#b87f99"],
+    ["artist","admin","pipeline","#bda1af"],
+    ["archive","admin","contracts","#b69a68"],
+    ["velvet","admin","muse","#c9a0e6"],
+    ["private","client","home","#c18ca3"]
+  ];
+  const distinct=new Set();
+  for(const [room,role,view,accent] of rooms){
+    for(const [size,width] of [["desktop",1440],["phone",390]]){
+      await page.setViewportSize({width,height:900});
+      await show(page,role,"populated",view);
+      const roomIdentity=page.locator(".nhs-room-identity");
+      await expect(roomIdentity).toHaveAttribute("data-room",room);
+      await expect(roomIdentity).toBeVisible();
+      expect(await page.locator(".app-shell").evaluate(el=>getComputedStyle(el).getPropertyValue("--room-accent").trim())).toBe(accent);
+      const back=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundImage);
+      expect(back,room+" "+size+" background").toContain("gradient");
+      if(size==="desktop")distinct.add(back);
+      const screenWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
+      expect(screenWidth,room+" "+size+" horizontal overflow").toBeLessThanOrEqual(width);
+      const output=testInfo.outputPath("room-"+room+"-"+size+".png");
+      await page.screenshot({path:output,fullPage:false,animations:"disabled"});
+      await testInfo.attach(room+" / "+size,{path:output,contentType:"image/png"});
+    }
+  }
+  expect(distinct.size).toBe(7);
+});
