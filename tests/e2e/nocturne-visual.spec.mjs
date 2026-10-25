@@ -835,3 +835,46 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
   // own accent semantics and readable working canvases, not seven incompatible brands.
   expect(roomAccents.size).toBe(7);
 });
+
+
+test("Every NHS room has its own etched visual motif, with working responsive pages", async ({ page }, testInfo) => {
+  test.setTimeout(180000);
+  const identities = [
+    ["electric", "admin", "scanner", "#7dd5f2"],
+    ["rose", "admin", "clients", "#f4aac5"],
+    ["artist", "admin", "pipeline", "#efd0a1"],
+    ["archive", "admin", "templates", "#e5c69a"],
+    ["velvet", "admin", "muse", "#e0bbff"],
+    ["private", "client", "home", null],
+  ];
+  const distinctIllustrations = new Set();
+  const width = testInfo.project.name.startsWith("mobile") ? 390 : 1440;
+  await page.setViewportSize({ width, height: 900 });
+  for (const [room, role, view, accent] of identities) {
+    await show(page, role, "populated", view);
+    const shell = page.locator(".app-shell");
+    await expect(shell.locator(".nhs-room-identity")).toHaveAttribute("data-room", room);
+    const motif = await shell.evaluate((el, isClient) =>
+      getComputedStyle(el).getPropertyValue(isClient ? "--nhs-client-motif" : "--nhs-room-art").trim(), role === "client");
+    expect(motif, room + " must use NHS-specific original room artwork").toContain("data:image/svg+xml");
+    const match = motif.match(/(data:image\/svg\+xml,[^"']+)/);
+    expect(match, room + " should have an embedded local SVG illustration").not.toBeNull();
+    const asset = decodeURIComponent(match[1]);
+    expect(asset).toContain("<svg");
+    distinctIllustrations.add(asset);
+    const main = page.locator(".main-shell");
+    const background = await main.evaluate(el => getComputedStyle(el).backgroundImage);
+    expect(background, room + " artwork must be visible in its environment").toContain("data:image/svg+xml");
+    if (role === "admin") {
+      expect(background).toContain("data:image/webp;base64");
+      expect(await shell.evaluate(el => getComputedStyle(el).getPropertyValue("--nhs-room-accent").trim())).toBe(accent);
+    } else {
+      await expect(shell).toHaveCSS("color-scheme", "light");
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), room + " horizontal overflow").toBeLessThanOrEqual(width);
+    const capture = testInfo.outputPath("nhs-" + room + "-" + width + ".png");
+    await page.screenshot({ path: capture, fullPage: false, animations: "disabled" });
+    await testInfo.attach("NHS " + room + " room", { path: capture, contentType: "image/png" });
+  }
+  expect(distinctIllustrations.size, "Rooms must not repeat the same illustration").toBe(identities.length);
+});
