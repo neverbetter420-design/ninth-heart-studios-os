@@ -1,0 +1,57 @@
+name: NHS issue #23 isolated staging bundle preflight
+
+# Builds against inert, synthetic backend variables. DO NOT deploy or expose
+# Cloudflare tokens to pull request code.
+on:
+  pull_request:
+    paths:
+      - 'wrangler.issue23-staging.jsonc'
+      - 'scripts/verify-issue23-staging.mjs'
+      - 'scripts/verify-cloudflare-runtime.mjs'
+      - '.github/workflows/issue23-staging-preflight.yml'
+      - 'app/**'
+      - 'components/**'
+      - 'lib/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  stage-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NHS_APP_URL: https://example.invalid
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Enforce separate staging identity and inert variable set
+        run: node scripts/verify-issue23-staging.mjs
+      - name: Build compiled Worker with only inert staging variables
+        run: npm run cf:build
+      - name: Dry-run isolated staging bundle without publishing
+        run: npx wrangler deploy --dry-run --config wrangler.issue23-staging.jsonc
+      - name: Smoke test the staging-configured Worker inside local workerd
+        env:
+          NHS_WORKER_CONFIG: wrangler.issue23-staging.jsonc
+        run: node scripts/verify-cloudflare-runtime.mjs
+      - name: Record safety of this isolated check
+        run: |
+          echo "No production routes, hosted Supabase, Cloudflare token, remote staging deployment, or client records were used." >> "$GITHUB_STEP_SUMMARY"
+          echo "Remote staging still requires separate secure publication and hosted HTTP verification." >> "$GITHUB_STEP_SUMMARY"
