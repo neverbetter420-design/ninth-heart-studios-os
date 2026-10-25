@@ -21,6 +21,8 @@ const child = spawn(commands, args, {
   cwd: process.cwd(),
   env: { ...process.env, CI: "true", WRANGLER_SEND_METRICS: "false" },
   stdio: ["ignore", "pipe", "pipe"],
+  // Give the local Wrangler/workerd subprocesses their own process group on CI.
+  detached: process.platform !== "win32",
 });
 let output = "";
 let childExited = null;
@@ -77,5 +79,13 @@ try {
   if (tail.length) console.error("Local Worker diagnostic lines:\n" + tail.join("\n").slice(-3500));
   process.exitCode = 1;
 } finally {
-  child.kill("SIGTERM");
+  try {
+    if (process.platform === "win32") child.kill("SIGTERM");
+    else if (child.pid) process.kill(-child.pid, "SIGTERM");
+  } catch {
+    // The local process might already have exited.
+  }
+  child.stdout.destroy();
+  child.stderr.destroy();
+  child.unref();
 }
