@@ -632,7 +632,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
-      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgb(37, 26, 48)" : "rgb(255, 253, 250)");
+      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgb(16, 17, 21)" : "rgb(255, 253, 250)");
       const workBackdrop = await work.evaluate(el => getComputedStyle(el).backgroundImage);
       expect(workBackdrop, "Keep busy workspace free of floral artwork").not.toContain("data:image/svg+xml");
       expect(await page.evaluate(() => document.documentElement.scrollWidth), role + " overflow at " + width).toBeLessThanOrEqual(width);
@@ -729,14 +729,14 @@ test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", 
   }
 });
 
-test("Midnight Observatory has cinematic welcome and contrasting velvet workspace", async ({ page }) => {
+test("Midnight Observatory uses NHS black glass and rose-accented welcome", async ({ page }) => {
   await show(page, "admin", "populated", "home");
   const hero = page.locator(".nocturne-command-center .nocturne-overview");
   const work = page.locator(".nocturne-command-center .nhs-command-surface");
   await expect(hero).toBeVisible();
   await expect(work).toBeVisible();
-  await expect(hero).toHaveCSS("background-color", "rgb(33, 21, 42)");
-  await expect(work).toHaveCSS("background-color", "rgb(37, 26, 48)");
+  await expect(hero).toHaveCSS("background-color", "rgb(11, 11, 17)");
+  await expect(work).toHaveCSS("background-color", "rgb(16, 17, 21)");
   await expect(work.locator(".metric-grid")).toContainText("Active Leads");
   await expect(work.locator(".dashboard-grid")).toContainText("Next 3 actions");
   await expect(work.locator(".dashboard-grid")).toContainText("Project pulse");
@@ -759,7 +759,7 @@ test("soft client portal and admin project workspace share warm palette", async 
 test("Seven studio rooms are distinct, readable and captured at desktop and phone widths", async ({ page }, testInfo) => {
   test.setTimeout(180000);
   const rooms=[
-    ["observatory","admin","home","#d2a0bc"],
+    ["observatory","admin","home","#d32c5a"],
     ["electric","admin","scanner","#db8fff"],
     ["rose","admin","clients","#b87f99"],
     ["artist","admin","pipeline","#bda1af"],
