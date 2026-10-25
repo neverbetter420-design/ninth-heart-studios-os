@@ -58,7 +58,7 @@ test("seven approved rooms render distinctly and fit desktop/mobile with no outb
     const card = page.locator('[data-room-card="' + room + '"]');
     await expect(card).toHaveCount(1);
     await expect(card.locator('.nhs-room-identity[data-room="' + room + '"]')).toHaveCount(1);
-    await expect(card.locator("h2")).not.toBeEmpty();
+    await expect(card.locator(":scope > header > h2")).not.toBeEmpty();
   }
   await expect(page.locator('[data-room-card="archive"]')).toContainText("Private Archive");
   await expect(page.locator('[data-room-card="private"]')).toContainText("Private Atelier");
