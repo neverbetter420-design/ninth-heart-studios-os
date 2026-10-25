@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
+import { LeadConstellation, type ConstellationProspect } from "@/components/leads/LeadConstellation";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import {
   NICHES,
@@ -175,11 +176,32 @@ export default async function DiscoverPage({
           </p>
         )}
 
+        {!readError && prospects.length > 0 && (
+          <LeadConstellation
+            totalCount={prospects.length}
+            prospects={prospects.slice(0, 12).map((p): ConstellationProspect => {
+              const validProfiles = (p.signals?.social_profiles ?? []).filter(
+                (profile) => Boolean(normalizeSocialProfile(profile.url, profile.platform)),
+              );
+              return {
+                id: p.id,
+                name: p.business_name,
+                category: p.category,
+                score: p.opportunity_score,
+                hasWebsite: Boolean(p.website),
+                socialListed: validProfiles.length > 0,
+                socialMatched: validProfiles.some((profile) => profile.status === "matched"),
+                socialChecked: Boolean(p.signals?.social_checked_at),
+              };
+            })}
+          />
+        )}
+
         <div className="prospect-grid">
           {prospects.map((p) => {
             const badges = signalBadges(p.signals ?? ({} as WebsiteSignals));
             return (
-              <article key={p.id} className="card prospect-card">
+              <article key={p.id} id={"prospect-" + p.id} className="card prospect-card">
                 <div className="prospect-head">
                   <div>
                     <h4>{p.business_name}</h4>

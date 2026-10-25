@@ -1,0 +1,201 @@
+/* NHS OS / Intelligence Chamber: read-only, real-data Lead Constellation.
+   The original brand logo and scan actions are outside this component. */
+.nhs-theme-admin .nhs-lead-constellation {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 22px 0 45px;
+  padding: clamp(18px, 3vw, 34px);
+  color: #f4eef6;
+  border: 1px solid rgba(165, 210, 232, .25);
+  border-radius: 26px;
+  background:
+    radial-gradient(ellipse at 34% 42%, rgba(50, 33, 228, .13), transparent 49%),
+    radial-gradient(ellipse at 95% 15%, rgba(42, 154, 206, .13), transparent 42%),
+    linear-gradient(115deg, rgba(3, 3, 9, .96), rgba(13, 22, 32, .94) 64%, rgba(3, 3, 9, .97));
+  box-shadow: inset 0 1px 0 rgba(240, 246, 255, .12), 0 23px 65px rgba(0, 0, 0, .2);
+}
+.nhs-lead-constellation::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: -16% -10%;
+  background: radial-gradient(ellipse at 40% 43%, rgba(72, 163, 226, .09), transparent 50%);
+  filter: blur(32px);
+}
+.nhs-lead-constellation__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+.nhs-lead-constellation__eyebrow {
+  color: #9ec7e6;
+  font-size: 10px;
+  letter-spacing: .16em;
+  margin: 0;
+}
+.nhs-lead-constellation__header h3 {
+  margin: 10px 0 0;
+  color: #f4eef6;
+  font: 400 clamp(29px, 3.1vw, 43px)/1.15 Georgia, serif;
+  letter-spacing: -.035em;
+}
+.nhs-lead-constellation__header h3 em {
+  font-weight: 400;
+  color: #a4d9f1;
+}
+.nhs-lead-constellation__count,
+.nhs-lead-constellation__footnote {
+  color: #b4bac9;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.nhs-lead-constellation__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 0;
+}
+.nhs-lead-constellation__filters button {
+  appearance: none;
+  cursor: pointer;
+  color: #bacbd9;
+  background: rgba(240, 246, 255, .05);
+  border: 1px solid rgba(173, 207, 224, .23);
+  border-radius: 99px;
+  min-height: 40px;
+  padding: 8px 15px;
+  font-size: 11px;
+  transition: background .23s ease, border-color .23s ease, transform .23s ease;
+}
+.nhs-lead-constellation__filters button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(158, 215, 244, .7);
+}
+.nhs-lead-constellation__filters button[aria-pressed="true"] {
+  color: #eef9ff;
+  background: rgba(48, 135, 180, .23);
+  border-color: rgba(142, 206, 238, .65);
+  box-shadow: inset 0 0 16px rgba(71, 183, 233, .1);
+}
+.nhs-lead-constellation__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(235px, .84fr);
+  gap: clamp(15px, 3vw, 46px);
+  align-items: center;
+}
+.nhs-lead-constellation__sky {
+  position: relative;
+  width: 100%;
+  min-height: 265px;
+  aspect-ratio: 360 / 340;
+  max-height: 370px;
+  background: radial-gradient(circle at center, rgba(22, 113, 169, .12), transparent 57%);
+}
+.nhs-lead-constellation__orbits {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  fill: none;
+  stroke: rgba(134, 206, 241, .23);
+  stroke-width: 1;
+}
+.nhs-lead-constellation__orbits path { stroke-opacity: .43; }
+.nhs-lead-constellation__core {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 1px solid rgba(198, 232, 247, .55);
+  background: radial-gradient(circle, rgba(50, 105, 141, .7), rgba(12, 20, 34, .92));
+  box-shadow: 0 0 40px rgba(24, 125, 181, .22), inset 0 0 22px rgba(175, 226, 255, .09);
+}
+.nhs-lead-constellation__core strong {
+  font: 400 31px/1.2 Georgia, serif;
+  color: #f4eef6;
+}
+.nhs-lead-constellation__core span { font-size: 9px; letter-spacing: .12em; color: #b6d9e9; }
+.nhs-lead-constellation__node {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  border: 1px solid #93d2f1;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #e5f6ff;
+  background: radial-gradient(circle at 30% 25%, #bfeeff, #236f9d 62%, #13354c);
+  box-shadow: 0 0 13px rgba(36, 169, 238, .6), 0 0 25px rgba(36, 169, 238, .18);
+  transition: scale .24s ease, background .24s ease, box-shadow .24s ease;
+}
+.nhs-lead-constellation__node > span { width: 5px; height: 5px; background: #e6f8ff; border-radius: 50%; }
+.nhs-lead-constellation__node:hover,
+.nhs-lead-constellation__node.is-selected {
+  scale: 1.16;
+  border-color: #f4c5d8;
+  box-shadow: 0 0 15px rgba(211, 44, 90, .55), 0 0 27px rgba(42, 154, 206, .5);
+}
+.nhs-lead-constellation__node:focus-visible,
+.nhs-lead-constellation__filters button:focus-visible,
+.nhs-lead-constellation__link:focus-visible {
+  outline: 2px solid #f4eef6;
+  outline-offset: 5px;
+}
+.nhs-lead-constellation__selection {
+  min-width: 0;
+  border-left: 1px solid rgba(151, 202, 226, .24);
+  padding: 13px 0 13px clamp(20px, 3vw, 40px);
+}
+.nhs-lead-constellation__selection h4 {
+  font: 400 clamp(22px, 2.8vw, 35px)/1.17 Georgia, serif;
+  color: #f4eef6;
+  margin: 12px 0 5px;
+  overflow-wrap: anywhere;
+}
+.nhs-lead-constellation__category { margin: 0; font-size: 11px; color: #b8c3cf; }
+.nhs-lead-constellation__score { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; margin-top: 16px; }
+.nhs-lead-constellation__score strong { font: 400 53px/1 Georgia, serif; }
+.nhs-lead-constellation__score span { font-size: 9px; letter-spacing: .11em; color: #99cce8; }
+.nhs-lead-constellation__track { height: 3px; background: rgba(219, 238, 249, .2); border-radius: 99px; overflow: hidden; margin: 11px 0 20px; }
+.nhs-lead-constellation__track > span { display: block; height: 100%; background: linear-gradient(90deg, #3221e4, #7ad2f1); box-shadow: 0 0 11px #44b6eb; }
+.nhs-lead-constellation__verification { display: grid; gap: 8px; color: #d0c4d7; font-size: 11px; }
+.nhs-lead-constellation__link { display: inline-flex; min-height: 44px; align-items: center; gap: 16px; color: #b7e7fa; text-decoration: none; margin-top: 16px; font-size: 12px; }
+.nhs-lead-constellation__link:hover { color: #f4eef6; text-decoration: underline; text-underline-offset: 5px; }
+.nhs-lead-constellation__empty { color: #d0c4d7; font-size: 12px; }
+.nhs-lead-constellation__footnote { border-top: 1px solid rgba(189, 215, 230, .12); padding-top: 14px; margin: 0; }
+.scanner-workroom .prospect-card { scroll-margin-top: 30px; }
+.scanner-workroom .prospect-card:target { outline: 1px solid rgba(107, 203, 247, .65); outline-offset: 8px; border-radius: 6px; }
+@media (max-width: 800px) {
+  .nhs-lead-constellation__body { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .nhs-lead-constellation__sky { margin: auto; max-width: 420px; }
+  .nhs-lead-constellation__selection { border-left: 0; border-top: 1px solid rgba(151, 202, 226, .24); padding: 22px 0 10px; }
+}
+@media (max-width: 520px) {
+  .nhs-lead-constellation__header { align-items: start; flex-direction: column; }
+  .nhs-lead-constellation__sky { min-height: 235px; }
+  .nhs-lead-constellation__filters button { padding-inline: 11px; }
+  .nhs-lead-constellation__footnote { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nhs-lead-constellation__node,
+  .nhs-lead-constellation__filters button { transition: none; }
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .nhs-theme-admin .nhs-lead-constellation { background: #030309; }
+  .nhs-lead-constellation__node { box-shadow: none; }
+}
