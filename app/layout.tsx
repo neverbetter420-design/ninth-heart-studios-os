@@ -10,6 +10,7 @@ import "./navigation.css";
 import "./nocturne.css";
 import "./nocturne-phase3.css";
 import "./nocturne-command.css";
+import "./nocturne-priority-halo.css";
 import "./atelier-studio.css";
 import "./nocturne-leads.css";
 import "./nocturne-management.css";
