@@ -247,3 +247,12 @@
 @media(prefers-reduced-motion:reduce) {
   .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card {transition:none;}
 }
+
+/* Activity content should not disappear into burgundy glass. */
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-activity :is(.activity-row p,.nocturne-activity-empty) {
+  color:#e5d9e4;
+  opacity:1;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-activity .activity-row time {
+  color:#c6bdcb;
+}
