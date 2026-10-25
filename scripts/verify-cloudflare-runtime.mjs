@@ -57,7 +57,7 @@ async function checkPublic(path, expected, initialResponse) {
   const response = initialResponse || await get(path);
   assert.equal(response.status, 200, `Compiled Worker ${path} returned HTTP ${response.status}, not 200`);
   const html = await response.text();
-  assert.match(html, /<main\\b/i, `Compiled Worker ${path} has no main content`);
+  assert.match(html, /<main\b/i, `Compiled Worker ${path} has no main content`);
   assert.ok(html.includes(expected), `Compiled Worker ${path} is missing expected content`);
   console.log(`PASS compiled Cloudflare Worker GET ${path} -> HTTP 200 and expected HTML`);
 }
