@@ -26,6 +26,7 @@ import "./seven-rooms.css";
 import "./nocturne-dark-rose.css";
 import "./nocturne-rooms-refined.css";
 import "./nocturne-atelier-compass.css";
+import "./nocturne-dark-rose-cinematic.css";
 
 const headingFont = Cinzel({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-cinzel", display: "swap" });
 const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
