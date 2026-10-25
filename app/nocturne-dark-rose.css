@@ -191,3 +191,110 @@
   }
   .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nhs-command-surface { background-image: none; }
 }
+
+
+/* Final light choreography: atmospheric rather than brightly colored UI. */
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center .nocturne-overview {
+  background-position: center, right -110px center, center, center;
+  background-size: 100% 100%, min(900px,87vw) auto, 100% 100%, 100% 100%;
+  box-shadow:
+    inset 0 1px 0 rgba(245,239,247,.25),
+    inset 0 -1px 0 rgba(129,174,195,.09),
+    0 26px 88px rgba(0,0,0,.47),
+    0 0 65px rgba(211,44,90,.06);
+  border-color: rgba(215,205,220,.24);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center .nocturne-overview::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 92% 12%,rgba(185,222,233,.13),transparent 37%),
+    linear-gradient(155deg,rgba(255,255,255,.08),transparent 21%,transparent 80%,rgba(161,217,229,.055));
+  mix-blend-mode: screen;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center .nocturne-welcome-copy {
+  position: relative;
+  z-index: 1;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center .nhs-command-surface {
+  border-radius: clamp(24px,3vw,41px);
+  border-color: rgba(210,203,215,.20);
+  background-color: rgba(14,16,22,.89);
+  background-image:
+    radial-gradient(ellipse at 100% 0%,rgba(211,44,90,.105),transparent 34%),
+    radial-gradient(ellipse at 0% 100%,rgba(133,182,203,.09),transparent 43%),
+    linear-gradient(145deg,rgba(22,23,29,.83),rgba(12,14,19,.92) 65%,rgba(23,19,28,.86));
+  box-shadow:
+    inset 0 1px 0 rgba(250,245,255,.18),
+    inset 1px 0 0 rgba(250,245,255,.045),
+    inset -1px 0 0 rgba(178,220,238,.075),
+    0 28px 80px rgba(0,0,0,.4),
+    0 0 60px rgba(211,44,90,.035);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center :is(.metric-grid,.dashboard-grid,.panel-heading) {
+  border-color: rgba(238,230,242,.14);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center .metric-card strong {
+  text-shadow: 0 0 32px rgba(231,134,161,.12);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center :is(.action-panel,.project-panel) {
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center .nhs-priority-halo__orbit {
+  background: radial-gradient(circle,rgba(211,44,90,.14),rgba(211,44,90,.035) 34%,transparent 74%);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center .nhs-priority-halo__node {
+  box-shadow: 0 0 17px rgba(211,44,90,.36),inset 0 1px 0 rgba(255,255,255,.35);
+}
+@media(max-width:1000px) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"])
+  .nocturne-command-center .nocturne-overview {
+    background-size:100% 100%,650px auto,100% 100%,100% 100%;
+    background-position:center,right -130px center,center,center;
+  }
+}
+@media(max-width:620px) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"])
+  .nocturne-command-center .nocturne-overview {
+    background-size: 100% 100%,490px auto,100% 100%;
+    background-position: center,right -240px center,center;
+  }
+}
+@media(prefers-reduced-transparency:reduce) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"])
+  .nocturne-command-center .nhs-command-surface {
+    background-color:#111218;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"])
+  .nocturne-command-center .nocturne-overview::after {
+    display:none;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"])
+  .nocturne-command-center .nhs-command-surface {
+    background-color:#101115;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
