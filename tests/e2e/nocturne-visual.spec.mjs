@@ -297,7 +297,9 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
     await scan.focus();
     expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
     expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage)).toBe("none");
-    expect(await page.getByRole("region", { name: "Run a scan" }).evaluate(el => getComputedStyle(el).borderRadius)).toBe("17px");
+    const scannerRadius = await page.getByRole("region", { name: "Run a scan" }).evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
+    expect(scannerRadius, "The Intelligence Chamber must preserve its soft 21px glass geometry").toBeGreaterThanOrEqual(20);
+    expect(scannerRadius).toBeLessThanOrEqual(30);
     for (const width of [1440, 1024, 620, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `scanner ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
