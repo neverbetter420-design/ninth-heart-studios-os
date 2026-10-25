@@ -632,9 +632,10 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
-      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgb(16, 17, 21)" : "rgb(255, 253, 250)");
+      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgba(14, 16, 22, 0.89)" : "rgb(255, 253, 250)");
       const workBackdrop = await work.evaluate(el => getComputedStyle(el).backgroundImage);
       expect(workBackdrop, "Keep busy workspace free of floral artwork").not.toContain("data:image/svg+xml");
+      expect(workBackdrop, "Keep the photographic hero out of working surfaces").not.toContain("data:image/webp;base64");
       expect(await page.evaluate(() => document.documentElement.scrollWidth), role + " overflow at " + width).toBeLessThanOrEqual(width);
       const capture = testInfo.outputPath(role + "-soft-atelier-" + width + ".png");
       await page.screenshot({ path: capture, fullPage: true, animations: "disabled" });
@@ -736,7 +737,7 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   await expect(hero).toBeVisible();
   await expect(work).toBeVisible();
   await expect(hero).toHaveCSS("background-color", "rgb(11, 11, 17)");
-  await expect(work).toHaveCSS("background-color", "rgb(16, 17, 21)");
+  await expect(work).toHaveCSS("background-color", "rgba(14, 16, 22, 0.89)");
   await expect(work.locator(".metric-grid")).toContainText("Active Leads");
   await expect(work.locator(".dashboard-grid")).toContainText("Next 3 actions");
   await expect(work.locator(".dashboard-grid")).toContainText("Project pulse");
