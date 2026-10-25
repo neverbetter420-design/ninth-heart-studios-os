@@ -1,0 +1,338 @@
+/*
+ * NHS OS · Nocturne environmental system, phase two.
+ * Applies only to named existing route rooms; no routes, roles,
+ * auth, data, or actions are changed. Loaded AFTER legacy room CSS.
+ * Command Center's photographic Dark Rose styling remains separate.
+ *
+ * Brand spine: void #030309, graphite #121212, silver #F4EEF6,
+ * restrained NHS crimson #D32C5A. Different rooms retain distinct
+ * emotional palettes, not identical dark-glass dashboards.
+ */
+
+/* Shared navigation grammar: tactile, restrained, keyboard-first. */
+.app-shell:has(.nhs-room-identity) {
+  --nhs-glass-stroke: rgba(227,217,231,.2);
+  --nhs-motion-ease: cubic-bezier(.22,1,.36,1);
+}
+.app-shell:has(.nhs-room-identity) :is(.nav-link,.portal-shortcut,.atelier-destination,.studio-journey-point,.lead-inbox-row,.management-client-row,.pipeline-phase,.paperwork-nav a,.muse-suggestion) {
+  transition: transform .26s var(--nhs-motion-ease), box-shadow .3s ease, background-color .28s ease, border-color .28s ease;
+}
+@media (hover:hover) and (pointer:fine) {
+  .app-shell:has(.nhs-room-identity) :is(.nav-link,.portal-shortcut,.atelier-destination,.lead-inbox-row,.management-client-row,.paperwork-nav a):hover {
+    transform: translateY(-2px);
+  }
+  .app-shell:has(.nhs-room-identity) .nav-link:hover .nav-icon {
+    transform: translateY(-1px) scale(1.07);
+  }
+}
+.app-shell:has(.nhs-room-identity) .nav-icon {
+  transition: transform .24s var(--nhs-motion-ease), filter .24s ease;
+}
+.app-shell:has(.nhs-room-identity) :is(button,a,input,select,textarea,summary):focus-visible {
+  outline: 2px solid var(--room-accent);
+  outline-offset: 3px;
+}
+.app-shell:has(.nhs-room-identity) .nhs-room-identity {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.13);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity:not([data-room="observatory"])) .navigation-shell > .nhs-sidebar {
+  background: linear-gradient(160deg,rgba(17,18,24,.98),rgba(3,3,9,.98));
+  border-color: rgba(218,204,221,.17);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06),12px 22px 45px rgba(0,0,0,.21);
+}
+
+/* 02. INTELLIGENCE CHAMBER · cobalt mist / dark graphite / clean signals. */
+.app-shell:has(.nhs-room-identity[data-room="electric"]) {
+  --room-accent: #6cbadd;
+  --room-badge-bg: rgba(14,38,58,.83);
+  --room-badge-ink: #eaf7ff;
+  --room-backdrop:
+    radial-gradient(ellipse at 84% 9%,rgba(38,126,181,.22),transparent 40%),
+    radial-gradient(ellipse at 12% 75%,rgba(50,33,228,.10),transparent 43%),
+    linear-gradient(135deg,#030309,#111820 52%,#090c13);
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .main-shell {
+  background-color: #090e15;
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.lead-editorial-heading,.management-heading) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(142,202,231,.3);
+  border-radius: 29px 29px 61px 29px;
+  background:
+    radial-gradient(ellipse at 92% 13%,rgba(106,198,230,.19),transparent 37%),
+    repeating-radial-gradient(circle at 96% 52%,transparent 0 48px,rgba(144,217,249,.07) 49px 50px,transparent 51px 80px),
+    linear-gradient(112deg,#0a0d15,#142434 76%,#0a1019);
+  box-shadow: inset 0 1px 0 rgba(226,245,255,.15),0 21px 52px rgba(0,0,0,.21);
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .management-page .management-heading h2,
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .nocturne-leads .lead-editorial-heading h2 { color: #f4eef6; }
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.management-page .eyebrow,.nocturne-leads .eyebrow) {color:#a5d9ef;}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.management-page .page-description,.nocturne-leads .page-description) {color:#ced6e2;}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .nocturne-leads .metric-card strong {color:#e6f6ff;}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.scanner-controls,.prospect-card,.lead-capture-card,.radar-page .panel,.nocturne-leads .panel) {
+  background: linear-gradient(145deg,rgba(20,33,43,.94),rgba(12,16,23,.96));
+  border:1px solid rgba(138,190,222,.27);
+  border-radius:21px;
+  box-shadow: inset 0 1px 0 rgba(220,241,255,.09),0 15px 32px rgba(0,0,0,.12);
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.scanner-page .mini-button.accent,.scanner-page .primary-button,.nocturne-leads .primary-button) {
+  background:#195a7f;
+  color:#f1fbff;
+  border-color:#6cbadd;
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.scanner-page .score,.radar-page .metric-card strong) {color:#b9e9ff;}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.prospect-card,.lead-inbox-row):hover {
+  border-color:rgba(143,214,244,.66);
+  box-shadow:0 15px 31px rgba(0,0,0,.17),0 0 24px rgba(42,157,214,.1);
+}
+.app-shell:has(.nhs-room-identity[data-room="electric"]) .nhs-lead-constellation {
+  border-color: rgba(130,197,231,.25);
+}
+
+/* 03. RELATIONSHIP SALON · pearl rose / soft champagne / clear client operations. */
+.app-shell:has(.nhs-room-identity[data-room="rose"]) {
+  --room-badge-bg:rgba(255,247,249,.78);
+  --room-backdrop:
+    radial-gradient(ellipse at 92% 8%,rgba(192,137,161,.23),transparent 36%),
+    radial-gradient(ellipse at 0% 100%,rgba(245,231,221,.45),transparent 45%),
+    linear-gradient(138deg,#fdf9f7,#f5eceb 60%,#efe1e6);
+}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-page .management-heading:not(.management-client-workspace .management-heading) {
+  border: 1px solid rgba(176,123,143,.33);
+  border-radius:29px 29px 65px 29px;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(224,168,186,.32),transparent 45%),
+    linear-gradient(120deg,rgba(255,251,250,.95),rgba(246,225,233,.93));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8),0 22px 60px rgba(101,62,79,.1);
+}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients :is(.management-heading h2,.management-heading em) {color:#4e3341;}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients :is(.management-directory,.nocturne-create-panel) {
+  background:rgba(255,253,251,.82);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+  border-color:rgba(193,161,175,.29);
+  border-radius:25px;
+  box-shadow:0 17px 43px rgba(104,68,89,.065),inset 0 1px 0 #fff;
+}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-client-row:hover {
+  background:rgba(247,224,232,.28);
+}
+.app-shell:has(.nhs-room-identity[data-room="rose"]) .management-clients .metric-grid {border-color:rgba(180,144,165,.3);}
+
+/* 04. CREATIVE STUDIO · smoke black / champagne-metal / calm working canvas. */
+.app-shell:has(.nhs-room-identity[data-room="artist"]) {
+  --room-accent:#d4b18a;
+  --room-badge-bg:rgba(47,38,34,.84);
+  --room-badge-ink:#fff3e3;
+  --room-backdrop:
+    radial-gradient(ellipse at 90% 3%,rgba(200,152,101,.15),transparent 45%),
+    linear-gradient(137deg,#090a0d,#16181d 42%,#262321 72%,#101318);
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline {
+  background:linear-gradient(145deg,#f5f0ea,#eeebe7);
+  color:#34303a;
+  border:1px solid rgba(201,184,166,.6);
+  border-radius:30px;
+  box-shadow:0 24px 75px rgba(0,0,0,.25),inset 0 1px 0 #fff;
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .management-heading {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border-radius:26px 26px 57px 26px;
+  border:1px solid rgba(218,190,156,.25);
+  background:
+    radial-gradient(ellipse at 94% 21%,rgba(218,181,128,.23),transparent 40%),
+    linear-gradient(115deg,#14171d,#34312f 72%,#252328);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11);
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .management-heading h2 {color:#f7efea;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .page-description {color:#e3d8cf;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline :is(.metric-card strong,.nocturne-create-toggle strong) {color:#443a3b;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline :is(.metric-card p,.metric-card > span,.management-help) {color:#5d5759;}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .studio-workspace-admin {
+  color:#34343c;
+  background-color:#f4eeeb;
+  background-image:
+    radial-gradient(ellipse at 100% 0%,rgba(199,166,127,.15),transparent 37%),
+    linear-gradient(130deg,#faf6f2,#ebe6e3);
+  border-color:rgba(193,172,159,.52);
+  box-shadow:0 23px 68px rgba(0,0,0,.18);
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) .studio-workspace-admin :is(.studio-journey,.studio-gallery) {
+  border-color:rgba(193,172,159,.38);
+  background:rgba(255,253,250,.85);
+}
+.app-shell:has(.nhs-room-identity[data-room="artist"]) :is(.pipeline-phase,.studio-journey-point):hover {
+  box-shadow:0 12px 35px rgba(169,124,78,.11);
+}
+
+/* 05. PRIVATE ARCHIVE · parchment and engraved brass, readable document tools. */
+.app-shell:has(.nhs-room-identity[data-room="archive"]) {
+  --room-backdrop:
+    radial-gradient(ellipse at 91% 6%,rgba(180,144,98,.13),transparent 42%),
+    linear-gradient(140deg,#e7ddd1,#faf3e9 37%,#f1e5d8 100%);
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {
+  background:linear-gradient(138deg,#fdf8ef,#f5eee3);
+  border-color:#cbbbaa;
+  border-radius:30px;
+  box-shadow:0 22px 70px rgba(74,54,47,.12),inset 0 1px 0 #fff;
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .management-heading {
+  border-radius:26px 26px 55px 26px;
+  background:
+    radial-gradient(ellipse at 94% 10%,rgba(205,173,129,.24),transparent 43%),
+    linear-gradient(108deg,#231e23,#493038 74%,#554239);
+  border-color:rgba(206,173,142,.5);
+  box-shadow:inset 0 1px 0 rgba(255,244,215,.19);
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .management-heading h2 {color:#fcf6eb;}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(.paperwork-row,.paperwork-form,.paperwork-workspace,.paperwork-filters) {
+  background:rgba(255,252,246,.91);
+  border-color:rgba(188,166,140,.44);
+  box-shadow:inset 0 1px 0 #fff;
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(input,textarea,select) {
+  background:#fffefa;
+  color:#42373a;
+  border-color:rgba(170,144,117,.68);
+}
+.app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page :is(.mini-button.go,.primary-button) {
+  background:#634250;color:#fffaf1;border-color:#634250;
+}
+
+/* 06. MUSE · dark creative sanctuary, tiny violet reflections, not a neon room. */
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) {
+  --room-accent:#c9a0e6;
+  --room-badge-bg:rgba(39,28,49,.8);
+  --room-backdrop:
+    radial-gradient(ellipse at 86% 9%,rgba(161,126,187,.2),transparent 37%),
+    radial-gradient(ellipse at 10% 85%,rgba(211,44,90,.06),transparent 47%),
+    linear-gradient(137deg,#030309,#16141d 55%,#0e0e15);
+}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom .management-heading {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  border-radius:30px 30px 66px 30px;
+  background:
+    radial-gradient(ellipse at 95% 0%,rgba(178,147,205,.24),transparent 40%),
+    linear-gradient(115deg,#101016,#292130 65%,#1b1924);
+  border-color:rgba(200,165,223,.31);
+  box-shadow:inset 0 1px 0 rgba(250,242,255,.12),0 21px 55px rgba(0,0,0,.17);
+}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(.studio-focus,.studio-compose,.studio-intelligence-grid,.studio-writing-note,.studio-saved,.paperwork-form) {
+  background:linear-gradient(130deg,rgba(34,31,42,.81),rgba(18,20,28,.91));
+  border:1px solid rgba(198,166,217,.28);
+  border-radius:24px;
+  -webkit-backdrop-filter:blur(17px);
+  backdrop-filter:blur(17px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(.mini-button.go,.primary-button) {
+  background:linear-gradient(110deg,#5b446e,#83618f);
+  border-color:#ae8dbd;
+}
+.app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom :is(input,textarea,select) {
+  background:rgba(13,14,21,.83);
+  color:#f4eef6;
+  border-color:rgba(192,171,210,.55);
+}
+
+/* 07. CLIENT ATELIER · pearl-glass, champagne arches, botanical atmosphere. */
+.app-shell:has(.nhs-room-identity[data-room="private"]) {
+  --room-backdrop:
+    radial-gradient(ellipse at 89% 0%,rgba(205,164,183,.19),transparent 41%),
+    radial-gradient(ellipse at 6% 90%,rgba(227,214,226,.26),transparent 51%),
+    linear-gradient(135deg,#fffdfa,#fbf7f5 54%,#f7edf0);
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-hero {
+  isolation:isolate;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(206,173,187,.44);
+  border-radius:33px 33px 73px 33px;
+  background-color:#fffdf9;
+  background-image:
+    linear-gradient(100deg,rgba(255,253,250,.97) 0%,rgba(255,251,248,.95) 45%,rgba(255,247,246,.22) 100%),
+    url("/visuals/atelier-botanical-arch.svg"),
+    radial-gradient(ellipse at 90% 20%,rgba(205,164,183,.22),transparent 45%);
+  background-repeat:no-repeat;
+  background-position:center,right -70px center,center;
+  background-size:100% 100%,min(700px,73vw) auto,100% 100%;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 19px 58px rgba(119,78,100,.11);
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-feature-project {
+  background:rgba(255,254,252,.85);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(208,177,192,.37);
+  border-radius:29px;
+  box-shadow:inset 0 1px 0 white,0 16px 46px rgba(122,84,111,.075);
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home :is(.atelier-destinations,.atelier-action-panel) {
+  background:rgba(255,251,249,.78);
+  border-color:rgba(208,177,192,.31);
+  border-radius:24px;
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-destination:hover {
+  background:rgba(246,224,235,.44);
+  box-shadow:0 10px 27px rgba(147,105,130,.09);
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .studio-workspace-client {
+  background:linear-gradient(145deg,#fffdf9,#faf5f3);
+  border-color:rgba(208,177,192,.42);
+  box-shadow:0 15px 46px rgba(108,82,95,.08);
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-progress-track,
+.app-shell:has(.nhs-room-identity[data-room="private"]) .studio-project-progress .progress-track {
+  background:#e9dce4;
+}
+
+/* Responsive: preserve actions and organization; reduce decoration first. */
+@media(max-width:850px) {
+  .app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.lead-editorial-heading,.management-heading),
+  .app-shell:has(.nhs-room-identity[data-room="rose"]) .management-page .management-heading:not(.management-client-workspace .management-heading),
+  .app-shell:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .management-heading,
+  .app-shell:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .management-heading,
+  .app-shell:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom .management-heading,
+  .app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-hero {
+    border-radius:23px 23px 43px 23px;
+  }
+}
+@media(max-width:620px) {
+  .app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-hero {
+    background-position:center,right -205px center,center;
+    background-size:100% 100%,520px auto,100% 100%;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.lead-editorial-heading,.management-heading) {
+    background:radial-gradient(ellipse at 95% 5%,rgba(106,198,230,.11),transparent 43%),linear-gradient(110deg,#0a0d15,#142434);
+  }
+  .app-shell:has(.nhs-room-identity[data-room="private"]) .atelier-home :is(.atelier-destinations,.atelier-action-panel) {
+    border-radius:18px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell:has(.nhs-room-identity) :is(.nav-link,.nav-icon,.portal-shortcut,.atelier-destination,.studio-journey-point,.lead-inbox-row,.management-client-row,.pipeline-phase,.paperwork-nav a,.muse-suggestion) {
+    transition:none!important;
+  }
+}
+@media(prefers-contrast:more), (forced-colors:active) {
+  .app-shell:has(.nhs-room-identity) .nhs-room-identity {
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+  .app-shell:has(.nhs-room-identity) :is(.management-heading,.lead-editorial-heading,.atelier-hero,.studio-workspace,.paperwork-page,.muse-workroom,.nhs-sidebar) {
+    box-shadow:none!important;
+  }
+  .app-shell:has(.nhs-room-identity) :is(.management-heading,.lead-editorial-heading,.atelier-hero) {
+    background-image:none!important;
+  }
+}
