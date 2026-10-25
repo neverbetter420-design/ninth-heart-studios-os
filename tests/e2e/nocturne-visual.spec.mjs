@@ -761,9 +761,9 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
   test.setTimeout(180000);
   const rooms=[
     ["observatory","admin","home","#d32c5a"],
-    ["electric","admin","scanner","#db8fff"],
+    ["electric","admin","scanner","#6cbadd"],
     ["rose","admin","clients","#b87f99"],
-    ["artist","admin","pipeline","#bda1af"],
+    ["artist","admin","pipeline","#d4b18a"],
     ["archive","admin","contracts","#b69a68"],
     ["velvet","admin","muse","#c9a0e6"],
     ["private","client","home","#c18ca3"]
