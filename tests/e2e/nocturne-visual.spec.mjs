@@ -715,6 +715,14 @@ test("The shared atmosphere carries across every admin and client destination", 
     for (const view of views) {
       await show(page, role, "populated", view);
       await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", role === "client" ? "light" : "dark");
+      const stageBackground = await page.locator(".main-shell").evaluate(el => getComputedStyle(el).backgroundImage);
+      if (role === "admin") {
+        expect(stageBackground, `${view} should inherit the photographic NHS Dark Rose studio`).toMatch(/webp|gradient/);
+        expect(stageBackground, `${view} should share the photographic skull-and-rose identity`).toContain("webp");
+        await expect(page.locator(".main-shell")).toHaveCSS("background-color", "rgb(3, 3, 9)");
+      } else {
+        expect(stageBackground, `${view} should preserve the warm client Atelier`).toContain("gradient");
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} ${view} at ${width}px`).toBeLessThanOrEqual(width);
       const capture = testInfo.outputPath(`${role}-${view}-${width}.png`);
       await page.screenshot({ path: capture, fullPage: true, animations: "disabled" });
@@ -787,7 +795,7 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
     ["velvet","admin","muse","#c9a0e6"],
     ["private","client","home","#c18ca3"]
   ];
-  const distinct=new Set();
+  const roomAccents = new Set();
   for(const [room,role,view,accent] of rooms){
     for(const [size,width] of [["desktop",1440],["phone",390]]){
       await page.setViewportSize({width,height:900});
@@ -798,7 +806,8 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       expect(await page.locator(".app-shell").evaluate(el=>getComputedStyle(el).getPropertyValue("--room-accent").trim())).toBe(accent);
       const back=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundImage);
       expect(back,room+" "+size+" background").toContain("gradient");
-      if(size==="desktop")distinct.add(back);
+      if (role === "admin") expect(back, room+" should keep the same photographic Dark Rose brand").toContain("webp");
+      if(size==="desktop")roomAccents.add(accent);
       const screenWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
       expect(screenWidth,room+" "+size+" horizontal overflow").toBeLessThanOrEqual(width);
       const output=testInfo.outputPath("room-"+room+"-"+size+".png");
@@ -806,5 +815,7 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       await testInfo.attach(room+" / "+size,{path:output,contentType:"image/png"});
     }
   }
-  expect(distinct.size).toBe(7);
+  // Shared photographic atmosphere is intentional. Rooms retain their
+  // own accent semantics and readable working canvases, not seven incompatible brands.
+  expect(roomAccents.size).toBe(7);
 });
