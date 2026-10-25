@@ -1,0 +1,50 @@
+name: NHS OS OpenNext compatibility probe (no deploy)
+
+# Incident #23: test adapter 1.20.12, which specifically fixed Next.js 16.4
+# preview-props.json loadManifest failures (upstream OpenNext PR #1356).
+# Deliberately does not change the repository's lockfile or production Worker.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/issue23-adapter-compat.yml'
+      - 'scripts/verify-cloudflare-runtime.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+jobs:
+  adapter-compat:
+    name: Build and serve the Worker with fixed OpenNext adapter
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: https://rquscwgdrqkzwjukiqtk.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_7N1_IhU0_mvs6q0ppgyssA_0O6xj-L2
+      NHS_APP_URL: https://app.ninthheartstudios.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install existing locked app without changes
+        run: npm ci
+      - name: Temporarily install upstream manifest fix for this diagnostic runner only
+        run: npm install --no-save --package-lock=false @opennextjs/cloudflare@1.20.12
+      - name: Confirm fixed adapter version is used in build
+        run: node -e "const v = require('@opennextjs/cloudflare/package.json').version; if(v !== '1.20.12') { throw new Error('Expected adapter 1.20.12; got '+v); } console.log('OpenNext adapter version',v)"
+      - name: Build approved Seven Rooms app using fixed adapter
+        run: npm run cf:build
+      - name: Ensure valid dry-run bundle, no publish
+        run: npm run cf:dry-run
+      - name: Verify the compiled Worker responds to HTTP GET
+        run: node scripts/verify-cloudflare-runtime.mjs
+      - name: Confirm diagnostic-only scope
+        run: |
+          echo "OpenNext manifest compatibility tested locally with workerd." >> "$GITHUB_STEP_SUMMARY"
+          echo "No production Worker deployment, database writes, authenticated sessions, or package-lock changes." >> "$GITHUB_STEP_SUMMARY"
