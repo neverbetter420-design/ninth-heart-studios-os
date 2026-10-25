@@ -4,6 +4,11 @@ name: NHS Nocturne isolated HTML review
 on:
   pull_request:
     paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'lib/studio-rooms.ts'
+      - 'playwright.offline-review.config.mjs'
+      - 'tests/e2e/nocturne-offline-preview.spec.mjs'
       - 'app/**'
       - 'components/**'
       - 'public/**'
@@ -41,6 +46,12 @@ jobs:
         run: node scripts/verify-nocturne-static.mjs
       - name: Validate separate static Worker configuration without publishing
         run: npx wrangler deploy --dry-run --config wrangler.nocturne-static.jsonc
+      - name: Install network-isolated Playwright browser reviewer
+        run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+      - name: Install Chromium for source-rendered desktop/mobile preview
+        run: npx playwright install --with-deps chromium
+      - name: Test offline 30-screen gallery and seven-room designs in desktop/mobile Chromium
+        run: npx playwright test --config playwright.offline-review.config.mjs
       - name: Upload actual source-rendered HTML preview package
         uses: actions/upload-artifact@v4
         with:
