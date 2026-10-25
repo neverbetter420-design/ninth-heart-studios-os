@@ -749,7 +749,8 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   await expect(work).toBeVisible();
   // The approved cinematic layout is open and atmospheric, not a photo
   // inside one rectangle above another giant opaque dashboard box.
-  expect(await hero.evaluate(el=>getComputedStyle(el).backgroundImage)).toMatch(/data:image\\/webp;base64|nhs-dark-rose-photographic\\.webp/);
+  const cinematicArtwork = await hero.evaluate(el=>getComputedStyle(el).backgroundImage);
+  expect(cinematicArtwork.includes("data:image/webp;base64") || cinematicArtwork.includes("nhs-dark-rose-photographic.webp")).toBe(true);
   await expect(hero).toHaveCSS("border-top-width", "0px");
   await expect(work).toHaveCSS("border-top-width", "0px");
   const instruments = work.locator(".metric-card");
