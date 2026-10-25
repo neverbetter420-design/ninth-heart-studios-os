@@ -42,3 +42,37 @@ test("extracted offline preview always renders Admin and switches to warm Client
     await expect(local.locator("#preview")).toContainText("Command Center");
   } finally { await noJS.close(); }
 });
+
+
+test("seven approved rooms render distinctly and fit desktop/mobile with no outbound requests", async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
+  const errors = [], outbound = [];
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("request", request => {
+    if (/^https?:/i.test(request.url())) outbound.push(request.url());
+  });
+  await page.goto(pathToFileURL(resolve("nocturne-static-preview/seven-rooms.html")).href);
+  const rooms = ["observatory", "electric", "rose", "artist", "archive", "velvet", "private"];
+  await expect(page.locator('[aria-label="Seven distinct NHS room previews"] [data-room-card]')).toHaveCount(rooms.length);
+  for (const room of rooms) {
+    const card = page.locator('[data-room-card="' + room + '"]');
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.nhs-room-identity[data-room="' + room + '"]')).toHaveCount(1);
+    await expect(card.locator("h2")).not.toBeEmpty();
+  }
+  await expect(page.locator('[data-room-card="archive"]')).toContainText("Private Archive");
+  await expect(page.locator('[data-room-card="private"]')).toContainText("Private Atelier");
+  for (const [width, height, label] of [[1440, 900, "desktop"], [390, 844, "mobile"]]) {
+    await page.setViewportSize({width, height});
+    await page.evaluate(() => document.fonts.ready);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, label + " horizontal overflow").toBeLessThanOrEqual(1);
+    await page.screenshot({
+      path: resolve("nocturne-static-preview/review-seven-rooms-" + label + "-" + testInfo.project.name + ".png"),
+      fullPage: true,
+      animations: "disabled",
+    });
+  }
+  expect(errors).toEqual([]);
+  expect(outbound).toEqual([]);
+});
