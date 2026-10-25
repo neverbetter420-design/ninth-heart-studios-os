@@ -125,3 +125,103 @@ export async function Dashboard() {
               </div>
             )}
           </div>
+        </section>
+
+        <section className="panel project-panel" aria-labelledby="nocturne-projects-title">
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">02 · In motion</p>
+              <h3 id="nocturne-projects-title">Project pulse</h3>
+            </div>
+            <Link className="text-button" href="/projects">View pipeline →</Link>
+          </div>
+          <div className="project-list">
+            {projects.length ? projects.map((project) => (
+              <div className="project-row" key={project.id}>
+                <div className="project-copy">
+                  <strong><Link href={"/projects/" + project.id}>{project.name}</Link></strong>
+                  <span>{stageLabel(project.status)} · {dueLabel(project.due_date)}</span>
+                </div>
+                <div className="progress-track" aria-label={`${project.progress}% complete`}>
+                  <span style={{ width: `${project.progress}%` }} />
+                </div>
+                <b>{project.progress}%</b>
+              </div>
+            )) : (
+              <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>
+            )}
+          </div>
+        </section>
+
+      </section>
+
+      <section className="nocturne-activity" aria-labelledby="nocturne-activity-title">
+        <div className="nocturne-activity-heading">
+          <p className="eyebrow">03 · The latest</p>
+          <h3 id="nocturne-activity-title">Around the studio</h3>
+        </div>
+        <div className="activity-list">
+          {activities.length ? activities.map((item) => (
+            <div className="activity-row" key={item.id}>
+              <span className="activity-dot" aria-hidden="true" />
+              <p>{item.summary}</p>
+              <time dateTime={item.created_at}>{relativeTime(item.created_at)}</time>
+            </div>
+          )) : <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>}
+        </div>
+      </section>
+
+      <details className="nocturne-insights">
+        <summary>
+          <span><strong>A little more perspective.</strong><small>Muse recommendations & opportunity radar</small></span>
+          <span className="nocturne-insights-toggle" aria-hidden="true">Explore</span>
+        </summary>
+        <div className="nocturne-insights-grid">
+        <aside className="panel muse-panel">
+          <div className="muse-hero">
+            <span className="muse-orb large" />
+            <div>
+              <p className="eyebrow electric">Muse</p>
+              <h3>Studio intelligence</h3>
+            </div>
+          </div>
+          <p className="muse-copy">{recommendation.detail}</p>
+          <div className="muse-suggestion">
+            <span>The one thing</span>
+            <strong>{recommendation.title}</strong>
+            <small>{recommendation.why}</small>
+          </div>
+          <Link className="secondary-button wide muse-link" href="/muse">
+            Open Muse
+          </Link>
+        </aside>
+
+        <div className="panel radar-panel">
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow electric">Opportunity Radar</p>
+              <h3>Best matches</h3>
+            </div>
+            <span className="beta-pill">Preview</span>
+          </div>
+          <div className="radar-list">
+            {opportunities.length ? opportunities.map((item) => (
+              <div className="radar-row" key={item.id}>
+                <div>
+                  <small>{item.source}</small>
+                  <strong><Link href={"/opportunities/" + item.id}>{item.title}</Link></strong>
+                </div>
+                <div className="score-ring"><span>{item.score ?? "—"}</span></div>
+              </div>
+            )) : (
+              <p className="pipeline-empty">No open opportunities. Add one from the Radar.</p>
+            )}
+          </div>
+        </div>
+
+        </div>
+      </details>
+      </div>
+    </div>
+  );
+}
