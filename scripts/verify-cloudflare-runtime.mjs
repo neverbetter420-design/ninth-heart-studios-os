@@ -16,7 +16,10 @@ assert.ok(existsSync(workerPath), "Build with npm run cf:build before this runti
 const port = 8787;
 const origin = `http://127.0.0.1:${port}`;
 const commands = process.platform === "win32" ? "npx.cmd" : "npx";
-const args = ["--no-install", "wrangler", "dev", "--local", "--ip", "127.0.0.1", "--port", String(port), "--config", "wrangler.jsonc"];
+const config = process.env.NHS_WORKER_CONFIG || "wrangler.jsonc";
+assert.ok(["wrangler.jsonc", "wrangler.issue23-staging.jsonc"].includes(config),
+  "Worker smoke config must be an approved production or inert staging definition");
+const args = ["--no-install", "wrangler", "dev", "--local", "--ip", "127.0.0.1", "--port", String(port), "--config", config];
 const child = spawn(commands, args, {
   cwd: process.cwd(),
   env: { ...process.env, CI: "true", WRANGLER_SEND_METRICS: "false" },
