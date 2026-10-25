@@ -747,8 +747,15 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   const work = page.locator(".nocturne-command-center .nhs-command-surface");
   await expect(hero).toBeVisible();
   await expect(work).toBeVisible();
-  await expect(hero).toHaveCSS("background-color", "rgb(11, 11, 17)");
-  await expect(work).toHaveCSS("background-color", "rgba(14, 16, 22, 0.89)");
+  // The approved cinematic layout is open and atmospheric, not a photo
+  // inside one rectangle above another giant opaque dashboard box.
+  expect(await hero.evaluate(el=>getComputedStyle(el).backgroundImage)).toContain("nhs-dark-rose-photographic.webp");
+  await expect(hero).toHaveCSS("border-top-width", "0px");
+  await expect(work).toHaveCSS("border-top-width", "0px");
+  const instruments = work.locator(".metric-card");
+  await expect(instruments).toHaveCount(3);
+  expect(await instruments.first().evaluate(el=>parseFloat(getComputedStyle(el).borderTopLeftRadius))).toBeGreaterThanOrEqual(16);
+  expect(await instruments.first().evaluate(el=>getComputedStyle(el).backgroundImage)).toContain("gradient");
   await expect(work.locator(".metric-grid")).toContainText("Active Leads");
   await expect(work.locator(".dashboard-grid")).toContainText("Next 3 actions");
   await expect(work.locator(".dashboard-grid")).toContainText("Project pulse");
