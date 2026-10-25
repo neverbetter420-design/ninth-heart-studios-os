@@ -80,7 +80,7 @@
   box-shadow: inset 0 1px 0 rgba(220,241,255,.09),0 15px 32px rgba(0,0,0,.12);
 }
 .app-shell:has(.nhs-room-identity[data-room="electric"]) :is(.scanner-page .mini-button.accent,.scanner-page .primary-button,.nocturne-leads .primary-button) {
-  background:linear-gradient(115deg,#14446a,#226c94);
+  background:#195a7f;
   color:#f1fbff;
   border-color:#6cbadd;
 }
