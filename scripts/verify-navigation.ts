@@ -89,7 +89,13 @@ assert.ok(sidebar.includes('aria-expanded={expanded}'), "sidebar group toggle mu
 assert.ok(nocturneStyles.includes(".nav-section-links[hidden]"), "collapsed links must not remain visible");
 
 assert.ok(portalHome.includes('className="atelier-hero"'), "Atelier client welcome required");
-assert.ok(portalHome.includes('className="atelier-action-panel"'), "client next action required");
+const compass = read("components/portal/AtelierCompass.tsx");
+assert.ok(portalHome.includes("<AtelierCompass"), "client next-action widget must be mounted");
+assert.ok(compass.includes('className="atelier-action-panel nhs-atelier-compass"'), "client next action region required");
+assert.ok(compass.includes('href={nextApprovalTitle ? "/portal/approvals"'), "pending approvals must lead to the protected approvals route");
+assert.ok(compass.includes('href={"/portal/projects/" + projectId}'), "project journey must open the real project");
+assert.ok(compass.includes('href="/portal/messages"'), "client compass must preserve messages route");
+assert.ok(compass.includes('aria-pressed={view === tab.id}'), "client compass tab selection must be accessible");
 assert.ok(portalHome.includes('href="/portal/messages"'), "messaging must remain linked");
 assert.ok(portalHome.includes('href="/portal/files"'), "project files must remain linked");
 assert.ok(portalHome.includes('href="/portal/documents"'), "consolidated paperwork must remain linked");

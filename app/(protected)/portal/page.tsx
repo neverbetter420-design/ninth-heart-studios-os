@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import type { ClientProject } from "@/lib/supabase/types";
 import { AtelierStudioArt } from "@/components/AtelierStudioArt";
+import { AtelierCompass } from "@/components/portal/AtelierCompass";
 import { stageLabel } from "@/lib/delivery";
 
 type PendingClientApproval = {
@@ -93,15 +94,15 @@ export default async function ClientPortalPage() {
             </article>
           </div>
 
-          <aside className="atelier-action-panel" aria-labelledby="atelier-action-heading">
-            <p className="atelier-overline">Your next step</p>
-            <h3 id="atelier-action-heading">{nextApproval ? "A decision awaits you" : approvalError ? "Your workspace is ready" : "Stay in the loop"}</h3>
-            <p>{nextApproval ? nextApproval.title : approvalError ? "Visit your project for the latest updates and requests." : "Everything important stays in your project workspace. Check the latest progress anytime."}</p>
-            <Link href={nextApproval ? "/portal/approvals" : `/portal/projects/${featured.id}`} className="atelier-text-link">
-              {nextApproval ? "Review approval" : "View project updates"} <span aria-hidden="true">→</span>
-            </Link>
-            {pendingApprovals.length > 1 ? <span className="atelier-action-note">More decisions are waiting in Approvals.</span> : null}
-          </aside>
+          <AtelierCompass
+            projectId={featured.id}
+            projectName={featured.name}
+            stage={stageLabel(featured.status)}
+            progress={progress}
+            nextApprovalTitle={nextApproval?.title ?? null}
+            pendingApprovals={pendingApprovals.length}
+            approvalsUnavailable={Boolean(approvalError)}
+          />
         </div>
       )}
 

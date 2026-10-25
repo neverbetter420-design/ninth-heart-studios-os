@@ -1,0 +1,191 @@
+/*
+ * Client Atelier Compass. A compact, progressive-disclosure utility
+ * based entirely on existing project/approval data.
+ */
+.app-shell:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid rgba(202,168,185,.37);
+  border-radius: 27px 27px 46px 27px;
+  margin: 0;
+  padding: 19px clamp(14px,2.1vw,23px) 24px;
+  background:
+    radial-gradient(ellipse at 89% 4%,rgba(216,177,201,.20),transparent 45%),
+    linear-gradient(132deg,rgba(255,253,251,.92),rgba(249,241,242,.85));
+  box-shadow: inset 0 1px 0 #fff,0 15px 43px rgba(132,88,113,.08);
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+}
+.nhs-atelier-compass__head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.nhs-atelier-compass__spark {
+  color:#bf809e;
+  font: 400 22px Georgia,serif;
+}
+.nhs-atelier-compass__controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:17px;
+  padding:4px;
+  background:rgba(247,234,239,.8);
+  border-radius:999px;
+}
+.nhs-atelier-compass__controls button {
+  appearance:none;
+  flex:1 1 0;
+  min-width:65px;
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  cursor:pointer;
+  background:transparent;
+  color:#73576c;
+  border:1px solid transparent;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:600;
+  transition:background-color .25s ease,color .25s ease,transform .25s ease,box-shadow .25s ease;
+}
+.nhs-atelier-compass__controls button[aria-pressed="true"] {
+  background:rgba(255,254,252,.96);
+  color:#543247;
+  border-color:rgba(189,150,170,.37);
+  box-shadow:0 4px 14px rgba(102,75,90,.085);
+}
+.nhs-atelier-compass__controls button:hover {transform:translateY(-2px);}
+.nhs-atelier-compass__controls button:focus-visible,
+.nhs-atelier-compass .atelier-text-link:focus-visible {
+  outline:2px solid #9b5576;
+  outline-offset:3px;
+}
+.nhs-atelier-compass__scene {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.nhs-atelier-compass__view {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  animation:nhs-compass-reveal .3s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes nhs-compass-reveal {
+  from { opacity:0; transform:translateY(6px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.nhs-atelier-compass__micro {
+  color:#9a7489;
+  font-size:9px;
+  font-weight:650;
+  letter-spacing:.15em;
+  margin:23px 0 0;
+}
+.nhs-atelier-compass__illustration {
+  position:relative;
+  align-self:center;
+  display:grid;
+  place-items:center;
+  margin:14px auto 0;
+  width:80px;
+  height:80px;
+  color:#a96a85;
+  border:1px solid rgba(185,141,167,.46);
+  border-radius:50%;
+  background:radial-gradient(circle,#fffafa 23%,rgba(233,203,216,.62) 68%,transparent);
+  box-shadow:0 0 28px rgba(192,136,170,.13),inset 0 0 21px rgba(210,178,191,.17);
+  font:400 36px Georgia,serif;
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass h3 {
+  margin:18px 0 9px;
+  font:400 clamp(22px,2.4vw,29px)/1.22 Georgia,serif;
+  color:#493346;
+}
+.nhs-atelier-compass__copy {
+  color:#745e70;
+  font-size:12px;
+  line-height:1.6;
+  margin:0 0 18px;
+  overflow-wrap:anywhere;
+}
+.app-shell:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass .atelier-text-link {
+  display:inline-flex;
+  align-items:center;
+  gap:16px;
+  align-self:flex-start;
+  min-height:44px;
+  margin-top:auto;
+  text-decoration:none;
+  border-bottom:1px solid #b987a3;
+  color:#755069;
+  font-size:12px;
+  font-weight:600;
+}
+.nhs-atelier-compass .atelier-text-link:hover {color:#47243e;}
+.nhs-atelier-compass .atelier-action-note {margin:9px 0 0; color:#86627b;}
+.nhs-atelier-compass__progress {
+  position:relative;
+  width:126px;
+  height:126px;
+  display:grid;
+  place-items:center;
+  align-self:center;
+  border-radius:50%;
+  margin:22px 0 1px;
+  background:conic-gradient(from -90deg,#b77898 var(--compass-progress),rgba(226,206,217,.48) 0);
+  box-shadow:0 0 26px rgba(201,137,174,.1);
+}
+.nhs-atelier-compass__progress-inner {
+  width:108px;
+  height:108px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 35%,#fffefd,#f7eef3);
+}
+.nhs-atelier-compass__progress strong {
+  color:#6d4362;
+  font:400 36px/1 Georgia,serif;
+}
+.nhs-atelier-compass__progress span {
+  margin-top:5px;
+  color:#95798e;
+  font-size:9px;
+  letter-spacing:.11em;
+}
+@media(max-width:900px){
+  .app-shell:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass {
+    margin-top:15px;
+  }
+}
+@media(max-width:480px){
+  .nhs-atelier-compass__controls button {font-size:10px;gap:4px;}
+  .app-shell:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass {
+    border-radius:22px;
+    padding:18px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .nhs-atelier-compass__view {animation:none;}
+  .nhs-atelier-compass__controls button {transition:none;}
+}
+@media(prefers-contrast:more),(forced-colors:active){
+  .app-shell:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass {background:#fffdfb;box-shadow:none;}
+  .nhs-atelier-compass__view {animation:none;}
+  .nhs-atelier-compass__progress {box-shadow:none;}
+}
