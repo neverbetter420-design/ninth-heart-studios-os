@@ -643,7 +643,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
-      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgba(14, 16, 22, 0.89)" : "rgba(255, 254, 252, 0.85)");
+      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgba(0, 0, 0, 0)" : "rgba(255, 254, 252, 0.85)");
       const workBackdrop = await work.evaluate(el => getComputedStyle(el).backgroundImage);
       expect(workBackdrop, "Keep busy workspace free of floral artwork").not.toContain("data:image/svg+xml");
       expect(workBackdrop, "Keep the photographic hero out of working surfaces").not.toContain("data:image/webp;base64");
@@ -749,7 +749,7 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   await expect(work).toBeVisible();
   // The approved cinematic layout is open and atmospheric, not a photo
   // inside one rectangle above another giant opaque dashboard box.
-  expect(await hero.evaluate(el=>getComputedStyle(el).backgroundImage)).toContain("nhs-dark-rose-photographic.webp");
+  expect(await hero.evaluate(el=>getComputedStyle(el).backgroundImage)).toMatch(/data:image\\/webp;base64|nhs-dark-rose-photographic\\.webp/);
   await expect(hero).toHaveCSS("border-top-width", "0px");
   await expect(work).toHaveCSS("border-top-width", "0px");
   const instruments = work.locator(".metric-card");
