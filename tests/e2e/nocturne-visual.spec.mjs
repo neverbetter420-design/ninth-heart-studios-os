@@ -732,6 +732,22 @@ test("The shared atmosphere carries across every admin and client destination", 
 });
 
 // The Admin Client Workspace must visibly differ from the former all-black workspace.
+test("Client Management inherits the skull-and-rose hero without losing ivory directory contrast", async ({ page }) => {
+  await show(page, "admin", "populated", "clients");
+  const header = page.locator(".management-clients > .management-heading");
+  await expect(header).toBeVisible();
+  const photo = await header.evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(photo, "Client Management should display the shared Dark Rose photo").toContain("webp");
+  await expect(header.locator("h2")).toHaveCSS("color", "rgb(244, 238, 246)");
+  const directory = page.locator(".management-clients .management-directory");
+  await expect(directory).toBeVisible();
+  expect(await directory.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgb(3, 3, 9)");
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 850 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+});
+
 test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", async ({ page }) => {
   await show(page, "admin", "populated", "client-detail");
   const layout = page.locator(".management-client-workspace");
