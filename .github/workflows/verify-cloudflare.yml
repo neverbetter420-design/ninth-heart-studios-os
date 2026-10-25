@@ -29,3 +29,6 @@ jobs:
         run: npm run cf:build
       - name: Validate Wrangler Worker bundle without deploying
         run: npm run cf:dry-run
+      - name: Test compiled Cloudflare Worker HTTP routes in local workerd
+        run: node scripts/verify-cloudflare-runtime.mjs
+
