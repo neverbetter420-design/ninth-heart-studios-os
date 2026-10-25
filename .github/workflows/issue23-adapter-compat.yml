@@ -37,7 +37,7 @@ jobs:
       - name: Temporarily install upstream manifest fix for this diagnostic runner only
         run: npm install --no-save --package-lock=false @opennextjs/cloudflare@1.20.12
       - name: Confirm fixed adapter version is used in build
-        run: node -e "const v = require('@opennextjs/cloudflare/package.json').version; if(v !== '1.20.12') { throw new Error('Expected adapter 1.20.12; got '+v); } console.log('OpenNext adapter version',v)"
+        run: node -e "const fs=require('node:fs');const v=JSON.parse(fs.readFileSync('node_modules/@opennextjs/cloudflare/package.json','utf8')).version;if(v!=='1.20.12')throw new Error('Expected adapter 1.20.12; got '+v);console.log('OpenNext adapter version',v)"
       - name: Build approved Seven Rooms app using fixed adapter
         run: npm run cf:build
       - name: Ensure valid dry-run bundle, no publish
