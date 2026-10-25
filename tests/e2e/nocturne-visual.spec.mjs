@@ -431,21 +431,33 @@ test("Atelier long titles, empty and error states fit at 320px", async ({ page }
   }
 });
 
-test("Nocturne priority surface keeps populated actions readable and reachable", async ({ page }) => {
+test("Nocturne Priority Halo keeps all three ranked leads readable and reachable", async ({ page }) => {
   await show(page, "admin", "populated");
-  await expect(page.locator(".action-row")).toHaveCount(3);
+  const halo = page.locator(".nhs-priority-halo");
+  const nodes = halo.locator(".nhs-priority-halo__node");
+  const link = halo.locator(".nhs-priority-halo__open");
+  await expect(halo).toBeVisible();
+  await expect(nodes).toHaveCount(3);
+  await expect(nodes.nth(0)).toHaveAttribute("aria-pressed", "true");
+  await expect(halo.locator(".nhs-priority-halo__detail h4")).not.toBeEmpty();
+  await expect(link).toHaveAttribute("href", /\/leads\/synthetic-lead-0$/);
+
   for (const width of [1440, 900, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-    expect(await contrast(page.locator(".action-copy strong").first(), ".nhs-command-surface")).toBeGreaterThanOrEqual(4.5);
-    const links = page.locator(".action-row a");
-    for (const link of await links.all()) {
-      await link.scrollIntoViewIfNeeded();
-      await expect(link).toBeInViewport();
-      await expect(link).toHaveAttribute("href", /\/leads\/synthetic-lead-/);
-      await link.focus();
-      expect(await link.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), "Halo page overflow at " + width).toBeLessThanOrEqual(width);
+    for (const node of await nodes.all()) {
+      await node.scrollIntoViewIfNeeded();
+      await expect(node).toBeInViewport();
+      const box = await node.boundingBox();
+      expect(box?.width ?? 0).toBeGreaterThanOrEqual(40);
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(40);
     }
+    await expect(halo.locator(".nhs-priority-halo__detail")).toBeVisible();
+    expect(await contrast(halo.locator(".nhs-priority-halo__detail strong"), ".nhs-command-surface")).toBeGreaterThanOrEqual(4.5);
+    await link.scrollIntoViewIfNeeded();
+    await expect(link).toBeInViewport();
+    await link.focus();
+    expect(await link.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
   }
 });
 
