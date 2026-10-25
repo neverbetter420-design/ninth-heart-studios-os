@@ -426,6 +426,18 @@ test("Atelier long titles, empty and error states fit at 320px", async ({ page }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
     await expect(page.locator(".atelier-welcome-cta")).toBeVisible();
     if (scenario === "long") await expect(page.getByRole("link", { name: "Review approval" })).toBeVisible();
+    if (scenario === "long") {
+      const compass = page.locator(".nhs-atelier-compass");
+      await expect(compass).toBeVisible();
+      await expect(compass.locator('button[aria-pressed="true"]')).toContainText("Next");
+      await compass.getByRole("button", { name: /Journey/ }).click();
+      await expect(compass.getByRole("progressbar")).toBeVisible();
+      await expect(compass.getByRole("link", { name: "Open project journey" })).toHaveAttribute("href", /\/portal\/projects\//);
+      await compass.getByRole("button", { name: /Connect/ }).click();
+      await expect(compass.getByRole("link", { name: "Open messages" })).toHaveAttribute("href", "/portal/messages");
+      await compass.getByRole("button", { name: /Next/ }).click();
+      await expect(compass.getByRole("link", { name: "Review approval" })).toBeVisible();
+    }
     if (scenario === "empty") await expect(page.getByRole("heading", { name: "Your story begins here." })).toBeVisible();
     if (scenario === "error") await expect(page.getByRole("alert")).toContainText("Projects are temporarily unavailable.");
   }
