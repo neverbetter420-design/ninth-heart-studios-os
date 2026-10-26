@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" fill="none" aria-hidden="true">
+<defs>
+<linearGradient id="metal" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff4f7" stop-opacity=".83"/><stop offset=".48" stop-color="#9da1af" stop-opacity=".45"/><stop offset="1" stop-color="#e7c5d4" stop-opacity=".72"/></linearGradient>
+<radialGradient id="aura" cx=".62" cy=".43" r=".64"><stop stop-color="#c3a47b" stop-opacity=".22"/><stop offset=".65" stop-color="#c3a47b" stop-opacity=".05"/><stop offset="1" stop-color="#c3a47b" stop-opacity="0"/></radialGradient>
+<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<ellipse cx="714" cy="362" rx="410" ry="330" fill="url(#aura)"/>
+<g stroke="#e8c6a1" stroke-opacity=".22" fill="none" stroke-width="1"><path d="M0 140H1100M0 280H1100M0 420H1100M0 560H1100 M110 0V720M250 0V720M390 0V720M530 0V720M670 0V720M810 0V720M950 0V720"/></g>
+<g fill="none" stroke="url(#metal)" stroke-width="2"><path d="M540 690V160Q540 48 710 48T880 160V690" /><path d="M575 690V180Q575 85 710 85T845 180V690" stroke-opacity=".6"/><path d="M610 690V195Q610 125 710 125T810 195V690" stroke-opacity=".4"/></g>
+<g stroke="#d6b991" fill="none" stroke-width="1.8"><circle cx="710" cy="345" r="162"/><circle cx="710" cy="345" r="121"/><path d="M710 147v395M513 345h394M565 200l290 290M855 200L565 490" stroke-opacity=".43"/><path d="M710 220l53 125-53 125-53-125Z" fill="#ac8e66" fill-opacity=".15"/><circle cx="710" cy="345" r="16" fill="#e8d5bb" fill-opacity=".32"/></g>
+<g stroke="#fff0d5" stroke-opacity=".68" stroke-width="2.2" fill="none"><path d="M315 440h185M315 445v-20M500 445v-20"/><path d="M340 470V610H490V470Z"/><path d="M340 505h150M370 470v140M430 470v140" stroke-opacity=".39"/></g>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" fill="none" aria-hidden="true">
+<defs>
+<linearGradient id="metal" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff4f7" stop-opacity=".83"/><stop offset=".48" stop-color="#9da1af" stop-opacity=".45"/><stop offset="1" stop-color="#e7c5d4" stop-opacity=".72"/></linearGradient>
+<radialGradient id="aura" cx=".62" cy=".43" r=".64"><stop stop-color="#b83d67" stop-opacity=".22"/><stop offset=".65" stop-color="#b83d67" stop-opacity=".05"/><stop offset="1" stop-color="#b83d67" stop-opacity="0"/></radialGradient>
+<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+</defs>
+<ellipse cx="714" cy="362" rx="410" ry="330" fill="url(#aura)"/>
+<g fill="none" stroke="url(#metal)" stroke-width="2.2" stroke-linecap="round">
+<path d="M380 690V205Q380 45 550 45T720 205V690"/><path d="M410 680V217Q410 80 550 80T690 217V680" stroke-opacity=".55"/>
+<path d="M550 132v510 M425 286h250 M428 515h244" stroke-opacity=".27"/>
+</g>
+<g fill="none" stroke="#dda6b8" stroke-width="2.6" stroke-linecap="round">
+<path d="M310 705C335 571 432 542 467 429S447 221 533 184"/>
+<path d="M788 709C775 578 667 533 629 431S638 248 555 185"/>
+<path d="M372 567q-91-2-88-80 75-12 88 80 M411 504q82-18 83-85-69 4-83 85 M733 564q89-5 85-81-74-11-85 81 M686 489q-76-10-78-79 78 6 78 79" fill="#8f304c" fill-opacity=".17"/>
+</g>
+<g transform="translate(550 230)" stroke="#e6abbf" stroke-width="2" stroke-linejoin="round">
+<circle r="76" fill="#8a1c3c" fill-opacity=".13"/><path d="M0-80C22-51 58-72 62-31 88-5 64 20 73 38 42 43 22 72 0 73-30 71-31 45-74 37-61 3-77-20-59-36-30-63-15-58 0-80Z" fill="#822142" fill-opacity=".38"/>
+<path d="M-33-32C5-63 44-30 30 0 51 44 4 58-18 32-47 35-50-9-33-32Z" fill="#b93c64" fill-opacity=".37"/><path d="M0-36C37-34 26 13 0 20-25 10-19-24 0-36Z" fill="#f1c5d3" fill-opacity=".21"/></g>
+<path d="M550 307q-13 47-3 75m3-75q18 36 7 70" fill="none" stroke="#c5a0b5" stroke-width="2"/>
+</svg>

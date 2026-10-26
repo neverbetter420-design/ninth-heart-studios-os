@@ -1,0 +1,258 @@
+/*
+ * NHS Dark Rose · Cinematic Observatory
+ *
+ * Visual-review refinement only, layered over the approved photographic
+ * skull-and-rose artwork from PR #26. Original NHS logo, data, actions,
+ * accessibility contracts and all six other rooms remain untouched.
+ *
+ * The older composition boxed a photographic hero over one giant utility
+ * rectangle. The reference uses atmosphere around open, floating glass.
+ * Keep artwork behind the interface and never compromise legibility.
+ */
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="observatory"]) {
+  --nocturne-rule: rgba(220,207,223,.19);
+  background:
+    radial-gradient(ellipse at 95% 11%,rgba(113,27,53,.16),transparent 48%),
+    radial-gradient(ellipse at 8% 72%,rgba(22,77,101,.09),transparent 44%),
+    #030309;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center {
+  position:relative;
+  isolation:isolate;
+}
+/* A diffuse backdrop supports the dashboard, instead of another rectangular card.
+ * The photographic layer is dark, low-opacity and never receives interactions. */
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  pointer-events:none;
+  inset:-36px 0 10%;
+  background:
+    linear-gradient(180deg,rgba(3,3,9,.16),rgba(3,3,9,.82) 48%,#030309 94%),
+    linear-gradient(90deg,rgba(3,3,9,.85),rgba(3,3,9,.1) 68%,rgba(3,3,9,.5)),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+  background-position:center,center,right top;
+  background-size:100% 100%,100% 100%,min(1150px,110vw) auto;
+  background-repeat:no-repeat;
+  opacity:.38;
+  -webkit-mask-image:linear-gradient(#000 0%,#000 30%,transparent 96%);
+  mask-image:linear-gradient(#000 0%,#000 30%,transparent 96%);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-overview {
+  min-height:clamp(335px,32vw,430px);
+  padding:clamp(24px,4vw,58px) clamp(15px,2.6vw,40px);
+  margin-bottom:clamp(16px,2.2vw,31px);
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  background-color:transparent;
+  background-image:
+    linear-gradient(90deg,rgba(3,3,9,.96),rgba(3,3,9,.55) 53%,rgba(3,3,9,.07) 93%),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+  background-size:100% 100%,min(1030px,92vw) auto;
+  background-position:center,right center;
+  background-repeat:no-repeat;
+  overflow:visible;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-overview::before {
+  content:"";
+  position:absolute;
+  z-index:0;
+  pointer-events:none;
+  inset:0;
+  background:
+    radial-gradient(ellipse at 72% 82%,rgba(211,44,90,.21),transparent 39%),
+    radial-gradient(ellipse at 96% 23%,rgba(112,177,208,.12),transparent 33%);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-overview::after {
+  border-radius:0;
+  opacity:.6;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-welcome-copy {
+  max-width:min(580px,59%);
+  z-index:2;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-welcome-copy h2 {
+  font-size:clamp(46px,5vw,76px);
+  letter-spacing:-.045em;
+  text-shadow:0 5px 28px rgba(0,0,0,.72);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-welcome-copy h2 em {
+  color:#f8b9cb;
+  text-shadow:0 0 29px rgba(211,44,90,.24);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nhs-command-surface {
+  position:relative;
+  isolation:isolate;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+/* Three translucent instruments, not rows inside one giant dashboard box. */
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(9px,1.25vw,18px);
+  margin:0 0 clamp(19px,2.3vw,32px);
+  padding:0;
+  border:0;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card,
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card:first-child,
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card:last-child {
+  min-height:110px;
+  padding:clamp(15px,1.8vw,23px);
+  border:1px solid rgba(232,216,232,.21);
+  border-radius:20px 23px 17px 24px;
+  background:
+    linear-gradient(122deg,rgba(231,245,253,.072),rgba(255,255,255,.019) 48%,rgba(211,44,90,.068)),
+    rgba(10,13,20,.79);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 18px 45px rgba(0,0,0,.26);
+  -webkit-backdrop-filter:blur(18px) saturate(126%);
+  backdrop-filter:blur(18px) saturate(126%);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card:nth-child(1) {border-color:rgba(129,200,232,.28);}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card:nth-child(2) {border-color:rgba(223,129,165,.28);}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card:nth-child(3) {border-color:rgba(208,179,204,.29);}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card strong {
+  color:#fff3f7;
+  text-shadow:0 0 28px rgba(211,44,90,.17);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .dashboard-grid {
+  gap:clamp(12px,1.8vw,25px);
+  align-items:stretch;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center :is(.action-panel,.project-panel) {
+  min-width:0;
+  padding:clamp(19px,2.2vw,32px);
+  background:
+    linear-gradient(132deg,rgba(17,25,34,.90),rgba(14,12,20,.89) 54%,rgba(42,18,31,.84));
+  border:1px solid rgba(227,213,233,.2);
+  border-radius:23px 29px 20px 30px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 19px 47px rgba(0,0,0,.27);
+  -webkit-backdrop-filter:blur(17px) saturate(118%);
+  backdrop-filter:blur(17px) saturate(118%);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .action-panel {
+  border-color:rgba(235,153,178,.30);
+  background-image:
+    radial-gradient(ellipse at 6% 85%,rgba(211,44,90,.18),transparent 48%),
+    linear-gradient(135deg,rgba(22,23,30,.92),rgba(16,12,21,.85) 65%,rgba(58,21,35,.63));
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .project-panel {
+  border-color:rgba(156,199,217,.23);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nhs-priority-halo__orbit {
+  filter:drop-shadow(0 0 18px rgba(211,44,90,.20));
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-activity {
+  margin-top:clamp(13px,2vw,25px);
+  padding:clamp(16px,2.1vw,30px);
+  border:1px solid rgba(227,213,233,.17);
+  border-radius:20px 22px 30px 19px;
+  background:linear-gradient(115deg,rgba(11,16,23,.79),rgba(17,12,21,.79));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 14px 32px rgba(0,0,0,.17);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-insights {
+  margin-top:12px;
+  border:1px solid rgba(231,206,228,.15);
+  border-radius:20px;
+  background:rgba(12,13,19,.75);
+  padding-inline:clamp(14px,2vw,29px);
+}
+/* Fit dense but meaningful controls on tablet, without horizontal scrolling. */
+@media(max-width:1000px) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-overview {
+    background-size:100% 100%,740px auto;
+    background-position:center,right -130px center;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card {
+    min-height:95px;
+  }
+}
+@media(max-width:740px) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card:last-child {
+    grid-column:span 2;
+  }
+}
+@media(max-width:620px) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center::before {opacity:.18;}
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-overview {
+    min-height:320px;
+    padding:18px 8px 28px;
+    background-image:
+      linear-gradient(95deg,rgba(3,3,9,.93),rgba(3,3,9,.82) 50%,rgba(3,3,9,.42) 90%),
+      url("/visuals/nhs-dark-rose-photographic.webp");
+    background-size:100% 100%,540px auto;
+    background-position:center,right -245px center;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-welcome-copy {
+    max-width:94%;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-grid {
+    gap:9px;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card {
+    min-height:102px;
+    padding:12px;
+    border-radius:16px 19px 14px 19px;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card strong {
+    font-size:clamp(25px,7vw,37px);
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center :is(.action-panel,.project-panel) {
+    padding:17px;
+    border-radius:20px;
+  }
+}
+@media(max-width:360px) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-grid {
+    grid-template-columns:1fr;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card:last-child {
+    grid-column:auto;
+  }
+}
+@media(prefers-reduced-transparency:reduce) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center :is(.metric-card,.action-panel,.project-panel,.nocturne-activity,.nocturne-insights) {
+    background-color:#0d1018;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center::before {display:none;}
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-overview {
+    background-image:none;
+    background-color:#030309;
+  }
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center :is(.metric-card,.action-panel,.project-panel,.nocturne-activity,.nocturne-insights) {
+    background:#101115;
+    border-color:#d4c8d6;
+    box-shadow:none;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .metric-card {transition:none;}
+}
+
+/* Activity content should not disappear into burgundy glass. */
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-activity :is(.activity-row p,.nocturne-activity-empty) {
+  color:#e5d9e4;
+  opacity:1;
+}
+.app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center .nocturne-activity .activity-row time {
+  color:#c6bdcb;
+}

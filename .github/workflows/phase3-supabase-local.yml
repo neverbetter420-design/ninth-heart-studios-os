@@ -5,6 +5,8 @@ name: NHS Phase 3 local Supabase Auth and API security
 on:
   pull_request:
     paths:
+      - 'package.json'
+      - 'package-lock.json'
       - 'app/**'
       - 'components/**'
       - 'public/**'

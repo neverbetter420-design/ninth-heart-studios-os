@@ -1,0 +1,313 @@
+/*
+ * NHS Dark Rose | Shared Studio Theme
+ * Review-only visual layer loaded AFTER the existing Seven Rooms styling.
+ *
+ * The main photo, charcoal atmosphere, pearl glass and crimson lighting
+ * are consistent across every admin route. The seven rooms keep useful
+ * functional/accent distinctions, and light working documents remain
+ * legible. Client Atelier is the intentionally ivory variant of the same
+ * branded visual language, not an anonymous white app.
+ *
+ * No change to React components, routing, roles, brand mark or data.
+ */
+.app-shell.nhs-theme-admin:has(.nhs-room-identity) {
+  --nhs-dark-rose-photo: url("/visuals/nhs-dark-rose-photographic.webp");
+  --nhs-dark-rose-ink:#f4eef6;
+  --nhs-dark-rose-muted:#cfc1d0;
+  --nhs-dark-rose-line:rgba(237,210,232,.24);
+  --nhs-dark-rose-glass:linear-gradient(132deg,rgba(25,25,34,.91),rgba(12,15,23,.89) 51%,rgba(44,20,33,.87));
+  --room-badge-ink:#fff2f7;
+  color-scheme:dark;
+  background-color:#030309;
+  background-image:
+    radial-gradient(ellipse at 94% 0%,rgba(123,30,63,.16),transparent 51%),
+    radial-gradient(ellipse at 4% 82%,rgba(39,93,127,.08),transparent 53%),
+    linear-gradient(#030309,#030309);
+}
+
+/* The common environment lives BEHIND each working room, not in a large
+ * rectangular component. No pseudo-overlay can cover interactive elements. */
+.app-shell.nhs-theme-admin:has(.nhs-room-identity) .main-shell {
+  background-color:#030309;
+  background-image:
+    linear-gradient(103deg,rgba(3,3,9,.98) 1%,rgba(3,3,9,.90) 41%,rgba(3,3,9,.71) 78%,rgba(3,3,9,.9) 100%),
+    var(--nhs-dark-rose-photo),
+    radial-gradient(ellipse at 91% 11%,rgba(199,43,82,.21),transparent 48%),
+    radial-gradient(ellipse at 6% 88%,rgba(53,124,165,.09),transparent 42%),
+    linear-gradient(137deg,#030309,#171219 52%,#030309);
+  background-repeat:no-repeat;
+  background-size:100% 100%,min(1090px,105vw) auto,100% 100%,100% 100%,100% 100%;
+  background-position:center,right -80px top 20px,center,center,center;
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity) .navigation-shell > .nhs-sidebar {
+  background:linear-gradient(157deg,rgba(21,19,27,.985),rgba(3,3,9,.98));
+  border-color:rgba(224,188,214,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),14px 0 59px rgba(0,0,0,.19);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity) .nhs-room-identity {
+  color:#f7edf3;
+  background:linear-gradient(117deg,rgba(64,26,42,.72),rgba(21,25,34,.77));
+  border:1px solid rgba(229,166,193,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 8px 30px rgba(0,0,0,.18);
+  -webkit-backdrop-filter:blur(15px);
+  backdrop-filter:blur(15px);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity) .nav-link.active {
+  color:#fff3f7;
+  background:linear-gradient(95deg,rgba(211,44,90,.21),rgba(244,238,246,.025));
+  border-color:rgba(224,124,157,.43);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity) .nav-link.active::before {
+  background:#da3b68;
+  box-shadow:0 0 14px rgba(211,44,90,.46);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity) .nav-icon {
+  color:#dfacc3;
+}
+
+/* Shared photographic stage for every section, not only the dashboard.
+ * Keep the LEFT half dark for readable titles and working controls.
+ * Selectors cover leads, scanner, radar, client directory, projects,
+ * documents, templates, forms, Muse, automation and settings headings. */
+.app-shell.nhs-theme-admin:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,
+    .management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,
+    .muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,
+    .scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  min-height:clamp(185px,18vw,270px);
+  padding:clamp(24px,3.4vw,49px);
+  border:1px solid rgba(234,188,211,.25);
+  border-radius:29px 29px 54px 29px;
+  background-color:#0b0b12;
+  background-image:
+    linear-gradient(97deg,rgba(4,5,11,.98),rgba(8,9,15,.91) 48%,rgba(15,9,16,.53) 87%,rgba(18,10,18,.4)),
+    var(--nhs-dark-rose-photo),
+    radial-gradient(ellipse at 90% 18%,rgba(211,44,90,.25),transparent 56%),
+    linear-gradient(130deg,#030309,#23131f);
+  background-position:center,right -105px center,center,center;
+  background-repeat:no-repeat;
+  background-size:100% 100%,min(750px,65vw) auto,100% 100%,100% 100%;
+  box-shadow:inset 0 1px 0 rgba(245,224,239,.18),0 24px 68px rgba(0,0,0,.33);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,
+    .management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,
+    .muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,
+    .scanner-page > .management-heading,
+    .radar-page > .management-heading)
+:is(h1,h2,h3,h4,em) {color:#f4eef6;}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,
+    .management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,
+    .muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,
+    .scanner-page > .management-heading,
+    .radar-page > .management-heading)
+:is(.page-description,.management-help,.eyebrow,p) {color:#e0cad6;}
+
+/* Keep working surfaces as separate glass instruments, not one huge box.
+ * Applied only where working text is light; Rose/Archive/Project documents
+ * retain readable antique paper inside the same dark photographed studio. */
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="electric"])
+:is(.scanner-controls,.prospect-card,.lead-capture-card,.nocturne-leads .panel,.radar-page .panel),
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="velvet"])
+.muse-workroom :is(.studio-focus,.studio-compose,.studio-intelligence-grid,.studio-writing-note,.studio-saved,.paperwork-form) {
+  border:1px solid rgba(219,160,195,.29);
+  border-radius:clamp(19px,2.2vw,29px);
+  background:var(--nhs-dark-rose-glass);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 22px 55px rgba(0,0,0,.23);
+  -webkit-backdrop-filter:blur(18px) saturate(122%);
+  backdrop-filter:blur(18px) saturate(122%);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="electric"])
+:is(.scanner-page .mini-button.accent,.scanner-page .primary-button,.nocturne-leads .primary-button),
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="velvet"])
+.muse-workroom :is(.mini-button.go,.primary-button) {
+  background:linear-gradient(112deg,#68203d,#9e2d56);
+  border-color:rgba(247,160,194,.56);
+  color:#fff3f7;
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="electric"])
+:is(.scanner-page .score,.radar-page .metric-card strong) {
+  color:#f6b3c9;
+}
+
+/* Rose Salon and the Archive keep readable forms and long contracts on
+ * ivory paper but are unmistakably part of a gothic charcoal studio. */
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="rose"])
+.management-clients :is(.management-directory,.nocturne-create-panel),
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="archive"])
+.paperwork-page,
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="artist"])
+:is(.management-pipeline,.studio-workspace-admin) {
+  border:1px solid rgba(206,159,184,.43);
+  box-shadow:0 24px 71px rgba(0,0,0,.29),inset 0 1px 0 rgba(255,255,255,.88);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="rose"])
+.management-page:not(.management-client-workspace) > .management-heading
+:is(h2,em),
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="rose"])
+.management-page:not(.management-client-workspace) > .management-heading .page-description {
+  color:#f7e9f1;
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="archive"])
+.paperwork-page > .management-heading {
+  border-color:rgba(230,164,192,.35);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="artist"])
+.management-pipeline > .management-heading {
+  border-color:rgba(236,181,208,.38);
+}
+
+/* Public pages are part of NHS too. Do not change the auth forms, routes,
+ * error messages or submission behavior. */
+.auth-shell {
+  background:
+    linear-gradient(100deg,rgba(3,3,9,.97),rgba(3,3,9,.86) 53%,rgba(3,3,9,.66)),
+    url("/visuals/nhs-dark-rose-photographic.webp") right center/min(980px,88vw) auto no-repeat,
+    #030309;
+}
+.auth-shell .auth-card {
+  border:1px solid rgba(236,174,198,.36);
+  background:linear-gradient(132deg,rgba(19,19,28,.92),rgba(21,12,24,.9));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 29px 86px rgba(0,0,0,.36);
+  -webkit-backdrop-filter:blur(23px);
+  backdrop-filter:blur(23px);
+}
+.auth-shell .auth-card :is(h1,h2) {color:#f4eef6;}
+.auth-shell .auth-card .auth-copy {color:#d5c7d5;}
+.auth-shell .auth-card .primary-button {
+  background:linear-gradient(112deg,#772a46,#ac365e);
+  border-color:rgba(241,163,192,.52);
+}
+
+/* Client-facing rooms retain ivory readability, with a subtle real NHS
+ * photographic rose/skull signature and dark-rose editorial accents.
+ * This is a consistent branded variant, not an all-black client portal. */
+.app-shell.nhs-theme-client:has(.nhs-room-identity[data-room="private"]) {
+  --nhs-dark-rose-client:#a32d56;
+  --nhs-dark-rose-client-ink:#493042;
+}
+.app-shell.nhs-theme-client:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background:
+    radial-gradient(ellipse at 93% 10%,rgba(161,40,87,.10),transparent 47%),
+    radial-gradient(ellipse at 4% 92%,rgba(96,140,167,.09),transparent 47%),
+    linear-gradient(135deg,#fffdfb,#fcf5f5 59%,#f4e7ed);
+}
+.app-shell.nhs-theme-client:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-hero {
+  background-color:#fffdf9;
+  background-image:
+    linear-gradient(100deg,rgba(255,253,250,.98),rgba(255,251,248,.96) 45%,rgba(255,249,248,.84) 74%,rgba(255,249,248,.72)),
+    url("/visuals/nhs-dark-rose-photographic.webp"),
+    url("/visuals/atelier-botanical-arch.svg");
+  background-repeat:no-repeat;
+  background-size:100% 100%,min(720px,70vw) auto,min(700px,73vw) auto;
+  background-position:center,right -120px center,right -70px center;
+  border-color:rgba(173,83,113,.32);
+  box-shadow:inset 0 1px 0 #fff,0 21px 65px rgba(94,45,73,.12);
+}
+.app-shell.nhs-theme-client:has(.nhs-room-identity[data-room="private"])
+.atelier-home :is(.atelier-feature-project,.atelier-destinations,.atelier-action-panel) {
+  border-color:rgba(170,91,121,.32);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 15px 37px rgba(105,51,78,.095);
+}
+.app-shell.nhs-theme-client:has(.nhs-room-identity[data-room="private"]) :is(.nhs-room-identity,.atelier-progress-track > span) {
+  border-color:rgba(162,45,85,.35);
+}
+
+/* Mobile stays open and usable. Decoration yields to controls first. */
+@media(max-width:850px) {
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity) .main-shell {
+    background-size:100% 100%,min(770px,100vw) auto,100% 100%,100% 100%,100% 100%;
+    background-position:center,right -210px top 30px,center,center,center;
+  }
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading) {
+    min-height:170px;
+    border-radius:23px 23px 43px 23px;
+    padding:25px;
+    background-size:100% 100%,620px auto,100% 100%,100% 100%;
+    background-position:center,right -200px center,center,center;
+  }
+}
+@media(max-width:620px) {
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity) .main-shell {
+    background-image:
+      linear-gradient(115deg,rgba(3,3,9,.97),rgba(3,3,9,.89)),
+      var(--nhs-dark-rose-photo),
+      linear-gradient(137deg,#030309,#120c14);
+    background-size:100% 100%,560px auto,100% 100%;
+    background-position:center,right -310px top 75px,center;
+  }
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading) {
+    min-height:150px;
+    padding:22px 18px;
+    background-size:100% 100%,520px auto,100% 100%,100% 100%;
+    background-position:center,right -270px center,center,center;
+  }
+  .app-shell.nhs-theme-client:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-hero {
+    background-size:100% 100%,520px auto,500px auto;
+    background-position:center,right -295px center,right -205px center;
+  }
+}
+/* Never place a photograph above focused content in high-contrast modes. */
+@media(prefers-reduced-transparency:reduce) {
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity)
+  :is(.scanner-controls,.prospect-card,.lead-capture-card,.panel,.studio-focus,.studio-compose),
+  .auth-shell .auth-card {backdrop-filter:none;-webkit-backdrop-filter:none;background-color:#101115;}
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity) .main-shell,
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading),
+  .auth-shell {background-image:none;background-color:#030309;}
+  .app-shell.nhs-theme-client:has(.nhs-room-identity[data-room="private"]) .atelier-home .atelier-hero {
+    background-image:none;
+    background-color:#fffdf9;
+  }
+}
+
+/* The old Rose Salon hero uses an unusually specific pale-paper selector.
+ * The directory and client detail papers remain ivory, but the entrance
+ * must share the same Dark Rose photographic treatment as every room. */
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-color:#0b0b12;
+  background-image:
+    linear-gradient(97deg,rgba(4,5,11,.98),rgba(8,9,15,.91) 48%,rgba(15,9,16,.53) 87%,rgba(18,10,18,.4)),
+    url("/visuals/nhs-dark-rose-photographic.webp"),
+    radial-gradient(ellipse at 90% 18%,rgba(211,44,90,.25),transparent 56%),
+    linear-gradient(130deg,#030309,#23131f);
+  background-position:center,right -105px center,center,center;
+  background-repeat:no-repeat;
+  background-size:100% 100%,min(750px,65vw) auto,100% 100%,100% 100%;
+  border-color:rgba(234,188,211,.28);
+  box-shadow:inset 0 1px 0 rgba(245,224,239,.18),0 24px 68px rgba(0,0,0,.33);
+}
+.app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading :is(h1,h2,h3,em,p,.page-description,.eyebrow) {
+  color:#f4eef6;
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="rose"])
+  .management-page.management-clients > .page-header.management-heading {
+    background-image:none;
+    background-color:#030309;
+  }
+}
