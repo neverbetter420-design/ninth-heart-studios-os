@@ -217,30 +217,73 @@ await withFetch(() => new Response(JSON.stringify({ elements: [{ type: "node", i
 
 
 
-// Provider outages must not expose AbortError to the user. Retry the documented
-// independent Overpass mirror once, preserving stable OSM identity and labels.
-await withFetch((url) => {
+// A single down provider falls back without changing OSM identity.
+await withFetch((url, init) => {
+  assert.equal(init?.method, "POST");
+  assert.match(String(init?.body), /timeout%3A12/, "server timeout is shorter than HTTP deadline");
   if (url.includes("overpass-api.de")) throw new DOMException("The operation was aborted", "AbortError");
   return new Response(JSON.stringify({ elements: [
     { type: "node", id: 317, tags: { name: "Mirror Coffee", amenity: "cafe" } },
   ] }), { status: 200, headers: { "content-type": "application/json" } });
 }, async () => {
   const found = await discoverBusinesses(47.1, -122.3, 3000, ["cafes"], 12);
-  assert.equal(found.length, 1, "mirror result accepted");
-  assert.equal(found[0].source_ref, "node:317", "mirror retains OSM identity");
+  assert.equal(found.length, 1, "second provider accepted");
+  assert.equal(found[0].source_ref, "node:317", "stable OSM identity retained");
   assert.ok(calls[0].includes("overpass-api.de"));
   assert.ok(calls[1].includes("overpass.private.coffee"));
-  assert.equal(calls.length, 2, "only two bounded sequential attempts");
+  assert.equal(calls.length, 2, "do not call third provider after success");
 });
 
-await withFetch(() => { throw new DOMException("The operation was aborted", "AbortError"); }, async () => {
-  await assert.rejects(
-    discoverBusinesses(47.1, -122.3, 3000, ["cafes"], 12),
-    /Business directory is busy or unreachable/,
-    "all failed endpoints produce an actionable message",
-  );
-  assert.equal(calls.length, 2, "never retry indefinitely");
+// HTTP rate limiting and overload from two independent providers must use
+// a third documented instance rather than treating HTTP 200 as the only signal.
+await withFetch(url => {
+  if (url.includes("overpass-api.de")) return new Response("rate limited", { status: 429 });
+  if (url.includes("overpass.private.coffee")) return new Response("busy", { status: 504 });
+  return new Response(JSON.stringify({ elements: [
+    { type: "way", id: 909, tags: { name: "Third Provider Cafe", amenity: "cafe" } },
+  ] }), { headers: { "content-type": "application/json" } });
+}, async () => {
+  const found = await discoverBusinesses(47.1, -122.3, 3000, ["cafes"], 12);
+  assert.deepEqual(found.map(p => p.source_ref), ["way:909"]);
+  assert.ok(calls[2].includes("maps.mail.ru/osm/tools/overpass/api/interpreter"));
+  assert.equal(calls.length, 3, "exactly three sequential attempts");
 });
+
+// An Overpass HTTP 200 may still contain a runtime error in its JSON remark.
+await withFetch(url => {
+  if (url.includes("overpass-api.de")) return new Response(JSON.stringify({ remark: "runtime error: Query timed out", elements: [] }));
+  if (url.includes("overpass.private.coffee")) return new Response(JSON.stringify({ unexpected: true }));
+  return new Response(JSON.stringify({ elements: [
+    { type: "node", id: 310, tags: { name: "Fallback Restaurant", amenity: "restaurant" } },
+  ] }));
+}, async () => {
+  const found = await discoverBusinesses(47.1, -122.3, 3000, ["restaurants"], 12);
+  assert.equal(found[0].source_ref, "node:310");
+  assert.equal(calls.length, 3, "runtime remark and malformed JSON must not count as success");
+});
+
+const originalWarn = console.warn;
+const providerWarnings: unknown[][] = [];
+console.warn = (...args) => { providerWarnings.push(args); };
+try {
+  await withFetch(() => { throw new DOMException("The operation was aborted", "AbortError"); }, async () => {
+    await assert.rejects(
+      discoverBusinesses(47.1, -122.3, 3000, ["cafes"], 12),
+      /Business directory providers are unavailable \(3 checked\)\. No prospects saved/,
+      "all providers failing produces a safe, actionable user message",
+    );
+    assert.equal(calls.length, 3, "bounded to three independent providers");
+  });
+} finally {
+  console.warn = originalWarn;
+}
+assert.equal(providerWarnings.length, 3, "a diagnostic for each failed provider");
+for (const [message, detail] of providerWarnings) {
+  assert.equal(message, "[NHS scanner] Overpass provider unavailable");
+  assert.equal((detail as { reason: string }).reason, "timeout");
+  assert.equal(typeof (detail as { duration_ms: number }).duration_ms, "number");
+  assert.ok(!JSON.stringify(detail).includes("47.1"), "search coordinates not logged");
+}
 
 await withFetch(() => { throw new DOMException("The operation was aborted", "AbortError"); }, async () => {
   const { geocode } = await import("../lib/prospect-scan.ts");
