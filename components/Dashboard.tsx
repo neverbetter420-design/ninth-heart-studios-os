@@ -4,6 +4,7 @@ import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import { MetricCard } from "./MetricCard";
 import { NocturneStudioArt } from "./NocturneStudioArt";
+import { PriorityHalo, type HaloAction } from "./PriorityHalo";
 
 function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();
@@ -106,17 +107,17 @@ export async function Dashboard() {
           </div>
 
           <div className="action-list">
-            {nextActions.length ? nextActions.map((item, index) => (
-              <article className="action-row" key={item.id}>
-                <div className={`priority-number priority-${item.priorityLabel}`} aria-hidden="true">0{index + 1}</div>
-                <div className="action-copy">
-                  <span className="action-title">{item.actionTitle}</span>
-                  <strong>{item.business_name}</strong>
-                  <small>{item.actionMeta}</small>
-                </div>
-                <Link className="ghost-button" href={`/leads/${item.id}`} aria-label={`Open lead: ${item.business_name}`}>Open lead <span aria-hidden="true">↗</span></Link>
-              </article>
-            )) : (
+            {nextActions.length ? (
+              <PriorityHalo
+                actions={nextActions.map((item): HaloAction => ({
+                  id: item.id,
+                  title: item.actionTitle,
+                  businessName: item.business_name,
+                  meta: item.actionMeta,
+                  priority: item.priorityLabel,
+                }))}
+              />
+            ) : (
               <div className="empty-dashboard-actions">
                 <strong>No lead actions yet.</strong>
                 <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>

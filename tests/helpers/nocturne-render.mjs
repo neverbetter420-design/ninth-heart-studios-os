@@ -8,10 +8,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-scanner", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-scanner", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments"];
 // The visual suite denies network access, so embed only these two local, vetted
 // decorative assets. This allows screenshots to show the same artwork as the app.
-const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg"]);
+const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg", "nhs-dark-rose-photographic.webp", "nhs-room-electric-oracle.svg", "nhs-room-rose-reliquary.svg", "nhs-room-artist-atelier.svg", "nhs-room-archive-seal.svg", "nhs-room-velvet-oracle.svg", "nhs-room-private-atelier.svg"]);
 const built = process.env.NHS_VISUAL_BUILT_CSS === "1";
 const chunks = resolve(root, ".next/static/chunks");
 function builtStyles() {
@@ -40,10 +40,12 @@ export const previewCSS = (sourceCSS + (built
     if (!built || !/^\.\.\/media\/[a-zA-Z0-9_.-]+\.woff2$/.test(path)) throw new Error(`Unexpected preview font: ${path}`);
     return `url("data:font/woff2;base64,${readFileSync(resolve(chunks, path)).toString("base64")}")`;
   })
-  .replace(/url\(["']?\/visuals\/([a-z0-9-]+\.svg)["']?\)/g, (original, filename) => {
+  .replace(/url\(["']?\/visuals\/([a-z0-9-]+\.(?:svg|webp))["']?\)/g, (original, filename) => {
     if (!approvedArtwork.has(filename)) throw new Error(`Unapproved visual asset: ${filename}`);
-    const svg = readFileSync(resolve(root, "public/visuals", filename), "utf8");
-    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    const asset = readFileSync(resolve(root, "public/visuals", filename));
+    return filename.endsWith(".webp")
+      ? `url("data:image/webp;base64,${asset.toString("base64")}")`
+      : `url("data:image/svg+xml,${encodeURIComponent(asset.toString("utf8"))}")`;
   });
 
 // Render the actual draft components with in-memory synthetic reads. No hosted

@@ -1,0 +1,179 @@
+/* NHS OS Dark Rose / read-only Priority Halo. Uses ranked server data. */
+.nhs-theme-admin .nocturne-command-center .nhs-priority-halo {
+  display: grid;
+  grid-template-columns: minmax(178px, .88fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(15px, 2.5vw, 35px);
+  padding: 26px 0 22px;
+}
+.nhs-priority-halo__orbit {
+  width: min(100%, 260px);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  position: relative;
+  isolation: isolate;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(211,44,90,.14), rgba(211,44,90,.05) 32%, transparent 67%);
+}
+.nhs-priority-halo__orbit::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 22%;
+  border-radius: 50%;
+  box-shadow: 0 0 65px 23px rgba(211,44,90,.15);
+  pointer-events: none;
+}
+.nhs-priority-halo__orbit svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.nhs-priority-halo__outer,
+.nhs-priority-halo__inner,
+.nhs-priority-halo__core-ring,
+.nhs-priority-halo__flourish {
+  fill: none;
+  stroke: rgba(226,171,196,.46);
+  stroke-width: 1;
+}
+.nhs-priority-halo__outer {
+  stroke-dasharray: 2 8;
+  transform-origin: center;
+  animation: nhs-priority-orbit 60s linear infinite;
+}
+.nhs-priority-halo__inner { stroke: rgba(244,238,246,.22); }
+.nhs-priority-halo__core-ring { stroke: rgba(211,44,90,.45); }
+.nhs-priority-halo__flourish { stroke: rgba(244,238,246,.22); }
+@keyframes nhs-priority-orbit { to { transform: rotate(360deg); } }
+.nhs-priority-halo__core {
+  position: absolute;
+  inset: 32%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  border-radius: 50%;
+  color: #f4eef6;
+  background: radial-gradient(circle, #422331, #170f19 69%, #09080d);
+  box-shadow: inset 0 0 20px rgba(211,44,90,.13), 0 0 24px rgba(211,44,90,.17);
+}
+.nhs-priority-halo__core > span {
+  font: normal clamp(27px, 4vw, 47px)/1 Georgia, serif;
+  color: #f5c3d3;
+}
+.nhs-priority-halo__core > small {
+  margin-top: 3px;
+  font: 9px var(--font-dm-sans), sans-serif;
+  letter-spacing: .1em;
+  color: #dbc5d3;
+}
+.nhs-priority-halo__node {
+  position: absolute;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #df9db4;
+  border-radius: 50%;
+  color: #fff5f8;
+  background: radial-gradient(circle at 35% 20%, #6b334a, #29151e 80%);
+  font: normal 17px Georgia, serif;
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(211,44,90,.25);
+  transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+}
+.nhs-priority-halo__node--0 { top: 0; left: 50%; transform: translate(-50%,-30%); }
+.nhs-priority-halo__node--1 { top: 77%; right: -1%; }
+.nhs-priority-halo__node--2 { top: 77%; left: -1%; }
+.nhs-priority-halo__node:hover,
+.nhs-priority-halo__node.is-selected {
+  background: radial-gradient(circle at 35% 20%, #d32c5a, #60223a 85%);
+  box-shadow: 0 0 26px rgba(211,44,90,.55);
+}
+.nhs-priority-halo__node--0:hover,
+.nhs-priority-halo__node--0.is-selected { transform: translate(-50%, -30%) scale(1.12); }
+.nhs-priority-halo__node--1:hover,
+.nhs-priority-halo__node--1.is-selected,
+.nhs-priority-halo__node--2:hover,
+.nhs-priority-halo__node--2.is-selected { transform: scale(1.12); }
+.nhs-priority-halo__node:focus-visible,
+.nhs-priority-halo__open:focus-visible { outline: 2px solid #f4eef6; outline-offset: 4px; }
+.nhs-priority-halo__node--critical { border-color: #ff9db2; }
+.nhs-priority-halo__node--normal { border-color: #c1b6cd; }
+.nhs-priority-halo__detail { min-width: 0; padding: 8px 0 12px; }
+.nhs-priority-halo__overline {
+  margin: 0 0 12px;
+  color: #c7a6b5;
+  font-size: 9px;
+  letter-spacing: .15em;
+}
+.nhs-priority-halo__overline > span { margin-left: 8px; color: #d32c5a; }
+.nhs-priority-halo__detail h4 {
+  margin: 0 0 8px;
+  color: #f4eef6;
+  font: normal clamp(21px, 2.5vw, 29px)/1.2 Georgia, serif;
+  overflow-wrap: anywhere;
+}
+.nhs-priority-halo__detail strong {
+  display: block;
+  color: #e5ccd8;
+  font-size: 12px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.nhs-priority-halo__meta {
+  margin: 8px 0 0;
+  color: #bdb0c0;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.nhs-theme-admin .nocturne-command-center .nhs-priority-halo__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 44px;
+  margin-top: 15px;
+  padding: 9px 2px;
+  color: #f5c5d6;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(211,44,90,.6);
+  font-size: 11px;
+  transition: color .22s ease, border-color .22s ease;
+}
+.nhs-priority-halo__open:hover {
+  color: #fff8fc;
+  border-color: #f4eef6;
+}
+@media (max-width: 1100px) {
+  .nhs-theme-admin .nocturne-command-center .nhs-priority-halo {
+    grid-template-columns: minmax(0,1fr);
+    gap: 8px;
+  }
+  .nhs-priority-halo__orbit { max-width: 215px; }
+}
+@media (max-width: 620px) {
+  .nhs-theme-admin .nocturne-command-center .nhs-priority-halo {
+    grid-template-columns: minmax(150px,.9fr) minmax(0,1.1fr);
+    gap: 17px;
+  }
+  .nhs-priority-halo__orbit { max-width: 210px; }
+}
+@media (max-width: 430px) {
+  .nhs-theme-admin .nocturne-command-center .nhs-priority-halo { grid-template-columns: 1fr; }
+  .nhs-priority-halo__orbit { max-width: 215px; }
+  .nhs-priority-halo__detail { text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nhs-priority-halo__outer { animation: none; }
+  .nhs-priority-halo__node, .nhs-priority-halo__open { transition: none; }
+}
+@media (forced-colors: active), (prefers-contrast: more) {
+  .nhs-priority-halo__orbit { background: none; }
+  .nhs-priority-halo__core { box-shadow: none; }
+  .nhs-priority-halo__node { box-shadow: none; }
+}

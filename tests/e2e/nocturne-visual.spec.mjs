@@ -296,8 +296,10 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
     const scan = page.getByRole("button", { name: "Scan", exact: true });
     await scan.focus();
     expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
-    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage)).toBe("none");
-    expect(await page.getByRole("region", { name: "Run a scan" }).evaluate(el => getComputedStyle(el).borderRadius)).toBe("17px");
+    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage), "Scan remains visibly branded").toContain("gradient");
+    const scannerRadius = await page.getByRole("region", { name: "Run a scan" }).evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
+    expect(scannerRadius, "The Intelligence Chamber must preserve softly rounded glass geometry").toBeGreaterThanOrEqual(19);
+    expect(scannerRadius).toBeLessThanOrEqual(30);
     for (const width of [1440, 1024, 620, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `scanner ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
@@ -426,26 +428,47 @@ test("Atelier long titles, empty and error states fit at 320px", async ({ page }
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
     await expect(page.locator(".atelier-welcome-cta")).toBeVisible();
     if (scenario === "long") await expect(page.getByRole("link", { name: "Review approval" })).toBeVisible();
+    if (scenario === "long") {
+      const compass = page.locator(".nhs-atelier-compass");
+      await expect(compass).toBeVisible();
+      await expect(compass.locator('button[aria-pressed="true"]')).toContainText("Next");
+      await expect(compass.getByRole("button", { name: /Journey/ })).toBeVisible();
+      await expect(compass.getByRole("button", { name: /Connect/ })).toBeVisible();
+      await expect(compass.getByRole("link", { name: "Review approval" })).toHaveAttribute("href", "/portal/approvals");
+      // Offline preview renders static HTML. Interaction switching requires a hydrated React runtime.
+    }
     if (scenario === "empty") await expect(page.getByRole("heading", { name: "Your story begins here." })).toBeVisible();
     if (scenario === "error") await expect(page.getByRole("alert")).toContainText("Projects are temporarily unavailable.");
   }
 });
 
-test("Nocturne priority surface keeps populated actions readable and reachable", async ({ page }) => {
+test("Nocturne Priority Halo keeps all three ranked leads readable and reachable", async ({ page }) => {
   await show(page, "admin", "populated");
-  await expect(page.locator(".action-row")).toHaveCount(3);
+  const halo = page.locator(".nhs-priority-halo");
+  const nodes = halo.locator(".nhs-priority-halo__node");
+  const link = halo.locator(".nhs-priority-halo__open");
+  await expect(halo).toBeVisible();
+  await expect(nodes).toHaveCount(3);
+  await expect(nodes.nth(0)).toHaveAttribute("aria-pressed", "true");
+  await expect(halo.locator(".nhs-priority-halo__detail h4")).not.toBeEmpty();
+  await expect(link).toHaveAttribute("href", /\/leads\/synthetic-lead-0$/);
+
   for (const width of [1440, 900, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-    expect(await contrast(page.locator(".action-copy strong").first(), ".nhs-command-surface")).toBeGreaterThanOrEqual(4.5);
-    const links = page.locator(".action-row a");
-    for (const link of await links.all()) {
-      await link.scrollIntoViewIfNeeded();
-      await expect(link).toBeInViewport();
-      await expect(link).toHaveAttribute("href", /\/leads\/synthetic-lead-/);
-      await link.focus();
-      expect(await link.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), "Halo page overflow at " + width).toBeLessThanOrEqual(width);
+    for (const node of await nodes.all()) {
+      await node.scrollIntoViewIfNeeded();
+      await expect(node).toBeInViewport();
+      const box = await node.boundingBox();
+      expect(box?.width ?? 0).toBeGreaterThanOrEqual(40);
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(40);
     }
+    await expect(halo.locator(".nhs-priority-halo__detail")).toBeVisible();
+    expect(await contrast(halo.locator(".nhs-priority-halo__detail strong"), ".nhs-command-surface")).toBeGreaterThanOrEqual(4.5);
+    await link.scrollIntoViewIfNeeded();
+    await expect(link).toBeInViewport();
+    await link.focus();
+    expect(await link.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe("none");
   }
 });
 
@@ -605,11 +628,11 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       const hero = page.locator(heroSelector);
       await expect(hero).toBeVisible();
       const heroImage = await hero.evaluate(el => getComputedStyle(el).backgroundImage);
-      expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/svg+xml");
+      expect(heroImage, role + " welcome artwork at " + width).toContain(role === "admin" ? "data:image/webp;base64" : "data:image/svg+xml");
       // The percent-encoded SVG includes literal parentheses from gradient functions.
       // Capture the complete quoted CSS URL; ending at the first ")" corrupts the image.
       const decoded = await hero.evaluate(async el => {
-        const match = getComputedStyle(el).backgroundImage.match(/url\(["'](data:image\/svg\+xml,[^"']+)["']\)/);
+        const match = getComputedStyle(el).backgroundImage.match(/url\(["'](data:image\/(?:svg\+xml|webp)[^"']+)["']\)/);
         if (!match) return false;
         const artwork = new Image();
         artwork.src = match[1];
@@ -620,9 +643,10 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
-      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgb(37, 26, 48)" : "rgb(255, 253, 250)");
+      await expect(work).toHaveCSS("background-color", role === "admin" ? "rgba(0, 0, 0, 0)" : "rgba(255, 254, 252, 0.85)");
       const workBackdrop = await work.evaluate(el => getComputedStyle(el).backgroundImage);
       expect(workBackdrop, "Keep busy workspace free of floral artwork").not.toContain("data:image/svg+xml");
+      expect(workBackdrop, "Keep the photographic hero out of working surfaces").not.toContain("data:image/webp;base64");
       expect(await page.evaluate(() => document.documentElement.scrollWidth), role + " overflow at " + width).toBeLessThanOrEqual(width);
       const capture = testInfo.outputPath(role + "-soft-atelier-" + width + ".png");
       await page.screenshot({ path: capture, fullPage: true, animations: "disabled" });
@@ -691,6 +715,14 @@ test("The shared atmosphere carries across every admin and client destination", 
     for (const view of views) {
       await show(page, role, "populated", view);
       await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", role === "client" ? "light" : "dark");
+      const stageBackground = await page.locator(".main-shell").evaluate(el => getComputedStyle(el).backgroundImage);
+      if (role === "admin") {
+        expect(stageBackground, `${view} should inherit the photographic NHS Dark Rose studio`).toMatch(/webp|gradient/);
+        expect(stageBackground, `${view} should share the photographic skull-and-rose identity`).toContain("webp");
+        await expect(page.locator(".main-shell")).toHaveCSS("background-color", "rgb(3, 3, 9)");
+      } else {
+        expect(stageBackground, `${view} should preserve the warm client Atelier`).toContain("gradient");
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} ${view} at ${width}px`).toBeLessThanOrEqual(width);
       const capture = testInfo.outputPath(`${role}-${view}-${width}.png`);
       await page.screenshot({ path: capture, fullPage: true, animations: "disabled" });
@@ -700,6 +732,22 @@ test("The shared atmosphere carries across every admin and client destination", 
 });
 
 // The Admin Client Workspace must visibly differ from the former all-black workspace.
+test("Client Management inherits the skull-and-rose hero without losing ivory directory contrast", async ({ page }) => {
+  await show(page, "admin", "populated", "clients");
+  const header = page.locator(".management-clients > .management-heading");
+  await expect(header).toBeVisible();
+  const photo = await header.evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(photo, "Client Management should display the shared Dark Rose photo").toContain("webp");
+  await expect(header.locator("h2")).toHaveCSS("color", "rgb(244, 238, 246)");
+  const directory = page.locator(".management-clients .management-directory");
+  await expect(directory).toBeVisible();
+  expect(await directory.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe("rgb(3, 3, 9)");
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 850 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+});
+
 test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", async ({ page }) => {
   await show(page, "admin", "populated", "client-detail");
   const layout = page.locator(".management-client-workspace");
@@ -709,7 +757,8 @@ test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", 
   await expect(hero).toBeVisible();
   await expect(canvas).toBeVisible();
   expect(await canvas.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(249, 244, 238)");
-  expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(57, 37, 56)");
+  expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(11, 11, 18)");
+  expect(await hero.evaluate(el => getComputedStyle(el).backgroundImage), "Client detail should carry a photographic NHS entrance").toContain("webp");
   expect(await canvas.evaluate(el => getComputedStyle(el).color)).toBe("rgb(64, 42, 57)");
   for (const width of [1440, 1024, 620, 390, 320]) {
     await page.setViewportSize({ width, height: 850 });
@@ -717,14 +766,22 @@ test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", 
   }
 });
 
-test("Midnight Observatory has cinematic welcome and contrasting velvet workspace", async ({ page }) => {
+test("Midnight Observatory uses NHS black glass and rose-accented welcome", async ({ page }) => {
   await show(page, "admin", "populated", "home");
   const hero = page.locator(".nocturne-command-center .nocturne-overview");
   const work = page.locator(".nocturne-command-center .nhs-command-surface");
   await expect(hero).toBeVisible();
   await expect(work).toBeVisible();
-  await expect(hero).toHaveCSS("background-color", "rgb(33, 21, 42)");
-  await expect(work).toHaveCSS("background-color", "rgb(37, 26, 48)");
+  // The approved cinematic layout is open and atmospheric, not a photo
+  // inside one rectangle above another giant opaque dashboard box.
+  const cinematicArtwork = await hero.evaluate(el=>getComputedStyle(el).backgroundImage);
+  expect(cinematicArtwork.includes("data:image/webp;base64") || cinematicArtwork.includes("nhs-dark-rose-photographic.webp")).toBe(true);
+  await expect(hero).toHaveCSS("border-top-width", "0px");
+  await expect(work).toHaveCSS("border-top-width", "0px");
+  const instruments = work.locator(".metric-card");
+  await expect(instruments).toHaveCount(3);
+  expect(await instruments.first().evaluate(el=>parseFloat(getComputedStyle(el).borderTopLeftRadius))).toBeGreaterThanOrEqual(16);
+  expect(await instruments.first().evaluate(el=>getComputedStyle(el).backgroundImage)).toContain("gradient");
   await expect(work.locator(".metric-grid")).toContainText("Active Leads");
   await expect(work.locator(".dashboard-grid")).toContainText("Next 3 actions");
   await expect(work.locator(".dashboard-grid")).toContainText("Project pulse");
@@ -738,7 +795,7 @@ test("Midnight Observatory has cinematic welcome and contrasting velvet workspac
 test("soft client portal and admin project workspace share warm palette", async ({ page }) => {
   await show(page, "client", "populated", "home");
   await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgb(255, 253, 249)");
-  await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgb(255, 253, 250)");
+  await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgba(255, 254, 252, 0.85)");
   await show(page, "admin", "populated", "project");
   await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(244, 238, 235)");
 });
@@ -747,15 +804,15 @@ test("soft client portal and admin project workspace share warm palette", async 
 test("Seven studio rooms are distinct, readable and captured at desktop and phone widths", async ({ page }, testInfo) => {
   test.setTimeout(180000);
   const rooms=[
-    ["observatory","admin","home","#d2a0bc"],
-    ["electric","admin","scanner","#db8fff"],
+    ["observatory","admin","home","#d32c5a"],
+    ["electric","admin","scanner","#6cbadd"],
     ["rose","admin","clients","#b87f99"],
-    ["artist","admin","pipeline","#bda1af"],
+    ["artist","admin","pipeline","#d4b18a"],
     ["archive","admin","contracts","#b69a68"],
     ["velvet","admin","muse","#c9a0e6"],
     ["private","client","home","#c18ca3"]
   ];
-  const distinct=new Set();
+  const roomAccents = new Set();
   for(const [room,role,view,accent] of rooms){
     for(const [size,width] of [["desktop",1440],["phone",390]]){
       await page.setViewportSize({width,height:900});
@@ -766,7 +823,8 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       expect(await page.locator(".app-shell").evaluate(el=>getComputedStyle(el).getPropertyValue("--room-accent").trim())).toBe(accent);
       const back=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundImage);
       expect(back,room+" "+size+" background").toContain("gradient");
-      if(size==="desktop")distinct.add(back);
+      if (role === "admin") expect(back, room+" should keep the same photographic Dark Rose brand").toContain("webp");
+      if(size==="desktop")roomAccents.add(accent);
       const screenWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
       expect(screenWidth,room+" "+size+" horizontal overflow").toBeLessThanOrEqual(width);
       const output=testInfo.outputPath("room-"+room+"-"+size+".png");
@@ -774,5 +832,50 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       await testInfo.attach(room+" / "+size,{path:output,contentType:"image/png"});
     }
   }
-  expect(distinct.size).toBe(7);
+  // Shared photographic atmosphere is intentional. Rooms retain their
+  // own accent semantics and readable working canvases, not seven incompatible brands.
+  expect(roomAccents.size).toBe(7);
+});
+
+
+test("Every NHS room has its own etched visual motif, with working responsive pages", async ({ page }, testInfo) => {
+  test.setTimeout(180000);
+  const identities = [
+    ["electric", "admin", "scanner", "#7dd5f2"],
+    ["rose", "admin", "clients", "#f4aac5"],
+    ["artist", "admin", "pipeline", "#efd0a1"],
+    ["archive", "admin", "templates", "#e5c69a"],
+    ["velvet", "admin", "muse", "#e0bbff"],
+    ["private", "client", "home", null],
+  ];
+  const distinctIllustrations = new Set();
+  const width = testInfo.project.name.startsWith("mobile") ? 390 : 1440;
+  await page.setViewportSize({ width, height: 900 });
+  for (const [room, role, view, accent] of identities) {
+    await show(page, role, "populated", view);
+    const shell = page.locator(".app-shell");
+    await expect(shell.locator(".nhs-room-identity")).toHaveAttribute("data-room", room);
+    const motif = await shell.evaluate((el, isClient) =>
+      getComputedStyle(el).getPropertyValue(isClient ? "--nhs-client-motif" : "--nhs-room-art").trim(), role === "client");
+    expect(motif, room + " must use NHS-specific original room artwork").toContain("data:image/svg+xml");
+    const match = motif.match(/(data:image\/svg\+xml,[^"']+)/);
+    expect(match, room + " should have an embedded local SVG illustration").not.toBeNull();
+    const asset = decodeURIComponent(match[1]);
+    expect(asset).toContain("<svg");
+    distinctIllustrations.add(asset);
+    const main = page.locator(".main-shell");
+    const background = await main.evaluate(el => getComputedStyle(el).backgroundImage);
+    expect(background, room + " artwork must be visible in its environment").toContain("data:image/svg+xml");
+    if (role === "admin") {
+      expect(background).toContain("data:image/webp;base64");
+      expect(await shell.evaluate(el => getComputedStyle(el).getPropertyValue("--nhs-room-accent").trim())).toBe(accent);
+    } else {
+      await expect(shell).toHaveCSS("color-scheme", "light");
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), room + " horizontal overflow").toBeLessThanOrEqual(width);
+    const capture = testInfo.outputPath("nhs-" + room + "-" + width + ".png");
+    await page.screenshot({ path: capture, fullPage: false, animations: "disabled" });
+    await testInfo.attach("NHS " + room + " room", { path: capture, contentType: "image/png" });
+  }
+  expect(distinctIllustrations.size, "Rooms must not repeat the same illustration").toBe(identities.length);
 });
