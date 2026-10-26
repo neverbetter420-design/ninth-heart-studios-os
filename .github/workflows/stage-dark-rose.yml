@@ -11,9 +11,10 @@ on:
         type: string
         required: true
       expected_commit_sha:
-        description: 'Exact reviewed 40-character PR #29 commit SHA'
+        description: 'Approved PR #29 SHA, prefilled. Do not use the run ID or main workflow SHA.'
         type: string
         required: true
+        default: '968b6df35187820430d0b3464331dd60ff4da24e'
 
 permissions:
   contents: read
@@ -49,7 +50,7 @@ jobs:
             exit 1
           fi
           if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "::error::A reviewed 40-character commit SHA is required."
+            echo "::error::Expected commit SHA must contain exactly 40 lowercase hexadecimal characters. Use the prefilled PR #29 SHA, not the GitHub run number or main commit."
             exit 1
           fi
       - name: Checkout the PR integration branch, never production
