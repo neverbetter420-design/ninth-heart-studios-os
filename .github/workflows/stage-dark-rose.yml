@@ -70,6 +70,35 @@ jobs:
             exit 1
           fi
           echo "Reviewed integration commit: $ACTUAL_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify staging Cloudflare token before any builds
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
+            echo "::error::The nhs-staging environment has no CLOUDFLARE_API_TOKEN secret. Create a Cloudflare API token and save its raw value as that GitHub environment secret."
+            exit 1
+          fi
+          if [[ "$CLOUDFLARE_API_TOKEN" =~ ^[Bb][Ee][Aa][Rr][Ee][Rr][[:space:]] ]]; then
+            echo "::error::CLOUDFLARE_API_TOKEN starts with 'Bearer '. Save only the raw token; Wrangler adds the authorization prefix automatically."
+            exit 1
+          fi
+          if [[ "$CLOUDFLARE_API_TOKEN" == *[[:space:]]* || "$CLOUDFLARE_API_TOKEN" == \"* || "$CLOUDFLARE_API_TOKEN" == \'* ]]; then
+            echo "::error::CLOUDFLARE_API_TOKEN contains whitespace or pasted quotation marks. Recopy only the raw API token into GitHub's nhs-staging environment secret."
+            exit 1
+          fi
+          response_file="$RUNNER_TEMP/nhs-staging-token-check.json"
+          http_status="$(curl --silent --show-error --connect-timeout 10 --max-time 25 --output "$response_file" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts")"
+          if [[ "$http_status" != "200" ]]; then
+            echo "::error::Cloudflare rejected the staging API token (HTTP $http_status). Create a fresh token with Workers Scripts: Edit for the correct Cloudflare account; do not paste the token here, or include 'Bearer' in the GitHub secret."
+            exit 1
+          fi
+          node -e 'const fs=require("fs");const data=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(data.success!==true){console.error("::error::Cloudflare did not accept the staging token; verify account and token permissions.");process.exit(1)}' "$response_file"
+          rm -f "$response_file"
+          echo "PASS: staging token authenticated to expected Cloudflare account with Workers API access (no token printed)."
       - name: Use Node 22
         uses: actions/setup-node@v4
         with:
