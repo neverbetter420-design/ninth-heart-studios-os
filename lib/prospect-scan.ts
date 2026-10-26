@@ -131,33 +131,57 @@ export async function discoverBusinesses(
   const filters = niches.flatMap((n) =>
     NICHES[n].overpass.map((f) => `  ${f}(around:${radiusM},${lat},${lng});`)
   );
-  const query = `[out:json][timeout:25];\n(\n${filters.join("\n")}\n);\nout center ${limit};`;
-  // Public Overpass instances occasionally throttle or time out. Try a second
-  // independent provider once, sequentially, without multiplying API traffic.
-  // These endpoints are fixed, never user-controlled (avoid SSRF).
+  // A provider cannot finish a 25-second Overpass query inside a 12-second
+  // HTTP deadline. Keep the server query budget below the HTTP timeout.
+  const query = `[out:json][timeout:12];\n(\n${filters.join("\n")}\n);\nout center ${limit};`;
+  // All three endpoints are fixed and documented public Overpass instances.
+  // Sequential requests respect shared community infrastructure; no retry
+  // loops or parallel bursts. Never log search coordinates or business data.
   const endpoints = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
+    { name: "FOSSGIS", url: "https://overpass-api.de/api/interpreter" },
+    { name: "Private.coffee", url: "https://overpass.private.coffee/api/interpreter" },
+    { name: "VK Maps", url: "https://maps.mail.ru/osm/tools/overpass/api/interpreter" },
   ] as const;
   let data: { elements?: OverpassElement[] } | null = null;
   for (const endpoint of endpoints) {
+    const started = Date.now();
+    let failure = "unknown";
     try {
-      const res = await fetchWithTimeout(endpoint, 12000, {
+      const res = await fetchWithTimeout(endpoint.url, 15000, {
         method: "POST",
-        headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
+        headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
         body: `data=${encodeURIComponent(query)}`,
       });
-      if (!res.ok) continue; // Another provider may be available on 429/5xx.
-      const parsed = (await res.json()) as { elements?: OverpassElement[] };
-      if (!Array.isArray(parsed?.elements)) continue;
-      data = parsed;
-      break;
-    } catch {
-      // A timed-out or unreachable provider must not abort the entire scan.
+      if (!res.ok) {
+        failure = `http_${res.status}`;
+      } else {
+        const parsed = (await res.json()) as { elements?: OverpassElement[]; remark?: string };
+        // Overpass can report an execution timeout in "remark" with HTTP 200.
+        if (typeof parsed?.remark === "string" && parsed.remark.trim()) {
+          failure = "overpass_runtime_error";
+        } else if (!Array.isArray(parsed?.elements)) {
+          failure = "invalid_response";
+        } else {
+          data = parsed;
+          break;
+        }
+      }
+    } catch (error) {
+      failure = error instanceof Error && ["AbortError", "TimeoutError"].includes(error.name)
+        ? "timeout"
+        : "network_or_response_error";
     }
+    console.warn("[NHS scanner] Overpass provider unavailable", {
+      provider: endpoint.name,
+      reason: failure,
+      duration_ms: Date.now() - started,
+    });
   }
   if (!data) {
-    throw new Error("Business directory is busy or unreachable. Try again shortly, or use a smaller radius.");
+    throw new Error(
+      "Business directory providers are unavailable (3 checked). No prospects saved. " +
+      "Please try again later; contact the studio if this persists."
+    );
   }
   const out: DiscoveredBusiness[] = [];
   const seen = new Set<string>();
