@@ -93,7 +93,20 @@ jobs:
             --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
             "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts")"
           if [[ "$http_status" != "200" ]]; then
-            echo "::error::Cloudflare rejected the staging API token (HTTP $http_status). Create a fresh token with Workers Scripts: Edit for the correct Cloudflare account; do not paste the token here, or include 'Bearer' in the GitHub secret."
+            # Report only Cloudflare's numeric error codes, never the response
+            # body, credentials, Authorization header, or token fingerprint.
+            node - "$response_file" <<'NODE'
+          const fs=require("node:fs");
+          try {
+            const data=JSON.parse(fs.readFileSync(process.argv[2],"utf8"));
+            const codes=(data.errors||[]).map(e=>Number(e.code)).filter(Number.isFinite);
+            if(codes.length) console.error("Cloudflare API error code(s): "+codes.join(", "));
+            if(codes.some(c=>[6003,6111,9106,10000].includes(c))) {
+              console.error("::error::Cloudflare rejected the Authorization header. Replace the GitHub nhs-staging CLOUDFLARE_API_TOKEN with a NEW raw Cloudflare API token value, not its name/ID, Global API Key, or a Bearer-prefixed string.");
+            }
+          } catch { /* Do not print unexpected API bodies. */ }
+          NODE
+            echo "::error::Staging credential preflight failed (HTTP $http_status). Create a fresh Cloudflare user API token scoped to Account > Workers Scripts > Edit for the intended Cloudflare account. Copy ONLY its secret value to GitHub environment nhs-staging. Do not paste it in chat."
             exit 1
           fi
           node -e 'const fs=require("fs");const data=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(data.success!==true){console.error("::error::Cloudflare did not accept the staging token; verify account and token permissions.");process.exit(1)}' "$response_file"
