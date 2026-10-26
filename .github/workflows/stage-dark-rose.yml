@@ -1,0 +1,123 @@
+name: NHS Dark Rose isolated staging deploy (manual)
+
+# Trusted workflow on default branch. Runs only by explicit owner dispatch.
+# Deploys a distinct workers.dev Worker using synthetic/inert backend settings.
+# Does NOT touch production Worker, production routes, or client records.
+on:
+  workflow_dispatch:
+    inputs:
+      approval_phrase:
+        description: 'Confirm staging ONLY: I_APPROVE_NHS_OS_STAGING_DEPLOY'
+        type: string
+        required: true
+      expected_commit_sha:
+        description: 'Exact reviewed 40-character PR #29 commit SHA'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nhs-os-issue23-isolated-staging
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    name: Isolated Dark Rose staging and hosted HTTP smoke
+    if: github.ref == 'refs/heads/main' && github.actor == 'neverbetter420-design'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment: nhs-staging
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NHS_APP_URL: https://example.invalid
+      CLOUDFLARE_ACCOUNT_ID: 1cab715a285ef1f9cabff977ccda18da
+      STAGING_URL: https://nhs-os-issue23-staging.neverbetter420.workers.dev
+    steps:
+      - name: Require explicit staging approval and exact SHA
+        shell: bash
+        env:
+          PHRASE: ${{ inputs.approval_phrase }}
+          EXPECTED_SHA: ${{ inputs.expected_commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$PHRASE" != 'I_APPROVE_NHS_OS_STAGING_DEPLOY' ]]; then
+            echo "::error::Staging-only owner approval phrase is required."
+            exit 1
+          fi
+          if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::A reviewed 40-character commit SHA is required."
+            exit 1
+          fi
+      - name: Checkout the PR integration branch, never production
+        uses: actions/checkout@v4
+        with:
+          ref: integration/dark-rose-issue23-review-20261025
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Fail closed if branch moved after review
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ inputs.expected_commit_sha }}
+        run: |
+          set -euo pipefail
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+          if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+            echo "::error::PR branch moved from the reviewed SHA. Re-review before staging."
+            exit 1
+          fi
+          echo "Reviewed integration commit: $ACTUAL_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Clean dependency install
+        run: npm ci
+      - name: Verify static identity, routes, and inert backend config
+        run: |
+          node scripts/verify-issue23-staging.mjs
+          npm run typecheck
+          npm audit --audit-level=high
+      - name: Build isolated Cloudflare Worker
+        run: npm run cf:build
+      - name: Local compiled Worker and recovery-page smoke
+        env:
+          NHS_WORKER_CONFIG: wrangler.issue23-staging.jsonc
+        run: node scripts/verify-cloudflare-runtime.mjs
+      - name: Preview Wrangler upload without publishing
+        run: npx wrangler deploy --dry-run --config wrangler.issue23-staging.jsonc
+      - name: Deploy ONLY the separate staging Worker
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$CLOUDFLARE_API_TOKEN" ]]; then
+            echo "::error::Configure a staging-scoped CLOUDFLARE_API_TOKEN in the nhs-staging GitHub environment. Do not reuse the production environment."
+            exit 1
+          fi
+          node scripts/verify-issue23-staging.mjs
+          npx wrangler deploy --config wrangler.issue23-staging.jsonc
+      - name: Verify hosted sign-in and recovery pages (public GET only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in /auth/sign-in /auth/forgot-password; do
+            code="$(curl --silent --show-error --location --max-time 30 --output /tmp/nhs-staging-response.html --write-out '%{http_code}' "$STAGING_URL$route")"
+            if [[ "$code" != 200 ]]; then
+              echo "::error::Hosted staging returned HTTP $code for $route"
+              exit 1
+            fi
+            if ! grep -qi '<main' /tmp/nhs-staging-response.html; then
+              echo "::error::No visible main content in staging $route"
+              exit 1
+            fi
+            echo "PASS staging $route HTTP 200 and rendered main"
+          done
+          echo "Staging hosted public sign-in and recovery checks passed." >> "$GITHUB_STEP_SUMMARY"
+          echo "URL: $STAGING_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "This preview has only inert synthetic backend variables; no real admin/client sign-in is expected." >> "$GITHUB_STEP_SUMMARY"
