@@ -296,7 +296,7 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
     const scan = page.getByRole("button", { name: "Scan", exact: true });
     await scan.focus();
     expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
-    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage)).toBe("none");
+    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage), "Scan remains visibly branded").toContain("gradient");
     const scannerRadius = await page.getByRole("region", { name: "Run a scan" }).evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
     expect(scannerRadius, "The Intelligence Chamber must preserve its soft 21px glass geometry").toBeGreaterThanOrEqual(20);
     expect(scannerRadius).toBeLessThanOrEqual(30);
@@ -757,7 +757,8 @@ test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", 
   await expect(hero).toBeVisible();
   await expect(canvas).toBeVisible();
   expect(await canvas.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(249, 244, 238)");
-  expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(57, 37, 56)");
+  expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(11, 11, 18)");
+  expect(await hero.evaluate(el => getComputedStyle(el).backgroundImage), "Client detail should carry a photographic NHS entrance").toContain("webp");
   expect(await canvas.evaluate(el => getComputedStyle(el).color)).toBe("rgb(64, 42, 57)");
   for (const width of [1440, 1024, 620, 390, 320]) {
     await page.setViewportSize({ width, height: 850 });
