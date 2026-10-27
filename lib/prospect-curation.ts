@@ -118,6 +118,41 @@ export function prioritizeDiscovered(
   return result.concat(uncategorized, ...groups.map(g => buckets.get(g)!)).slice(0, capped);
 }
 
+export type ExistingLead = {
+  business_name: string;
+  website?: string | null;
+  phone?: string | null;
+  metadata?: { category?: string | null } | null;
+};
+
+function normalizedComparable(raw: string | null | undefined): string {
+  return (raw ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalPhone(raw: string | null | undefined): string {
+  const digits = (raw ?? "").replace(/\D/g, "");
+  return digits.length >= 10 ? digits.slice(-10) : "";
+}
+
+/** Prevent re-importing an already booked/contacted Lead as a new prospect.
+ * Require same name plus exact public website or phone within a compatible niche.
+ * Names by themselves never establish duplicate identity.
+ */
+export function matchesExistingLead(p: ComparableProspect, leads: ExistingLead[]): boolean {
+  const name = normalizedComparable(p.business_name);
+  const phone = normalPhone(p.phone);
+  const website = normalizedComparable(p.website).replace(/\/+$/, "");
+  const niche = categoryBucket(p.category);
+  return leads.some(lead => {
+    if (normalizedComparable(lead.business_name) !== name) return false;
+    const leadNiche = categoryBucket(lead.metadata?.category ?? null);
+    if (leadNiche !== "other" && niche !== "other" && leadNiche !== niche) return false;
+    const samePhone = Boolean(phone && phone === normalPhone(lead.phone));
+    const sameWebsite = Boolean(website && website === normalizedComparable(lead.website).replace(/\/+$/, ""));
+    return sameWebsite || samePhone;
+  });
+}
+
 export type CuratedSelection<T extends ComparableProspect> = {
   winners: Array<RatedProspect<T> & { compared: number; nextBest: number | null; existingId: string | null }>;
   rejected: number;
