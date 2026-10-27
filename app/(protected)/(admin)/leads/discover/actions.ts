@@ -6,7 +6,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
-import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, type ComparableProspect } from "@/lib/prospect-curation";
+import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, matchesExistingLead, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
 import {
   NICHES,
   geocode,
@@ -70,6 +70,17 @@ export async function runScan(formData: FormData): Promise<never> {
     ));
   }
   const previous = history as Array<ComparableProspect & { id: string }>;
+  // A lead entered manually or promoted from another source should not be
+  // rediscovered as a fresh prospect. Compare names AND website/phone, never
+  // use the business name as the sole deduplication key.
+  const { data: leadRows, error: leadsError } = await supabase.from("leads")
+    .select("business_name, website, phone, metadata").limit(1000);
+  if (leadsError || !leadRows || leadRows.length >= 1000) {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      "Could not safely compare existing leads. No new prospects saved."
+    ));
+  }
+  const existingLeads = leadRows as unknown as ExistingLead[];
 
   // Rotate through the chosen niches and inspect the listings with the most
   // useful public contact clues first. A listing alone isn't "verified".
@@ -100,7 +111,9 @@ export async function runScan(formData: FormData): Promise<never> {
 
   // Prefer contactable businesses, comparing both evidence reliability and
   // redesign opportunity against existing records in the same niche.
-  const selected = curateProspects(analyzed, previous, SCAN_CAP);
+  const candidatesNotAlreadyLeads = analyzed.filter(p => !matchesExistingLead(p, existingLeads));
+  const alreadyLeads = analyzed.length - candidatesNotAlreadyLeads.length;
+  const selected = curateProspects(candidatesNotAlreadyLeads, previous, SCAN_CAP);
   let created = 0;
   let refreshed = 0;
   let skipped = 0;
@@ -153,6 +166,7 @@ export async function runScan(formData: FormData): Promise<never> {
   const message =
     `Scanned ${areaLabel}: ${created} stronger new prospect${created === 1 ? "" : "s"} saved, ${refreshed} existing refreshed, ${selected.rejected} lower-confidence candidates held back` +
     (selected.protectedCount ? `, ${selected.protectedCount} outreach-protected` : "") +
+    (alreadyLeads ? `, ${alreadyLeads} already in Lead Intelligence` : "") +
     (skipped ? `, ${skipped} save conflicts` : "") + ".";
   redirect("/leads/discover?msg=" + encodeURIComponent(message) + "&sort=recent");
 }
