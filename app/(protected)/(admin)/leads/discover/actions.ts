@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
@@ -40,9 +41,18 @@ export async function runScan(formData: FormData): Promise<never> {
   }
   const areaLabel = geo.label.split(",").slice(0, 2).join(",").trim();
 
+  // The deployed Worker already has GEOAPIFY_API_KEY as a secret binding.
+  // Read it only during the admin-only server action; never serialize to UI.
+  let geoapifyKey = process.env.GEOAPIFY_API_KEY;
+  try {
+    const workerEnv = getCloudflareContext().env as { GEOAPIFY_API_KEY?: string };
+    geoapifyKey = workerEnv.GEOAPIFY_API_KEY || geoapifyKey;
+  } catch {
+    // Local Next.js dev and test environments may not have Cloudflare context.
+  }
   let found;
   try {
-    found = await discoverBusinesses(geo.lat, geo.lng, radiusM, niches, SCAN_CAP * 2);
+    found = await discoverBusinesses(geo.lat, geo.lng, radiusM, niches, SCAN_CAP * 2, geoapifyKey);
   } catch (e) {
     redirect("/leads/discover?msg=" + encodeURIComponent(e instanceof Error ? e.message : "Discovery failed."));
   }
