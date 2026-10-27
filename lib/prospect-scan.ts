@@ -1,7 +1,8 @@
 // Prospect Scanner — automatic business discovery + website analysis + outreach drafts.
 //
-// $0 stack, no API keys, deterministic (no LLM):
-//   discovery  -> OpenStreetMap Overpass API (businesses by category + radius)
+// Deterministic (no LLM); primary discovery uses server-side Geoapify key,
+// with public OpenStreetMap Overpass as a controlled fallback:
+//   discovery  -> Geoapify Places API, then Overpass (by category + radius)
 //   geocoding  -> Nominatim (place name -> lat/lng)
 //   analysis   -> direct HTTP fetch + HTML signal extraction
 //   scoring    -> deterministic 0-100 from redesign signals
@@ -212,7 +213,7 @@ export async function discoverBusinesses(
       console.warn("[NHS scanner] Geoapify returned no usable places; checking Overpass");
     } catch (error) {
       console.warn("[NHS scanner] Geoapify unavailable; checking Overpass", {
-        reason: error instanceof Error && /^Geoapify HTTP \\d{3}$/.test(error.message)
+        reason: error instanceof Error && /^Geoapify HTTP \d{3}$/.test(error.message)
           ? "http_error" : "timeout_or_invalid_response",
       });
     }
@@ -268,8 +269,10 @@ export async function discoverBusinesses(
   }
   if (!data) {
     throw new Error(
-      "Business directory providers are unavailable (3 checked). No prospects saved. " +
-      "Please try again later; contact the studio if this persists."
+      (geoapifyApiKey?.trim()
+        ? "Geoapify and three business-directory fallbacks are unavailable. "
+        : "Business directory providers are unavailable (3 checked). ") +
+      "No prospects saved. Please try again later; contact the studio if this persists."
     );
   }
   const out: DiscoveredBusiness[] = [];
