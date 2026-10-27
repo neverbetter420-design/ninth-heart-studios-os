@@ -19,7 +19,7 @@ import {
 
 const SCAN_CAP = 12; // businesses analyzed per scan run (keeps runs fast)
 
-/** Run a discovery scan: geocode -> Overpass -> analyze -> upsert prospects. */
+/** Run a discovery scan: geocode -> Geoapify/Overpass -> analyze -> save prospects. */
 export async function runScan(formData: FormData): Promise<never> {
   await requireAdmin();
   const supabase = await createClient();
@@ -57,7 +57,8 @@ export async function runScan(formData: FormData): Promise<never> {
     redirect("/leads/discover?msg=" + encodeURIComponent(e instanceof Error ? e.message : "Discovery failed."));
   }
 
-  let inserted = 0;
+  let created = 0;
+  let refreshed = 0;
   let skipped = 0;
   for (let i = 0; i < Math.min(found.length, SCAN_CAP); i += 3) {
     await Promise.all(found.slice(i, i + 3).map(async (b) => {
@@ -95,14 +96,16 @@ export async function runScan(formData: FormData): Promise<never> {
       ? await supabase.from("prospects").update(row).eq("id", existingId)
       : await supabase.from("prospects").insert(row);
     if (error) skipped++;
-    else inserted++;
+    else if (existingId) refreshed++;
+    else created++;
     }));
   }
 
   revalidatePath("/leads/discover");
   redirect(
     "/leads/discover?msg=" +
-      encodeURIComponent(`Scanned ${areaLabel}: ${inserted} prospects saved${skipped ? `, ${skipped} skipped` : ""}.`)
+      encodeURIComponent(`Scanned ${areaLabel}: ${created} new prospect${created === 1 ? "" : "s"} saved, ${refreshed} existing refreshed${skipped ? `, ${skipped} skipped` : ""}.`)
+      + "&sort=recent"
   );
 }
 
