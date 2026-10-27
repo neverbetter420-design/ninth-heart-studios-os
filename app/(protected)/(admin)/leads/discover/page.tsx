@@ -159,8 +159,11 @@ export default async function DiscoverPage({
           </fieldset>
           <ScannerSubmitButton />
           <p className="form-hint">
-            Up to 12 businesses per scan. Missing websites stay low priority
-            while social profiles are checked. Business data via{" "}
+            Reviews the most promising listings from up to 72 directory results,
+            compares their contact reliability and redesign opportunity with saved
+            businesses in the same category, and saves only qualified prospects
+            (up to 12 per scan). Your contacted and promoted leads are protected.
+            Business data via{" "}
             <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Powered by Geoapify</a>
             {" "}and{" "}
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>
@@ -230,6 +233,14 @@ export default async function DiscoverPage({
                   </span>
                 </div>
 
+                {p.signals?.curation && (
+                  <p className="management-help" aria-label="Prospect selection evidence">
+                    Selected · Reliability {p.signals.curation.reliability}/100 ·
+                    Opportunity {p.signals.curation.opportunity}/100 ·
+                    Compared with {p.signals.curation.compared_to} in this business category.
+                    Review contact details before outreach.
+                  </p>
+                )}
                 <div className="badge-row">
                   {badges.map((b, i) => (
                     <span key={i} className={`badge badge-${b.tone}`}>
