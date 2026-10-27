@@ -1,7 +1,8 @@
 // Prospect Scanner — automatic business discovery + website analysis + outreach drafts.
 //
-// $0 stack, no API keys, deterministic (no LLM):
-//   discovery  -> OpenStreetMap Overpass API (businesses by category + radius)
+// Deterministic (no LLM); primary discovery uses server-side Geoapify key,
+// with public OpenStreetMap Overpass as a controlled fallback:
+//   discovery  -> Geoapify Places API, then Overpass (by category + radius)
 //   geocoding  -> Nominatim (place name -> lat/lng)
 //   analysis   -> direct HTTP fetch + HTML signal extraction
 //   scoring    -> deterministic 0-100 from redesign signals
@@ -120,14 +121,103 @@ type OverpassElement = {
   tags?: Record<string, string>;
 };
 
+// A dedicated, key-backed Places API avoids reliance on overloaded public
+// Overpass infrastructure. The key is supplied at runtime, never stored here.
+const GEOAPIFY_CATEGORIES: Record<NicheKey, string[]> = {
+  restaurants: ["catering.restaurant"],
+  bars: ["catering.bar", "catering.pub"],
+  cafes: ["catering.cafe"],
+  salons: ["service.beauty.hairdresser", "service.beauty"],
+  contractors: ["service.carpenter", "service.electrician"],
+  auto_repair: ["service.vehicle.repair.car"],
+  fitness: ["sport.fitness.fitness_centre", "sport.fitness.gym"],
+};
+
+type GeoapifyFeature = {
+  properties?: {
+    name?: string; formatted?: string; phone?: string; website?: string;
+    place_id?: string; lat?: number; lon?: number; categories?: string[];
+    datasource?: { raw?: Record<string, unknown> };
+  };
+};
+type GeoapifyCollection = { features?: GeoapifyFeature[] };
+
+export async function discoverGeoapifyBusinesses(
+  lat: number, lng: number, radiusM: number, niches: NicheKey[],
+  limit: number, apiKey: string
+): Promise<DiscoveredBusiness[]> {
+  const categories = [...new Set(niches.flatMap(n => GEOAPIFY_CATEGORIES[n]))];
+  if (!categories.length || !apiKey.trim()) return [];
+  // POST supports x-api-key so secrets never appear in URLs or request logs.
+  const response = await fetchWithTimeout("https://api.geoapify.com/v2/places", 10000, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": apiKey.trim(), Accept: "application/json" },
+    body: JSON.stringify({
+      categories,
+      filter: { type: "circle", lon: lng, lat, radius: radiusM },
+      bias: { type: "proximity", lon: lng, lat },
+      limit: Math.max(1, Math.min(100, limit)),
+    }),
+  });
+  if (!response.ok) throw new Error(`Geoapify HTTP ${response.status}`);
+  const responseData = (await response.json()) as GeoapifyCollection;
+  if (!Array.isArray(responseData?.features)) throw new Error("Invalid Geoapify response");
+  const out: DiscoveredBusiness[] = [];
+  const seen = new Set<string>();
+  for (const feature of responseData.features) {
+    const p = feature?.properties;
+    const name = typeof p?.name === "string" ? p.name.trim() : "";
+    if (!p || !name) continue;
+    const raw = p.datasource?.raw ?? {};
+    const tags: Record<string, string> = {};
+    for (const [k,v] of Object.entries(raw)) {
+      if (typeof v === "string") tags[k] = v;
+    }
+    const osmKind = String(raw.osm_type ?? "").toLowerCase();
+    const type = ({ n: "node", node: "node", w: "way", way: "way", r: "relation", relation: "relation" } as Record<string,string>)[osmKind];
+    const osmId = String(raw.osm_id ?? "");
+    const idFromOsm = type && /^\d+$/.test(osmId) ? `${type}:${osmId}` : null;
+    const placeId = typeof p.place_id === "string" && /^[a-z0-9_-]{8,200}$/i.test(p.place_id) ? p.place_id : null;
+    const source_ref = idFromOsm ?? (placeId ? `geoapify:${placeId}` : null);
+    if (!source_ref || seen.has(source_ref)) continue;
+    seen.add(source_ref);
+    out.push({
+      source_ref, name,
+      category: tags.amenity ?? tags.shop ?? tags.craft ?? tags.leisure ??
+        (Array.isArray(p.categories) ? p.categories.find(c => typeof c === "string") : undefined) ?? "business",
+      address: typeof p.formatted === "string" ? p.formatted : null,
+      phone: tags.phone ?? tags["contact:phone"] ?? (typeof p.phone === "string" ? p.phone : null),
+      website: normalizeWebsite(tags.website ?? tags["contact:website"] ?? (typeof p.website === "string" ? p.website : null)),
+      lat: Number.isFinite(p.lat) ? p.lat! : null,
+      lng: Number.isFinite(p.lon) ? p.lon! : null,
+      social_profiles: socialProfilesFromTags(tags),
+    });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
 /** Overpass: businesses of the given niches within radius meters of a point. */
 export async function discoverBusinesses(
   lat: number,
   lng: number,
   radiusM: number,
   niches: NicheKey[],
-  limit = 40
+  limit = 40,
+  geoapifyApiKey?: string | null
 ): Promise<DiscoveredBusiness[]> {
+  if (geoapifyApiKey?.trim()) {
+    try {
+      const places = await discoverGeoapifyBusinesses(lat, lng, radiusM, niches, limit, geoapifyApiKey);
+      if (places.length) return places;
+      console.warn("[NHS scanner] Geoapify returned no usable places; checking Overpass");
+    } catch (error) {
+      console.warn("[NHS scanner] Geoapify unavailable; checking Overpass", {
+        reason: error instanceof Error && /^Geoapify HTTP \d{3}$/.test(error.message)
+          ? "http_error" : "timeout_or_invalid_response",
+      });
+    }
+  }
   const filters = niches.flatMap((n) =>
     NICHES[n].overpass.map((f) => `  ${f}(around:${radiusM},${lat},${lng});`)
   );
@@ -179,8 +269,10 @@ export async function discoverBusinesses(
   }
   if (!data) {
     throw new Error(
-      "Business directory providers are unavailable (3 checked). No prospects saved. " +
-      "Please try again later; contact the studio if this persists."
+      (geoapifyApiKey?.trim()
+        ? "Geoapify and three business-directory fallbacks are unavailable. "
+        : "Business directory providers are unavailable (3 checked). ") +
+      "No prospects saved. Please try again later; contact the studio if this persists."
     );
   }
   const out: DiscoveredBusiness[] = [];

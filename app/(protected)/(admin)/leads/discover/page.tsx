@@ -137,8 +137,11 @@ export default async function DiscoverPage({
           <ScannerSubmitButton />
           <p className="form-hint">
             Up to 12 businesses per scan. Missing websites stay low priority
-            while social profiles are checked. Business data © OpenStreetMap
-            contributors (ODbL). Be nice — scans are on-demand, not continuous.
+            while social profiles are checked. Business data via{" "}
+            <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Powered by Geoapify</a>
+            {" "}and{" "}
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>
+            {" "}(ODbL). Scans are on-demand, not continuous.
           </p>
         </form>
       </section>
