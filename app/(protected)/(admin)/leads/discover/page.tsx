@@ -19,6 +19,14 @@ import {
   archiveProspect,
 } from "./actions";
 
+const CATEGORY_FILTERS = {
+  all: null,
+  restaurants: ["restaurant"],
+  bars: ["bar", "pub"],
+  salons: ["hairdresser", "beauty", "barber"],
+} as const;
+type CategoryFilter = keyof typeof CATEGORY_FILTERS;
+
 type Prospect = {
   id: string;
   business_name: string;
@@ -44,22 +52,36 @@ function scoreTone(score: number | null): string {
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ msg?: string; show?: string }>;
+  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string }>;
 }) {
-  const { msg, show } = await searchParams;
+  const { msg, show, sort, category } = await searchParams;
   const supabase = await createClient();
+  const showArchived = show === "archived";
+  const sortByPriority = sort === "priority";
+  const categoryFilter: CategoryFilter = category && Object.prototype.hasOwnProperty.call(CATEGORY_FILTERS, category)
+    ? category as CategoryFilter : "all";
+  // Keep sort and filters when switching between views, without copying arbitrary query parameters.
+  const viewPath = (changes: { show?: string; sort?: string; category?: string } = {}) => {
+    const queryParams = new URLSearchParams();
+    if ((changes.show ?? (showArchived ? "archived" : "")) === "archived") queryParams.set("show", "archived");
+    if ((changes.sort ?? (sortByPriority ? "priority" : "recent")) === "priority") queryParams.set("sort", "priority");
+    const type = changes.category ?? categoryFilter;
+    if (type !== "all") queryParams.set("category", type);
+    const suffix = queryParams.toString();
+    return `/leads/discover${suffix ? `?${suffix}` : ""}`;
+  };
   let query = supabase
     .from("prospects")
     .select(
       "id, business_name, category, address, phone, website, signals, opportunity_score, outreach_draft, outreach_status, status, scanned_at",
     )
-    .order("opportunity_score", { ascending: false, nullsFirst: false })
+    .order(sortByPriority ? "opportunity_score" : "scanned_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(60);
-  query =
-    show === "archived"
-      ? query.eq("status", "archived")
-      : query.neq("status", "archived");
+  query = showArchived ? query.eq("status", "archived") : query.neq("status", "archived");
+  if (categoryFilter !== "all") {
+    query = query.in("category", [...CATEGORY_FILTERS[categoryFilter]!]);
+  }
   const { data, error: readError } = await query;
 
   // Old saved scans adopt the lower no-website score without a database backfill.
@@ -70,9 +92,10 @@ export default async function DiscoverPage({
         typeof p.signals?.has_website === "boolean"
           ? scoreSignals(p.signals)
           : p.opportunity_score,
-    }))
-    .sort((a, b) => (b.opportunity_score ?? -1) - (a.opportunity_score ?? -1));
-  const showArchived = show === "archived";
+    }));
+  if (sortByPriority) {
+    prospects.sort((a, b) => (b.opportunity_score ?? -1) - (a.opportunity_score ?? -1));
+  }
 
   return (
     <div className="content-wrap management-page scanner-page scanner-workroom">
@@ -154,17 +177,26 @@ export default async function DiscoverPage({
           </h3>
           <a
             className="mini-button"
-            href={
-              showArchived ? "/leads/discover" : "/leads/discover?show=archived"
-            }
+            href={viewPath({ show: showArchived ? "" : "archived" })}
           >
             {showArchived ? "Hide archived" : "Show archived"}
           </a>
         </div>
 
         <p className="management-help">
-          Up to 60 saved prospects. Current scores are ranked within this view.
+          Showing up to 60 saved prospects. {sortByPriority ? "Highest opportunity first." : "Newest scans first."}
+          Scanned businesses are saved here as prospects. Use “→ Lead” to add one to Lead Intelligence.
         </p>
+        <div className="row" aria-label="Sort scanned prospects">
+          <a className="mini-button" aria-current={!sortByPriority ? "page" : undefined} href={viewPath({ sort: "recent" })}>Newest scans</a>
+          <a className="mini-button" aria-current={sortByPriority ? "page" : undefined} href={viewPath({ sort: "priority" })}>Highest opportunity</a>
+        </div>
+        <div className="row" aria-label="Filter scanned prospects by category">
+          <a className="mini-button" aria-current={categoryFilter === "all" ? "page" : undefined} href={viewPath({ category: "all" })}>All types</a>
+          <a className="mini-button" aria-current={categoryFilter === "bars" ? "page" : undefined} href={viewPath({ category: "bars" })}>Bars & pubs</a>
+          <a className="mini-button" aria-current={categoryFilter === "salons" ? "page" : undefined} href={viewPath({ category: "salons" })}>Salons</a>
+          <a className="mini-button" aria-current={categoryFilter === "restaurants" ? "page" : undefined} href={viewPath({ category: "restaurants" })}>Restaurants</a>
+        </div>
         {readError ? (
           <p className="management-notice" role="alert">
             Prospects could not load. Refresh to try again; the count is
