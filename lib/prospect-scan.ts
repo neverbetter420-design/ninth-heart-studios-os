@@ -81,6 +81,7 @@ export type WebsiteSignals = {
   social_profiles?: SocialProfile[];
   social_checked_at?: string;
   website_source?: "listing" | "social_profile";
+  curation?: { reliability: number; opportunity: number; quality: number; compared_to: number; summary: string };
 };
 
 const UA = "NinthHeartStudios-OS/1.0 (prospect-scanner; contact: admin@ninthheartstudios.com)";
