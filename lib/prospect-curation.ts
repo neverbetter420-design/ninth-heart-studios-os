@@ -159,6 +159,12 @@ export function curateProspects<T extends ComparableProspect>(
     const same = previous.filter(old => old.source_ref && old.source_ref === p.source_ref);
     if (same.some(protectedFromScannerUpdate)) { protectedCount++; continue; }
     const existing = same.length === 1 ? same[0] : null;
+    // A repeat scan must not degrade previously gathered evidence if the
+    // website or socials are temporarily unreachable on this attempt.
+    if (existing && entry.quality < rateProspect(existing).quality) {
+      rejected++;
+      continue;
+    }
     const compared = previous.filter(old => categoryBucket(old.category) === entry.category && old.status !== "archived");
     const scores = roster.get(entry.category) ?? [];
     const sorted = [...scores].sort((a, b) => b - a);
