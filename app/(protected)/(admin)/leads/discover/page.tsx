@@ -21,9 +21,9 @@ import {
 
 const CATEGORY_FILTERS = {
   all: null,
-  restaurants: ["restaurant"],
-  bars: ["bar", "pub"],
-  salons: ["hairdresser", "beauty", "barber"],
+  restaurants: ["restaurant", "catering.restaurant"],
+  bars: ["bar", "pub", "catering.bar", "catering.pub"],
+  salons: ["hairdresser", "beauty", "barber", "service.beauty", "service.beauty.hairdresser"],
 } as const;
 type CategoryFilter = keyof typeof CATEGORY_FILTERS;
 
