@@ -1,7 +1,7 @@
 // Pure scanner curation acceptance tests. No network, database or credentials.
 import assert from "node:assert/strict";
 import { categoryBucket, isContactable, reliabilityScore, rateProspect,
-  prioritizeDiscovered, protectedFromScannerUpdate, curateProspects,
+  prioritizeDiscovered, protectedFromScannerUpdate, curateProspects, matchesExistingLead,
   type ComparableProspect } from "../lib/prospect-curation.ts";
 import type { DiscoveredBusiness, WebsiteSignals } from "../lib/prospect-scan.ts";
 
@@ -119,5 +119,24 @@ const sameNameDifferentIdentity = [
 ];
 assert.equal(curateProspects(sameNameDifferentIdentity, []).winners.length, 2,
   "name collisions across two physical businesses aren't merged");
+
+const existingLeads = [
+  { business_name: "Some Salon", website: "https://somesalon.com/", phone: null, metadata: { category: "hairdresser" } },
+  { business_name: "Heritage Pub", website: null, phone: "+1 (253) 555-0100", metadata: { category: "pub" } },
+];
+assert.equal(matchesExistingLead(candidate("Some Salon", "service.beauty.hairdresser", "node:156", {
+  website: "https://somesalon.com",
+}), existingLeads), true, "existing Lead Intelligence website blocks rediscovery");
+assert.equal(matchesExistingLead(candidate("Heritage Pub", "bar", "node:157", {
+  phone: "2535550100",
+}), existingLeads), true, "existing Lead Intelligence phone blocks rediscovery");
+assert.equal(matchesExistingLead(candidate("Some Salon", "bar", "node:158", {
+  website: "https://somesalon.com",
+}), existingLeads), false, "must match category if both categories are known");
+assert.equal(matchesExistingLead(candidate("Some Salon", "salons", "node:159"), existingLeads), false,
+  "identical business names alone are not enough to suppress a prospect");
+assert.equal(matchesExistingLead(candidate("Other Salon", "hairdresser", "node:160", {
+  website: "https://somesalon.com",
+}), existingLeads), false, "shared website alone should not block a different business");
 
 console.log("verify:prospect-curation — all checks passed.");
