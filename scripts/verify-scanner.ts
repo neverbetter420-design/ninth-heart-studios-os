@@ -291,4 +291,64 @@ await withFetch(() => { throw new DOMException("The operation was aborted", "Abo
   assert.equal(calls.length, 1, "a failed location lookup does not launch a business search");
 });
 
+// Geoapify is the primary when the deployed Worker has its secret.
+// Neither location search nor logging should leak the API key.
+await withFetch((url, init) => {
+  assert.equal(url, "https://api.geoapify.com/v2/places");
+  assert.equal(init?.method, "POST");
+  const headers = init?.headers as Record<string, string>;
+  assert.equal(headers["x-api-key"], "test-geoapify-key");
+  const body = JSON.parse(String(init?.body));
+  assert.deepEqual(body.categories, ["catering.restaurant"]);
+  assert.deepEqual(body.filter, { type: "circle", lon: -122.3, lat: 47.1, radius: 8047 });
+  assert.ok(!JSON.stringify(body).includes("test-geoapify-key"));
+  return new Response(JSON.stringify({ features: [
+    { properties: {
+      name: "Copper Kettle", formatted: "123 Main St, Puyallup, WA",
+      place_id: "abcdef1234567890", lat: 47.1, lon: -122.3,
+      categories: ["catering.restaurant"],
+      datasource: { raw: { osm_type: "n", osm_id: 501, amenity: "restaurant",
+        website: "https://copperkettle.com", "contact:instagram": "@copperkettle" } },
+    } },
+    { properties: { name: "Copper Kettle", place_id: "abcdef1234567890",
+      datasource: { raw: { osm_type: "n", osm_id: 501 } } } },
+    { properties: { name: "Unnamed", place_id: "1234567890abcdef",
+      datasource: { raw: { osm_type: "w", osm_id: 88, amenity: "restaurant" } } } },
+  ] }), { headers: { "content-type": "application/json" } });
+}, async () => {
+  const found = await discoverBusinesses(47.1, -122.3, 8047, ["restaurants"], 24, "test-geoapify-key");
+  assert.equal(found.length, 2, "deduplication uses stable OSM IDs, not business names");
+  assert.deepEqual(found.map(b => b.source_ref), ["node:501", "way:88"]);
+  assert.equal(found[0].website, "https://copperkettle.com/");
+  assert.equal(found[0].social_profiles[0].platform, "instagram");
+  assert.equal(found[0].address, "123 Main St, Puyallup, WA");
+  assert.equal(calls.length, 1, "Geoapify success never calls the public Overpass servers");
+});
+
+await withFetch((url) => {
+  if (url.includes("geoapify.com")) return new Response("rate limited", { status: 429 });
+  return new Response(JSON.stringify({ elements: [
+    { type: "node", id: 777, tags: { name: "Fallback Cafe", amenity: "cafe" } },
+  ] }), { headers: { "content-type": "application/json" } });
+}, async () => {
+  const found = await discoverBusinesses(47.1, -122.3, 3000, ["cafes"], 12, "test-geoapify-key");
+  assert.equal(found[0].source_ref, "node:777", "Geoapify outage falls back to Overpass");
+  assert.equal(calls.length, 2);
+  assert.ok(calls[0].includes("api.geoapify.com"));
+  assert.ok(calls[1].includes("overpass-api.de"));
+});
+
+await withFetch((url) => {
+  if (url.includes("geoapify.com")) return new Response(JSON.stringify({ features: [
+    { properties: { name: "Stable Place", place_id: "1ab2cd3ef4567890",
+      categories: ["sport.fitness.gym"] } },
+    { properties: { name: "No ID", place_id: "bad!", categories: ["sport.fitness.gym"] } },
+  ] }));
+  throw new Error("Unexpected Overpass request");
+}, async () => {
+  const found = await discoverBusinesses(47.1, -122.3, 3000, ["fitness"], 12, "test-geoapify-key");
+  assert.deepEqual(found.map(p => p.source_ref), ["geoapify:1ab2cd3ef4567890"], "fallback IDs are stable");
+  assert.equal(calls.length, 1);
+});
+
 console.log("verify:scanner — all checks passed.");
