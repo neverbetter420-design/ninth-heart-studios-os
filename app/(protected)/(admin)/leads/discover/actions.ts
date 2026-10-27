@@ -6,7 +6,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
-import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, type ComparableProspect } from "@/lib/prospect-curation";
+import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, type ComparableProspect } from "@/lib/prospect-curation";
 import {
   NICHES,
   geocode,
@@ -113,9 +113,10 @@ export async function runScan(formData: FormData): Promise<never> {
       ((b.website && p.website === b.website) || (b.address && p.address === b.address))
     );
     if (legacyMatches.some(protectedFromScannerUpdate)) { skipped++; continue; }
-    const existingId = candidate.existingId ??
-      (legacyMatches.length === 1 ? legacyMatches[0].id : null);
+    const legacy = legacyMatches.length === 1 ? legacyMatches[0] : null;
+    const existingId = candidate.existingId ?? legacy?.id ?? null;
     if (legacyMatches.length > 1 && !candidate.existingId) { skipped++; continue; }
+    if (legacy && candidate.quality < rateProspect(legacy).quality) { skipped++; continue; }
 
     const row = {
       source_ref: b.source_ref,
