@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
@@ -8,6 +9,7 @@ import { buildProspectInsights } from "@/lib/prospect-insights";
 import { safeVerificationLink } from "@/lib/prospect-verification";
 import { compareSavedTerritories } from "@/lib/prospect-territories";
 import { suggestNhsOffers } from "@/lib/prospect-offer-fit";
+import { buildScannerOutcomeSnapshot, type ScannerOutcomeProspect, type ScannerOutcomeLead, type ScannerProjectEvent } from "@/lib/prospect-conversion";
 import {
   NICHES,
   signalBadges,
@@ -70,6 +72,7 @@ export default async function DiscoverPage({
   const replayNiches = (Array.isArray(scan_niches) ? scan_niches : scan_niches ? [scan_niches] : [])
     .filter((name): name is keyof typeof NICHES => Object.hasOwn(NICHES, name));
   const selectedNiches = replayNiches.length ? replayNiches : ["restaurants", "bars", "salons"];
+  await requireAdmin();
   const supabase = await createClient();
   const showArchived = show === "archived";
   const sortByPriority = sort === "priority";
@@ -125,6 +128,30 @@ export default async function DiscoverPage({
     .limit(1000);
   const shortlistReady = !shortlistError && shortlistData &&
     shortlistData.length < 1000 && typeof shortlistCount === "number" && shortlistCount < 1000;
+  // Conversions are linked to actual scanner-created Lead Intelligence rows,
+  // not inferred from listing counts or matching business names.
+  const [allProspectRows, outcomeLeadRows, projectEventRows] = await Promise.all([
+    supabase.from("prospects")
+      .select("id, source_ref, category, status, outreach_status, lead_id", { count: "exact" })
+      .limit(1000),
+    supabase.from("leads")
+      .select("id, status, last_reply_at, consultation_at, metadata", { count: "exact" })
+      .limit(1000),
+    supabase.from("activities")
+      .select("lead_id, project_id, event_type", { count: "exact" })
+      .eq("event_type", "project_created")
+      .limit(1000),
+  ]);
+  const outcomeReady = [allProspectRows, outcomeLeadRows, projectEventRows].every(q =>
+    !q.error && q.data && q.data.length < 1000 && typeof q.count === "number" && q.count < 1000
+  );
+  const outcomeSnapshot = outcomeReady
+    ? buildScannerOutcomeSnapshot(
+        allProspectRows.data as ScannerOutcomeProspect[],
+        outcomeLeadRows.data as ScannerOutcomeLead[],
+        projectEventRows.data as ScannerProjectEvent[],
+      )
+    : null;
   const territoryComparison = shortlistReady ? compareSavedTerritories(shortlistData as SavedChallenger[]) : null;
   const challengerGroups = shortlistReady ? buildChallengerShortlists(
     (shortlistData as SavedChallenger[]).map(p => ({
@@ -328,6 +355,69 @@ export default async function DiscoverPage({
             {territoryComparison.without_context} older saved prospects have no reliable search-area context and are excluded from the comparison.
             These rankings reflect only saved prospects, not all businesses in a city.
           </p>
+        )}
+      </section>
+
+      <section className="scanner-outcome-study" aria-label="Recorded scanner outreach outcomes">
+        <div className="section-head">
+          <h3>What happened next</h3>
+          <span className="muted">Recorded outcomes only · no invented conversions</span>
+        </div>
+        <p className="management-help">
+          From saved scanner prospects and strictly linked Lead Intelligence records.
+          Marked sent is a manual status, not verified delivery. Consultations are
+          scheduled, not necessarily attended. A created project is not recorded revenue.
+          ROI and true win/loss rates require actual commercial outcome data.
+        </p>
+        {!outcomeSnapshot ? (
+          <p className="management-notice" role="status">
+            Complete conversion records are unavailable or exceed the review limit.
+            No partial or estimated conversion figures are displayed.
+          </p>
+        ) : (
+          <>
+            <div className="scanner-conversion-metrics" role="list" aria-label="Scanner outcome counts">
+              {[
+                { label: "Saved records", value: outcomeSnapshot.totals.saved_records },
+                { label: "Marked sent", value: outcomeSnapshot.totals.marked_sent },
+                { label: "Replies recorded", value: outcomeSnapshot.totals.replies_recorded },
+                { label: "Consultations booked", value: outcomeSnapshot.totals.consultations_scheduled },
+                { label: "Projects created", value: outcomeSnapshot.totals.projects_created },
+              ].map(metric => (
+                <div role="listitem" key={metric.label}>
+                  <strong>{metric.value}</strong>
+                  <small>{metric.label}</small>
+                </div>
+              ))}
+            </div>
+            <details className="draft-details scanner-outcome-detail">
+              <summary>Compare recorded outcomes by business category</summary>
+              {outcomeSnapshot.categories.length === 0 ? (
+                <p className="management-help">
+                  No scanner prospects have been saved in this dataset.
+                </p>
+              ) : (
+                <div className="scanner-outcome-rows">
+                  {outcomeSnapshot.categories.map(group => (
+                    <div key={group.category} className="scanner-outcome-row">
+                      <strong>{group.category === "other" ? "Uncategorized" : NICHES[group.category].label}</strong>
+                      <small>{group.saved_records} saved · {group.marked_sent} marked sent · {group.replies_recorded} replies · {group.consultations_scheduled} consultations · {group.projects_created} projects</small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </details>
+            {outcomeSnapshot.unmatched_promotions > 0 && (
+              <p className="management-help">
+                {outcomeSnapshot.unmatched_promotions} promoted record(s) could not be
+                linked conclusively to scanner-origin leads and are excluded from outcomes.
+              </p>
+            )}
+            <p className="management-help">
+              {outcomeSnapshot.totals.declined} linked leads marked not interested.
+              This is a workflow snapshot, not a sales conversion rate or claim of causation.
+            </p>
+          </>
         )}
       </section>
 
