@@ -66,7 +66,7 @@ create or replace function public.renew_deep_scan_batch(p_id uuid, p_lease uuid)
 returns setof public.deep_scan_jobs
 language sql volatile security invoker
 set search_path = ''
-as $
+as $$
   update public.deep_scan_jobs j
   set lease_until = now() + interval '90 seconds',
       updated_at = now()
@@ -77,7 +77,7 @@ as $
     and j.lease_token = p_lease
     and j.lease_until > now()
   returning j.*;
-$;
+$$;
 
 -- Finish only with the live lease token. Progress increments in ONE transaction
 -- and cannot double-count a previously completed batch.
