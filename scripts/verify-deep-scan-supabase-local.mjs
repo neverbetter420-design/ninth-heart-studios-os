@@ -78,6 +78,12 @@ export async function verifyDeepScanLeaseLocal({ admin, clientA, clientB, anonym
     p_created: 0, p_refreshed: 0, p_held: 7, p_conflicts: 0,
   }), "overlarge completion");
   assert.equal(invalidCount.length, 0);
+  const incompleteCounts = rows(await admin.rpc("finish_deep_scan_batch", {
+    p_id: id, p_lease: token, p_processed: 6,
+    p_created: 0, p_refreshed: 0, p_held: 5, p_conflicts: 0,
+  }), "incomplete checkpoint counters");
+  assert.equal(incompleteCounts.length, 0,
+    "a successful checkpoint must account for all processed businesses");
 
   // A lease that expired cannot be revived. Only a fresh atomic claim can
   // process its position. The OLD token may not finish, pause, or renew it.
@@ -118,5 +124,73 @@ export async function verifyDeepScanLeaseLocal({ admin, clientA, clientB, anonym
   assert.equal(final[0].status, "completed");
   assert.equal(rows(await admin.rpc("claim_deep_scan_batch", { p_id: id }),
     "cannot reclaim complete job").length, 0);
+  // Cancellation is an owner-only, atomic DB-clock transition. Ready and
+  // paused jobs can be cancelled; active jobs must first lose their lease.
+  // Never modify hosted Supabase or unrelated prospect rows.
+  const makeJob = async (label) => {
+    const created = rows(await admin.from("deep_scan_jobs").insert({
+      created_by: adminId, location: label, area_label: label,
+      radius_m: 16093, niches: ["bars"], requested: 12, candidates,
+    }).select("id"), "cancellation fixture " + label);
+    assert.equal(created.length, 1);
+    return created[0].id;
+  };
+  const readyId = await makeJob("Ready CI");
+  await denied(await clientA.rpc("cancel_deep_scan_job", {
+    p_id: readyId,
+  }), "Client A cannot cancel the admin job");
+  await denied(await anonymous.rpc("cancel_deep_scan_job", {
+    p_id: readyId,
+  }), "Anonymous cannot cancel the admin job");
+  const readyCancel = rows(await admin.rpc("cancel_deep_scan_job", {
+    p_id: readyId,
+  }), "cancel ready job");
+  assert.equal(readyCancel.length, 1);
+  assert.equal(readyCancel[0].status, "cancelled");
+  assert.equal(readyCancel[0].lease_token, null);
+  assert.equal(rows(await admin.rpc("claim_deep_scan_batch", { p_id: readyId }),
+    "claim cancelled ready job").length, 0);
+
+  const pausedId = await makeJob("Paused CI");
+  const pausedRows = rows(await admin.from("deep_scan_jobs").update({
+    status: "paused",
+  }).eq("id", pausedId).eq("status", "ready").select("id"), "pause ready job");
+  assert.equal(pausedRows.length, 1);
+  const pausedCancel = rows(await admin.rpc("cancel_deep_scan_job", {
+    p_id: pausedId,
+  }), "cancel paused job");
+  assert.equal(pausedCancel.length, 1);
+  assert.equal(pausedCancel[0].status, "cancelled");
+
+  const runningId = await makeJob("Running CI");
+  const runningClaim = rows(await admin.rpc("claim_deep_scan_batch", {
+    p_id: runningId,
+  }), "claim running fixture");
+  assert.equal(runningClaim.length, 1);
+  const runningToken = runningClaim[0].lease_token;
+  assert.equal(rows(await admin.rpc("cancel_deep_scan_job", {
+    p_id: runningId,
+  }), "do not cancel active worker").length, 0);
+  assert.equal(rows(await admin.from("deep_scan_jobs").update({
+    lease_until: "2001-01-01T00:00:00Z",
+  }).eq("id", runningId).select("id"), "expire running fixture").length, 1);
+  assert.equal(rows(await admin.rpc("pause_deep_scan_batch", {
+    p_id: runningId, p_lease: runningToken, p_error: "late failure",
+  }), "stale worker cannot pause expired lease").length, 0);
+  const expiredCancel = rows(await admin.rpc("cancel_deep_scan_job", {
+    p_id: runningId,
+  }), "cancel expired running lease");
+  assert.equal(expiredCancel.length, 1);
+  assert.equal(expiredCancel[0].status, "cancelled");
+  assert.equal(expiredCancel[0].lease_token, null);
+  assert.equal(expiredCancel[0].lease_until, null);
+  assert.equal(rows(await admin.rpc("renew_deep_scan_batch", {
+    p_id: runningId, p_lease: runningToken,
+  }), "stale renew after cancellation").length, 0);
+  assert.equal(rows(await admin.rpc("claim_deep_scan_batch", {
+    p_id: runningId,
+  }), "cannot restart cancelled job").length, 0);
+  console.log("PASS Deep Scan: ready/paused/expired cancel, active lease protection and exact counters");
+
   console.log("PASS Deep Scan: disposable RLS, concurrent claim, expired/stale lease renewal, and final progress");
 }
