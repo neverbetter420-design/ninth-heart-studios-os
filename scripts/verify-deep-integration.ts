@@ -72,6 +72,10 @@ assert.ok(action.indexOf("const [priorRows, leadRows, clientRows]") >
   "relationship history must be read AFTER external website queries");
 const renewSql = sql.match(/create or replace function public\.renew_deep_scan_batch[\s\S]*?(?=-- Finish only)/)?.[0];
 assert.ok(renewSql, "Missing bounded owner-only lease renewal RPC");
+
+assert.match(renewSql, /as \$\$\s*\n[\s\S]*?\n\$\$;/,
+  "A renewal RPC must be fully dollar-quoted; local migration replay rejects a single dollar");
+
 for (const needle of [
   /security invoker/, /j\.created_by = \(select auth\.uid\(\)\)/,
   /\(select private\.is_admin\(\)\)/, /j\.status = 'running'/,
