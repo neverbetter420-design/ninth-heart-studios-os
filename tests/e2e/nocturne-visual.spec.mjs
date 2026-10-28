@@ -277,13 +277,23 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
     await show(page, "admin", scenario, "scanner");
     const prospects = page.locator("article.prospect-card");
     if (["normal", "long"].includes(scenario)) {
-      await expect(prospects.first()).toContainText("Mira Studio");
-      await expect(prospects.nth(1).locator(".score")).toHaveText("10");
-      await expect(prospects.nth(1)).toContainText("Needs verification");
-      await expect(prospects.nth(1)).toContainText("Website unconfirmed · low priority");
-      await expect(prospects.nth(1).getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
-      await expect(prospects.nth(1).getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
-      await expect(prospects.nth(1).getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
+      // Default now displays newest scans, not highest opportunity. Never
+      // couple social-verification assertions to score-based result order.
+      const studio = prospects.filter({ hasText: "Mira Studio" });
+      // The long-content preview intentionally replaces the Cedar & Stone
+      // name with a stress-test string. Select by the unique verified profile
+      // link instead of relying on a specific name or row position.
+      const unverified = prospects.filter({ has: page.getByRole("link", { name: "Facebook ↗", exact: true }) });
+      await expect(studio).toHaveCount(1);
+      await expect(unverified).toHaveCount(1);
+      await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
+      await expect(page.getByRole("link", { name: "Highest opportunity" })).toBeVisible();
+      await expect(unverified.locator(".score")).toHaveText("10");
+      await expect(unverified).toContainText("Needs verification");
+      await expect(unverified).toContainText("Website unconfirmed · low priority");
+      await expect(unverified.getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
+      await expect(unverified.getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
+      await expect(unverified.getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
     } else {
       await expect(prospects).toHaveCount(0);
       if (scenario === "error") {

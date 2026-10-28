@@ -200,3 +200,19 @@
     gap: 5px 12px;
   }
 }
+
+/* Compact scanner result controls: intentionally lightweight, not another card grid. */
+.scanner-workroom .row[aria-label="Sort scanned prospects"],
+.scanner-workroom .row[aria-label="Filter scanned prospects by category"] {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+.scanner-workroom .row[aria-label="Sort scanned prospects"] .mini-button[aria-current="page"],
+.scanner-workroom .row[aria-label="Filter scanned prospects by category"] .mini-button[aria-current="page"] {
+  border-color: #b78ca7;
+  background: rgba(147, 91, 130, 0.28);
+  color: #fff0fa;
+}

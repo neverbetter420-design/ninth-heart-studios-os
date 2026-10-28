@@ -10,6 +10,9 @@
 //
 // Nothing here sends email or messages. Drafts are for her review only.
 
+import { categoryBucket } from "./prospect-curation.ts";
+import { auditIndustryHomepage, type IndustryAudit } from "./prospect-industry-audit.ts";
+
 export type NicheKey =
   | "restaurants"
   | "bars"
@@ -81,6 +84,8 @@ export type WebsiteSignals = {
   social_profiles?: SocialProfile[];
   social_checked_at?: string;
   website_source?: "listing" | "social_profile";
+  curation?: { reliability: number; opportunity: number; quality: number; compared_to: number; summary: string };
+  industry_audit?: IndustryAudit;
 };
 
 const UA = "NinthHeartStudios-OS/1.0 (prospect-scanner; contact: admin@ninthheartstudios.com)";
@@ -450,7 +455,7 @@ const BUILDER_MARKERS: Array<{ key: string; label: string; patterns: RegExp[] }>
 ];
 
 /** Fetch a site and extract redesign signals. Never throws — returns error in signals. */
-export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSignals> {
+export async function analyzeWebsite(rawUrl: string | null, niche: NicheKey | null = null): Promise<WebsiteSignals> {
   const empty: WebsiteSignals = {
     has_website: false,
     reachable: false,
@@ -500,6 +505,7 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
         load_ms,
         page_bytes: bytes,
         social_profiles: socialProfilesFromHtml(text),
+        ...(niche ? { industry_audit: auditIndustryHomepage(niche, text) } : {}),
       };
   } catch (error) {
     return { ...empty, error: error instanceof Error ? error.message : "unreachable" };
@@ -525,6 +531,7 @@ function socialProfilesFromHtml(html: string): SocialProfile[] {
 
 type PresenceInput = {
   name: string;
+  category?: string | null;
   address: string | null;
   phone: string | null;
   website: string | null;
@@ -601,7 +608,9 @@ async function checkSocialProfile(profile: SocialProfile, business: PresenceInpu
 export async function analyzeBusinessPresence(business: PresenceInput): Promise<{ website: string | null; signals: WebsiteSignals }> {
   const listedWebsite = normalizeWebsite(business.website);
   let website = listedWebsite && !socialPlatform(listedWebsite) ? listedWebsite : null;
-  let signals = await analyzeWebsite(website);
+  const bucket = categoryBucket(business.category ?? null);
+  const niche = bucket === "other" ? null : bucket;
+  let signals = await analyzeWebsite(website, niche);
   const profiles = [...(signals.social_profiles ?? []), ...(business.social_profiles ?? [])];
   const listedSocial = normalizeSocialProfile(listedWebsite);
   if (listedSocial) profiles.unshift({ platform: socialPlatform(listedSocial)!, url: listedSocial, source: "listing", status: "unconfirmed", evidence: "Listed as business website" });
@@ -616,7 +625,7 @@ export async function analyzeBusinessPresence(business: PresenceInput): Promise<
     // Conflicting links require human review. Do not choose an arbitrary business URL.
     if (websites.length === 1) {
       website = websites[0];
-      signals = { ...await analyzeWebsite(website), website_source: "social_profile" };
+      signals = { ...await analyzeWebsite(website, niche), website_source: "social_profile" };
     }
   }
   return { website, signals: { ...signals, social_profiles: checked.map(p => p.profile), social_checked_at: new Date().toISOString() } };

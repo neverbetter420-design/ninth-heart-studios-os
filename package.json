@@ -26,7 +26,7 @@
     "verify:admin-actions": "node scripts/verify-admin-actions.mjs",
     "verify:phase3-security": "node scripts/verify-phase3-security.mjs",
     "verify:release-preflight": "node scripts/verify-release-preflight.mjs",
-    "verify:scanner": "node --experimental-strip-types scripts/verify-scanner.ts",
+    "verify:scanner": "node --experimental-strip-types scripts/verify-scanner.ts && node --experimental-strip-types scripts/verify-prospect-curation.ts && node --experimental-strip-types scripts/verify-industry-audit.ts",
     "verify:password-recovery": "node --experimental-strip-types scripts/verify-password-recovery.mjs",
     "cf:build": "opennextjs-cloudflare build",
     "cf:dry-run": "wrangler deploy --dry-run",
