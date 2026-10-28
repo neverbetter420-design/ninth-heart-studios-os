@@ -46,6 +46,8 @@ assert.deepEqual(decision(proposed(), [], [], [client({ website: null })]),
 assert.equal(decision(proposed(), [], [lead({
   website: null, phone: "+1 (253) 555-0140",
 })]).action, "protect", "normalized phone with matching name blocks lead duplication");
+assert.equal(decision(proposed(), [], [lead({ metadata: { category: "bar" } })]).action,
+  "review", "different directory niche with same name and domain must be reviewed");
 assert.equal(decision(proposed(), [previous()]).action, "allow",
   "safe same-source refresh is allowed for an uncontacted prospect");
 assert.equal(decision(proposed(), [previous({ status: "promoted" })]).reason,
