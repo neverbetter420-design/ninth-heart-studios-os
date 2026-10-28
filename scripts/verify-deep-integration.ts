@@ -95,4 +95,29 @@ assert.match(ui, /Process next six/);
 assert.match(ui, /The database migration must/);
 assert.match(sql, /alter table public\.deep_scan_jobs enable row level security;/);
 assert.doesNotMatch(sql, /cron\.schedule|pg_cron/i);
+
+assert.ok(sql.includes("p_created + p_refreshed + p_held + p_conflicts = p_processed"),
+  "no partial or inconsistent batch counters may be committed");
+assert.ok(sql.includes("create or replace function public.cancel_deep_scan_job(p_id uuid)"),
+  "owner cancellation must be performed atomically on the job row");
+const cancelSql = sql.split("create or replace function public.cancel_deep_scan_job(p_id uuid)")[1]
+  ?.split("revoke all on function public.claim_deep_scan_batch")[0];
+assert.ok(cancelSql && cancelSql.includes("security invoker") &&
+  cancelSql.includes("j.created_by = (select auth.uid())") &&
+  cancelSql.includes("(select private.is_admin())") &&
+  cancelSql.includes("j.status in ('ready', 'paused')") &&
+  cancelSql.includes("j.status = 'running' and j.lease_until < now()") &&
+  cancelSql.includes("lease_token = null, lease_until = null"),
+  "cancellation must never preempt a live lease or cross an owner's RLS boundary");
+assert.ok(sql.includes("grant execute on function public.cancel_deep_scan_job(uuid) to authenticated"));
+assert.ok(sql.includes("revoke all on function public.cancel_deep_scan_job(uuid) from public, anon"));
+const pauseSql = sql.split("create or replace function public.pause_deep_scan_batch")[1]
+  ?.split("-- Owner cancellation")[0];
+assert.ok(pauseSql?.includes("j.lease_token = p_lease and j.lease_until > now()"),
+  "expired workers must not pause jobs with stale tokens");
+assert.ok(action.includes('supabase.rpc("cancel_deep_scan_job"'),
+  "server cancellation must use the atomic owner-only DB RPC");
+assert.ok(ui.includes('(["ready", "paused"].includes(job.status) || (job.status === "running" && expired))'),
+  "expired-running and paused jobs must offer owner-controlled cancellation");
+
 console.log("verify:deep-integration — client/lead guards, manual batches and scan memory wired safely.");
