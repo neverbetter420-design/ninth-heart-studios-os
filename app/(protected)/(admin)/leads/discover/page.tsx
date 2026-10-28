@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/auth";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
+import { deepScanPercent, expiredDeepLease } from "@/lib/deep-scan";
+import { createDeepScan, processDeepScanBatch, changeDeepScanStatus } from "./deep-actions";
 import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
 import { buildProspectInsights } from "@/lib/prospect-insights";
 import { safeVerificationLink } from "@/lib/prospect-verification";
@@ -34,6 +36,22 @@ const CATEGORY_FILTERS = {
   salons: ["hairdresser", "beauty", "barber", "service.beauty", "service.beauty.hairdresser"],
 } as const;
 type CategoryFilter = keyof typeof CATEGORY_FILTERS;
+
+type DeepScanPreview = {
+  id: string;
+  area_label: string;
+  status: string;
+  requested: number;
+  position: number;
+  created_count: number;
+  refreshed_count: number;
+  held_count: number;
+  conflict_count: number;
+  candidates: unknown[];
+  last_error: string | null;
+  lease_until: string | null;
+  created_at: string;
+};
 
 type Prospect = {
   id: string;
@@ -153,6 +171,12 @@ export default async function DiscoverPage({
       )
     : null;
   const territoryComparison = shortlistReady ? compareSavedTerritories(shortlistData as SavedChallenger[]) : null;
+  // The migration may not be applied yet in production. Fail visibly and
+  // preserve the working 12-business scanner rather than blocking the page.
+  const { data: deepRows, error: deepError } = await supabase.from("deep_scan_jobs")
+    .select("id, area_label, status, requested, position, created_count, refreshed_count, held_count, conflict_count, candidates, last_error, lease_until, created_at")
+    .order("created_at", { ascending: false }).limit(8);
+  const deepScans = (deepError ? [] : (deepRows ?? [])) as DeepScanPreview[];
   const challengerGroups = shortlistReady ? buildChallengerShortlists(
     (shortlistData as SavedChallenger[]).map(p => ({
       ...p,
@@ -224,6 +248,25 @@ export default async function DiscoverPage({
             </div>
           </fieldset>
           <ScannerSubmitButton />
+          <div className="scanner-deep-setup">
+            <label>
+              Deep scan size
+              <select name="deep_size" defaultValue="50">
+                <option value="12">12 · Quick</option>
+                <option value="25">25 · Small</option>
+                <option value="50">50 · Standard</option>
+                <option value="100">100 · Extended</option>
+              </select>
+            </label>
+            <button className="mini-button scanner-deep-create" type="submit" formAction={createDeepScan} disabled={!!deepError}>
+              Create resumable deep scan
+            </button>
+            <p className="management-help">
+              Deep Scan saves a discovery queue, then checks six businesses per
+              step. Progress is kept between visits; processing requires your
+              next action, not an invisible background job.
+            </p>
+          </div>
           <p className="form-hint">
             Reviews the most promising listings from up to 72 directory results,
             compares their contact reliability and redesign opportunity with saved
@@ -238,6 +281,84 @@ export default async function DiscoverPage({
             {" "}(ODbL). Scans are on-demand, not continuous.
           </p>
         </form>
+      </section>
+
+      <section className="scanner-deep-jobs" aria-label="Resumable deep scan jobs">
+        <div className="section-head">
+          <h3>Deep Scan progress</h3>
+          <span className="muted">Six website/social checks per batch</span>
+        </div>
+        {deepError ? (
+          <p className="management-notice" role="status">
+            Deep Scan is not configured here yet. The database migration must
+            pass security review before this feature can be used.
+          </p>
+        ) : deepScans.length === 0 ? (
+          <p className="management-help">No deep scans yet. Choose a size above and create your first saved queue.</p>
+        ) : (
+          <div className="scanner-deep-job-list">
+            {deepScans.map(job => {
+              const total = Array.isArray(job.candidates) ? job.candidates.length : 0;
+              const processed = Math.min(total, Math.max(0, job.position));
+              const expired = expiredDeepLease(job.status, job.lease_until, Date.now());
+              const canRun = job.status === "ready" || (job.status === "running" && expired);
+              return (
+                <article key={job.id} className="scanner-deep-job">
+                  <div className="scanner-deep-job-top">
+                    <div>
+                      <strong>{job.area_label}</strong>
+                      <p className="management-help">
+                        {job.status} · {total} candidates found of {job.requested} requested
+                      </p>
+                    </div>
+                    <span className="scanner-deep-job-count">{processed}/{total}</span>
+                  </div>
+                  <div className="scanner-deep-progress" role="progressbar"
+                    aria-label={`Processed businesses in ${job.area_label}`}
+                    aria-valuemin={0} aria-valuemax={total || 1} aria-valuenow={processed}>
+                    <span style={{ width: `${deepScanPercent(processed, total)}%` }} />
+                  </div>
+                  <p className="management-help">
+                    {job.created_count} new · {job.refreshed_count} refreshed ·
+                    {job.held_count} held · {job.conflict_count} conflicts
+                  </p>
+                  {job.last_error && <p className="management-notice">{job.last_error}</p>}
+                  <div className="scanner-deep-actions">
+                    {canRun && (
+                      <form action={processDeepScanBatch}>
+                        <input type="hidden" name="job_id" value={job.id} />
+                        <button className="mini-button" type="submit">
+                          {job.status === "running" ? "Retry expired batch" : "Process next six"}
+                        </button>
+                      </form>
+                    )}
+                    {job.status === "ready" && (
+                      <form action={changeDeepScanStatus}>
+                        <input type="hidden" name="job_id" value={job.id} />
+                        <input type="hidden" name="operation" value="pause" />
+                        <button className="mini-button" type="submit">Pause</button>
+                      </form>
+                    )}
+                    {job.status === "paused" && (
+                      <form action={changeDeepScanStatus}>
+                        <input type="hidden" name="job_id" value={job.id} />
+                        <input type="hidden" name="operation" value="resume" />
+                        <button className="mini-button" type="submit">Resume</button>
+                      </form>
+                    )}
+                    {["ready", "paused"].includes(job.status) && (
+                      <form action={changeDeepScanStatus}>
+                        <input type="hidden" name="job_id" value={job.id} />
+                        <input type="hidden" name="operation" value="cancel" />
+                        <button className="mini-button" type="submit">Cancel</button>
+                      </form>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section className="scanner-challenger-board" aria-label="Qualified category challengers">
