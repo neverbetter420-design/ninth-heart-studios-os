@@ -671,7 +671,7 @@ export type ProspectInput = {
 };
 
 /** Deterministic outreach draft in Hailey's voice. Never sent automatically. */
-export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: string; body: string } {
+export function draftOutreach(p: ProspectInput, s: WebsiteSignals, offerAngle: string | null = null): { subject: string; body: string } {
   const catWord =
     p.category === "restaurant" ? "restaurants"
     : p.category === "bar" || p.category === "pub" ? "bars"
@@ -692,6 +692,9 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
     if (!s.title_ok) findings.push("The page title could use another look.");
     if (!s.description_ok) findings.push("I didn't find a standard meta description in the HTML checked.");
   }
+  // The owner clicked Draft outreach. The offer angle is a cautious, prebuilt
+  // review question, never a claim of proven business problems or an auto-send.
+  if (offerAngle && offerAngle.length <= 320) findings.push(offerAngle);
   if (!findings.length) findings.push("I'd be happy to offer a fresh perspective on your website.");
 
   const subject = `Quick thought on ${p.business_name}'s website`;
