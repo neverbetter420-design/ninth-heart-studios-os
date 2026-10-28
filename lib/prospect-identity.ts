@@ -60,10 +60,14 @@ function compare(incoming: IdentityFields, saved: IdentityFields): "same" | "may
   const sharedSite = Boolean(webKey(incoming.website) && webKey(incoming.website) === webKey(saved.website));
   const aStreet = streetKey(incoming.address), bStreet = streetKey(saved.address);
   const sharedStreet = Boolean(aStreet && aStreet === bStreet);
+  // Distinct physical locations can share a franchise name, call center,
+  // or even a corporate domain. Never automatically call them duplicates.
+  if (aStreet && bStreet && aStreet !== bStreet) {
+    return sharedPhone || sharedSite ? "maybe" : "none";
+  }
   if (sameName && (sharedPhone || sharedSite || sharedStreet)) return "same";
   // Shared infrastructure or rebrands need manual review, not an automatic merge.
   if (sharedPhone || sharedSite || sharedStreet) return "maybe";
-  // Matching franchise names at *different confirmed street addresses* are distinct.
   if (sameName && (!aStreet || !bStreet)) return "maybe";
   return "none";
 }
@@ -83,18 +87,20 @@ export function checkBusinessIdentity(
   clients: ClientIdentity[],
 ): IdentityDecision {
   const query = asProspect(incoming);
+  let ambiguousRelationship = false;
   for (const client of clients) {
     const match = compare(query, { name: client.name, website: client.website });
     if (match === "same") return { action: "protect", reason: "existing_client" };
-    if (match === "maybe") return { action: "review", reason: "ambiguous_relationship" };
+    if (match === "maybe") ambiguousRelationship = true;
   }
   for (const lead of leads) {
     const meta = lead.metadata as { category?: string | null; address?: string | null } | null | undefined;
     const match = compare(query, { name: lead.business_name, website: lead.website,
       phone: lead.phone, category: meta?.category, address: meta?.address });
     if (match === "same") return { action: "protect", reason: "existing_lead" };
-    if (match === "maybe") return { action: "review", reason: "ambiguous_relationship" };
+    if (match === "maybe") ambiguousRelationship = true;
   }
+  if (ambiguousRelationship) return { action: "review", reason: "ambiguous_relationship" };
   const exact = prospects.filter(p => p.source_ref && incoming.source_ref &&
     p.source_ref === incoming.source_ref);
   if (exact.length > 1) return { action: "review", reason: "duplicate_source" };
