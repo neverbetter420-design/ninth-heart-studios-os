@@ -505,7 +505,7 @@ export async function analyzeWebsite(rawUrl: string | null, niche: NicheKey | nu
         load_ms,
         page_bytes: bytes,
         social_profiles: socialProfilesFromHtml(text),
-        ...(niche ? { industry_audit: auditIndustryHomepage(niche, text) } : {}),
+        ...(niche ? { industry_audit: auditIndustryHomepage(niche, text, undefined, normalizeWebsite(res.url) ?? url) } : {}),
       };
   } catch (error) {
     return { ...empty, error: error instanceof Error ? error.message : "unreachable" };

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
+import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
 import {
   NICHES,
   signalBadges,
@@ -324,17 +325,28 @@ export default async function DiscoverPage({
                 )}
                 {p.signals?.industry_audit && (
                   <details className="draft-details">
-                    <summary>{p.signals.industry_audit.category.replace("_", " ")} homepage check</summary>
+                    <summary>{p.signals.industry_audit.category.replace("_", " ")} website evidence</summary>
                     <p className="management-help">
-                      Homepage observations only. An item not seen here may exist elsewhere on this website.
+                      Homepage-only audit · v{p.signals.industry_audit.version} ·{" "}
+                      {new Date(p.signals.industry_audit.scanned_at).toLocaleDateString("en-US", { timeZone: "UTC" })}.
+                      Not detected does not mean missing from the full site.
+                      A viewport tag is not a mobile usability test.
                     </p>
                     <ul className="scanner-audit-findings">
-                      {p.signals.industry_audit.signals.map((item) => (
-                        <li key={item.key}>
-                          <strong>{item.status === "observed" ? "✓" : "?"} {item.label}</strong>
-                          <small>{item.evidence}</small>
-                        </li>
-                      ))}
+                      {p.signals.industry_audit.signals.map((item) => {
+                        const evidenceUrl = safeIndustryEvidenceUrl(p.website, item.evidence_url);
+                        return (
+                          <li key={item.key}>
+                            <strong>{item.status === "observed" ? "✓" : "?"} {item.label}</strong>
+                            <small>{item.evidence}</small>
+                            {evidenceUrl && (
+                              <a href={evidenceUrl} target="_blank" rel="noopener noreferrer">
+                                Review homepage evidence ↗
+                              </a>
+                            )}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </details>
                 )}
