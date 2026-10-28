@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
@@ -8,6 +9,7 @@ import { buildProspectInsights } from "@/lib/prospect-insights";
 import { safeVerificationLink } from "@/lib/prospect-verification";
 import { compareSavedTerritories } from "@/lib/prospect-territories";
 import { suggestNhsOffers } from "@/lib/prospect-offer-fit";
+import { buildScannerOutcomeSnapshot, type ScannerOutcomeProspect, type ScannerOutcomeLead, type ScannerProjectEvent } from "@/lib/prospect-conversion";
 import {
   NICHES,
   signalBadges,
@@ -70,6 +72,7 @@ export default async function DiscoverPage({
   const replayNiches = (Array.isArray(scan_niches) ? scan_niches : scan_niches ? [scan_niches] : [])
     .filter((name): name is keyof typeof NICHES => Object.hasOwn(NICHES, name));
   const selectedNiches = replayNiches.length ? replayNiches : ["restaurants", "bars", "salons"];
+  await requireAdmin();
   const supabase = await createClient();
   const showArchived = show === "archived";
   const sortByPriority = sort === "priority";
@@ -125,6 +128,30 @@ export default async function DiscoverPage({
     .limit(1000);
   const shortlistReady = !shortlistError && shortlistData &&
     shortlistData.length < 1000 && typeof shortlistCount === "number" && shortlistCount < 1000;
+  // Conversions are linked to actual scanner-created Lead Intelligence rows,
+  // not inferred from listing counts or matching business names.
+  const [allProspectRows, outcomeLeadRows, projectEventRows] = await Promise.all([
+    supabase.from("prospects")
+      .select("id, source_ref, category, status, outreach_status, lead_id", { count: "exact" })
+      .limit(1000),
+    supabase.from("leads")
+      .select("id, status, last_reply_at, consultation_at, metadata", { count: "exact" })
+      .limit(1000),
+    supabase.from("activities")
+      .select("lead_id, project_id, event_type", { count: "exact" })
+      .eq("event_type", "project_created")
+      .limit(1000),
+  ]);
+  const outcomeReady = [allProspectRows, outcomeLeadRows, projectEventRows].every(q =>
+    !q.error && q.data && q.data.length < 1000 && typeof q.count === "number" && q.count < 1000
+  );
+  const outcomeSnapshot = outcomeReady
+    ? buildScannerOutcomeSnapshot(
+        allProspectRows.data as ScannerOutcomeProspect[],
+        outcomeLeadRows.data as ScannerOutcomeLead[],
+        projectEventRows.data as ScannerProjectEvent[],
+      )
+    : null;
   const territoryComparison = shortlistReady ? compareSavedTerritories(shortlistData as SavedChallenger[]) : null;
   const challengerGroups = shortlistReady ? buildChallengerShortlists(
     (shortlistData as SavedChallenger[]).map(p => ({
