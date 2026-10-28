@@ -52,7 +52,7 @@ assert.match(action, /read\.data\.length >= 1000/);
 assert.match(action, /typeof read\.count !== "number" \|\| read\.count >= 1000/);
 assert.match(action, /const identity = checkBusinessIdentity\(candidate/);
 assert.match(action, /identity\.action !== "allow"/);
-assert.match(action, /candidatePool = \[\]/);
+assert.match(action, /candidatePool: typeof analyzed = \[\]/);
 assert.match(action, /updateScanMemory\(oldRecord, b, checkedAt\)/);
 assert.match(action, /scan_memory: memory, scan_territory: territory/);
 assert.match(action, /createScanTerritory\(/);
