@@ -217,6 +217,40 @@
   color: #fff0fa;
 }
 
+/* Shortlist depth selector: quiet inline editorial navigation, no boxes. */
+.scanner-shortlist-depth {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 13px;
+  margin: 17px 0 15px;
+  color: #bdaac0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.scanner-shortlist-depth-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 33px;
+  color: #d2bbcf;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.scanner-shortlist-depth-link[aria-current="page"] {
+  color: #f3c8e2;
+  border-bottom-color: #f0b9db;
+}
+.scanner-shortlist-depth-link:hover,
+.scanner-shortlist-depth-link:focus-visible { color: #fff4fa; }
+.scanner-shortlist-depth-link:focus-visible {
+  outline: 2px solid #e9b8d6;
+  outline-offset: 2px;
+}
+
 /* Challenger ranking: open editorial rows, not another heavy dashboard grid. */
 .scanner-challenger-board {
   margin: 26px 0 34px;
