@@ -81,7 +81,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     ] : [], documents: [],
     prospects: scenario === "empty" ? [] : [
       { id: "synthetic-no-site", business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone", address: "Puyallup, WA", category: "bar", website: null, signals: { has_website: false, reachable: false, social_profiles: [{ platform: "facebook", url: "https://www.facebook.com/cedarandstone/", source: "listing", status: "unconfirmed", evidence: "Public profile unavailable; manual review required" }] }, opportunity_score: 35, outreach_status: "none", status: "new" },
-      { id: "synthetic-rough-site", business_name: "Mira Studio", website: "https://example.com/", signals: { has_website: true, reachable: true, https: false, mobile_viewport: false, builder: "Wix", title_ok: false, description_ok: false }, opportunity_score: 65, outreach_status: "none", status: "new" },
+      { id: "synthetic-rough-site", business_name: "Mira Studio", category: "hairdresser", address: "Tacoma, WA", website: "https://example.com/", signals: { has_website: true, reachable: true, https: false, mobile_viewport: false, builder: "Wix", title_ok: false, description_ok: false }, opportunity_score: 65, outreach_status: "none", status: "new" },
     ],
     revision_rounds: [], change_orders: [], contracts: [], form_submissions: [], form_templates: [], templates: [],
     files: view === "project" && scenario === "populated" ? [{ id: "synthetic-image", filename: "Shared design.png", mime_type: "image/png", visibility: "client", size_bytes: 100, created_at: "2026-10-01T12:00:00Z", object_path: "synthetic.png" }] : [],
