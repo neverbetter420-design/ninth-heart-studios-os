@@ -290,6 +290,14 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
       await expect(challengerBoard).toContainText("Mira Studio");
       await expect(challengerBoard).toContainText("Salons & Barbers");
       await expect(challengerBoard).not.toContainText("Cedar & Stone");
+      // Manually resumable Deep Scan is visible and does not block the
+      // existing quick-scan or unverified social reviews.
+      const deep = page.getByRole("region", { name: "Resumable deep scan jobs" });
+      await expect(deep).toContainText("12/25");
+      await expect(deep.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "12");
+      await expect(deep.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "25");
+      await expect(deep.getByRole("button", { name: "Process next six" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Create resumable deep scan" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
       await expect(page.getByRole("link", { name: "Highest opportunity" })).toBeVisible();
       await expect(unverified.locator(".score")).toHaveText("10");
