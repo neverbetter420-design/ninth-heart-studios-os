@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
-import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
+import { buildChallengerShortlists, parseShortlistDepth, SHORTLIST_DEPTHS, type SavedChallenger } from "@/lib/prospect-shortlists";
 import { deepScanPercent, expiredDeepLease } from "@/lib/deep-scan";
 import { createDeepScan, processDeepScanBatch, changeDeepScanStatus } from "./deep-actions";
 import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
@@ -78,10 +78,10 @@ function scoreTone(score: number | null): string {
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string;
+  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string; shortlist?: string;
     scan_location?: string; scan_radius?: string; scan_niches?: string | string[] }>;
 }) {
-  const { msg, show, sort, category, scan_location, scan_radius, scan_niches } = await searchParams;
+  const { msg, show, sort, category, shortlist, scan_location, scan_radius, scan_niches } = await searchParams;
   // These parameters only prefill the form. The owner must still press Scan.
   const selectedLocation = scan_location && scan_location.trim().length >= 2 && scan_location.length <= 160
     ? scan_location.trim() : "Puyallup, WA";
@@ -94,15 +94,18 @@ export default async function DiscoverPage({
   const supabase = await createClient();
   const showArchived = show === "archived";
   const sortByPriority = sort === "priority";
+  const shortlistDepth = parseShortlistDepth(shortlist);
   const categoryFilter: CategoryFilter = category && Object.prototype.hasOwnProperty.call(CATEGORY_FILTERS, category)
     ? category as CategoryFilter : "all";
   // Keep sort and filters when switching between views, without copying arbitrary query parameters.
-  const viewPath = (changes: { show?: string; sort?: string; category?: string } = {}) => {
+  const viewPath = (changes: { show?: string; sort?: string; category?: string; shortlist?: string } = {}) => {
     const queryParams = new URLSearchParams();
     if ((changes.show ?? (showArchived ? "archived" : "")) === "archived") queryParams.set("show", "archived");
     if ((changes.sort ?? (sortByPriority ? "priority" : "recent")) === "priority") queryParams.set("sort", "priority");
     const type = changes.category ?? categoryFilter;
     if (type !== "all") queryParams.set("category", type);
+    const depth = parseShortlistDepth(changes.shortlist ?? shortlist);
+    if (depth !== 3) queryParams.set("shortlist", String(depth));
     const suffix = queryParams.toString();
     return `/leads/discover${suffix ? `?${suffix}` : ""}`;
   };
@@ -185,7 +188,7 @@ export default async function DiscoverPage({
           ? scoreSignals(p.signals as WebsiteSignals)
           : p.opportunity_score,
     })),
-    3,
+    shortlistDepth,
   ).filter(group => group.top.length > 0) : [];
 
   return (
@@ -361,14 +364,27 @@ export default async function DiscoverPage({
         )}
       </section>
 
-      <section className="scanner-challenger-board" aria-label="Qualified category challengers">
+      <section id="qualified-shortlists" className="scanner-challenger-board" aria-label="Qualified category challengers">
         <div className="section-head">
           <h3>Best-fit shortlist</h3>
           <span className="muted">Evidence first · newest scans can challenge previous prospects</span>
         </div>
+        <nav className="scanner-shortlist-depth" aria-label="Best-fit shortlist length">
+          <span>Show top</span>
+          {SHORTLIST_DEPTHS.map(depth => (
+            <Link key={depth} href={viewPath({ shortlist: String(depth) }) + "#qualified-shortlists"}
+              className="scanner-shortlist-depth-link"
+              aria-current={depth === shortlistDepth ? "page" : undefined}>
+              {depth}
+            </Link>
+          ))}
+          <span>per category · {shortlistDepth === 3 ? "focused view" : "expanded view"}</span>
+        </nav>
         <p className="management-help">
           Ranked from saved, uncontacted prospects in each category using public
           contact evidence (70%) and website opportunity (30%).
+          The selected depth changes only how many results are displayed, not
+          which businesses are saved or automatically contacted.
           This is not a verified sales lead or a guarantee of conversion.
           Existing contacted and promoted leads stay protected.
         </p>
