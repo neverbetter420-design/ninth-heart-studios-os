@@ -107,7 +107,8 @@ export function prioritizeDiscovered(
     else uncategorized.push(p);
   }
   const result: DiscoveredBusiness[] = [];
-  const capped = Math.max(0, Math.min(30, Math.floor(analyzeLimit)));
+  // Deep Scan stores up to 100 candidates but audits only six per owner click.
+  const capped = Math.max(0, Math.min(100, Math.floor(analyzeLimit)));
   while (result.length < capped && groups.some(g => buckets.get(g)!.length)) {
     for (const g of groups) {
       const next = buckets.get(g)!.shift();
