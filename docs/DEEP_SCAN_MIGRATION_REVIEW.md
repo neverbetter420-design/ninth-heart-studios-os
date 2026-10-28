@@ -106,3 +106,36 @@ would need a separately reviewed database transaction/API design.
 The SQL file has changed since the earlier review: migration approval must
 cover its **current complete contents**, not an earlier diff. The old
 25-versus-23 release-preflight blocker stays deliberately active.
+
+
+## 2026-10-28 final cancellation and checkpoint audit (draft PR #48)
+
+Review-only amendments to the **same unapplied Deep Scan migration**:
+- An owner-scoped, security-invoker `cancel_deep_scan_job(uuid)` atomically
+  cancels a **ready** or **paused** queue, or a **running** queue only after
+  its lease expires according to PostgreSQL `now()`. It clears lease fields
+  while changing status; a live lease cannot be preempted by the Cancel button.
+- The paused-state Cancel control now works, and expired-running jobs offer
+  **Retry expired batch** or **Cancel**, rather than forcing another scan request.
+- `pause_deep_scan_batch` now rejects expired tokens even before a new
+  worker reclaims the lease. The Next.js server reports separately whether
+  an error-triggered pause was actually acknowledged by PostgreSQL.
+- `finish_deep_scan_batch` now requires exact accounting:
+  `created + refreshed + held + conflicts = processed`. Incomplete or
+  inconsistent counters do not advance the saved position.
+- Added disposable local Supabase Auth/PostgREST tests for anonymous and
+  non-admin cancellation denial, ready/paused cancellation, active-worker
+  denial, expired-worker cancellation, stale pause/renewal denial, and
+  incorrect accounting rejection. Synthetic fixtures only; never production.
+
+**These edits change the SQL proposal.** Prior isolated test passes are for
+earlier migration content, so the latest PR #48 commit must independently
+pass the fresh disposable replay. As before, the separate source-inventory
+preflight remains deliberately RED (24 applied version files + this one
+unapproved migration versus the old guarded 23-file baseline). No migration
+was applied to the hosted environment.
+
+Cancellation stops future processing of the job; it does **not** remove
+prospects that were already saved in completed batches. The already-recorded
+exactly-once/checkpoint limitation also remains, requiring separate design
+review if fully transactional batch writes become essential.
