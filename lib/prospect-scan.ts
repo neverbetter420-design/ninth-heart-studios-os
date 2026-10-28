@@ -10,8 +10,8 @@
 //
 // Nothing here sends email or messages. Drafts are for her review only.
 
-import { categoryBucket } from "./prospect-curation";
-import { auditIndustryHomepage, type IndustryAudit } from "./prospect-industry-audit";
+import { categoryBucket } from "./prospect-curation.ts";
+import { auditIndustryHomepage, type IndustryAudit } from "./prospect-industry-audit.ts";
 
 export type NicheKey =
   | "restaurants"
