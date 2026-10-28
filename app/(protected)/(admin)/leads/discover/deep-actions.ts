@@ -9,10 +9,11 @@ import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { discoverBusinesses, geocode, NICHES, analyzeBusinessPresence,
   scoreSignals, type NicheKey, type DiscoveredBusiness } from "@/lib/prospect-scan";
+import { validDeepSize, nextDeepScanBatch } from "@/lib/deep-scan";
 import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate,
   rateProspect, matchesExistingLead, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
 
-const BATCH_SIZE = 6;
+const BATCH_SIZE = 6; // must match DB finish_deep_scan_batch upper bound
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const redirectWithMessage = (message: string): never =>
   redirect("/leads/discover?msg=" + encodeURIComponent(message));
@@ -57,7 +58,7 @@ export async function createDeepScan(formData: FormData): Promise<never> {
   const niches = [...new Set(formData.getAll("niches").map(String))]
     .filter((n): n is NicheKey => Object.prototype.hasOwnProperty.call(NICHES, n));
   if (location.length < 2 || location.length > 160 || ![5, 10, 15, 25].includes(radiusMi) ||
-    ![12, 25, 50, 100].includes(requested) || niches.length === 0) {
+    !validDeepSize(requested) || niches.length === 0) {
     redirectWithMessage("Choose a valid location, radius, scan size and at least one category.");
   }
 
@@ -101,7 +102,7 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
     redirectWithMessage("Scan queue is invalid. No processing was started.");
   }
 
-  const batch = job.candidates.slice(job.position, job.position + BATCH_SIZE);
+  const batch = nextDeepScanBatch(job.candidates, job.position);
   let created = 0;
   let refreshed = 0;
   let conflicts = 0;
