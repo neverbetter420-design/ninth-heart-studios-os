@@ -243,7 +243,7 @@ export default async function DiscoverPage({
       <section className="scanner-deep-jobs" aria-label="Resumable deep scan jobs">
         <div className="section-head">
           <h3>Deep Scan progress</h3>
-          <span className="muted">Six verified website/social checks per batch</span>
+          <span className="muted">Six website/social checks per batch</span>
         </div>
         {deepError ? (
           <p className="management-notice" role="status">
