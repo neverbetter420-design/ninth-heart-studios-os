@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
+import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
 import {
   NICHES,
   signalBadges,
@@ -97,6 +98,30 @@ export default async function DiscoverPage({
     prospects.sort((a, b) => (b.opportunity_score ?? -1) - (a.opportunity_score ?? -1));
   }
 
+  // Rank the full saved candidate pool, not only the 60 shown in the current
+  // category/filter view. Fail closed when the dataset exceeds this page's
+  // bounded read so rankings never masquerade as exhaustive.
+  const { data: shortlistData, count: shortlistCount, error: shortlistError } = await supabase
+    .from("prospects")
+    .select(
+      "id, source_ref, business_name, category, address, phone, website, signals, opportunity_score, outreach_draft, outreach_status, status, scanned_at",
+      { count: "exact" },
+    )
+    .eq("status", "new")
+    .limit(1000);
+  const shortlistReady = !shortlistError && shortlistData &&
+    shortlistData.length < 1000 && typeof shortlistCount === "number" && shortlistCount < 1000;
+  const challengerGroups = shortlistReady ? buildChallengerShortlists(
+    (shortlistData as SavedChallenger[]).map(p => ({
+      ...p,
+      opportunity_score:
+        typeof p.signals?.has_website === "boolean"
+          ? scoreSignals(p.signals as WebsiteSignals)
+          : p.opportunity_score,
+    })),
+    3,
+  ).filter(group => group.top.length > 0) : [];
+
   return (
     <div className="content-wrap management-page scanner-page scanner-workroom">
       <header className="page-header management-heading">
@@ -170,6 +195,62 @@ export default async function DiscoverPage({
             {" "}(ODbL). Scans are on-demand, not continuous.
           </p>
         </form>
+      </section>
+
+      <section className="scanner-challenger-board" aria-label="Qualified category challengers">
+        <div className="section-head">
+          <h3>Best-fit shortlist</h3>
+          <span className="muted">Evidence first · newest scans can challenge previous prospects</span>
+        </div>
+        <p className="management-help">
+          Ranked from saved, uncontacted prospects in each category using public
+          contact evidence (70%) and website opportunity (30%).
+          This is not a verified sales lead or a guarantee of conversion.
+          Existing contacted and promoted leads stay protected.
+        </p>
+        {!shortlistReady ? (
+          <p className="management-notice" role="status">
+            The full saved-prospect shortlist is unavailable or exceeds the
+            current review limit. No incomplete rankings are displayed.
+          </p>
+        ) : challengerGroups.length === 0 ? (
+          <p className="management-help">
+            No contactable, qualified challengers yet. The scanner will hold back
+            low-confidence listings instead of filling this section with guesses.
+          </p>
+        ) : (
+          <div className="scanner-challenger-columns">
+            {challengerGroups.map(group => (
+              <div key={group.category} className="scanner-challenger-column">
+                <div className="scanner-challenger-heading">
+                  <h4>{NICHES[group.category].label}</h4>
+                  <small>{group.qualified} qualified from {group.considered} saved candidates</small>
+                </div>
+                <ol className="scanner-challenger-rows">
+                  {group.top.map(candidate => (
+                    <li key={candidate.id} className="scanner-challenger-row">
+                      <span className="scanner-challenger-rank" aria-label={`Rank ${candidate.rank}`}>
+                        {String(candidate.rank).padStart(2, "0")}
+                      </span>
+                      <div className="scanner-challenger-copy">
+                        <strong>{candidate.business_name}</strong>
+                        <small>
+                          Reliability {candidate.reliability} · Opportunity {candidate.opportunity}
+                          {candidate.has_phone ? " · Phone listed" : ""}
+                          {candidate.has_reachable_site ? " · Site reachable" : ""}
+                          {candidate.has_matched_social ? " · Social matched" : ""}
+                        </small>
+                      </div>
+                      <span className="scanner-challenger-quality" aria-label={`Combined fit ${candidate.quality} of 100`}>
+                        {candidate.quality}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <section aria-label="Prospects">
