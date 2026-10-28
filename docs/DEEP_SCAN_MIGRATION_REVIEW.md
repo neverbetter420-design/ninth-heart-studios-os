@@ -1,6 +1,6 @@
 # Deep Scan database migration review
 
-**Review-only, not applied.** Migration: `supabase/migrations/20261028090000_deep_scan_jobs.sql`.
+**Owner-approved for source merge on 2026-10-28; not applied to production and not deployed.** Migration: `supabase/migrations/20261028090000_deep_scan_jobs.sql`. Approved exact SQL Git blob: `997b2ffbb0f36223dd72a781c13f0aca24010fd8`. The guarded preflight independently verifies this full-file digest; any edit to the SQL requires another explicit review before release.
 
 ## Why it is needed
 The existing scanner runs up to 12 business checks in one request. Longer scans need persisted candidate queues, position counters and an atomic lease so repeated taps or interrupted Cloudflare requests do not process the same segment concurrently. This table is a private, admin-owned queue for **on-demand** work only; it creates no timers, no scheduled jobs, no AI API calls and no new outward messages.
@@ -9,7 +9,7 @@ The existing scanner runs up to 12 business checks in one request. Longer scans 
 - **Live read-only inventory verified on 2026-10-28:** production records **24 applied migration versions**, including the older client-safety migration `20261017030000` and Lead Search queue migration `20261020063055`. Both stored SQL statements were checked byte-for-byte against the corresponding source files and match exactly.
 - The older guard in `scripts/verify-release-preflight.mjs` still expects just 22 baseline versions plus one formerly proposed security migration (23 source files). Its assumptions are **stale**; they must not be treated as the production truth.
 - The Lead Search queue SQL was missing from the current scanner stack because the original PR #20 remains unmerged although the migration is already applied. The exact 4,201-character SQL has now been **restored in PR #46 source only**. Do not separately merge PR #20 without reviewing its additional code.
-- **Current source includes 25 SQL files: 24 previously applied migration sources + 1 proposed Deep Scan migration (`20261028090000`).** The release-preflight guard is deliberately still red. Do not bump its expected count, suppress this check, or apply SQL until the owner reviews and approves the **exact 24-version source inventory and the new proposed migration**.
+- **The 24-version production inventory and one additional Deep Scan SQL proposal received explicit owner approval for source merge on 2026-10-28.** The former 23-file preflight baseline has been replaced by the exact 24-applied-plus-one-proposed inventory and an immutable SQL blob check. Passing that source guard does **not** mean the new migration is installed or authorize an app deployment.
 - Production currently has **no `public.deep_scan_jobs` table** and no applied migration version `20261028090000`. No live schema mutation occurred in this review.
 - Apply only via the reviewed production migration process, after auth/permission checks; do not apply as a side effect of preview.
 - `public.deep_scan_jobs` does **not** currently exist in production, and the UI intentionally disables creation until the table is available.
@@ -139,3 +139,10 @@ Cancellation stops future processing of the job; it does **not** remove
 prospects that were already saved in completed batches. The already-recorded
 exactly-once/checkpoint limitation also remains, requiring separate design
 review if fully transactional batch writes become essential.
+
+
+## Owner release authorization (2026-10-28)
+
+Owner explicitly approved the exact Deep Scan migration SQL and updated inventory, and authorized merging after successful CI. The final corrected SQL is pinned by blob SHA `997b2ffbb0f36223dd72a781c13f0aca24010fd8`. The separate no-unreviewed-migrations guard is preserved, with source baseline verified against 24 applied live migration versions. The SQL syntactic dollar-quote repair is included in this approved candidate and must pass disposable Supabase replay before any merge.
+
+**Boundaries:** this authorizes a reviewed GitHub source merge only. It does not apply `20261028090000` to hosted Supabase, publish Cloudflare Workers, contact prospects, or bypass any failing CI. Hosted schema deployment must be a separate controlled release with its own explicit action and verification.
