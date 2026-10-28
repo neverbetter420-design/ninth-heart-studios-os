@@ -100,7 +100,9 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
     await expect(preview.locator(".scanner-glass-nav .scanner-glass-tab")).toHaveCount(4);
     await expect(preview.locator(target)).toHaveCount(1);
     await expect(preview.locator('.scanner-glass-tab[aria-current="page"]')).toHaveCount(1);
-    await expect(preview.locator('.scanner-glass-tab[aria-current="page"]')).toHaveAttribute("href", /./);
+    // Offline previews deliberately disable navigation actions; switching is
+    // exercised with the synthetic gallery selector instead of real links.
+    await expect(preview.locator('.scanner-glass-tab[aria-current="page"]')).toHaveAttribute("aria-disabled", "true");
     if (selected !== "scan") await expect(preview.locator(".scanner-controls")).toHaveCount(0);
     if (selected !== "best") await expect(preview.locator(".scanner-challenger-board")).toHaveCount(0);
     if (selected !== "prospects") await expect(preview.locator(".scanner-glass-prospects")).toHaveCount(0);
