@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 
 // Real PostgREST/RLS lease tests against the existing disposable Supabase CI
 // instance, never production. Imported ONLY by verify-phase3-supabase-local.mjs.
-export async function verifyDeepScanLeaseLocal({ admin, clientA, clientB, service, adminId }) {
+export async function verifyDeepScanLeaseLocal({ admin, clientA, clientB, anonymous, adminId }) {
   if (process.env.CI !== "true" ||
       !/^http:\/\/(localhost|127\.0\.0\.1):54321\/?$/.test(process.env.NHS_LOCAL_SUPABASE_URL ?? "") ||
       process.env.SUPABASE_ACCESS_TOKEN || process.env.SUPABASE_DB_PASSWORD) {
@@ -31,8 +31,8 @@ export async function verifyDeepScanLeaseLocal({ admin, clientA, clientB, servic
   assert.equal(created[0].status, "ready");
   assert.equal(created[0].created_by, adminId);
 
-  const anon = await service.auth.getSession(); // no special privileges used below
-  void anon;
+  await denied(await anonymous.from("deep_scan_jobs").select("id").eq("id", id), "Anonymous read RLS");
+  await denied(await anonymous.rpc("claim_deep_scan_batch", { p_id: id }), "Anonymous RPC claim");
   await denied(await clientA.from("deep_scan_jobs").select("id").eq("id", id), "Client A RLS");
   await denied(await clientB.from("deep_scan_jobs").update({ status: "cancelled" })
     .eq("id", id).select("id"), "Client B update RLS");
