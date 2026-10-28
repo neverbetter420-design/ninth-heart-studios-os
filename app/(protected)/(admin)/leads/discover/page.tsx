@@ -311,7 +311,7 @@ export default async function DiscoverPage({
                     <div>
                       <strong>{job.area_label}</strong>
                       <p className="management-help">
-                        {job.status} · {total} candidates found of {job.requested} requested
+                        {job.status === "running" && expired ? "Expired · retry or cancel" : job.status} · {total} candidates found of {job.requested} requested
                       </p>
                     </div>
                     <span className="scanner-deep-job-count">{processed}/{total}</span>
@@ -349,7 +349,7 @@ export default async function DiscoverPage({
                         <button className="mini-button" type="submit">Resume</button>
                       </form>
                     )}
-                    {["ready", "paused"].includes(job.status) && (
+                    {(["ready", "paused"].includes(job.status) || (job.status === "running" && expired)) && (
                       <form action={changeDeepScanStatus}>
                         <input type="hidden" name="job_id" value={job.id} />
                         <input type="hidden" name="operation" value="cancel" />
