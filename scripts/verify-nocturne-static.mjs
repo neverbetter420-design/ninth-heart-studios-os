@@ -25,8 +25,11 @@ for(const role of ["admin","client"]){
     frames.push(role+"/"+name);
   }
 }
-assert.equal(frames.length,30);
+assert.equal(frames.length,33);
 assert.ok(frames.includes("admin/home.html")&&frames.includes("client/home.html"));
+for (const workroom of ["scanner","scanner-best","scanner-prospects","scanner-insights"]) {
+  assert.ok(frames.includes("admin/"+workroom+".html"),"Missing scanner workspace preview: "+workroom);
+}
 const index=readFileSync(join(root,"index.html"),"utf8");
 assert.ok(index.includes("synthetic data"));
 assert.ok(index.includes('<main id="preview" aria-label="NHS synthetic screen preview">'), "Default screen must be visible in HTML");
@@ -34,7 +37,7 @@ assert.ok(!/<iframe\b/i.test(index), "Preview must not contain a frame");
 assert.ok(index.includes("surface.replaceChildren(selected.content.cloneNode(true))"),"Screen switching must clone templates in-page");
 assert.ok(index.includes("<style>"+readFileSync(join(root,"visual.css"),"utf8")+"</style>"), "CSS must be embedded in index");
 const templates=[...index.matchAll(/<template data-nhs-screen="([^"]+)">([\s\S]*?)<\/template>/g)];
-assert.equal(templates.length,frames.length,"Exactly 30 embedded templates expected");
+assert.equal(templates.length,frames.length,"Exactly 33 embedded templates expected");
 assert.deepEqual(templates.map(t=>t[1]).sort(),frames.map(n=>n.slice(0,-5)).sort());
 for(const [,key,markup] of templates){
  assert.ok(markup.includes("app-shell"),"Missing rendered app shell in "+key);
@@ -65,4 +68,4 @@ assert.ok(headers.includes("form-action 'none'"));
 assert.ok(headers.includes("frame-ancestors 'self'"));
 assert.equal(readdirSync(root).sort().join(","),["_headers","frames","index.html","seven-rooms.html","visual.css","OPEN_PREVIEW_FIRST.txt"].sort().join(","));
 assert.ok(statSync(join(root,"index.html")).size>100000, "Single-file preview must contain rendered screens and CSS");
-console.log("NHS HTML visual preview verified: 30 actual source-rendered synthetic screens, no remote calls.");
+console.log("NHS HTML visual preview verified: 33 actual source-rendered synthetic screens, no remote calls.");
