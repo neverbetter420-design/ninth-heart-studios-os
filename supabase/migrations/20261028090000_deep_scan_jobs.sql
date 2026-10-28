@@ -124,7 +124,7 @@ as $$
     and (select private.is_admin()) and j.status = 'running'
     and j.lease_token = p_lease and j.lease_until > now()
   returning j.*;
-$;
+$$;
 
 -- Owner cancellation is an atomic job-row transition. A paused or ready
 -- queue can be cancelled immediately, while a still-running queue can only
@@ -134,7 +134,7 @@ create or replace function public.cancel_deep_scan_job(p_id uuid)
 returns setof public.deep_scan_jobs
 language sql volatile security invoker
 set search_path = ''
-as $
+as $$
   update public.deep_scan_jobs j
   set status = 'cancelled', lease_token = null, lease_until = null,
       last_error = null, updated_at = now()
@@ -144,7 +144,7 @@ as $
     and (j.status in ('ready', 'paused')
       or (j.status = 'running' and j.lease_until < now()))
   returning j.*;
-$;
+$$;
 
 revoke all on function public.claim_deep_scan_batch(uuid) from public, anon;
 revoke all on function public.renew_deep_scan_batch(uuid,uuid) from public, anon;
