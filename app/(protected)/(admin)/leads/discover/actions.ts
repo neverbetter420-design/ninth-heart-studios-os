@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
 import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
 import { checkBusinessIdentity, type ClientIdentity } from "@/lib/prospect-identity";
+import { updateScanMemory } from "@/lib/prospect-scan-memory";
 import {
   NICHES,
   geocode,
@@ -63,7 +64,7 @@ export async function runScan(formData: FormData): Promise<never> {
   // Fail closed if we cannot read saved prospects. Otherwise a database
   // outage could be mistaken for an empty category and accept poor leads.
   const { data: history, error: historyError } = await supabase.from("prospects")
-    .select("id, source_ref, business_name, category, address, phone, website, signals, opportunity_score, status, outreach_status, outreach_draft")
+    .select("id, source_ref, business_name, category, address, phone, website, signals, scanned_at, opportunity_score, status, outreach_status, outreach_draft")
     .limit(1000);
   if (historyError || !history || history.length >= 1000) {
     redirect("/leads/discover?msg=" + encodeURIComponent(
@@ -156,6 +157,9 @@ export async function runScan(formData: FormData): Promise<never> {
     if (legacyMatches.length > 1 && !candidate.existingId) { skipped++; continue; }
     if (legacy && candidate.quality < rateProspect(legacy).quality) { skipped++; continue; }
 
+    const checkedAt = new Date().toISOString();
+    const existingRecord = existingId ? previous.find(item => item.id === existingId) ?? null : null;
+    const memory = updateScanMemory(existingRecord, b, checkedAt);
     const row = {
       source_ref: b.source_ref,
       business_name: b.business_name,
@@ -165,6 +169,7 @@ export async function runScan(formData: FormData): Promise<never> {
       website: b.website,
       signals: {
         ...b.signals,
+        scan_memory: memory,
         curation: {
           reliability: candidate.reliability,
           opportunity: candidate.opportunity,
@@ -174,8 +179,8 @@ export async function runScan(formData: FormData): Promise<never> {
         },
       },
       opportunity_score: b.opportunity_score,
-      scanned_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      scanned_at: checkedAt,
+      updated_at: checkedAt,
     };
     const outcome = existingId
       ? await supabase.from("prospects").update(row)
@@ -202,21 +207,23 @@ export async function analyzeProspect(id: string) {
   const { user } = await requireAdmin();
   void user;
   const supabase = await createClient();
-  const { data: p } = await supabase.from("prospects").select("id, source_ref, business_name, category, website, address, phone, signals").eq("id", id).single();
+  const { data: p } = await supabase.from("prospects").select("id, source_ref, business_name, category, website, address, phone, signals, scanned_at").eq("id", id).single();
   if (!p) return;
   const refreshed = await refreshSocialProfiles(p.source_ref);
   const { signals, website } = await analyzeBusinessPresence({
     source_ref: p.source_ref, name: p.business_name, category: p.category, website: p.website, address: p.address, phone: p.phone,
     social_profiles: [...refreshed, ...(p.signals?.social_profiles ?? [])],
   });
+  const checkedAt = new Date().toISOString();
+  const memory = updateScanMemory(p, { website, phone: p.phone, signals }, checkedAt);
   await supabase
     .from("prospects")
     .update({
-      signals,
+      signals: { ...signals, scan_memory: memory },
       website,
       opportunity_score: scoreSignals(signals),
-      scanned_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      scanned_at: checkedAt,
+      updated_at: checkedAt,
     })
     .eq("id", id);
   revalidatePath("/leads/discover");
