@@ -117,8 +117,9 @@ export default async function OpportunitiesPage({
           ))}
         </div>
         <p className="management-help">
-          Fiverr work arrives through its seller matches and briefs. Upwork and
-          Freelancer need authorized API access before automated searching.
+          Fiverr opportunities are account-specific seller matches, not a
+          public jobs feed. Upwork and Freelancer require authorized API access
+          before automated searching.
           All bids, messages and offers stay manual and owner-approved.
         </p>
       </section>
