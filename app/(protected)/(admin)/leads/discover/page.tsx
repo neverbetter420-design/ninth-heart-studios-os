@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
+import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
 import {
   NICHES,
   signalBadges,
