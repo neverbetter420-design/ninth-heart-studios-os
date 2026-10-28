@@ -6,6 +6,11 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
+import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
+import { checkBusinessIdentity, type ClientIdentity } from "@/lib/prospect-identity";
+import { updateScanMemory } from "@/lib/prospect-scan-memory";
+import { createScanTerritory } from "@/lib/prospect-territories";
+import { suggestNhsOffers } from "@/lib/prospect-offer-fit";
 import {
   NICHES,
   geocode,
@@ -17,14 +22,16 @@ import {
   type NicheKey,
 } from "@/lib/prospect-scan";
 
-const SCAN_CAP = 12; // businesses analyzed per scan run (keeps runs fast)
+const SCAN_CAP = 12; // bounded website/social analysis; search a much larger candidate pool
+const DISCOVERY_POOL = 72;
 
-/** Run a discovery scan: geocode -> Overpass -> analyze -> upsert prospects. */
+/** Run a discovery scan: geocode -> Geoapify/Overpass -> analyze -> save prospects. */
 export async function runScan(formData: FormData): Promise<never> {
   await requireAdmin();
   const supabase = await createClient();
 
   const location = String(formData.get("location") ?? "").trim() || "Puyallup, WA";
+  if (location.length > 160) redirect("/leads/discover?msg=" + encodeURIComponent("Search location is too long."));
   const radiusValue = Number(formData.get("radius_mi") ?? 10);
   const radiusMi = Number.isFinite(radiusValue) ? Math.max(1, Math.min(50, radiusValue)) : 10;
   const radiusM = Math.round(radiusMi * 1609.34);
@@ -52,58 +59,152 @@ export async function runScan(formData: FormData): Promise<never> {
   }
   let found;
   try {
-    found = await discoverBusinesses(geo.lat, geo.lng, radiusM, niches, SCAN_CAP * 2, geoapifyKey);
+    found = await discoverBusinesses(geo.lat, geo.lng, radiusM, niches, DISCOVERY_POOL, geoapifyKey);
   } catch (e) {
     redirect("/leads/discover?msg=" + encodeURIComponent(e instanceof Error ? e.message : "Discovery failed."));
   }
 
-  let inserted = 0;
+  // Fail closed if we cannot read saved prospects. Otherwise a database
+  // outage could be mistaken for an empty category and accept poor leads.
+  const { data: history, error: historyError } = await supabase.from("prospects")
+    .select("id, source_ref, business_name, category, address, phone, website, signals, scanned_at, opportunity_score, status, outreach_status, outreach_draft")
+    .limit(1000);
+  if (historyError || !history || history.length >= 1000) {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      "Could not safely compare existing prospects. No new prospects saved."
+    ));
+  }
+  const previous = history as Array<ComparableProspect & { id: string }>;
+  // A lead entered manually or promoted from another source should not be
+  // rediscovered as a fresh prospect. Compare names AND website/phone, never
+  // use the business name as the sole deduplication key.
+  const { data: leadRows, error: leadsError } = await supabase.from("leads")
+    .select("business_name, website, phone, metadata").limit(1000);
+  if (leadsError || !leadRows || leadRows.length >= 1000) {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      "Could not safely compare existing leads. No new prospects saved."
+    ));
+  }
+  const existingLeads = leadRows as unknown as ExistingLead[];
+  // Client identity wins over scanner opportunity. Refuse to assume an empty
+  // client list if this read fails or the bounded result may be incomplete.
+  const { data: clientRows, error: clientsError } = await supabase.from("clients")
+    .select("id, name, website, status").limit(1000);
+  if (clientsError || !clientRows || clientRows.length >= 1000) {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      "Could not safely compare existing clients. No new prospects saved."
+    ));
+  }
+  const existingClients = clientRows as ClientIdentity[];
+
+  // Rotate through the chosen niches and inspect the listings with the most
+  // useful public contact clues first. A listing alone isn't "verified".
+  const toAnalyze = prioritizeDiscovered(found, niches, SCAN_CAP);
+  const analyzed: Array<ComparableProspect & { source_ref: string }> = [];
+  for (let i = 0; i < toAnalyze.length; i += 3) {
+    const checked = await Promise.all(toAnalyze.slice(i, i + 3).map(async (b) => {
+      try {
+        const { signals, website } = await analyzeBusinessPresence(b);
+        return {
+          source_ref: b.source_ref,
+          business_name: b.name,
+          category: b.category,
+          address: b.address,
+          phone: b.phone,
+          website,
+          signals,
+          opportunity_score: scoreSignals(signals),
+          status: "new",
+          outreach_status: "none",
+        };
+      } catch {
+        return null; // An unreachable site or profile must not halt the scan.
+      }
+    }));
+    for (const prospect of checked) if (prospect) analyzed.push(prospect);
+  }
+
+  // Prefer contactable businesses, comparing both evidence reliability and
+  // redesign opportunity against existing records in the same niche.
+  const candidatePool: typeof analyzed = [];
+  const candidateIdentityHistory: Array<ComparableProspect & { id: string }> = [];
+  let existingRelationships = 0;
+  let manualReview = 0;
+  // Compare against all saved records AND other candidates in this scan.
+  // Prefer better-evidenced candidates when two listings appear to overlap.
+  for (const candidate of [...analyzed].sort((a, b) =>
+    rateProspect(b).quality - rateProspect(a).quality
+  )) {
+    const identity = checkBusinessIdentity(candidate,
+      [...previous, ...candidateIdentityHistory], existingLeads, existingClients);
+    if (identity.action === "protect") { existingRelationships++; continue; }
+    if (identity.action === "review") { manualReview++; continue; }
+    candidatePool.push(candidate);
+    candidateIdentityHistory.push({ ...candidate, id: "scan-candidate-" + candidateIdentityHistory.length });
+  }
+  const selected = curateProspects(candidatePool, previous, SCAN_CAP);
+  let created = 0;
+  let refreshed = 0;
   let skipped = 0;
-  for (let i = 0; i < Math.min(found.length, SCAN_CAP); i += 3) {
-    await Promise.all(found.slice(i, i + 3).map(async (b) => {
-    const { signals, website } = await analyzeBusinessPresence(b);
-    const score = scoreSignals(signals);
+  for (const candidate of selected.winners) {
+    const b = candidate.prospect;
+    // Only backfill an unindexed legacy record with a name PLUS exact website
+    // or address match, and never modify a prospect with outreach history.
+    const legacyMatches = previous.filter(p =>
+      !p.source_ref && p.business_name === b.business_name &&
+      ((b.website && p.website === b.website) || (b.address && p.address === b.address))
+    );
+    if (legacyMatches.some(protectedFromScannerUpdate)) { skipped++; continue; }
+    const legacy = legacyMatches.length === 1 ? legacyMatches[0] : null;
+    const existingId = candidate.existingId ?? legacy?.id ?? null;
+    if (legacyMatches.length > 1 && !candidate.existingId) { skipped++; continue; }
+    if (legacy && candidate.quality < rateProspect(legacy).quality) { skipped++; continue; }
+
+    const checkedAt = new Date().toISOString();
+    const existingRecord = existingId ? previous.find(item => item.id === existingId) ?? null : null;
+    const memory = updateScanMemory(existingRecord, b, checkedAt);
+    const scanTerritory = createScanTerritory(location, areaLabel, radiusMi, niches, checkedAt);
     const row = {
       source_ref: b.source_ref,
-      business_name: b.name,
+      business_name: b.business_name,
       category: b.category,
       address: b.address,
       phone: b.phone,
-      website,
-      signals,
-      opportunity_score: score,
-      scanned_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      website: b.website,
+      signals: {
+        ...b.signals,
+        scan_memory: memory,
+        scan_territory: scanTerritory,
+        curation: {
+          reliability: candidate.reliability,
+          opportunity: candidate.opportunity,
+          quality: candidate.quality,
+          compared_to: candidate.compared,
+          summary: "Selected using public contact evidence and site opportunity; review before outreach",
+        },
+      },
+      opportunity_score: b.opportunity_score,
+      scanned_at: checkedAt,
+      updated_at: checkedAt,
     };
-    // Prefer stable OSM element identity, never overwrite a different
-    // location merely because two businesses share a name.
-    const { data: known } = await supabase.from("prospects")
-      .select("id").eq("source_ref", b.source_ref).maybeSingle();
-    let existingId: string | null = known?.id ?? null;
-
-    // Backfill legacy pre-identity records only with an additional exact
-    // website or street-address match; name by itself is insufficient.
-    if (!existingId && (b.address || b.website)) {
-      const { data: candidates } = await supabase.from("prospects")
-        .select("id, address, website").eq("business_name", b.name).is("source_ref", null).limit(20);
-      const matching = (candidates ?? []).filter((p) =>
-        Boolean((b.website && p.website === b.website) || (b.address && p.address === b.address))
-      );
-      if (matching.length === 1) existingId = matching[0].id;
-    }
-    const { error } = existingId
-      ? await supabase.from("prospects").update(row).eq("id", existingId)
-      : await supabase.from("prospects").insert(row);
-    if (error) skipped++;
-    else inserted++;
-    }));
+    const outcome = existingId
+      ? await supabase.from("prospects").update(row)
+          .eq("id", existingId).eq("status", "new").eq("outreach_status", "none")
+          .select("id")
+      : await supabase.from("prospects").insert(row).select("id");
+    if (outcome.error || outcome.data?.length !== 1) skipped++;
+    else if (existingId) refreshed++;
+    else created++;
   }
 
   revalidatePath("/leads/discover");
-  redirect(
-    "/leads/discover?msg=" +
-      encodeURIComponent(`Scanned ${areaLabel}: ${inserted} prospects saved${skipped ? `, ${skipped} skipped` : ""}.`)
-  );
+  const message =
+    `Scanned ${areaLabel}: ${created} stronger new prospect${created === 1 ? "" : "s"} saved, ${refreshed} existing refreshed, ${selected.rejected} lower-confidence candidates held back` +
+    (selected.protectedCount ? `, ${selected.protectedCount} outreach-protected` : "") +
+    (existingRelationships ? `, ${existingRelationships} existing relationships protected` : "") +
+    (manualReview ? `, ${manualReview} possible duplicates withheld for manual review (not saved)` : "") +
+    (skipped ? `, ${skipped} save conflicts` : "") + ".";
+  redirect("/leads/discover?msg=" + encodeURIComponent(message) + "&sort=recent");
 }
 
 /** Re-run website analysis for one prospect. */
@@ -111,21 +212,27 @@ export async function analyzeProspect(id: string) {
   const { user } = await requireAdmin();
   void user;
   const supabase = await createClient();
-  const { data: p } = await supabase.from("prospects").select("id, source_ref, business_name, website, address, phone, signals").eq("id", id).single();
+  const { data: p } = await supabase.from("prospects").select("id, source_ref, business_name, category, website, address, phone, signals, scanned_at").eq("id", id).single();
   if (!p) return;
   const refreshed = await refreshSocialProfiles(p.source_ref);
   const { signals, website } = await analyzeBusinessPresence({
-    name: p.business_name, website: p.website, address: p.address, phone: p.phone,
+    source_ref: p.source_ref, name: p.business_name, category: p.category, website: p.website, address: p.address, phone: p.phone,
     social_profiles: [...refreshed, ...(p.signals?.social_profiles ?? [])],
   });
+  const checkedAt = new Date().toISOString();
+  const memory = updateScanMemory(p, { website, phone: p.phone, signals }, checkedAt);
   await supabase
     .from("prospects")
     .update({
-      signals,
+      signals: {
+        ...signals,
+        scan_memory: memory,
+        ...(p.signals?.scan_territory ? { scan_territory: p.signals.scan_territory } : {}),
+      },
       website,
       opportunity_score: scoreSignals(signals),
-      scanned_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      scanned_at: checkedAt,
+      updated_at: checkedAt,
     })
     .eq("id", id);
   revalidatePath("/leads/discover");
@@ -138,14 +245,15 @@ export async function generateDraft(id: string) {
   const supabase = await createClient();
   const { data: p } = await supabase
     .from("prospects")
-    .select("id, business_name, category, website, signals")
+    .select("id, source_ref, business_name, category, address, phone, website, signals, status, outreach_status, outreach_draft")
     .eq("id", id)
     .single();
-  if (!p) return;
+  if (!p || p.status !== "new" || p.outreach_status === "sent") return;
   // Area label: best-effort from address, fallback generic.
   const { data: addr } = await supabase.from("prospects").select("address").eq("id", id).single();
   const areaLabel =
     (addr?.address ?? "").split(",").slice(-2).join(",").trim() || "the area";
+  const suggestedOffer = suggestNhsOffers(p.category, p.website, p.signals, 1)[0];
   const { subject, body } = draftOutreach(
     {
       business_name: p.business_name,
@@ -155,7 +263,8 @@ export async function generateDraft(id: string) {
       website: p.website,
       areaLabel,
     },
-    p.signals
+    p.signals,
+    suggestedOffer.basis === "homepage_review" ? suggestedOffer.draft_angle : null,
   );
   await supabase
     .from("prospects")
@@ -164,7 +273,9 @@ export async function generateDraft(id: string) {
       outreach_status: "drafted",
       updated_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("status", "new")
+    .neq("outreach_status", "sent");
   revalidatePath("/leads/discover");
 }
 
@@ -203,6 +314,32 @@ export async function promoteProspect(id: string) {
   const supabase = await createClient();
   const { data: p } = await supabase.from("prospects").select("*").eq("id", id).single();
   if (!p || p.status === "promoted" || p.lead_id) return;
+
+  // Promotion is another entry into Lead Intelligence. Previously saved
+  // prospects must receive the same client/lead duplicate protection as scans.
+  const [clientCheck, leadCheck, prospectCheck] = await Promise.all([
+    supabase.from("clients").select("id, name, website, status").limit(1000),
+    supabase.from("leads").select("business_name, phone, website, metadata").limit(1000),
+    supabase.from("prospects")
+      .select("id, source_ref, business_name, category, website, phone, address, status, outreach_status, outreach_draft")
+      .limit(1000),
+  ]);
+  if (clientCheck.error || leadCheck.error || prospectCheck.error ||
+      !clientCheck.data || !leadCheck.data || !prospectCheck.data ||
+      clientCheck.data.length >= 1000 || leadCheck.data.length >= 1000 || prospectCheck.data.length >= 1000) {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      "Cannot safely check existing relationships. No lead was created."
+    ));
+  }
+  const identity = checkBusinessIdentity(p,
+    (prospectCheck.data as Array<ComparableProspect & { id: string }>).filter(other => other.id !== p.id),
+    leadCheck.data as unknown as ExistingLead[], clientCheck.data as ClientIdentity[]);
+  if (identity.action !== "allow") {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      identity.action === "protect" ? "This business matches a saved relationship. No duplicate lead created." :
+        "Possible duplicate relationship requires manual review. No lead created."
+    ));
+  }
 
   const wasSent = p.outreach_status === "sent";
   const initial = deriveNewLead({ acquisitionType: "outbound", hasContactMethod: false });

@@ -277,13 +277,50 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
     await show(page, "admin", scenario, "scanner");
     const prospects = page.locator("article.prospect-card");
     if (["normal", "long"].includes(scenario)) {
-      await expect(prospects.first()).toContainText("Mira Studio");
-      await expect(prospects.nth(1).locator(".score")).toHaveText("10");
-      await expect(prospects.nth(1)).toContainText("Needs verification");
-      await expect(prospects.nth(1)).toContainText("Website unconfirmed · low priority");
-      await expect(prospects.nth(1).getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
-      await expect(prospects.nth(1).getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
-      await expect(prospects.nth(1).getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
+      // Default now displays newest scans, not highest opportunity. Never
+      // couple social-verification assertions to score-based result order.
+      const studio = prospects.filter({ hasText: "Mira Studio" });
+      // The long-content preview intentionally replaces the Cedar & Stone
+      // name with a stress-test string. Select by the unique verified profile
+      // link instead of relying on a specific name or row position.
+      const unverified = prospects.filter({ has: page.getByRole("link", { name: "Facebook ↗", exact: true }) });
+      await expect(studio).toHaveCount(1);
+      await expect(unverified).toHaveCount(1);
+      const challengerBoard = page.getByRole("region", { name: "Qualified category challengers" });
+      await expect(challengerBoard).toContainText("Mira Studio");
+      await expect(challengerBoard).toContainText("Salons & Barbers");
+      await expect(challengerBoard).not.toContainText("Cedar & Stone");
+      const depthNav = challengerBoard.getByRole("navigation", { name: "Best-fit shortlist length" });
+      await expect(depthNav.getByRole("link", { name: "3", exact: true })).toHaveAttribute("aria-current", "page");
+      await expect(depthNav.getByRole("link", { name: "10", exact: true })).toHaveAttribute("href", "/leads/discover?shortlist=10#qualified-shortlists");
+      await expect(depthNav.getByRole("link", { name: "20", exact: true })).toHaveAttribute("href", "/leads/discover?shortlist=20#qualified-shortlists");
+      await expect(depthNav).toContainText("focused view");
+      // Manually resumable Deep Scan is visible and does not block the
+      // existing quick-scan or unverified social reviews.
+      const deep = page.getByRole("region", { name: "Resumable deep scan jobs" });
+      const readyJob = deep.locator(".scanner-deep-job").filter({ hasText: "Puyallup, WA" });
+      await expect(readyJob).toContainText("12/25");
+      await expect(readyJob.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "12");
+      await expect(readyJob.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "25");
+      await expect(readyJob.getByRole("button", { name: "Process next six" })).toBeVisible();
+      await expect(readyJob.getByRole("button", { name: "Cancel" })).toBeVisible();
+      const pausedJob = deep.locator(".scanner-deep-job").filter({ hasText: "Lakewood, WA" });
+      await expect(pausedJob.getByRole("button", { name: "Resume" })).toBeVisible();
+      await expect(pausedJob.getByRole("button", { name: "Cancel" })).toBeVisible();
+      const expiredJob = deep.locator(".scanner-deep-job").filter({ hasText: "Tacoma, WA" });
+      await expect(expiredJob).toContainText("Expired · retry or cancel");
+      await expect(expiredJob.getByRole("button", { name: "Retry expired batch" })).toBeVisible();
+      await expect(expiredJob.getByRole("button", { name: "Cancel" })).toBeVisible();
+      await expect(expiredJob.getByRole("button", { name: "Pause" })).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Create resumable deep scan" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
+      await expect(page.getByRole("link", { name: "Highest opportunity" })).toBeVisible();
+      await expect(unverified.locator(".score")).toHaveText("10");
+      await expect(unverified).toContainText("Needs verification");
+      await expect(unverified).toContainText("Website unconfirmed · low priority");
+      await expect(unverified.getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
+      await expect(unverified.getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
+      await expect(unverified.getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
     } else {
       await expect(prospects).toHaveCount(0);
       if (scenario === "error") {

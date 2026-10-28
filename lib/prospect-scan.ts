@@ -10,6 +10,12 @@
 //
 // Nothing here sends email or messages. Drafts are for her review only.
 
+import { categoryBucket } from "./prospect-curation.ts";
+import { auditIndustryHomepage, type IndustryAudit } from "./prospect-industry-audit.ts";
+import { buildBusinessVerification, type BusinessVerification } from "./prospect-verification.ts";
+import type { ScanMemory } from "./prospect-scan-memory.ts";
+import type { ScanTerritory } from "./prospect-territories.ts";
+
 export type NicheKey =
   | "restaurants"
   | "bars"
@@ -81,6 +87,11 @@ export type WebsiteSignals = {
   social_profiles?: SocialProfile[];
   social_checked_at?: string;
   website_source?: "listing" | "social_profile";
+  curation?: { reliability: number; opportunity: number; quality: number; compared_to: number; summary: string };
+  industry_audit?: IndustryAudit;
+  verification?: BusinessVerification;
+  scan_memory?: ScanMemory;
+  scan_territory?: ScanTerritory;
 };
 
 const UA = "NinthHeartStudios-OS/1.0 (prospect-scanner; contact: admin@ninthheartstudios.com)";
@@ -450,7 +461,7 @@ const BUILDER_MARKERS: Array<{ key: string; label: string; patterns: RegExp[] }>
 ];
 
 /** Fetch a site and extract redesign signals. Never throws — returns error in signals. */
-export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSignals> {
+export async function analyzeWebsite(rawUrl: string | null, niche: NicheKey | null = null): Promise<WebsiteSignals> {
   const empty: WebsiteSignals = {
     has_website: false,
     reachable: false,
@@ -500,6 +511,7 @@ export async function analyzeWebsite(rawUrl: string | null): Promise<WebsiteSign
         load_ms,
         page_bytes: bytes,
         social_profiles: socialProfilesFromHtml(text),
+        ...(niche ? { industry_audit: auditIndustryHomepage(niche, text, undefined, normalizeWebsite(res.url) ?? url) } : {}),
       };
   } catch (error) {
     return { ...empty, error: error instanceof Error ? error.message : "unreachable" };
@@ -524,7 +536,9 @@ function socialProfilesFromHtml(html: string): SocialProfile[] {
 }
 
 type PresenceInput = {
+  source_ref?: string | null;
   name: string;
+  category?: string | null;
   address: string | null;
   phone: string | null;
   website: string | null;
@@ -601,7 +615,9 @@ async function checkSocialProfile(profile: SocialProfile, business: PresenceInpu
 export async function analyzeBusinessPresence(business: PresenceInput): Promise<{ website: string | null; signals: WebsiteSignals }> {
   const listedWebsite = normalizeWebsite(business.website);
   let website = listedWebsite && !socialPlatform(listedWebsite) ? listedWebsite : null;
-  let signals = await analyzeWebsite(website);
+  const bucket = categoryBucket(business.category ?? null);
+  const niche = bucket === "other" ? null : bucket;
+  let signals = await analyzeWebsite(website, niche);
   const profiles = [...(signals.social_profiles ?? []), ...(business.social_profiles ?? [])];
   const listedSocial = normalizeSocialProfile(listedWebsite);
   if (listedSocial) profiles.unshift({ platform: socialPlatform(listedSocial)!, url: listedSocial, source: "listing", status: "unconfirmed", evidence: "Listed as business website" });
@@ -616,10 +632,17 @@ export async function analyzeBusinessPresence(business: PresenceInput): Promise<
     // Conflicting links require human review. Do not choose an arbitrary business URL.
     if (websites.length === 1) {
       website = websites[0];
-      signals = { ...await analyzeWebsite(website), website_source: "social_profile" };
+      signals = { ...await analyzeWebsite(website, niche), website_source: "social_profile" };
     }
   }
-  return { website, signals: { ...signals, social_profiles: checked.map(p => p.profile), social_checked_at: new Date().toISOString() } };
+  const checkedAt = new Date().toISOString();
+  const enriched: WebsiteSignals = {
+    ...signals, social_profiles: checked.map(p => p.profile), social_checked_at: checkedAt,
+  };
+  return { website, signals: {
+    ...enriched,
+    verification: buildBusinessVerification({ ...business, website }, enriched, checkedAt),
+  } };
 }
 
 /** Deterministic 0-100 opportunity score. Higher = better outreach target. */
@@ -648,7 +671,7 @@ export type ProspectInput = {
 };
 
 /** Deterministic outreach draft in Hailey's voice. Never sent automatically. */
-export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: string; body: string } {
+export function draftOutreach(p: ProspectInput, s: WebsiteSignals, offerAngle: string | null = null): { subject: string; body: string } {
   const catWord =
     p.category === "restaurant" ? "restaurants"
     : p.category === "bar" || p.category === "pub" ? "bars"
@@ -669,6 +692,9 @@ export function draftOutreach(p: ProspectInput, s: WebsiteSignals): { subject: s
     if (!s.title_ok) findings.push("The page title could use another look.");
     if (!s.description_ok) findings.push("I didn't find a standard meta description in the HTML checked.");
   }
+  // The owner clicked Draft outreach. The offer angle is a cautious, prebuilt
+  // review question, never a claim of proven business problems or an auto-send.
+  if (offerAngle && offerAngle.length <= 320) findings.push(offerAngle);
   if (!findings.length) findings.push("I'd be happy to offer a fresh perspective on your website.");
 
   const subject = `Quick thought on ${p.business_name}'s website`;
