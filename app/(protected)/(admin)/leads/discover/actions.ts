@@ -176,11 +176,11 @@ export async function analyzeProspect(id: string) {
   const { user } = await requireAdmin();
   void user;
   const supabase = await createClient();
-  const { data: p } = await supabase.from("prospects").select("id, source_ref, business_name, website, address, phone, signals").eq("id", id).single();
+  const { data: p } = await supabase.from("prospects").select("id, source_ref, business_name, category, website, address, phone, signals").eq("id", id).single();
   if (!p) return;
   const refreshed = await refreshSocialProfiles(p.source_ref);
   const { signals, website } = await analyzeBusinessPresence({
-    name: p.business_name, website: p.website, address: p.address, phone: p.phone,
+    name: p.business_name, category: p.category, website: p.website, address: p.address, phone: p.phone,
     social_profiles: [...refreshed, ...(p.signals?.social_profiles ?? [])],
   });
   await supabase
