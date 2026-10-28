@@ -54,12 +54,16 @@ function compatible(a: string | null | undefined, b: string | null | undefined):
   return left === "other" || right === "other" || left === right;
 }
 function compare(incoming: IdentityFields, saved: IdentityFields): "same" | "maybe" | "none" {
-  if (!compatible(incoming.category, saved.category)) return "none";
   const sameName = Boolean(nameKey(incoming.name) && nameKey(incoming.name) === nameKey(saved.name));
   const sharedPhone = Boolean(phoneKey(incoming.phone) && phoneKey(incoming.phone) === phoneKey(saved.phone));
   const sharedSite = Boolean(webKey(incoming.website) && webKey(incoming.website) === webKey(saved.website));
   const aStreet = streetKey(incoming.address), bStreet = streetKey(saved.address);
   const sharedStreet = Boolean(aStreet && aStreet === bStreet);
+  // Directory categories can be wrong; a cross-niche identity collision is
+  // still worth reviewing even though it is not proof of the same business.
+  if (!compatible(incoming.category, saved.category)) {
+    return sameName && (sharedPhone || sharedSite || sharedStreet) ? "maybe" : "none";
+  }
   // Distinct physical locations can share a franchise name, call center,
   // or even a corporate domain. Never automatically call them duplicates.
   if (aStreet && bStreet && aStreet !== bStreet) {
