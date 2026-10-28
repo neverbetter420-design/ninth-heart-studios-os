@@ -14,6 +14,7 @@ import { categoryBucket } from "./prospect-curation.ts";
 import { auditIndustryHomepage, type IndustryAudit } from "./prospect-industry-audit.ts";
 import { buildBusinessVerification, type BusinessVerification } from "./prospect-verification.ts";
 import type { ScanMemory } from "./prospect-scan-memory.ts";
+import type { ScanTerritory } from "./prospect-territories.ts";
 
 export type NicheKey =
   | "restaurants"
@@ -90,6 +91,7 @@ export type WebsiteSignals = {
   industry_audit?: IndustryAudit;
   verification?: BusinessVerification;
   scan_memory?: ScanMemory;
+  scan_territory?: ScanTerritory;
 };
 
 const UA = "NinthHeartStudios-OS/1.0 (prospect-scanner; contact: admin@ninthheartstudios.com)";
