@@ -33,7 +33,7 @@ const checks = [
       "The owner-approved live migration baseline contains exactly 24 versions.");
     const approvedSource = read("supabase/migrations/20261028090000_deep_scan_jobs.sql");
     const gitBlobSha = createHash("sha1")
-      .update("blob " + Buffer.byteLength(approvedSource) + "\\0")
+      .update("blob " + Buffer.byteLength(approvedSource) + "\0")
       .update(approvedSource).digest("hex");
     assert.equal(gitBlobSha, approvedDeepScanSqlBlobSha,
       "Deep Scan SQL no longer matches the exact owner-approved migration; new approval required.");
