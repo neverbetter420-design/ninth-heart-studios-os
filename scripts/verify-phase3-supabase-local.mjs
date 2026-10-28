@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import { verifyDeepScanLeaseLocal } from "./verify-deep-scan-supabase-local.mjs";
 
 // Fail closed. Never permit this test to authenticate to hosted Supabase.
 const url=process.env.NHS_LOCAL_SUPABASE_URL;
@@ -124,3 +125,6 @@ await check("Anonymous request cannot read approvals or messages",async()=>{
  }
 });
 console.log("PASS "+checks.length+" full local Supabase Auth + PostgREST integration cases, synthetic accounts only");
+await verifyDeepScanLeaseLocal({
+  admin: Admin, clientA: A, clientB: B, service: srv, adminId: ids.admin,
+});
