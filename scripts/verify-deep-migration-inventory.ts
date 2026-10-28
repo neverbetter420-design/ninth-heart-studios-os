@@ -46,10 +46,10 @@ for (const required of [
   "20261028090000_deep_scan_jobs.sql",
 ]) assert.ok(filenames.includes(required), "Missing reviewed migration file: " + required);
 const deep = readFileSync("supabase/migrations/20261028090000_deep_scan_jobs.sql", "utf8");
-assert.match(deep, /alter table public\\.deep_scan_jobs enable row level security;/);
+assert.match(deep, /alter table public\.deep_scan_jobs enable row level security;/);
 assert.match(deep, /security invoker/i);
-assert.doesNotMatch(deep, /cron\\.schedule|pg_cron/i);
+assert.doesNotMatch(deep, /cron\.schedule|pg_cron/i);
 const preflight = readFileSync("scripts/verify-release-preflight.mjs", "utf8");
 assert.match(preflight, /Unexpected additional SQL migrations require a new approved inventory review/);
-assert.match(preflight, /migrations\\.length, appliedVersions\\.length \+ 1/);
+assert.match(preflight, /migrations\.length, appliedVersions\.length \+ 1/);
 console.log("verify:deep-migration-inventory — 24 applied source versions and one unapplied proposal represented; release authorization still BLOCKED.");
