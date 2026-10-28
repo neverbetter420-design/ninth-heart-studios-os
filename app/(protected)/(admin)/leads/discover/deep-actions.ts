@@ -59,11 +59,11 @@ export async function createDeepScan(formData: FormData): Promise<never> {
     .filter((n): n is NicheKey => Object.prototype.hasOwnProperty.call(NICHES, n));
   if (location.length < 2 || location.length > 160 || ![5, 10, 15, 25].includes(radiusMi) ||
     !validDeepSize(requested) || niches.length === 0) {
-    redirectWithMessage("Choose a valid location, radius, scan size and at least one category.");
+    return redirectWithMessage("Choose a valid location, radius, scan size and at least one category.");
   }
 
-  let businesses: DiscoveredBusiness[];
-  let areaLabel: string;
+  let businesses: DiscoveredBusiness[] = [];
+  let areaLabel = location;
   try {
     const geo = await geocode(location);
     areaLabel = geo.label.split(",").slice(0, 2).join(",").trim().slice(0, 160);
@@ -71,35 +71,35 @@ export async function createDeepScan(formData: FormData): Promise<never> {
       niches, requested, geoapifySecret());
     businesses = prioritizeDiscovered(found, niches, requested).filter(validBusiness);
   } catch (err) {
-    redirectWithMessage("Deep Scan discovery could not start: " +
+    return redirectWithMessage("Deep Scan discovery could not start: " +
       (err instanceof Error ? err.message.slice(0, 140) : "provider unavailable") + ".");
   }
-  if (!businesses.length) redirectWithMessage("No directory candidates were found. Nothing was saved.");
+  if (!businesses.length) return redirectWithMessage("No directory candidates were found. Nothing was saved.");
 
   const { data, error } = await supabase.from("deep_scan_jobs").insert({
     created_by: user.id, location, area_label: areaLabel!,
     radius_m: Math.round(radiusMi * 1609.34), niches, requested,
     candidates: businesses, status: "ready",
   }).select("id").single();
-  if (error || !data?.id) redirectWithMessage(
+  if (error || !data?.id) return redirectWithMessage(
     "Deep Scan could not save its queue. Verify the reviewed database migration is installed.");
   revalidatePath("/leads/discover");
-  redirectWithMessage(`Deep Scan created: ${businesses.length} candidates queued for ${requested} requested. Use Process next batch to begin.`);
+  return redirectWithMessage(`Deep Scan created: ${businesses.length} candidates queued for ${requested} requested. Use Process next batch to begin.`);
 }
 
 /** A single atomic lease + bounded 6-candidate analysis + committed progress. */
 export async function processDeepScanBatch(formData: FormData): Promise<never> {
   await requireAdmin();
   const id = String(formData.get("job_id") ?? "");
-  if (!UUID.test(id)) redirectWithMessage("Invalid Deep Scan ID.");
+  if (!UUID.test(id)) return redirectWithMessage("Invalid Deep Scan ID.");
   const supabase = await createClient();
   const { data: claimed, error: claimError } = await supabase.rpc("claim_deep_scan_batch", { p_id: id }).maybeSingle();
   const job = claimed as DeepJob | null;
-  if (claimError || !job) redirectWithMessage(
+  if (claimError || !job) return redirectWithMessage(
     "That scan is paused, already processing, complete, or the Deep Scan migration is unavailable.");
   const lease = job.lease_token;
   if (!lease || !Array.isArray(job.candidates) || !Number.isInteger(job.position)) {
-    redirectWithMessage("Scan queue is invalid. No processing was started.");
+    return redirectWithMessage("Scan queue is invalid. No processing was started.");
   }
 
   const batch = nextDeepScanBatch(job.candidates, job.position);
@@ -173,14 +173,14 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
       "Batch completion could not be recorded; retry after the lease expires (stable IDs prevent duplicates).");
     revalidatePath("/leads/discover");
     const progress = finished as DeepJob;
-    redirectWithMessage(`Deep Scan batch saved: ${batch.length} checked, ${created} new, ${refreshed} refreshed, ${held} held, ${conflicts} conflicts. ${progress.position} of ${progress.candidates.length} processed.`);
+    return redirectWithMessage(`Deep Scan batch saved: ${batch.length} checked, ${created} new, ${refreshed} refreshed, ${held} held, ${conflicts} conflicts. ${progress.position} of ${progress.candidates.length} processed.`);
   } catch (err) {
     // Next.js redirect() is an exception: let it through unaltered.
     if (err && typeof err === "object" && "digest" in err &&
       String((err as { digest?: string }).digest).startsWith("NEXT_REDIRECT")) throw err;
     const message = err instanceof Error ? err.message.slice(0, 240) : "Batch processing failed";
     await supabase.rpc("pause_deep_scan_batch", { p_id: id, p_lease: lease, p_error: message });
-    redirectWithMessage("Deep Scan paused safely: " + message);
+    return redirectWithMessage("Deep Scan paused safely: " + message);
   }
 }
 
@@ -190,7 +190,7 @@ export async function changeDeepScanStatus(formData: FormData): Promise<never> {
   const id = String(formData.get("job_id") ?? "");
   const operation = String(formData.get("operation") ?? "");
   if (!UUID.test(id) || !["pause", "resume", "cancel"].includes(operation))
-    redirectWithMessage("Invalid Deep Scan action.");
+    return redirectWithMessage("Invalid Deep Scan action.");
   const supabase = await createClient();
   const from = operation === "resume" ? "paused" : "ready";
   const target = operation === "pause" ? "paused" : operation === "cancel" ? "cancelled" : "ready";
@@ -198,7 +198,7 @@ export async function changeDeepScanStatus(formData: FormData): Promise<never> {
     .update({ status: target, updated_at: new Date().toISOString(), last_error: null })
     .eq("id", id).eq("created_by", user.id).eq("status", from).select("id");
   if (error || data?.length !== 1)
-    redirectWithMessage("Scan status was not changed. It may already be processing or finished.");
+    return redirectWithMessage("Scan status was not changed. It may already be processing or finished.");
   revalidatePath("/leads/discover");
-  redirectWithMessage(`Deep Scan ${target}.`);
+  return redirectWithMessage(`Deep Scan ${target}.`);
 }
