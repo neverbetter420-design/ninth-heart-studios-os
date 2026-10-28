@@ -12,6 +12,7 @@
 
 import { categoryBucket } from "./prospect-curation.ts";
 import { auditIndustryHomepage, type IndustryAudit } from "./prospect-industry-audit.ts";
+import { buildBusinessVerification, type BusinessVerification } from "./prospect-verification.ts";
 
 export type NicheKey =
   | "restaurants"
@@ -86,6 +87,7 @@ export type WebsiteSignals = {
   website_source?: "listing" | "social_profile";
   curation?: { reliability: number; opportunity: number; quality: number; compared_to: number; summary: string };
   industry_audit?: IndustryAudit;
+  verification?: BusinessVerification;
 };
 
 const UA = "NinthHeartStudios-OS/1.0 (prospect-scanner; contact: admin@ninthheartstudios.com)";
@@ -530,6 +532,7 @@ function socialProfilesFromHtml(html: string): SocialProfile[] {
 }
 
 type PresenceInput = {
+  source_ref?: string | null;
   name: string;
   category?: string | null;
   address: string | null;
@@ -628,7 +631,14 @@ export async function analyzeBusinessPresence(business: PresenceInput): Promise<
       signals = { ...await analyzeWebsite(website, niche), website_source: "social_profile" };
     }
   }
-  return { website, signals: { ...signals, social_profiles: checked.map(p => p.profile), social_checked_at: new Date().toISOString() } };
+  const checkedAt = new Date().toISOString();
+  const enriched: WebsiteSignals = {
+    ...signals, social_profiles: checked.map(p => p.profile), social_checked_at: checkedAt,
+  };
+  return { website, signals: {
+    ...enriched,
+    verification: buildBusinessVerification({ ...business, website }, enriched, checkedAt),
+  } };
 }
 
 /** Deterministic 0-100 opportunity score. Higher = better outreach target. */
