@@ -6,7 +6,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { deriveNewLead } from "@/lib/flowkeep";
-import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, matchesExistingLead, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
+import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
+import { checkBusinessIdentity, type ClientIdentity } from "@/lib/prospect-identity";
 import {
   NICHES,
   geocode,
@@ -81,6 +82,16 @@ export async function runScan(formData: FormData): Promise<never> {
     ));
   }
   const existingLeads = leadRows as unknown as ExistingLead[];
+  // Client identity wins over scanner opportunity. Refuse to assume an empty
+  // client list if this read fails or the bounded result may be incomplete.
+  const { data: clientRows, error: clientsError } = await supabase.from("clients")
+    .select("id, name, website, status").limit(1000);
+  if (clientsError || !clientRows || clientRows.length >= 1000) {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      "Could not safely compare existing clients. No new prospects saved."
+    ));
+  }
+  const existingClients = clientRows as ClientIdentity[];
 
   // Rotate through the chosen niches and inspect the listings with the most
   // useful public contact clues first. A listing alone isn't "verified".
@@ -111,9 +122,23 @@ export async function runScan(formData: FormData): Promise<never> {
 
   // Prefer contactable businesses, comparing both evidence reliability and
   // redesign opportunity against existing records in the same niche.
-  const candidatesNotAlreadyLeads = analyzed.filter(p => !matchesExistingLead(p, existingLeads));
-  const alreadyLeads = analyzed.length - candidatesNotAlreadyLeads.length;
-  const selected = curateProspects(candidatesNotAlreadyLeads, previous, SCAN_CAP);
+  const candidatePool: typeof analyzed = [];
+  const candidateIdentityHistory: Array<ComparableProspect & { id: string }> = [];
+  let existingRelationships = 0;
+  let manualReview = 0;
+  // Compare against all saved records AND other candidates in this scan.
+  // Prefer better-evidenced candidates when two listings appear to overlap.
+  for (const candidate of [...analyzed].sort((a, b) =>
+    rateProspect(b).quality - rateProspect(a).quality
+  )) {
+    const identity = checkBusinessIdentity(candidate,
+      [...previous, ...candidateIdentityHistory], existingLeads, existingClients);
+    if (identity.action === "protect") { existingRelationships++; continue; }
+    if (identity.action === "review") { manualReview++; continue; }
+    candidatePool.push(candidate);
+    candidateIdentityHistory.push({ ...candidate, id: "scan-candidate-" + candidateIdentityHistory.length });
+  }
+  const selected = curateProspects(candidatePool, previous, SCAN_CAP);
   let created = 0;
   let refreshed = 0;
   let skipped = 0;
@@ -166,7 +191,8 @@ export async function runScan(formData: FormData): Promise<never> {
   const message =
     `Scanned ${areaLabel}: ${created} stronger new prospect${created === 1 ? "" : "s"} saved, ${refreshed} existing refreshed, ${selected.rejected} lower-confidence candidates held back` +
     (selected.protectedCount ? `, ${selected.protectedCount} outreach-protected` : "") +
-    (alreadyLeads ? `, ${alreadyLeads} already in Lead Intelligence` : "") +
+    (existingRelationships ? `, ${existingRelationships} existing relationships protected` : "") +
+    (manualReview ? `, ${manualReview} possible duplicates withheld for manual review (not saved)` : "") +
     (skipped ? `, ${skipped} save conflicts` : "") + ".";
   redirect("/leads/discover?msg=" + encodeURIComponent(message) + "&sort=recent");
 }
