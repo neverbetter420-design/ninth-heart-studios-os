@@ -71,7 +71,7 @@ export function fitVerdict(score: number): string {
 /** Freelancer opportunities remain separate from local-business Lead Scanner. */
 export const FREELANCE_SOURCES = [
   { name: "Upwork", href: "https://www.upwork.com/nx/find-work/", help: "Review jobs in your own account", mode: "Manual until approved API access" },
-  { name: "Fiverr", href: "https://www.fiverr.com/", help: "Review personalized seller matches and briefs", mode: "Manual seller review" },
+  { name: "Fiverr", href: "https://www.fiverr.com/", help: "Review personalized matches in your seller account", mode: "Manual seller review" },
   { name: "Freelancer", href: "https://www.freelancer.com/jobs/", help: "Browse posted projects", mode: "Manual until approved API connection" },
 ] as const;
 
@@ -84,7 +84,7 @@ export function validSourceListingUrl(source: string, raw: string | null): boole
   if (!raw) return true;
   try {
     const url = new URL(raw);
-    if (url.protocol !== "https:" || url.username || url.password) return false;
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return false;
     const host = url.hostname.toLowerCase();
     const hosts: Record<string, string> = {
       Upwork: "upwork.com",
@@ -92,7 +92,9 @@ export function validSourceListingUrl(source: string, raw: string | null): boole
       Freelancer: "freelancer.com",
     };
     const allowed = hosts[source];
-    return allowed ? (host === allowed || host.endsWith("." + allowed)) : true;
+    // Preserve existing Manual/Referral/Direct intake compatibility.
+    if (!allowed) return true;
+    return url.protocol === "https:" && (host === allowed || host.endsWith("." + allowed));
   } catch {
     return false;
   }
