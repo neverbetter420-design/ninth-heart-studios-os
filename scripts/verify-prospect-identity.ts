@@ -90,5 +90,7 @@ assert.match(action, /clientsError \|\| !clientRows \|\| clientRows\.length >= 1
 assert.match(action, /identity\.action === "protect"/);
 assert.match(action, /identity\.action === "review"/);
 assert.match(action, /const selected = curateProspects\(candidatePool, previous, SCAN_CAP\)/);
+assert.match(action, /export async function promoteProspect[\s\S]*?const identity = checkBusinessIdentity\(/);
+assert.match(action, /identity\.action !== "allow"/);
 assert.doesNotMatch(action, /matchesExistingLead\(/);
 console.log("verify:prospect-identity — client/lead protection and collision checks passed.");
