@@ -85,7 +85,7 @@ assert.match(sql, /grant execute on function public\.renew_deep_scan_batch\(uuid
 assert.match(sql, /revoke all on function public\.renew_deep_scan_batch\(uuid,uuid\) from public, anon/);
 
 assert.match(action, /await supabase\.rpc\("finish_deep_scan_batch"/);
-assert.match(action, /await supabase\.rpc\("pause_deep_scan_batch"/);
+assert.match(action, /await supabase\.rpc\(\s*"pause_deep_scan_batch"/);
 assert.doesNotMatch(action, /matchesExistingLead\(/);
 assert.match(curation, /Math\.min\(100, Math\.floor\(analyzeLimit\)\)/);
 assert.match(ui, /Deep Scan progress/);
