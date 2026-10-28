@@ -1,6 +1,6 @@
 // Read-only, frozen, explicitly checked production-source inventory (2026-10-28).
-// Does not approve or apply a migration; the independently gated
-// verify-release-preflight.mjs must deliberately continue to FAIL until review.
+// Owner approval confirmed the frozen 24-applied inventory and exact proposed
+// Deep Scan SQL blob; this remains read-only and does NOT apply that migration.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 
@@ -51,5 +51,8 @@ assert.match(deep, /security invoker/i);
 assert.doesNotMatch(deep, /cron\.schedule|pg_cron/i);
 const preflight = readFileSync("scripts/verify-release-preflight.mjs", "utf8");
 assert.match(preflight, /Unexpected additional SQL migrations require a new approved inventory review/);
+assert.match(preflight, /approvedDeepScanSqlBlobSha = "997b2ffbb0f36223dd72a781c13f0aca24010fd8"/);
+assert.match(preflight, /Deep Scan SQL no longer matches the exact owner-approved migration/);
+assert.match(preflight, /"20261017030000","20261020063055"/);
 assert.match(preflight, /migrations\.length, appliedVersions\.length \+ 1/);
-console.log("verify:deep-migration-inventory — 24 applied source versions and one unapplied proposal represented; release authorization still BLOCKED.");
+console.log("verify:deep-migration-inventory — approved 24 applied-source versions plus exact pinned Deep Scan SQL proposal represented; no database writes.");
