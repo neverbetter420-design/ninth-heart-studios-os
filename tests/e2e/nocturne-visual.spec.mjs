@@ -286,6 +286,10 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
       const unverified = prospects.filter({ has: page.getByRole("link", { name: "Facebook ↗", exact: true }) });
       await expect(studio).toHaveCount(1);
       await expect(unverified).toHaveCount(1);
+      const challengerBoard = page.getByRole("region", { name: "Qualified category challengers" });
+      await expect(challengerBoard).toContainText("Mira Studio");
+      await expect(challengerBoard).toContainText("Salons & Barbers");
+      await expect(challengerBoard).not.toContainText("Cedar & Stone");
       await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
       await expect(page.getByRole("link", { name: "Highest opportunity" })).toBeVisible();
       await expect(unverified.locator(".score")).toHaveText("10");
