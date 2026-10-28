@@ -62,7 +62,7 @@ export function buildScannerOutcomeSnapshot(
   leads: ScannerOutcomeLead[],
   events: ScannerProjectEvent[],
 ): ScannerOutcomeSnapshot {
-  const groups = new Map(CATEGORIES.map(k => [k, blank(k)]));
+  const groups = new Map<Category, CategoryOutcome>(CATEGORIES.map(k => [k, blank(k)] as const));
   const saved = new Map<string, ScannerOutcomeProspect>();
   for (const p of prospects) if (typeof p.id === "string" && p.id) saved.set(p.id, p);
   const projectsByLead = new Set(events.filter(e => e.event_type === "project_created" &&
@@ -71,7 +71,10 @@ export function buildScannerOutcomeSnapshot(
     .map(e => e.lead_id as string));
   const linked = new Map<string, ScannerOutcomeLead>();
   const linksPerLead = new Map<string, number>();
-  const knownLeads = new Map(leads.filter(l => typeof l.id === "string" && l.id).map(l => [l.id, l]));
+  const knownLeads = new Map<string, ScannerOutcomeLead>(
+    leads.filter(l => typeof l.id === "string" && l.id)
+      .map((l): [string, ScannerOutcomeLead] => [l.id, l]),
+  );
   for (const p of saved.values()) {
     const g = groups.get(categoryBucket(p.category))!;
     g.saved_records++;
