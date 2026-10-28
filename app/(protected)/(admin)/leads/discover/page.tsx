@@ -6,6 +6,7 @@ import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-
 import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
 import { buildProspectInsights } from "@/lib/prospect-insights";
 import { safeVerificationLink } from "@/lib/prospect-verification";
+import { compareSavedTerritories } from "@/lib/prospect-territories";
 import {
   NICHES,
   signalBadges,
@@ -56,9 +57,18 @@ function scoreTone(score: number | null): string {
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string }>;
+  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string;
+    scan_location?: string; scan_radius?: string; scan_niches?: string | string[] }>;
 }) {
-  const { msg, show, sort, category } = await searchParams;
+  const { msg, show, sort, category, scan_location, scan_radius, scan_niches } = await searchParams;
+  // These parameters only prefill the form. The owner must still press Scan.
+  const selectedLocation = scan_location && scan_location.trim().length >= 2 && scan_location.length <= 160
+    ? scan_location.trim() : "Puyallup, WA";
+  const selectedRadius = scan_radius && /^\d{1,2}$/.test(scan_radius) &&
+    Number(scan_radius) >= 1 && Number(scan_radius) <= 50 ? String(Number(scan_radius)) : "10";
+  const replayNiches = (Array.isArray(scan_niches) ? scan_niches : scan_niches ? [scan_niches] : [])
+    .filter((name): name is keyof typeof NICHES => Object.hasOwn(NICHES, name));
+  const selectedNiches = replayNiches.length ? replayNiches : ["restaurants", "bars", "salons"];
   const supabase = await createClient();
   const showArchived = show === "archived";
   const sortByPriority = sort === "priority";
@@ -114,6 +124,7 @@ export default async function DiscoverPage({
     .limit(1000);
   const shortlistReady = !shortlistError && shortlistData &&
     shortlistData.length < 1000 && typeof shortlistCount === "number" && shortlistCount < 1000;
+  const territoryComparison = shortlistReady ? compareSavedTerritories(shortlistData as SavedChallenger[]) : null;
   const challengerGroups = shortlistReady ? buildChallengerShortlists(
     (shortlistData as SavedChallenger[]).map(p => ({
       ...p,
@@ -147,16 +158,19 @@ export default async function DiscoverPage({
 
       {msg && <p className="notice">{msg}</p>}
 
-      <section className="card scanner-controls" aria-label="Run a scan">
+      <section id="scan-controls" className="card scanner-controls" aria-label="Run a scan">
         <h3>Run a scan</h3>
         <form action={runScan} className="form-grid">
           <label>
             Location
-            <input name="location" defaultValue="Puyallup, WA" required />
+            <input name="location" defaultValue={selectedLocation} maxLength={160} required />
           </label>
           <label>
             Radius
-            <select name="radius_mi" defaultValue="10">
+            <select name="radius_mi" defaultValue={selectedRadius}>
+              {!["5", "10", "15", "25"].includes(selectedRadius) && (
+                <option value={selectedRadius}>{selectedRadius} miles</option>
+              )}
               <option value="5">5 miles</option>
               <option value="10">10 miles</option>
               <option value="15">15 miles</option>
@@ -173,11 +187,7 @@ export default async function DiscoverPage({
                       type="checkbox"
                       name="niches"
                       value={key}
-                      defaultChecked={[
-                        "restaurants",
-                        "bars",
-                        "salons",
-                      ].includes(key)}
+                      defaultChecked={selectedNiches.includes(key)}
                     />
                     {NICHES[key].label}
                   </label>
@@ -255,6 +265,68 @@ export default async function DiscoverPage({
               </div>
             ))}
           </div>
+        )}
+      </section>
+
+      <section className="scanner-territory-report" aria-label="Territory comparison from saved prospects">
+        <div className="section-head">
+          <h3>Territory study</h3>
+          <span className="muted">Your saved prospect sample · not market coverage</span>
+        </div>
+        <p className="management-help">
+          Compare the last search area and radius recorded on each saved prospect.
+          Qualified means a contactable, uncontacted listing with enough supporting
+          evidence. A searched city is not proof of the business&apos;s exact location.
+          Repeat scans require your click and use the existing duplicate safeguards.
+        </p>
+        {!shortlistReady || !territoryComparison ? (
+          <p role="status" className="management-notice">
+            The complete saved prospect sample is not available. Territory comparisons are hidden rather than estimated from an incomplete page.
+          </p>
+        ) : territoryComparison.areas.length === 0 ? (
+          <p className="management-help">
+            No prospects with a recorded scan area yet. New saved scans will start building a territory comparison.
+          </p>
+        ) : (
+          <div className="scanner-territory-list">
+            {territoryComparison.areas.map((area) => {
+              const params = new URLSearchParams();
+              params.set("scan_location", area.location);
+              params.set("scan_radius", String(area.radius_mi));
+              for (const niche of area.niches) params.append("scan_niches", niche);
+              return (
+                <article className="scanner-territory-row" key={area.location.toLowerCase() + ":" + area.radius_mi}>
+                  <div className="scanner-territory-head">
+                    <div>
+                      <strong>{area.area_label}</strong>
+                      <small>{area.radius_mi}-mile search radius · last observed {area.latest_checked_at.slice(0, 10)}</small>
+                    </div>
+                    <div className="scanner-territory-count">
+                      <strong>{area.qualified}<span> / {area.saved}</span></strong>
+                      <small>qualified / saved</small>
+                    </div>
+                  </div>
+                  <div className="scanner-territory-track" role="img"
+                    aria-label={area.qualified + " of " + area.saved + " saved prospects qualified"}>
+                    <span style={{ width: (area.saved ? Math.round(area.qualified / area.saved * 100) : 0) + "%" }} />
+                  </div>
+                  <div className="scanner-territory-foot">
+                    <span>Avg fit: {area.average_quality === null ? "—" : area.average_quality + "/100"}</span>
+                    <span>{area.top_categories.length
+                      ? area.top_categories.map(group => NICHES[group.category].label + " " + group.count).join(" · ")
+                      : "No qualified prospects yet"}</span>
+                    <a href={"/leads/discover?" + params.toString() + "#scan-controls"}>Prefill repeat scan ↗</a>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+        {territoryComparison && territoryComparison.without_context > 0 && (
+          <p className="management-help">
+            {territoryComparison.without_context} older saved prospects have no reliable search-area context and are excluded from the comparison.
+            These rankings reflect only saved prospects, not all businesses in a city.
+          </p>
         )}
       </section>
 

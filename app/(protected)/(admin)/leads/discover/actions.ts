@@ -9,6 +9,7 @@ import { deriveNewLead } from "@/lib/flowkeep";
 import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rateProspect, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
 import { checkBusinessIdentity, type ClientIdentity } from "@/lib/prospect-identity";
 import { updateScanMemory } from "@/lib/prospect-scan-memory";
+import { createScanTerritory } from "@/lib/prospect-territories";
 import {
   NICHES,
   geocode,
@@ -29,6 +30,7 @@ export async function runScan(formData: FormData): Promise<never> {
   const supabase = await createClient();
 
   const location = String(formData.get("location") ?? "").trim() || "Puyallup, WA";
+  if (location.length > 160) redirect("/leads/discover?msg=" + encodeURIComponent("Search location is too long."));
   const radiusValue = Number(formData.get("radius_mi") ?? 10);
   const radiusMi = Number.isFinite(radiusValue) ? Math.max(1, Math.min(50, radiusValue)) : 10;
   const radiusM = Math.round(radiusMi * 1609.34);
@@ -160,6 +162,7 @@ export async function runScan(formData: FormData): Promise<never> {
     const checkedAt = new Date().toISOString();
     const existingRecord = existingId ? previous.find(item => item.id === existingId) ?? null : null;
     const memory = updateScanMemory(existingRecord, b, checkedAt);
+    const scanTerritory = createScanTerritory(location, areaLabel, radiusMi, niches, checkedAt);
     const row = {
       source_ref: b.source_ref,
       business_name: b.business_name,
@@ -170,6 +173,7 @@ export async function runScan(formData: FormData): Promise<never> {
       signals: {
         ...b.signals,
         scan_memory: memory,
+        scan_territory: scanTerritory,
         curation: {
           reliability: candidate.reliability,
           opportunity: candidate.opportunity,
@@ -219,7 +223,11 @@ export async function analyzeProspect(id: string) {
   await supabase
     .from("prospects")
     .update({
-      signals: { ...signals, scan_memory: memory },
+      signals: {
+        ...signals,
+        scan_memory: memory,
+        ...(p.signals?.scan_territory ? { scan_territory: p.signals.scan_territory } : {}),
+      },
       website,
       opportunity_score: scoreSignals(signals),
       scanned_at: checkedAt,
