@@ -111,16 +111,16 @@ export function auditIndustryHomepage(
   scannedAt = new Date().toISOString(), homepageUrl: string | null = null,
 ): IndustryAudit {
   const safe = html.slice(0, 1_500_000)
-    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script\\s*>/gi, "")
-    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style\\s*>/gi, "")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "")
     .replace(/<!--[^]*?-->/g, "");
-  const actions = [...safe.matchAll(/<a\\b([^>]*?)>([\\s\\S]*?)<\\/a\\s*>/gi)]
+  const actions = [...safe.matchAll(/<a\b([^>]*?)>([\s\S]*?)<\/a\s*>/gi)]
     .slice(0, 250)
     .map(m => ({
-      href: (m[1].match(/\\bhref\\s*=\\s*["']([^"']+)["']/i)?.[1] ?? "").slice(0, 500),
-      text: m[2].replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 140),
+      href: (m[1].match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1] ?? "").slice(0, 500),
+      text: m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140),
     }));
-  const visible = safe.replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").slice(0, 100000);
+  const visible = safe.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 100000);
   const signals: IndustryAuditSignal[] = [...COMMON, ...INDUSTRY[category]].map(criterion => {
     const linked = actions.find(a =>
       Boolean(criterion.href?.test(a.href) || criterion.labelPattern?.test(a.text)));
@@ -141,7 +141,7 @@ export function auditIndustryHomepage(
   });
   // The presence of a viewport tag is only a mobile-readiness clue.
   // A real responsive / touch target check needs an actual browser audit.
-  const viewport = /<meta\\b(?=[^>]*\\bname\\s*=\\s*(?:["']viewport["']|viewport\\b))[^>]*>/i.test(safe);
+  const viewport = /<meta\b(?=[^>]*\bname\s*=\s*(?:["']viewport["']|viewport\b))[^>]*>/i.test(safe);
   signals.push({
     key: "mobile_viewport",
     label: "Mobile viewport declaration",
