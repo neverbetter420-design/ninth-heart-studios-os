@@ -311,7 +311,7 @@ test("Scanner glass workspaces retain safety, scoring and manual Deep Scan acros
     await expect(page.getByRole("button", { name: "Create resumable deep scan" })).toBeVisible();
     for (const width of [1440, 1024, 620, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), \`Scan studio \${scenario} at \${width}px\`).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Scan studio ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
     }
 
     // Saved prospects are a distinct task, not a stacked section of Scan Studio.
@@ -346,7 +346,7 @@ test("Scanner glass workspaces retain safety, scoring and manual Deep Scan acros
     }
     for (const width of [1440, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), \`Saved prospects \${scenario} at \${width}px\`).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Saved prospects ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
     }
 
     // Best Fits uses the same qualified shortlist safety logic in its own view.
