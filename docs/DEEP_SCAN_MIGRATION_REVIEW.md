@@ -6,9 +6,11 @@
 The existing scanner runs up to 12 business checks in one request. Longer scans need persisted candidate queues, position counters and an atomic lease so repeated taps or interrupted Cloudflare requests do not process the same segment concurrently. This table is a private, admin-owned queue for **on-demand** work only; it creates no timers, no scheduled jobs, no AI API calls and no new outward messages.
 
 ## Existing production baseline
-- Existing review guard in `scripts/verify-release-preflight.mjs` expects 22 applied migration versions + one separate proposed security migration (`20261017030000`) = 23 source SQL files.
-- This draft adds **one** new migration, taking the source tree to 24 and intentionally tripping the guard.
-- **Do not remove the guard or silently increase the expected count.** Before merging, compare actual `supabase_migrations.schema_migrations` on the authorized environment, review the outstanding 20261017030000 proposal, approve the Deep Scan migration explicitly, and update the guarded inventory with a complete owner-reviewed list.
+- **Live read-only inventory verified on 2026-10-28:** production records **24 applied migration versions**, including the older client-safety migration `20261017030000` and Lead Search queue migration `20261020063055`. Both stored SQL statements were checked byte-for-byte against the corresponding source files and match exactly.
+- The older guard in `scripts/verify-release-preflight.mjs` still expects just 22 baseline versions plus one formerly proposed security migration (23 source files). Its assumptions are **stale**; they must not be treated as the production truth.
+- The Lead Search queue SQL was missing from the current scanner stack because the original PR #20 remains unmerged although the migration is already applied. The exact 4,201-character SQL has now been **restored in PR #46 source only**. Do not separately merge PR #20 without reviewing its additional code.
+- **Current source includes 25 SQL files: 24 previously applied migration sources + 1 proposed Deep Scan migration (`20261028090000`).** The release-preflight guard is deliberately still red. Do not bump its expected count, suppress this check, or apply SQL until the owner reviews and approves the **exact 24-version source inventory and the new proposed migration**.
+- Production currently has **no `public.deep_scan_jobs` table** and no applied migration version `20261028090000`. No live schema mutation occurred in this review.
 - Apply only via the reviewed production migration process, after auth/permission checks; do not apply as a side effect of preview.
 - `public.deep_scan_jobs` does **not** currently exist in production, and the UI intentionally disables creation until the table is available.
 
@@ -59,7 +61,7 @@ Additional gates applied in the integrated server action:
 Required before main merge or migration application:
 1. Obtain explicit owner approval of migration 20261028090000_deep_scan_jobs.sql.
 2. Verify live schema migration inventory against exact source versions,
-   including the older 20261017030000 proposal; NEVER bypass inventory guard.
+   including already-applied 20261017030000 and 20261020063055; NEVER bypass inventory guard.
 3. Run isolated RLS and concurrent-worker lease tests, plus negative client
    duplicate collision tests with disposable Supabase auth roles.
 4. Review and approve Nocturne visual preview; merge only the integrated
