@@ -69,3 +69,40 @@ Required before main merge or migration application:
 5. Recheck no-auto-send and owner-click-only processing in production smoke QA.
 
 Nothing here authorizes migration application or production deployment.
+
+
+## Lease-renewal hardening (draft changes after the 24-version reconciliation)
+
+This proposed Deep Scan SQL migration now includes the
+`public.renew_deep_scan_batch(p_id, p_lease)` security-invoker RPC.
+It atomically extends the 90-second deadline **only** while the invoking
+admin still owns a live, unexpired lease. It cannot revive an expired or
+reclaimed lease, nor can it finish or pause a batch with the previous token.
+
+The server now checks/renews ownership between each group of three external
+website/social audits, before every prospect insert/update, and before
+committing the final batch position. Saved relationship history is read
+**after** external audits and before writing, reducing stale comparisons.
+If an API call has exceeded the valid lease, the batch stops before further
+writes and cannot advance its position using a stale token. A retry still
+requires a separate owner click.
+
+**Disposable-database acceptance test:** the existing isolated Supabase CI
+runner now imports `scripts/verify-deep-scan-supabase-local.mjs`, which
+creates synthetic jobs and tests anonymous/non-admin RLS, two simultaneous
+claims, forged tokens, renewal expiry, reclaim, stale-token finish/pause,
+and complete progress. It is guarded against hosted URLs, access tokens
+and remote database passwords. This is not permission to apply the SQL
+to the live project.
+
+**Remaining transactional limitation:** a lease check followed by a
+prospect write is not itself a single database transaction. A crashed
+request can persist some prospect rows before the final job checkpoint;
+stable source IDs and protected-update predicates prevent ordinary
+duplication or editing contacted records, but job-level created/refreshed
+counters may not reflect abandoned attempts. Full exactly-once writes
+would need a separately reviewed database transaction/API design.
+
+The SQL file has changed since the earlier review: migration approval must
+cover its **current complete contents**, not an earlier diff. The old
+25-versus-23 release-preflight blocker stays deliberately active.
