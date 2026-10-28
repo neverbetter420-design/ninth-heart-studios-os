@@ -188,7 +188,9 @@ export default async function DiscoverPage({
             Reviews the most promising listings from up to 72 directory results,
             compares their contact reliability and redesign opportunity with saved
             businesses in the same category, and saves only qualified prospects
-            (up to 12 per scan). Your contacted and promoted leads are protected.
+            (up to 12 per scan). Existing clients, leads, and contacted prospects
+            are protected. Possible duplicate identities are withheld from saving
+            and reported for manual review; no records are merged automatically.
             Business data via{" "}
             <a href="https://www.geoapify.com/" target="_blank" rel="noopener noreferrer">Powered by Geoapify</a>
             {" "}and{" "}
