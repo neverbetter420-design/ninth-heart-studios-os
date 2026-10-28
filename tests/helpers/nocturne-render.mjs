@@ -83,6 +83,13 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       { id: "synthetic-no-site", business_name: scenario === "long" ? "UnbrokenBusinessName".repeat(8) : "Cedar & Stone", address: "Puyallup, WA", category: "bar", website: null, signals: { has_website: false, reachable: false, social_profiles: [{ platform: "facebook", url: "https://www.facebook.com/cedarandstone/", source: "listing", status: "unconfirmed", evidence: "Public profile unavailable; manual review required" }] }, opportunity_score: 35, outreach_status: "none", status: "new" },
       { id: "synthetic-rough-site", business_name: "Mira Studio", category: "hairdresser", address: "Tacoma, WA", website: "https://example.com/", signals: { has_website: true, reachable: true, https: false, mobile_viewport: false, builder: "Wix", title_ok: false, description_ok: false }, opportunity_score: 65, outreach_status: "none", status: "new" },
     ],
+    deep_scan_jobs: scenario === "empty" ? [] : [{
+      id: "6423aa00-0ac6-4c3e-9511-20e8e7d8f1c4", area_label: "Puyallup, WA",
+      status: "ready", requested: 25, position: 12,
+      created_count: 7, refreshed_count: 1, held_count: 4, conflict_count: 0,
+      candidates: Array.from({ length: 25 }, (_, i) => ({ source_ref: `node:${100+i}` })),
+      last_error: null, lease_until: null, created_at: "2026-10-28T08:00:00Z",
+    }],
     revision_rounds: [], change_orders: [], contracts: [], form_submissions: [], form_templates: [], templates: [],
     files: view === "project" && scenario === "populated" ? [{ id: "synthetic-image", filename: "Shared design.png", mime_type: "image/png", visibility: "client", size_bytes: 100, created_at: "2026-10-01T12:00:00Z", object_path: "synthetic.png" }] : [],
   };
