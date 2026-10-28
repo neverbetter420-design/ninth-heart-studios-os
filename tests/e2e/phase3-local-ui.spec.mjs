@@ -301,7 +301,13 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       for (const [label, route] of [["Command Center", "/"], ["Lead Intelligence", "/leads"], ["Lead Scanner", "/leads/discover"], ["Opportunity Radar", "/opportunities"], ["Project Pipeline", "/projects"], ["Client Management", "/clients"], ["Contracts", "/contracts"], ["Text templates", "/templates"], ["Fillable Forms", "/forms"], ["Muse", "/muse"], ["Automations", "/automations"], ["Settings", "/settings"]]) {
         await visitPrimary(adminPage, label, route);
         if (route === "/leads/discover") {
-          await expect(adminPage.getByRole("heading", { name: "Better leads. A closer look.", exact: true })).toBeVisible();
+          await expect(adminPage.getByRole("heading", { name: "Scan studio.", exact: true })).toBeVisible();
+          await expect(adminPage.getByRole("navigation", { name: "Scanner workspaces" }).getByRole("link")).toHaveCount(4);
+          for (const [workspace, heading] of [["best", "Best fits."], ["prospects", "Saved prospects."], ["insights", "Insights."]]) {
+            await adminPage.goto("/leads/discover?workspace=" + workspace);
+            await expect(adminPage.getByRole("heading", { name: heading, exact: true })).toBeVisible();
+          }
+          await adminPage.goto("/leads/discover");
           await captureReviewScreen(adminPage, "design-preview/nocturne-scanner-" + previewSuffix + ".png");
         }
       }
