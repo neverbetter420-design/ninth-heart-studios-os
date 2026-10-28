@@ -295,6 +295,32 @@ export async function promoteProspect(id: string) {
   const { data: p } = await supabase.from("prospects").select("*").eq("id", id).single();
   if (!p || p.status === "promoted" || p.lead_id) return;
 
+  // Promotion is another entry into Lead Intelligence. Previously saved
+  // prospects must receive the same client/lead duplicate protection as scans.
+  const [clientCheck, leadCheck, prospectCheck] = await Promise.all([
+    supabase.from("clients").select("id, name, website, status").limit(1000),
+    supabase.from("leads").select("business_name, phone, website, metadata").limit(1000),
+    supabase.from("prospects")
+      .select("id, source_ref, business_name, category, website, phone, address, status, outreach_status, outreach_draft")
+      .limit(1000),
+  ]);
+  if (clientCheck.error || leadCheck.error || prospectCheck.error ||
+      !clientCheck.data || !leadCheck.data || !prospectCheck.data ||
+      clientCheck.data.length >= 1000 || leadCheck.data.length >= 1000 || prospectCheck.data.length >= 1000) {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      "Cannot safely check existing relationships. No lead was created."
+    ));
+  }
+  const identity = checkBusinessIdentity(p,
+    (prospectCheck.data as Array<ComparableProspect & { id: string }>).filter(other => other.id !== p.id),
+    leadCheck.data as unknown as ExistingLead[], clientCheck.data as ClientIdentity[]);
+  if (identity.action !== "allow") {
+    redirect("/leads/discover?msg=" + encodeURIComponent(
+      identity.action === "protect" ? "This business matches a saved relationship. No duplicate lead created." :
+        "Possible duplicate relationship requires manual review. No lead created."
+    ));
+  }
+
   const wasSent = p.outreach_status === "sent";
   const initial = deriveNewLead({ acquisitionType: "outbound", hasContactMethod: false });
   const workflow = wasSent
