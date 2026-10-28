@@ -16,35 +16,35 @@ assert.equal(missing.length, 1);
 assert.equal(missing[0].kind, "unverified");
 assert.match(missing[0].detail, /not proof one does not exist/i);
 assert.equal(missing[0].evidence_url, undefined);
-const unreachable = buildProspectInsights({ ...base, reachable: false }, "https://business.example");
+const unreachable = buildProspectInsights({ ...base, reachable: false }, "https://business-valid.com");
 assert.equal(unreachable[0].key, "unavailable");
 assert.match(unreachable[0].detail, /Retry before drawing conclusions/);
 const audit = auditIndustryHomepage("restaurants", [
   '<a href="/menu.pdf">Menu</a>',
   '<a href="https://www.opentable.com/r/example">Book a table</a>',
   '<p>Order with us in person.</p>',
-].join("\n"), "2026-10-28T00:00:00Z", "https://business.example");
+].join("\n"), "2026-10-28T00:00:00Z", "https://business-valid.com");
 const s = { ...base, industry_audit: audit };
-const result = buildProspectInsights(s, "https://business.example");
+const result = buildProspectInsights(s, "https://business-valid.com");
 assert.ok(result.length <= 3);
 assert.equal(result[0].kind, "review", "not-observed homepage actions remain mere review clues");
 assert.match(result[0].detail, /may exist on a different page/i);
 assert.equal(result[0].checked_at, "2026-10-28T00:00:00Z");
 assert.ok(result.some(r => r.kind === "observed"));
-assert.ok(result.every(r => !r.evidence_url || r.evidence_url.startsWith("https://business.example/")));
+assert.ok(result.every(r => !r.evidence_url || r.evidence_url.startsWith("https://business-valid.com/")));
 assert.ok(!result.some(r => r.evidence_url?.includes("opentable.com")),
   "outside reservation links cannot be presented as same-origin evidence");
 const viewport = buildProspectInsights({ ...base, mobile_viewport: false, description_ok: false },
-  "https://business.example");
+  "https://business-valid.com");
 assert.equal(viewport[0].key, "viewport");
 assert.match(viewport[0].detail, /does not prove/i);
 assert.equal(viewport[1].key, "description");
 assert.equal(buildProspectInsights({ ...base, stale_copyright: true, copyright_year: 2020 },
-  "https://business.example")[0].key, "copyright");
-const noAssumptions = buildProspectInsights(base, "https://business.example");
+  "https://business-valid.com")[0].key, "copyright");
+const noAssumptions = buildProspectInsights(base, "https://business-valid.com");
 assert.equal(noAssumptions[0].kind, "unverified");
-assert.equal(buildProspectInsights(s, "https://business.example", 1).length, 1);
-assert.ok(buildProspectInsights(s, "https://business.example", 20).length <= 6);
+assert.equal(buildProspectInsights(s, "https://business-valid.com", 1).length, 1);
+assert.ok(buildProspectInsights(s, "https://business-valid.com", 20).length <= 6);
 assert.equal(buildProspectInsights(s, "javascript:alert(1)")[0].key, "unknown-site");
 
 const ui = readFileSync("app/(protected)/(admin)/leads/discover/page.tsx", "utf8");
