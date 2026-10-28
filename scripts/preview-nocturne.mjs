@@ -72,7 +72,7 @@ function mapSourceHref(href, selected, sourcePath) {
     }
   }
   if (!view) return null;
-  const section = target.searchParams.get("section") ?? "";
+  const section = target.searchParams.get(view === "scanner" ? "workspace" : "section") ?? "";
   return reviewURL("/screen", selected, { view, section: /^[a-z-]{1,40}$/.test(section) ? section : "" }) + (/^#[a-z0-9_-]*$/i.test(target.hash) ? target.hash : "");
 }
 
