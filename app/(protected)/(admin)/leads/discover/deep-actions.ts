@@ -128,6 +128,31 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
   };
   try {
     if (!batch.length || batch.some(b => !validBusiness(b))) throw new Error("Corrupted saved candidate batch.");
+    if (!job.location || !job.area_label || !Number.isInteger(job.radius_m) ||
+      job.radius_m < 1609 || job.radius_m > 80467 ||
+      !Array.isArray(job.niches) || !job.niches.length ||
+      job.niches.some(n => !Object.prototype.hasOwnProperty.call(NICHES, n))) {
+      throw new Error("Saved territory context is invalid. Batch paused before saving.");
+    }
+    const analyzed: Array<ComparableProspect & { source_ref: string }> = [];
+    for (let offset = 0; offset < batch.length; offset += 3) {
+      const checked = await Promise.all(batch.slice(offset, offset + 3).map(async b => {
+        try {
+          const { signals, website } = await analyzeBusinessPresence(b);
+          return {
+            source_ref: b.source_ref, business_name: b.name,
+            category: b.category, address: b.address, phone: b.phone, website, signals,
+            opportunity_score: scoreSignals(signals),
+            status: "new", outreach_status: "none",
+          };
+        } catch { return null; }
+      }));
+      for (const result of checked) if (result) analyzed.push(result);
+      // Preserve the lease between bounded network waves, too.
+      await renewOwnedLease();
+    }
+    // Query relationship history AFTER the external fetches, so a lead or
+    // client created while the scan was looking at websites is included.
     // Fail closed before ANY prospect write. Deep Scan must never bypass the
     // Quick Scan client/lead/prospect checks or silently truncate prior records.
     const [priorRows, leadRows, clientRows] = await Promise.all([
@@ -149,27 +174,6 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
     const previous = priorRows.data! as Array<ComparableProspect & { id: string }>;
     const existingLeads = leadRows.data! as unknown as ExistingLead[];
     const existingClients = clientRows.data! as ClientIdentity[];
-    if (!job.location || !job.area_label || !Number.isInteger(job.radius_m) ||
-      job.radius_m < 1609 || job.radius_m > 80467 ||
-      !Array.isArray(job.niches) || !job.niches.length ||
-      job.niches.some(n => !Object.prototype.hasOwnProperty.call(NICHES, n))) {
-      throw new Error("Saved territory context is invalid. Batch paused before saving.");
-    }
-    const analyzed: Array<ComparableProspect & { source_ref: string }> = [];
-    for (let offset = 0; offset < batch.length; offset += 3) {
-      const checked = await Promise.all(batch.slice(offset, offset + 3).map(async b => {
-        try {
-          const { signals, website } = await analyzeBusinessPresence(b);
-          return {
-            source_ref: b.source_ref, business_name: b.name,
-            category: b.category, address: b.address, phone: b.phone, website, signals,
-            opportunity_score: scoreSignals(signals),
-            status: "new", outreach_status: "none",
-          };
-        } catch { return null; }
-      }));
-      for (const result of checked) if (result) analyzed.push(result);
-    }
     // A source-ref match to one uncontacted prospect can be safely refreshed.
     // Existing clients, leads and ambiguous identities are held, never merged.
     const candidatePool: typeof analyzed = [];
