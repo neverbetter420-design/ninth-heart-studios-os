@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
+import { deepScanPercent, expiredDeepLease } from "@/lib/deep-scan";
 import { createDeepScan, processDeepScanBatch, changeDeepScanStatus } from "./deep-actions";
 import {
   NICHES,
@@ -256,7 +257,7 @@ export default async function DiscoverPage({
             {deepScans.map(job => {
               const total = Array.isArray(job.candidates) ? job.candidates.length : 0;
               const processed = Math.min(total, Math.max(0, job.position));
-              const expired = job.lease_until ? new Date(job.lease_until).getTime() < Date.now() : false;
+              const expired = expiredDeepLease(job.status, job.lease_until, Date.now());
               const canRun = job.status === "ready" || (job.status === "running" && expired);
               return (
                 <article key={job.id} className="scanner-deep-job">
@@ -272,7 +273,7 @@ export default async function DiscoverPage({
                   <div className="scanner-deep-progress" role="progressbar"
                     aria-label={`Processed businesses in ${job.area_label}`}
                     aria-valuemin={0} aria-valuemax={total || 1} aria-valuenow={processed}>
-                    <span style={{ width: `${total ? Math.round(processed / total * 100) : 0}%` }} />
+                    <span style={{ width: `${deepScanPercent(processed, total)}%` }} />
                   </div>
                   <p className="management-help">
                     {job.created_count} new · {job.refreshed_count} refreshed ·
