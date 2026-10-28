@@ -10,6 +10,7 @@ import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate, rate
 import { checkBusinessIdentity, type ClientIdentity } from "@/lib/prospect-identity";
 import { updateScanMemory } from "@/lib/prospect-scan-memory";
 import { createScanTerritory } from "@/lib/prospect-territories";
+import { suggestNhsOffers } from "@/lib/prospect-offer-fit";
 import {
   NICHES,
   geocode,
@@ -244,14 +245,15 @@ export async function generateDraft(id: string) {
   const supabase = await createClient();
   const { data: p } = await supabase
     .from("prospects")
-    .select("id, business_name, category, website, signals")
+    .select("id, source_ref, business_name, category, address, phone, website, signals, status, outreach_status, outreach_draft")
     .eq("id", id)
     .single();
-  if (!p) return;
+  if (!p || p.status !== "new" || p.outreach_status === "sent") return;
   // Area label: best-effort from address, fallback generic.
   const { data: addr } = await supabase.from("prospects").select("address").eq("id", id).single();
   const areaLabel =
     (addr?.address ?? "").split(",").slice(-2).join(",").trim() || "the area";
+  const suggestedOffer = suggestNhsOffers(p.category, p.website, p.signals, 1)[0];
   const { subject, body } = draftOutreach(
     {
       business_name: p.business_name,
@@ -261,7 +263,8 @@ export async function generateDraft(id: string) {
       website: p.website,
       areaLabel,
     },
-    p.signals
+    p.signals,
+    suggestedOffer.basis === "homepage_review" ? suggestedOffer.draft_angle : null,
   );
   await supabase
     .from("prospects")
@@ -270,7 +273,9 @@ export async function generateDraft(id: string) {
       outreach_status: "drafted",
       updated_at: new Date().toISOString(),
     })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("status", "new")
+    .neq("outreach_status", "sent");
   revalidatePath("/leads/discover");
 }
 
