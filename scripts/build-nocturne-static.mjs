@@ -11,7 +11,7 @@ const safeJSON = value => JSON.stringify(value)
   .replace(/>/g, "\\u003e")
   .replace(/&/g, "\\u0026");
 const routes = {
-  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","settings","opportunities","opportunity-detail","automations","controls"],
+  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","scanner-best","scanner-prospects","scanner-insights","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","settings","opportunities","opportunity-detail","automations","controls"],
   client: ["home","project","portal-projects","portal-documents","portal-messages","portal-files","portal-approvals","portal-contracts","portal-forms","controls"]
 };
 const escape = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -36,7 +36,8 @@ const visualStyles = previewCSS + "\nbutton[disabled]{cursor:not-allowed!importa
 writeFileSync(join(root,"visual.css"), visualStyles);
 for(const [role,views] of Object.entries(routes)){
   for(const view of views){
-    const result=await renderNocturne(role,"populated",view);
+    const scannerSection = view.startsWith("scanner-") ? view.slice("scanner-".length) : "";
+    const result=await renderNocturne(role,"populated",scannerSection ? "scanner" : view,scannerSection);
     const html=stripActions(result.html);
     screenMarkup[role + "/" + view] = html;
     const frame='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS OS synthetic visual review</title><link rel="stylesheet" href="../../visual.css"></head><body>'+html+'</body></html>';
@@ -154,7 +155,7 @@ writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
   "",
   "1. In Downloads, right-click nhs-nocturne-html-preview.zip and choose Extract All.",
   "2. Open the extracted folder. Open index.html in Chrome or Edge.",
-  "3. index.html now includes all 30 screens and styles. It works without a server or separate files.",
+  "3. index.html now includes all 33 screens and styles. It works without a server or separate files.",
   "4. Open seven-rooms.html for the all-room comparison, or use index.html screen controls.",
   "",
   "This is a visual demonstration with synthetic data, not the production app.",
