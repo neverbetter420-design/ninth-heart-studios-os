@@ -48,9 +48,16 @@ export function safeVerificationLink(e: VerificationEvidence): string | null {
     if (e.source === "social") {
       const allowed = ["www.instagram.com", "www.facebook.com"];
       if (u.protocol !== "https:" || !allowed.includes(host)) return null;
-      if (!/^\/(?:[a-z0-9._-]+\/|profile\.php)$/i.test(u.pathname)) return null;
-      return u.origin + u.pathname + (u.pathname === "/profile.php" && /^\d+$/.test(u.searchParams.get("id") ?? "")
-        ? "?id=" + u.searchParams.get("id") : "");
+      if (u.pathname === "/profile.php") {
+        const id = u.searchParams.get("id");
+        return host === "www.facebook.com" && id && /^\d+$/.test(id)
+          ? u.origin + "/profile.php?id=" + id : null;
+      }
+      if (!/^\/[a-z0-9._-]+\/$/i.test(u.pathname)) return null;
+      const reserved = ["login", "checkpoint", "accounts", "explore", "p", "reels", "reel",
+        "share", "sharer", "dialog", "watch", "events", "groups"];
+      if (reserved.includes(u.pathname.split("/")[1].toLowerCase())) return null;
+      return u.origin + u.pathname;
     }
     if (!host.includes(".") ||
       /^(?:localhost|.*\.local|.*\.internal|.*\.test|.*\.invalid)$/i.test(host) ||
