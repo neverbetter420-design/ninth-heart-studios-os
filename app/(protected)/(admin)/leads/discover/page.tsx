@@ -7,6 +7,7 @@ import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
 import { buildProspectInsights } from "@/lib/prospect-insights";
 import { safeVerificationLink } from "@/lib/prospect-verification";
 import { compareSavedTerritories } from "@/lib/prospect-territories";
+import { suggestNhsOffers } from "@/lib/prospect-offer-fit";
 import {
   NICHES,
   signalBadges,
@@ -375,6 +376,7 @@ export default async function DiscoverPage({
           {prospects.map((p) => {
             const badges = signalBadges(p.signals ?? ({} as WebsiteSignals));
             const insights = buildProspectInsights(p.signals, p.website, 3);
+            const suggestedOffers = suggestNhsOffers(p.category, p.website, p.signals, 2);
             return (
               <article key={p.id} className="card prospect-card">
                 <div className="prospect-head">
@@ -479,6 +481,27 @@ export default async function DiscoverPage({
                     </ul>
                   </details>
                 )}
+                <details className="draft-details" aria-label={"NHS service fit for " + p.business_name}>
+                  <summary>Possible NHS service fit · {suggestedOffers[0].title}</summary>
+                  <p className="management-help">
+                    Suggestions for your own review, not a verified need or an automatic proposal.
+                    Open the business site before deciding which offer belongs in an outreach draft.
+                  </p>
+                  <ul className="scanner-audit-findings">
+                    {suggestedOffers.map(offer => (
+                      <li key={offer.key}>
+                        <strong>{offer.title} · {offer.kind}</strong>
+                        <small>{offer.reason}</small>
+                        <small>{offer.basis === "homepage_review"
+                          ? "Based on a partial homepage observation"
+                          : "Discovery only · manual business consultation advised"}</small>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="management-help">
+                    Draft outreach is prepared only when you choose it. Nothing is sent automatically.
+                  </p>
+                </details>
                 <details className="draft-details" aria-label={`Prospect insights for ${p.business_name}`}>
                   <summary>Why review this business? · Evidence-based insights</summary>
                   <p className="management-help">
@@ -593,11 +616,13 @@ export default async function DiscoverPage({
                       Re-analyze &amp; check socials
                     </PortalSubmitButton>
                   </form>
-                  <form action={generateDraft.bind(null, p.id)}>
-                    <button type="submit" className="mini-button">
-                      {p.outreach_draft ? "Regenerate draft" : "Draft outreach"}
-                    </button>
-                  </form>
+                  {p.status === "new" && p.outreach_status !== "sent" && (
+                    <form action={generateDraft.bind(null, p.id)}>
+                      <button type="submit" className="mini-button">
+                        {p.outreach_draft ? "Regenerate draft" : "Draft outreach"}
+                      </button>
+                    </form>
+                  )}
                   {p.status !== "promoted" && (
                     <form action={promoteProspect.bind(null, p.id)}>
                       <button type="submit" className="mini-button accent">
