@@ -1,7 +1,7 @@
 // Unit tests for evidence-based homepage industry audits.
 // These operate only on HTML strings and do not visit or mutate businesses.
 import assert from "node:assert/strict";
-import { auditIndustryHomepage } from "../lib/prospect-industry-audit.ts";
+import { auditIndustryHomepage, safeIndustryEvidenceUrl } from "../lib/prospect-industry-audit.ts";
 import { analyzeWebsite } from "../lib/prospect-scan.ts";
 
 const source = `<!doctype html><html><head><title>Neighborhood Restaurant</title></head><body>
@@ -9,7 +9,7 @@ const source = `<!doctype html><html><head><title>Neighborhood Restaurant</title
 <a href="https://www.opentable.com/r/restaurant-example">Reserve a table</a>
 <a href="/contact">Contact</a></body></html>`;
 const r = auditIndustryHomepage("restaurants", source, "2026-10-28T00:00:00Z");
-assert.equal(r.version, 1);
+assert.equal(r.version, 2);
 assert.equal(r.scope, "homepage_only");
 assert.equal(r.category, "restaurants");
 assert.equal(r.scanned_at, "2026-10-28T00:00:00Z");
@@ -40,6 +40,22 @@ assert.equal(contractor.signals.find(x => x.key === "area")?.status, "observed")
 const fitness = auditIndustryHomepage("fitness", `<a href="/classes">Class schedule</a><a href="/membership">Join now</a>`);
 assert.equal(fitness.signals.find(x => x.key === "classes")?.status, "observed");
 assert.equal(fitness.signals.find(x => x.key === "membership")?.status, "observed");
+
+// Evidence must be traceable to the inspected same-origin homepage, not
+// arbitrary external links or executable schemes injected in third-party HTML.
+const linked = auditIndustryHomepage("restaurants", source, "2026-10-28T00:00:00Z", "https://example-real-domain.com");
+assert.equal(linked.signals.find(x => x.key === "menu")?.evidence_url,
+  "https://example-real-domain.com/menu.pdf");
+assert.equal(linked.signals.find(x => x.key === "reservations")?.evidence_url, undefined,
+  "third-party reservation providers must not be offered as unverified source links");
+assert.equal(safeIndustryEvidenceUrl("https://example.com", "javascript:alert(1)"), null);
+assert.equal(safeIndustryEvidenceUrl("https://example.com", "https://evil.example/menu"), null);
+assert.equal(safeIndustryEvidenceUrl("https://example.com", "//evil.example/menu"), null);
+assert.equal(safeIndustryEvidenceUrl("https://example.com", "/menu"), "https://example.com/menu");
+const mobile = auditIndustryHomepage("salons",
+  '<head><meta name="viewport" content="width=device-width,initial-scale=1"></head>');
+assert.equal(mobile.signals.find(x => x.key === "mobile_viewport")?.status, "observed");
+assert.equal(jsOnly.signals.find(x => x.key === "mobile_viewport")?.status, "not_observed_on_homepage");
 
 // The HTTP parser must attach the audit to the already retrieved homepage.
 // Never make a second fetch for site-specific evidence.
