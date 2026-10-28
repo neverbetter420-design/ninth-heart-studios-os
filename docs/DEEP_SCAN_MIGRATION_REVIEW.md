@@ -1,18 +1,17 @@
 # Deep Scan database migration review
 
-**Owner-approved for source merge on 2026-10-28; not applied to production and not deployed.** Migration: `supabase/migrations/20261028090000_deep_scan_jobs.sql`. Approved exact SQL Git blob: `997b2ffbb0f36223dd72a781c13f0aca24010fd8`. The guarded preflight independently verifies this full-file digest; any edit to the SQL requires another explicit review before release.
+**Applied to production as of the read-only review on 2026-10-28; updated scanner Worker is not yet deployed.** Migration: `supabase/migrations/20261028090000_deep_scan_jobs.sql`. Approved exact SQL Git blob: `997b2ffbb0f36223dd72a781c13f0aca24010fd8`. The guarded preflight independently verifies this full-file digest; any edit to the SQL requires another explicit review before release.
 
 ## Why it is needed
 The existing scanner runs up to 12 business checks in one request. Longer scans need persisted candidate queues, position counters and an atomic lease so repeated taps or interrupted Cloudflare requests do not process the same segment concurrently. This table is a private, admin-owned queue for **on-demand** work only; it creates no timers, no scheduled jobs, no AI API calls and no new outward messages.
 
-## Existing production baseline
-- **Live read-only inventory verified on 2026-10-28:** production records **24 applied migration versions**, including the older client-safety migration `20261017030000` and Lead Search queue migration `20261020063055`. Both stored SQL statements were checked byte-for-byte against the corresponding source files and match exactly.
-- The older guard in `scripts/verify-release-preflight.mjs` still expects just 22 baseline versions plus one formerly proposed security migration (23 source files). Its assumptions are **stale**; they must not be treated as the production truth.
-- The Lead Search queue SQL was missing from the current scanner stack because the original PR #20 remains unmerged although the migration is already applied. The exact 4,201-character SQL has now been **restored in PR #46 source only**. Do not separately merge PR #20 without reviewing its additional code.
-- **The 24-version production inventory and one additional Deep Scan SQL proposal received explicit owner approval for source merge on 2026-10-28.** The former 23-file preflight baseline has been replaced by the exact 24-applied-plus-one-proposed inventory and an immutable SQL blob check. Passing that source guard does **not** mean the new migration is installed or authorize an app deployment.
-- Production currently has **no `public.deep_scan_jobs` table** and no applied migration version `20261028090000`. No live schema mutation occurred in this review.
-- Apply only via the reviewed production migration process, after auth/permission checks; do not apply as a side effect of preview.
-- `public.deep_scan_jobs` does **not** currently exist in production, and the UI intentionally disables creation until the table is available.
+## Production migration inventory (verified 2026-10-28)
+- A read-only production recheck records **25 applied migration versions**, including `20261028090000_deep_scan_jobs`. Earlier that day, prior to its application, the production inventory held 24 applied versions. The time and actor of the application were not established by this review.
+- `public.deep_scan_jobs` exists with zero jobs; its admin/owner RLS policy is enabled, and the five Deep Scan SQL RPCs use `SECURITY INVOKER` with authenticated-only execution. No production records were modified during the review.
+- Current source guard requires **exactly 25 applied migration files**, no extras or missing versions. It still verifies every byte of the owner-approved Deep Scan SQL against Git blob `997b2ffbb0f36223dd72a781c13f0aca24010fd8`.
+- Older scanner branches discussed a 23-file baseline, then 24 applied plus one proposed version. Those were historical states and **must not** be used to describe the present database.
+- Original Lead Search queue SQL (`20261020063055`) remains represented in source, even though its historic PR #20 was never independently merged. Do not merge it separately.
+- The latest observed Cloudflare Worker deployment was **2026-10-27T08:57:45Z**, before the October 28 scanner source merge. This database migration does not deploy the UI. Production deployment remains a separate manual, owner-approved workflow.
 
 ## Security properties to review
 1. `created_by` references `auth.users`; owner-scoped admin RLS using `private.is_admin()` and `auth.uid()` on all operations.
@@ -28,13 +27,17 @@ The existing scanner runs up to 12 business checks in one request. Longer scans 
 - CI TypeScript, full pure-module scanner tests and production build, including 100-candidate / 17-batch tests.
 - Local ephemeral Supabase migration replay, role-scoped RLS tests for anon/non-admin/admin, and concurrent claim/expire/retry tests.
 - Browser mobile/desktop scan progress, pause/resume/cancel, and Quick Scan regression tests.
-- Confirm zero production DB changes from PR review; owner approves migration inventory separately.
-- After owner-authorized migration/deploy, run controlled 25-business scan first, verify counts, resume after refresh, and compare prospect IDs against existing records.
+- Verify all 25 migration versions, the admin-owned RLS security boundaries, and the exact SQL checksum without modifying production.
+- After a separately owner-authorized Worker deployment, run a controlled 25-business scan first, verify counts, resume after refresh, and compare prospect IDs against existing records.
 - Only then consider automatic scheduling/queue consumers.
 
 ## Current limitation
 The feature is **manually resumable**, not 100 automatically audited businesses in one click. Directories may return fewer candidates than requested. Contact data is scored for confidence, never represented as independently verified unless matching public evidence exists.
 
+
+## Historical development and approval notes
+
+The sections below preserve review history from before the SQL was applied and may refer to the migration as *proposed*, *unapplied*, or *blocked*. They do not override the verified production state above. The approved source was later merged after 6/6 CI checks; the database subsequently reported migration version 25 as applied. A new Worker deployment remains pending.
 
 ## 2026-10-28 integrated safety review (draft PR #46)
 
@@ -146,3 +149,8 @@ review if fully transactional batch writes become essential.
 Owner explicitly approved the exact Deep Scan migration SQL and updated inventory, and authorized merging after successful CI. The final corrected SQL is pinned by blob SHA `997b2ffbb0f36223dd72a781c13f0aca24010fd8`. The separate no-unreviewed-migrations guard is preserved, with source baseline verified against 24 applied live migration versions. The SQL syntactic dollar-quote repair is included in this approved candidate and must pass disposable Supabase replay before any merge.
 
 **Boundaries:** this authorizes a reviewed GitHub source merge only. It does not apply `20261028090000` to hosted Supabase, publish Cloudflare Workers, contact prospects, or bypass any failing CI. Hosted schema deployment must be a separate controlled release with its own explicit action and verification.
+
+
+## Final source-inventory reconciliation (2026-10-28)
+
+A separate GitHub review branch updates the source-only release guard from the old 24-applied-plus-one-proposed assumption to **25 applied versions** following the read-only live verification. This does not apply SQL again, trigger Cloudflare deployment, start scanning, or send messages. The exact approved SQL Git blob remains `997b2ffbb0f36223dd72a781c13f0aca24010fd8` and the additional-migration fail-closed rule remains enforced. Supabase Auth advisors still report leaked-password protection disabled, a separate security-hardening follow-up.

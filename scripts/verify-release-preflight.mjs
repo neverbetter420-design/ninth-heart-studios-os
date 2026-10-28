@@ -13,10 +13,12 @@ const appliedVersions = [
   "20261013040000","20261013050000","20261013050001","20261013060000",
   "20261013232917","20261014060417","20261014070000","20261015001632",
   "20261015001941","20261015005039","20261017030000","20261020063055",
+  "20261028090000",
 ];
-const proposedVersion = "20261028090000";
-// Owner-approved exact SQL at draft PR #48 after 2026-10-28 disposable replay fix.
-// Git blob digest checks both migration filename contents and every SQL byte.
+// Owner-approved exact Deep Scan SQL, now verified APPLIED in hosted Supabase
+// (live inventory has 25 applied versions). The source preflight is intentionally
+// read-only; a new migration needs a separately approved inventory change.
+// Preserve the Git blob integrity pin against accidental SQL alteration.
 const approvedDeepScanSqlBlobSha = "997b2ffbb0f36223dd72a781c13f0aca24010fd8";
 const checks = [
   ["Production migration-history baseline is represented in source", () => {
@@ -25,12 +27,12 @@ const checks = [
         "Missing or duplicate production migration: " + version);
     }
     assert.equal(new Set(appliedVersions).size, appliedVersions.length);
-    assert.equal(migrations.length, appliedVersions.length + 1,
+    assert.equal(migrations.length, appliedVersions.length,
       "Unexpected additional SQL migrations require a new approved inventory review.");
-    assert.equal(migrations.filter((f) => f.startsWith(proposedVersion + "_")).length, 1,
-      "Approved Deep Scan migration must remain separately versioned and not yet counted as applied.");
-    assert.equal(appliedVersions.length, 24,
-      "The owner-approved live migration baseline contains exactly 24 versions.");
+    assert.equal(appliedVersions.length, 25,
+      "The verified live migration baseline contains exactly 25 applied versions.");
+    assert.equal(migrations.filter((f) => f === "20261028090000_deep_scan_jobs.sql").length, 1,
+      "Already-applied Deep Scan source must have exactly its approved filename.");
     const approvedSource = read("supabase/migrations/20261028090000_deep_scan_jobs.sql");
     const gitBlobSha = createHash("sha1")
       .update("blob " + Buffer.byteLength(approvedSource) + "\0")
