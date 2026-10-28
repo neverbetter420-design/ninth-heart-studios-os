@@ -31,6 +31,15 @@ assert.deepEqual(decision(proposed(), [], [], [client()]),
   { action: "protect", reason: "existing_client" });
 assert.deepEqual(decision(proposed(), [], [lead()]),
   { action: "protect", reason: "existing_lead" });
+assert.equal(decision(proposed(), [], [], [
+  client({ id: "uncertain", website: null }),
+  client({ id: "real-client", name: "Café Thorn", website: "https://cafethorn.example/menu" }),
+]).reason, "existing_client", "strong client match takes priority over ambiguous name");
+assert.equal(decision(proposed(), [previous({
+  source_ref: "node:2004", business_name: "Cafe Thorn",
+  address: "250 Elm St, Tacoma, WA", phone: "253-555-0140",
+  website: "https://cafethorn.example/menu",
+})]).action, "review", "same franchise phone and website at a different street must be held");
 assert.deepEqual(decision(proposed(), [], [], [client({ website: null })]),
   { action: "review", reason: "ambiguous_relationship" },
   "a client name alone must not silently suppress or create a new prospect");
