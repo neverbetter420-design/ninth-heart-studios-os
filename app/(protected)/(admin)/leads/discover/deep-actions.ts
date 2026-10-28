@@ -246,7 +246,11 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
     if (err && typeof err === "object" && "digest" in err &&
       String((err as { digest?: string }).digest).startsWith("NEXT_REDIRECT")) throw err;
     const message = err instanceof Error ? err.message.slice(0, 240) : "Batch processing failed";
-    await supabase.rpc("pause_deep_scan_batch", { p_id: id, p_lease: lease, p_error: message });
+    const { data: paused, error: pauseError } = await supabase.rpc(
+      "pause_deep_scan_batch", { p_id: id, p_lease: lease, p_error: message },
+    ).maybeSingle();
+    if (pauseError || !paused) return redirectWithMessage(
+      "Deep Scan stopped. The lease may have expired; retry or cancel the job from its progress panel. " + message);
     return redirectWithMessage("Deep Scan paused safely: " + message);
   }
 }
