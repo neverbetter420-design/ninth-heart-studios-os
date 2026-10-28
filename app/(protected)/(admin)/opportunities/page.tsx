@@ -7,7 +7,7 @@ import {
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { OpportunityTable } from "@/components/opportunities/OpportunityTable";
 import { addOpportunity } from "./actions";
-import { APPROVED_SOURCES, OPPORTUNITY_STATUSES } from "@/lib/radar";
+import { APPROVED_SOURCES, FREELANCE_SOURCES, OPPORTUNITY_STATUSES } from "@/lib/radar";
 import { createClient } from "@/lib/supabase/server";
 import type { Opportunity } from "@/lib/supabase/types";
 
@@ -54,8 +54,9 @@ export default async function OpportunitiesPage({
             <em>Make it a considered one.</em>
           </h2>
           <p className="page-description">
-            Review the fit, keep the bid moving, and give your best ideas to
-            work worth pursuing.
+            Find and assess freelance web-design work on Upwork, Fiverr and
+            Freelancer. Save promising listings, compare their fit, and prepare
+            proposals without automatically applying or messaging anyone.
           </p>
         </div>
         <a className="management-text-link" href="#radar-queue">
@@ -94,9 +95,36 @@ export default async function OpportunitiesPage({
           tone="green"
         />
       </section>
+      <section className="radar-marketplaces" aria-label="Freelance Opportunity AI sources">
+        <DocumentSectionHeading
+          eyebrow="Freelance Opportunity AI · Three sources"
+          title="Find the work worth pitching."
+          detail="Source-aware research and preliminary fit checks. Discovery is manual until an approved provider integration is connected."
+        />
+        <div className="radar-marketplace-links">
+          {FREELANCE_SOURCES.map((marketplace) => (
+            <a
+              href={marketplace.href}
+              key={marketplace.name}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="radar-marketplace-link"
+            >
+              <strong>{marketplace.name}</strong>
+              <span>{marketplace.help}</span>
+              <small>{marketplace.mode} · Open ↗</small>
+            </a>
+          ))}
+        </div>
+        <p className="management-help">
+          Fiverr work arrives through its seller matches and briefs. Upwork and
+          Freelancer need authorized API access before automated searching.
+          All bids, messages and offers stay manual and owner-approved.
+        </p>
+      </section>
       <DocumentCreate
-        title="Track an opportunity"
-        detail="A title, an approved source, and a closer look."
+        title="Save a freelance opportunity"
+        detail="Paste a job brief for preliminary fit guidance, then decide whether to pursue it."
         open={Boolean(formError)}
       >
         <form
@@ -139,13 +167,35 @@ export default async function OpportunitiesPage({
               placeholder="https://"
             />
           </label>
+          <label className="field">
+            <span>Project brief · recommended</span>
+            <textarea
+              name="brief"
+              rows={5}
+              maxLength={4000}
+              placeholder="Paste the client's own description, deliverables and timeline. No sensitive details."
+            />
+          </label>
+          <label className="field">
+            <span>Listed budget (USD) · optional</span>
+            <input
+              name="budget_usd"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0"
+              max="9999999"
+              placeholder="e.g. 900"
+            />
+          </label>
           <div className="studio-actions">
             <PortalSubmitButton pendingLabel="Tracking…">
               Track opportunity
             </PortalSubmitButton>
             <p className="management-help">
-              Manual intake. Tracking a listing does not submit a bid or contact
-              anyone.
+              Manual intake only. The brief generates rule-based fit guidance,
+              not a live AI assessment or prediction. You control the official
+              score, proposals and platform submissions.
             </p>
           </div>
         </form>
