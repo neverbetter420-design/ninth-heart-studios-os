@@ -126,5 +126,6 @@ await check("Anonymous request cannot read approvals or messages",async()=>{
 });
 console.log("PASS "+checks.length+" full local Supabase Auth + PostgREST integration cases, synthetic accounts only");
 await verifyDeepScanLeaseLocal({
-  admin: Admin, clientA: A, clientB: B, service: srv, adminId: ids.admin,
+  admin: Admin, clientA: A, clientB: B,
+  anonymous: createClient(url, pub, base), adminId: ids.admin,
 });
