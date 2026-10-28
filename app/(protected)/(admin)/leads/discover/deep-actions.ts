@@ -64,7 +64,7 @@ export async function createDeepScan(formData: FormData): Promise<never> {
   const requested = Number(formData.get("deep_size"));
   const niches = [...new Set(formData.getAll("niches").map(String))]
     .filter((n): n is NicheKey => Object.prototype.hasOwnProperty.call(NICHES, n));
-  if (location.length < 2 || location.length > 160 || ![5, 10, 15, 25].includes(radiusMi) ||
+  if (location.length < 2 || location.length > 160 || !Number.isInteger(radiusMi) || radiusMi < 1 || radiusMi > 50 ||
     !validDeepSize(requested) || niches.length === 0) {
     return redirectWithMessage("Choose a valid location, radius, scan size and at least one category.");
   }
@@ -230,6 +230,8 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
       else created++;
     }
     const held = batch.length - created - refreshed - conflicts;
+    // Finish under the same active, renewed token after the last network/write.
+    await renewOwnedLease();
     const { data: finished, error: finishError } = await supabase.rpc("finish_deep_scan_batch", {
       p_id: id, p_lease: lease, p_processed: batch.length,
       p_created: created, p_refreshed: refreshed, p_held: held, p_conflicts: conflicts,
