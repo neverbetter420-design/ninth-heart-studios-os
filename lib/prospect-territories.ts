@@ -70,7 +70,7 @@ export function compareSavedTerritories(prospects: TerritoryProspect[], maxAreas
   const groups = new Map<string, {
     territory: ScanTerritory;
     rows: TerritoryProspect[];
-    ids: Set<string>;
+    indices: Map<string, number>;
   }>();
   let without_context = 0, with_context = 0;
   for (const p of prospects) {
@@ -78,13 +78,24 @@ export function compareSavedTerritories(prospects: TerritoryProspect[], maxAreas
     if (!ctx) { without_context++; continue; }
     with_context++;
     const k = key(ctx);
-    const bucket = groups.get(k) ?? { territory: ctx, rows: [], ids: new Set<string>() };
+    const bucket = groups.get(k) ?? { territory: ctx, rows: [] as TerritoryProspect[], indices: new Map<string, number>() };
     // Provider source IDs identify listings across repeated scans. A matching
     // business NAME is not unique, especially for franchise locations.
     const id = p.source_ref ? "source:" + p.source_ref : "row:" + p.id;
-    if (!bucket.ids.has(id)) {
-      bucket.ids.add(id);
+    const previousIndex = bucket.indices.get(id);
+    if (previousIndex === undefined) {
+      bucket.indices.set(id, bucket.rows.length);
       bucket.rows.push(p);
+    } else {
+      // In an anomalous duplicated saved source, any contacted/protected copy
+      // takes precedence over an uncontacted one. Never count it as qualified.
+      const old = bucket.rows[previousIndex];
+      const oldProtected = old.status !== "new" || protectedFromScannerUpdate(old);
+      const newProtected = p.status !== "new" || protectedFromScannerUpdate(p);
+      if ((newProtected && !oldProtected) ||
+        (newProtected === oldProtected && rateProspect(p).quality > rateProspect(old).quality)) {
+        bucket.rows[previousIndex] = p;
+      }
     }
     if (Date.parse(ctx.checked_at) > Date.parse(bucket.territory.checked_at)) {
       bucket.territory = ctx;
