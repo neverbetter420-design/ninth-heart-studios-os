@@ -96,6 +96,18 @@ assert.match(ui, /The database migration must/);
 assert.match(sql, /alter table public\.deep_scan_jobs enable row level security;/);
 assert.doesNotMatch(sql, /cron\.schedule|pg_cron/i);
 
+const sqlFunctions = sql.match(/create or replace function public\.(?:claim|renew|finish|pause|cancel)_deep_scan_(?:batch|job)[\s\S]*?(?=create or replace function public\.|revoke all on function public\.claim_deep_scan_batch)/g) || [];
+assert.equal(sqlFunctions.length, 5, "exactly five owner-scoped Deep Scan RPCs expected");
+for (const [i, statement] of sqlFunctions.entries()) {
+  assert.equal((statement.match(/\nas \$\$\s*\n/g) || []).length, 1,
+    "RPC " + i + " needs an opening SQL dollar-quote delimiter");
+  assert.equal((statement.match(/\n\$\$;/g) || []).length, 1,
+    "RPC " + i + " needs a matching closing SQL dollar-quote delimiter");
+  assert.doesNotMatch(statement, /\nas \$\s*\n|\n\$;/,
+    "Bare dollar delimiters invalidate database migration replay");
+}
+
+
 assert.ok(sql.includes("p_created + p_refreshed + p_held + p_conflicts = p_processed"),
   "no partial or inconsistent batch counters may be committed");
 assert.ok(sql.includes("create or replace function public.cancel_deep_scan_job(p_id uuid)"),
