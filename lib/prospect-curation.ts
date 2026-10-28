@@ -107,7 +107,9 @@ export function prioritizeDiscovered(
     else uncategorized.push(p);
   }
   const result: DiscoveredBusiness[] = [];
-  const capped = Math.max(0, Math.min(30, Math.floor(analyzeLimit)));
+  // Deep Scan Mode persists the candidate list and processes at most six per
+  // action; 100 here is a discovery queue size, NEVER a single HTTP analysis.
+  const capped = Math.max(0, Math.min(100, Math.floor(analyzeLimit)));
   while (result.length < capped && groups.some(g => buckets.get(g)!.length)) {
     for (const g of groups) {
       const next = buckets.get(g)!.shift();
