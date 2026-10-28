@@ -358,6 +358,69 @@ export default async function DiscoverPage({
         )}
       </section>
 
+      <section className="scanner-outcome-study" aria-label="Recorded scanner outreach outcomes">
+        <div className="section-head">
+          <h3>What happened next</h3>
+          <span className="muted">Recorded outcomes only · no invented conversions</span>
+        </div>
+        <p className="management-help">
+          From saved scanner prospects and strictly linked Lead Intelligence records.
+          Marked sent is a manual status, not verified delivery. Consultations are
+          scheduled, not necessarily attended. A created project is not recorded revenue.
+          ROI and true win/loss rates require actual commercial outcome data.
+        </p>
+        {!outcomeSnapshot ? (
+          <p className="management-notice" role="status">
+            Complete conversion records are unavailable or exceed the review limit.
+            No partial or estimated conversion figures are displayed.
+          </p>
+        ) : (
+          <>
+            <div className="scanner-conversion-metrics" role="list" aria-label="Scanner outcome counts">
+              {[
+                { label: "Saved records", value: outcomeSnapshot.totals.saved_records },
+                { label: "Marked sent", value: outcomeSnapshot.totals.marked_sent },
+                { label: "Replies recorded", value: outcomeSnapshot.totals.replies_recorded },
+                { label: "Consultations booked", value: outcomeSnapshot.totals.consultations_scheduled },
+                { label: "Projects created", value: outcomeSnapshot.totals.projects_created },
+              ].map(metric => (
+                <div role="listitem" key={metric.label}>
+                  <strong>{metric.value}</strong>
+                  <small>{metric.label}</small>
+                </div>
+              ))}
+            </div>
+            <details className="draft-details scanner-outcome-detail">
+              <summary>Compare recorded outcomes by business category</summary>
+              {outcomeSnapshot.categories.length === 0 ? (
+                <p className="management-help">
+                  No scanner prospects have been saved in this dataset.
+                </p>
+              ) : (
+                <div className="scanner-outcome-rows">
+                  {outcomeSnapshot.categories.map(group => (
+                    <div key={group.category} className="scanner-outcome-row">
+                      <strong>{group.category === "other" ? "Uncategorized" : NICHES[group.category].label}</strong>
+                      <small>{group.saved_records} saved · {group.marked_sent} marked sent · {group.replies_recorded} replies · {group.consultations_scheduled} consultations · {group.projects_created} projects</small>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </details>
+            {outcomeSnapshot.unmatched_promotions > 0 && (
+              <p className="management-help">
+                {outcomeSnapshot.unmatched_promotions} promoted record(s) could not be
+                linked conclusively to scanner-origin leads and are excluded from outcomes.
+              </p>
+            )}
+            <p className="management-help">
+              {outcomeSnapshot.totals.declined} linked leads marked not interested.
+              This is a workflow snapshot, not a sales conversion rate or claim of causation.
+            </p>
+          </>
+        )}
+      </section>
+
       <section aria-label="Prospects">
         <div className="section-head">
           <h3>
