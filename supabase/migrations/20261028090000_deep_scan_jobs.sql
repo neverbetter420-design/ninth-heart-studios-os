@@ -108,7 +108,7 @@ as $$
     and p_refreshed between 0 and p_processed
     and p_held between 0 and p_processed
     and p_conflicts between 0 and p_processed
-    and p_created + p_refreshed + p_held + p_conflicts <= p_processed
+    and p_created + p_refreshed + p_held + p_conflicts = p_processed
   returning j.*;
 $$;
 
@@ -122,15 +122,37 @@ as $$
       last_error = left(p_error, 250), updated_at = now()
   where j.id = p_id and j.created_by = (select auth.uid())
     and (select private.is_admin()) and j.status = 'running'
-    and j.lease_token = p_lease
+    and j.lease_token = p_lease and j.lease_until > now()
   returning j.*;
-$$;
+$;
+
+-- Owner cancellation is an atomic job-row transition. A paused or ready
+-- queue can be cancelled immediately, while a still-running queue can only
+-- be cancelled AFTER its lease has expired. Database now() decides expiry,
+-- so a caller's device clock cannot preempt an active worker.
+create or replace function public.cancel_deep_scan_job(p_id uuid)
+returns setof public.deep_scan_jobs
+language sql volatile security invoker
+set search_path = ''
+as $
+  update public.deep_scan_jobs j
+  set status = 'cancelled', lease_token = null, lease_until = null,
+      last_error = null, updated_at = now()
+  where j.id = p_id
+    and j.created_by = (select auth.uid())
+    and (select private.is_admin())
+    and (j.status in ('ready', 'paused')
+      or (j.status = 'running' and j.lease_until < now()))
+  returning j.*;
+$;
 
 revoke all on function public.claim_deep_scan_batch(uuid) from public, anon;
 revoke all on function public.renew_deep_scan_batch(uuid,uuid) from public, anon;
 revoke all on function public.finish_deep_scan_batch(uuid,uuid,integer,integer,integer,integer,integer) from public, anon;
 revoke all on function public.pause_deep_scan_batch(uuid,uuid,text) from public, anon;
+revoke all on function public.cancel_deep_scan_job(uuid) from public, anon;
 grant execute on function public.claim_deep_scan_batch(uuid) to authenticated;
 grant execute on function public.renew_deep_scan_batch(uuid,uuid) to authenticated;
 grant execute on function public.finish_deep_scan_batch(uuid,uuid,integer,integer,integer,integer,integer) to authenticated;
 grant execute on function public.pause_deep_scan_batch(uuid,uuid,text) to authenticated;
+grant execute on function public.cancel_deep_scan_job(uuid) to authenticated;
