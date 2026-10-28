@@ -32,3 +32,38 @@ The existing scanner runs up to 12 business checks in one request. Longer scans 
 
 ## Current limitation
 The feature is **manually resumable**, not 100 automatically audited businesses in one click. Directories may return fewer candidates than requested. Contact data is scored for confidence, never represented as independently verified unless matching public evidence exists.
+
+
+## 2026-10-28 integrated safety review (draft PR #46)
+
+This integrated draft is based on the newest scanner intelligence branch (PR #45).
+It supersedes the unintegrated feature code in PR #37 for review purposes,
+but the earlier PR remains open as its reference. Never merge both.
+The original migration file is carried forward unchanged, deliberately keeping
+the migration-inventory release preflight locked until separately approved.
+
+Additional gates applied in the integrated server action:
+- Every six-business batch reads the COMPLETE bounded saved prospects, leads,
+  and existing clients. Missing or truncated reads safely pause the batch
+  before writing any business prospect.
+- Uses the shared conservative business-identity classifier across current
+  clients/leads/prospects and within a new six-business batch.
+  Ambiguous identities are held for manual review, not saved or merged.
+- Existing contacted/drafted/promoted/archived prospects are protected;
+  only a known, uncontacted same-source record may use guarded refresh logic.
+- Saves current Business Verification, niche website evidence, Scan Memory,
+  search territory/radius and curated reliability signals together.
+- Continues owner-invoked six-candidate steps, source-indexed discovery and
+  database lease consistency.
+
+Required before main merge or migration application:
+1. Obtain explicit owner approval of migration 20261028090000_deep_scan_jobs.sql.
+2. Verify live schema migration inventory against exact source versions,
+   including the older 20261017030000 proposal; NEVER bypass inventory guard.
+3. Run isolated RLS and concurrent-worker lease tests, plus negative client
+   duplicate collision tests with disposable Supabase auth roles.
+4. Review and approve Nocturne visual preview; merge only the integrated
+   branch in proper dependency order after release gates pass.
+5. Recheck no-auto-send and owner-click-only processing in production smoke QA.
+
+Nothing here authorizes migration application or production deployment.
