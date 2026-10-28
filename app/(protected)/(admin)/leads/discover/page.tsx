@@ -4,6 +4,7 @@ import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
 import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
 import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
+import { buildProspectInsights } from "@/lib/prospect-insights";
 import {
   NICHES,
   signalBadges,
@@ -300,6 +301,7 @@ export default async function DiscoverPage({
         <div className="prospect-grid">
           {prospects.map((p) => {
             const badges = signalBadges(p.signals ?? ({} as WebsiteSignals));
+            const insights = buildProspectInsights(p.signals, p.website, 3);
             return (
               <article key={p.id} className="card prospect-card">
                 <div className="prospect-head">
@@ -352,6 +354,29 @@ export default async function DiscoverPage({
                     </ul>
                   </details>
                 )}
+                <details className="draft-details" aria-label={`Prospect insights for ${p.business_name}`}>
+                  <summary>Why review this business? · Evidence-based insights</summary>
+                  <p className="management-help">
+                    Observations from available public listings and the fetched homepage.
+                    These are review questions, not confirmed defects or promises of sales.
+                  </p>
+                  <ul className="scanner-audit-findings">
+                    {insights.map((insight) => (
+                      <li key={insight.key}>
+                        <strong>{insight.kind === "review" ? "?" : insight.kind === "observed" ? "✓" : "·"} {insight.title}</strong>
+                        <small>{insight.detail}</small>
+                        <small>{insight.basis === "homepage" ? "Homepage evidence" : insight.basis === "directory" ? "Directory evidence" : "Unverified"}
+                          {insight.checked_at ? ` · ${insight.checked_at.slice(0, 10)}` : ""}
+                        </small>
+                        {insight.evidence_url && (
+                          <a href={insight.evidence_url} target="_blank" rel="noopener noreferrer">
+                            Open supporting page ↗
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
                 <div className="badge-row">
                   {badges.map((b, i) => (
                     <span key={i} className={`badge badge-${b.tone}`}>
