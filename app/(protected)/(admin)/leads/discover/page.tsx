@@ -241,6 +241,22 @@ export default async function DiscoverPage({
                     Review contact details before outreach.
                   </p>
                 )}
+                {p.signals?.industry_audit && (
+                  <details className="draft-details">
+                    <summary>{p.signals.industry_audit.category.replace("_", " ")} homepage check</summary>
+                    <p className="management-help">
+                      Homepage observations only. An item not seen here may exist elsewhere on this website.
+                    </p>
+                    <ul className="scanner-audit-findings">
+                      {p.signals.industry_audit.signals.map((item) => (
+                        <li key={item.key}>
+                          <strong>{item.status === "observed" ? "✓" : "?"} {item.label}</strong>
+                          <small>{item.evidence}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
                 <div className="badge-row">
                   {badges.map((b, i) => (
                     <span key={i} className={`badge badge-${b.tone}`}>
