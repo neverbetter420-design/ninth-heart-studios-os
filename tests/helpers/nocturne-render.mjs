@@ -173,7 +173,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
         const identity = async () => ({ user: { id: "synthetic-review-user" }, profile: { role, email: scenario === "long" ? "account".repeat(30) + "@example.invalid" : "alex@example.invalid", full_name: scenario === "long" ? "Alexandria" : "Alex" } });
         return { requireUser: identity, requireAdmin: identity };
       }
-      if (name.endsWith("/actions")) return new Proxy({}, { get: () => async () => { throw new Error("Preview actions are disabled"); } });
+      if (name.endsWith("/actions") || name === "./deep-actions") return new Proxy({}, { get: () => async () => { throw new Error("Preview actions are disabled"); } });
       if (name === "next/link") return { __esModule: true, default: ({ children, ...props }) => React.createElement("a", props, children) };
       if (name === "next/navigation") return { usePathname: () => path, redirect: () => { throw new Error("Unexpected preview redirect"); }, notFound: () => { throw new Error("Synthetic project not found"); } };
       if (name.startsWith("@/") || name.startsWith(".")) {
