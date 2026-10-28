@@ -64,7 +64,8 @@ export default async function DiscoverPage({
   // These parameters only prefill the form. The owner must still press Scan.
   const selectedLocation = scan_location && scan_location.trim().length >= 2 && scan_location.length <= 160
     ? scan_location.trim() : "Puyallup, WA";
-  const selectedRadius = ["5", "10", "15", "25"].includes(scan_radius ?? "") ? scan_radius : "10";
+  const selectedRadius = scan_radius && /^\d{1,2}$/.test(scan_radius) &&
+    Number(scan_radius) >= 1 && Number(scan_radius) <= 50 ? String(Number(scan_radius)) : "10";
   const replayNiches = (Array.isArray(scan_niches) ? scan_niches : scan_niches ? [scan_niches] : [])
     .filter((name): name is keyof typeof NICHES => Object.hasOwn(NICHES, name));
   const selectedNiches = replayNiches.length ? replayNiches : ["restaurants", "bars", "salons"];
@@ -167,6 +168,9 @@ export default async function DiscoverPage({
           <label>
             Radius
             <select name="radius_mi" defaultValue={selectedRadius}>
+              {!["5", "10", "15", "25"].includes(selectedRadius) && (
+                <option value={selectedRadius}>{selectedRadius} miles</option>
+              )}
               <option value="5">5 miles</option>
               <option value="10">10 miles</option>
               <option value="15">15 miles</option>
