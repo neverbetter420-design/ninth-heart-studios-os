@@ -111,6 +111,21 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
   await page.locator("#view").selectOption("scanner");
   await page.locator("#width").selectOption("mobile");
   await expect(page.locator("#preview .scanner-glass-nav")).toBeVisible();
+  // A narrow review frame must trigger the scanner mobile layout even when the
+  // outer preview gallery is open in a wide desktop browser.
+  const responsive = await page.locator("#preview").evaluate((preview) => {
+    const shell = preview.querySelector(".app-shell");
+    const scanner = preview.querySelector(".scanner-controls");
+    const nav = preview.querySelector(".scanner-glass-nav");
+    return {
+      columns: getComputedStyle(shell).gridTemplateColumns.trim().split(/\\s+/).length,
+      controlsWidth: scanner.getBoundingClientRect().width,
+      navColumns: getComputedStyle(nav).gridTemplateColumns.trim().split(/\\s+/).length,
+    };
+  });
+  expect(responsive.columns).toBe(1);
+  expect(responsive.controlsWidth).toBeGreaterThan(280);
+  expect(responsive.navColumns).toBe(2);
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });
