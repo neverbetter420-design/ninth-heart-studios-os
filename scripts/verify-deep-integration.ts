@@ -57,6 +57,27 @@ assert.match(action, /updateScanMemory\(oldRecord, b, checkedAt\)/);
 assert.match(action, /scan_memory: memory, scan_territory: territory/);
 assert.match(action, /createScanTerritory\(/);
 assert.match(action, /\.eq\("status", "new"\)\.eq\("outreach_status", "none"\)\.is\("outreach_draft", null\)/);
+// A 90s lease can expire during slow external site/social checks.
+// Verify the server renews ONLY the active token after each wave and before
+// every write, and never attempts to continue after an RPC denial.
+assert.match(action, /const renewOwnedLease = async \(\) =>/);
+assert.match(action, /"renew_deep_scan_batch", \{ p_id: id, p_lease: lease \}/);
+assert.match(action, /renewError \|\| !active \|\| active\.lease_token !== lease/);
+assert.match(action, /await renewOwnedLease\(\);\s*\n\s*}\s*\n\s*\/\/ Query relationship history AFTER/);
+assert.match(action, /await renewOwnedLease\(\);\s*\n\s*const result = existingId/);
+assert.ok(action.indexOf("const [priorRows, leadRows, clientRows]") >
+  action.indexOf("const analyzed: Array<ComparableProspect"),
+  "relationship history must be read AFTER external website queries");
+const renewSql = sql.match(/create or replace function public\.renew_deep_scan_batch[\s\S]*?(?=-- Finish only)/)?.[0];
+assert.ok(renewSql, "Missing bounded owner-only lease renewal RPC");
+for (const needle of [
+  /security invoker/, /j\.created_by = \(select auth\.uid\(\)\)/,
+  /\(select private\.is_admin\(\)\)/, /j\.status = 'running'/,
+  /j\.lease_token = p_lease/, /j\.lease_until > now\(\)/,
+]) assert.match(renewSql, needle);
+assert.match(sql, /grant execute on function public\.renew_deep_scan_batch\(uuid,uuid\) to authenticated/);
+assert.match(sql, /revoke all on function public\.renew_deep_scan_batch\(uuid,uuid\) from public, anon/);
+
 assert.match(action, /await supabase\.rpc\("finish_deep_scan_batch"/);
 assert.match(action, /await supabase\.rpc\("pause_deep_scan_batch"/);
 assert.doesNotMatch(action, /matchesExistingLead\(/);
