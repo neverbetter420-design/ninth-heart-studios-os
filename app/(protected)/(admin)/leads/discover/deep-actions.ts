@@ -113,6 +113,19 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
   let created = 0;
   let refreshed = 0;
   let conflicts = 0;
+  // Never write after this action has lost its job lease to an expired retry.
+  // The RPC itself serializes with claims on the same job row. It refuses to
+  // revive expired/reclaimed tokens, even for a logged-in admin.
+  const renewOwnedLease = async () => {
+    const { data: renewed, error: renewError } = await supabase.rpc(
+      "renew_deep_scan_batch", { p_id: id, p_lease: lease },
+    ).maybeSingle();
+    const active = renewed as DeepJob | null;
+    if (renewError || !active || active.lease_token !== lease ||
+      active.status !== "running" || active.position !== job.position) {
+      throw new Error("The scan lease expired or was reclaimed. No further prospect writes were attempted.");
+    }
+  };
   try {
     if (!batch.length || batch.some(b => !validBusiness(b))) throw new Error("Corrupted saved candidate batch.");
     // Fail closed before ANY prospect write. Deep Scan must never bypass the
@@ -171,6 +184,9 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
       withinBatch.push({ ...candidate, id: "deep-batch-" + withinBatch.length });
     }
     const curated = curateProspects(candidatePool, previous, BATCH_SIZE);
+    // Website/social requests can be slow. Recheck active ownership after
+    // external work, and again immediately before every saved prospect.
+    await renewOwnedLease();
     for (const entry of curated.winners) {
       const b = entry.prospect;
       const legacyMatches = previous.filter(p =>
@@ -200,6 +216,7 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
         opportunity_score: b.opportunity_score, scanned_at: checkedAt,
         updated_at: checkedAt,
       };
+      await renewOwnedLease();
       const result = existingId
         ? await supabase.from("prospects").update(row).eq("id", existingId)
             .eq("status", "new").eq("outreach_status", "none").is("outreach_draft", null).select("id")
