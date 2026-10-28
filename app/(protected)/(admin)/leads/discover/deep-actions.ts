@@ -259,8 +259,19 @@ export async function changeDeepScanStatus(formData: FormData): Promise<never> {
   if (!UUID.test(id) || !["pause", "resume", "cancel"].includes(operation))
     return redirectWithMessage("Invalid Deep Scan action.");
   const supabase = await createClient();
+  if (operation === "cancel") {
+    // DB-clock cancellation cannot preempt an active worker lease.
+    // Ready, paused, and expired-running jobs may be cancelled.
+    const { data, error } = await supabase.rpc("cancel_deep_scan_job", {
+      p_id: id,
+    }).maybeSingle();
+    if (error || !data) return redirectWithMessage(
+      "Deep Scan could not be cancelled. An active batch may still be processing.");
+    revalidatePath("/leads/discover");
+    return redirectWithMessage("Deep Scan cancelled. Saved prospects were not removed.");
+  }
   const from = operation === "resume" ? "paused" : "ready";
-  const target = operation === "pause" ? "paused" : operation === "cancel" ? "cancelled" : "ready";
+  const target = operation === "resume" ? "ready" : "paused";
   const { data, error } = await supabase.from("deep_scan_jobs")
     .update({ status: target, updated_at: new Date().toISOString(), last_error: null })
     .eq("id", id).eq("created_by", user.id).eq("status", from).select("id");
