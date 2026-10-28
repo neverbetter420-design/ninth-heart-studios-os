@@ -65,6 +65,8 @@ assert.match(action, /"renew_deep_scan_batch", \{ p_id: id, p_lease: lease \}/);
 assert.match(action, /renewError \|\| !active \|\| active\.lease_token !== lease/);
 assert.match(action, /await renewOwnedLease\(\);\s*\n\s*}\s*\n\s*\/\/ Query relationship history AFTER/);
 assert.match(action, /await renewOwnedLease\(\);\s*\n\s*const result = existingId/);
+assert.match(action, /await renewOwnedLease\(\);\s*\n\s*const \{ data: finished/);
+assert.match(action, /Number\.isInteger\(radiusMi\) \|\| radiusMi < 1 \|\| radiusMi > 50/);
 assert.ok(action.indexOf("const [priorRows, leadRows, clientRows]") >
   action.indexOf("const analyzed: Array<ComparableProspect"),
   "relationship history must be read AFTER external website queries");
