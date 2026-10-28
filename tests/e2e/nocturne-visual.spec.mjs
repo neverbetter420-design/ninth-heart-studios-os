@@ -298,10 +298,20 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
       // Manually resumable Deep Scan is visible and does not block the
       // existing quick-scan or unverified social reviews.
       const deep = page.getByRole("region", { name: "Resumable deep scan jobs" });
-      await expect(deep).toContainText("12/25");
-      await expect(deep.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "12");
-      await expect(deep.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "25");
-      await expect(deep.getByRole("button", { name: "Process next six" })).toBeVisible();
+      const readyJob = deep.locator(".scanner-deep-job").filter({ hasText: "Puyallup, WA" });
+      await expect(readyJob).toContainText("12/25");
+      await expect(readyJob.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "12");
+      await expect(readyJob.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "25");
+      await expect(readyJob.getByRole("button", { name: "Process next six" })).toBeVisible();
+      await expect(readyJob.getByRole("button", { name: "Cancel" })).toBeVisible();
+      const pausedJob = deep.locator(".scanner-deep-job").filter({ hasText: "Lakewood, WA" });
+      await expect(pausedJob.getByRole("button", { name: "Resume" })).toBeVisible();
+      await expect(pausedJob.getByRole("button", { name: "Cancel" })).toBeVisible();
+      const expiredJob = deep.locator(".scanner-deep-job").filter({ hasText: "Tacoma, WA" });
+      await expect(expiredJob).toContainText("Expired · retry or cancel");
+      await expect(expiredJob.getByRole("button", { name: "Retry expired batch" })).toBeVisible();
+      await expect(expiredJob.getByRole("button", { name: "Cancel" })).toBeVisible();
+      await expect(expiredJob.getByRole("button", { name: "Pause" })).toHaveCount(0);
       await expect(page.getByRole("button", { name: "Create resumable deep scan" })).toBeVisible();
       await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
       await expect(page.getByRole("link", { name: "Highest opportunity" })).toBeVisible();
