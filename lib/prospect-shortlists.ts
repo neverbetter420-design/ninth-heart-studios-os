@@ -30,6 +30,14 @@ const NICHE_ORDER: NicheKey[] = [
   "restaurants", "bars", "cafes", "salons", "contractors", "auto_repair", "fitness",
 ];
 
+// Only owner-visible, bounded display sizes. Unknown URL params default to 3;
+// there is no request to fetch extra records, send outreach or modify rankings.
+export type ShortlistDepth = 3 | 10 | 20;
+export const SHORTLIST_DEPTHS: readonly ShortlistDepth[] = [3, 10, 20];
+export function parseShortlistDepth(value: unknown): ShortlistDepth {
+  return value === "10" ? 10 : value === "20" ? 20 : 3;
+}
+
 export function buildChallengerShortlists(
   prospects: SavedChallenger[],
   topPerCategory = 3,
