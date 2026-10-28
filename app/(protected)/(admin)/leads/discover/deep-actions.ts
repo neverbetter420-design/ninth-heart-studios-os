@@ -11,7 +11,10 @@ import { discoverBusinesses, geocode, NICHES, analyzeBusinessPresence,
   scoreSignals, type NicheKey, type DiscoveredBusiness } from "@/lib/prospect-scan";
 import { validDeepSize, nextDeepScanBatch } from "@/lib/deep-scan";
 import { prioritizeDiscovered, curateProspects, protectedFromScannerUpdate,
-  rateProspect, matchesExistingLead, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
+  rateProspect, type ComparableProspect, type ExistingLead } from "@/lib/prospect-curation";
+import { checkBusinessIdentity, type ClientIdentity } from "@/lib/prospect-identity";
+import { updateScanMemory } from "@/lib/prospect-scan-memory";
+import { createScanTerritory } from "@/lib/prospect-territories";
 
 const BATCH_SIZE = 6; // must match DB finish_deep_scan_batch upper bound
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -25,6 +28,10 @@ type DeepJob = {
   position: number;
   requested: number;
   candidates: DiscoveredBusiness[];
+  location: string;
+  area_label: string;
+  radius_m: number;
+  niches: NicheKey[];
 };
 
 function geoapifySecret(): string | undefined {
@@ -108,16 +115,33 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
   let conflicts = 0;
   try {
     if (!batch.length || batch.some(b => !validBusiness(b))) throw new Error("Corrupted saved candidate batch.");
-    const { data: history, error: historyError } = await supabase.from("prospects")
-      .select("id, source_ref, business_name, category, address, phone, website, signals, opportunity_score, status, outreach_status, outreach_draft")
-      .limit(1000);
-    const { data: leads, error: leadsError } = await supabase.from("leads")
-      .select("business_name, website, phone, metadata").limit(1000);
-    if (historyError || leadsError || !history || !leads || history.length >= 1000 || leads.length >= 1000) {
-      throw new Error("Existing lead/prospect comparisons are unavailable or exceed the review limit.");
+    // Fail closed before ANY prospect write. Deep Scan must never bypass the
+    // Quick Scan client/lead/prospect checks or silently truncate prior records.
+    const [priorRows, leadRows, clientRows] = await Promise.all([
+      supabase.from("prospects")
+        .select("id, source_ref, business_name, category, address, phone, website, signals, scanned_at, opportunity_score, status, outreach_status, outreach_draft", { count: "exact" })
+        .limit(1000),
+      supabase.from("leads")
+        .select("business_name, website, phone, metadata", { count: "exact" })
+        .limit(1000),
+      supabase.from("clients")
+        .select("id, name, website, status", { count: "exact" })
+        .limit(1000),
+    ]);
+    if ([priorRows, leadRows, clientRows].some(read =>
+      read.error || !read.data || read.data.length >= 1000 ||
+      typeof read.count !== "number" || read.count >= 1000)) {
+      throw new Error("Existing client/lead/prospect comparisons are unavailable or exceed the safe review limit.");
     }
-    const previous = history as Array<ComparableProspect & { id: string }>;
-    const existingLeads = leads as unknown as ExistingLead[];
+    const previous = priorRows.data! as Array<ComparableProspect & { id: string }>;
+    const existingLeads = leadRows.data! as unknown as ExistingLead[];
+    const existingClients = clientRows.data! as ClientIdentity[];
+    if (!job.location || !job.area_label || !Number.isInteger(job.radius_m) ||
+      job.radius_m < 1609 || job.radius_m > 80467 ||
+      !Array.isArray(job.niches) || !job.niches.length ||
+      job.niches.some(n => !Object.prototype.hasOwnProperty.call(NICHES, n))) {
+      throw new Error("Saved territory context is invalid. Batch paused before saving.");
+    }
     const analyzed: Array<ComparableProspect & { source_ref: string }> = [];
     for (let offset = 0; offset < batch.length; offset += 3) {
       const checked = await Promise.all(batch.slice(offset, offset + 3).map(async b => {
@@ -133,8 +157,20 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
       }));
       for (const result of checked) if (result) analyzed.push(result);
     }
-    const notAlreadyLeads = analyzed.filter(p => !matchesExistingLead(p, existingLeads));
-    const curated = curateProspects(notAlreadyLeads, previous, BATCH_SIZE);
+    // A source-ref match to one uncontacted prospect can be safely refreshed.
+    // Existing clients, leads and ambiguous identities are held, never merged.
+    const candidatePool: typeof analyzed = [];
+    const withinBatch: Array<ComparableProspect & { id: string }> = [];
+    for (const candidate of [...analyzed].sort((a, b) =>
+      rateProspect(b).quality - rateProspect(a).quality
+    )) {
+      const identity = checkBusinessIdentity(candidate,
+        [...previous, ...withinBatch], existingLeads, existingClients);
+      if (identity.action !== "allow") continue;
+      candidatePool.push(candidate);
+      withinBatch.push({ ...candidate, id: "deep-batch-" + withinBatch.length });
+    }
+    const curated = curateProspects(candidatePool, previous, BATCH_SIZE);
     for (const entry of curated.winners) {
       const b = entry.prospect;
       const legacyMatches = previous.filter(p =>
@@ -145,16 +181,24 @@ export async function processDeepScanBatch(formData: FormData): Promise<never> {
       const legacy = legacyMatches.length === 1 ? legacyMatches[0] : null;
       if (legacy && entry.quality < rateProspect(legacy).quality) { conflicts++; continue; }
       const existingId = entry.existingId ?? legacy?.id ?? null;
+      const checkedAt = new Date().toISOString();
+      const oldRecord = existingId ? previous.find(p => p.id === existingId) ?? null : null;
+      const memory = updateScanMemory(oldRecord, b, checkedAt);
+      const territory = createScanTerritory(
+        job.location, job.area_label, Math.round(job.radius_m / 1609.34), job.niches, checkedAt,
+      );
       const row = {
         source_ref: b.source_ref, business_name: b.business_name,
         category: b.category, address: b.address, phone: b.phone, website: b.website,
-        signals: { ...b.signals, curation: {
-          reliability: entry.reliability, opportunity: entry.opportunity,
-          quality: entry.quality, compared_to: entry.compared,
-          summary: "Selected using public contact evidence and site opportunity; review before outreach",
-        }},
-        opportunity_score: b.opportunity_score, scanned_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        signals: { ...b.signals, scan_memory: memory, scan_territory: territory,
+          curation: {
+            reliability: entry.reliability, opportunity: entry.opportunity,
+            quality: entry.quality, compared_to: entry.compared,
+            summary: "Selected using public contact evidence and site opportunity; review before outreach",
+          },
+        },
+        opportunity_score: b.opportunity_score, scanned_at: checkedAt,
+        updated_at: checkedAt,
       };
       const result = existingId
         ? await supabase.from("prospects").update(row).eq("id", existingId)
