@@ -264,6 +264,68 @@ export default async function DiscoverPage({
         )}
       </section>
 
+      <section className="scanner-territory-report" aria-label="Territory comparison from saved prospects">
+        <div className="section-head">
+          <h3>Territory study</h3>
+          <span className="muted">Your saved prospect sample · not market coverage</span>
+        </div>
+        <p className="management-help">
+          Compare the last search area and radius recorded on each saved prospect.
+          Qualified means a contactable, uncontacted listing with enough supporting
+          evidence. A searched city is not proof of the business&apos;s exact location.
+          Repeat scans require your click and use the existing duplicate safeguards.
+        </p>
+        {!shortlistReady || !territoryComparison ? (
+          <p role="status" className="management-notice">
+            The complete saved prospect sample is not available. Territory comparisons are hidden rather than estimated from an incomplete page.
+          </p>
+        ) : territoryComparison.areas.length === 0 ? (
+          <p className="management-help">
+            No prospects with a recorded scan area yet. New saved scans will start building a territory comparison.
+          </p>
+        ) : (
+          <div className="scanner-territory-list">
+            {territoryComparison.areas.map((area) => {
+              const params = new URLSearchParams();
+              params.set("scan_location", area.location);
+              params.set("scan_radius", String(area.radius_mi));
+              for (const niche of area.niches) params.append("scan_niches", niche);
+              return (
+                <article className="scanner-territory-row" key={area.location.toLowerCase() + ":" + area.radius_mi}>
+                  <div className="scanner-territory-head">
+                    <div>
+                      <strong>{area.area_label}</strong>
+                      <small>{area.radius_mi}-mile search radius · last observed {area.latest_checked_at.slice(0, 10)}</small>
+                    </div>
+                    <div className="scanner-territory-count">
+                      <strong>{area.qualified}<span> / {area.saved}</span></strong>
+                      <small>qualified / saved</small>
+                    </div>
+                  </div>
+                  <div className="scanner-territory-track" role="img"
+                    aria-label={area.qualified + " of " + area.saved + " saved prospects qualified"}>
+                    <span style={{ width: (area.saved ? Math.round(area.qualified / area.saved * 100) : 0) + "%" }} />
+                  </div>
+                  <div className="scanner-territory-foot">
+                    <span>Avg fit: {area.average_quality === null ? "—" : area.average_quality + "/100"}</span>
+                    <span>{area.top_categories.length
+                      ? area.top_categories.map(group => NICHES[group.category].label + " " + group.count).join(" · ")
+                      : "No qualified prospects yet"}</span>
+                    <a href={"/leads/discover?" + params.toString() + "#scan-controls"}>Prefill repeat scan ↗</a>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+        {territoryComparison && territoryComparison.without_context > 0 && (
+          <p className="management-help">
+            {territoryComparison.without_context} older saved prospects have no reliable search-area context and are excluded from the comparison.
+            These rankings reflect only saved prospects, not all businesses in a city.
+          </p>
+        )}
+      </section>
+
       <section aria-label="Prospects">
         <div className="section-head">
           <h3>
