@@ -277,13 +277,20 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
     await show(page, "admin", scenario, "scanner");
     const prospects = page.locator("article.prospect-card");
     if (["normal", "long"].includes(scenario)) {
-      await expect(prospects.first()).toContainText("Mira Studio");
-      await expect(prospects.nth(1).locator(".score")).toHaveText("10");
-      await expect(prospects.nth(1)).toContainText("Needs verification");
-      await expect(prospects.nth(1)).toContainText("Website unconfirmed · low priority");
-      await expect(prospects.nth(1).getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
-      await expect(prospects.nth(1).getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
-      await expect(prospects.nth(1).getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
+      // Default now displays newest scans, not highest opportunity. Never
+      // couple social-verification assertions to score-based result order.
+      const studio = prospects.filter({ hasText: "Mira Studio" });
+      const cedar = prospects.filter({ hasText: "Cedar & Stone" });
+      await expect(studio).toHaveCount(1);
+      await expect(cedar).toHaveCount(1);
+      await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
+      await expect(page.getByRole("link", { name: "Highest opportunity" })).toBeVisible();
+      await expect(cedar.locator(".score")).toHaveText("10");
+      await expect(cedar).toContainText("Needs verification");
+      await expect(cedar).toContainText("Website unconfirmed · low priority");
+      await expect(cedar.getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
+      await expect(cedar.getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
+      await expect(cedar.getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
     } else {
       await expect(prospects).toHaveCount(0);
       if (scenario === "error") {
