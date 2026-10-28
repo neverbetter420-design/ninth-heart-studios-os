@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -11,9 +12,12 @@ const appliedVersions = [
   "20261012070000","20261012080000","20261012080001","20261013033207",
   "20261013040000","20261013050000","20261013050001","20261013060000",
   "20261013232917","20261014060417","20261014070000","20261015001632",
-  "20261015001941","20261015005039",
+  "20261015001941","20261015005039","20261017030000","20261020063055",
 ];
-const proposedVersion = "20261017030000";
+const proposedVersion = "20261028090000";
+// Owner-approved exact SQL at draft PR #48 after 2026-10-28 disposable replay fix.
+// Git blob digest checks both migration filename contents and every SQL byte.
+const approvedDeepScanSqlBlobSha = "997b2ffbb0f36223dd72a781c13f0aca24010fd8";
 const checks = [
   ["Production migration-history baseline is represented in source", () => {
     for (const version of appliedVersions) {
@@ -24,7 +28,15 @@ const checks = [
     assert.equal(migrations.length, appliedVersions.length + 1,
       "Unexpected additional SQL migrations require a new approved inventory review.");
     assert.equal(migrations.filter((f) => f.startsWith(proposedVersion + "_")).length, 1,
-      "Proposed security change must remain separate from already-applied migrations.");
+      "Approved Deep Scan migration must remain separately versioned and not yet counted as applied.");
+    assert.equal(appliedVersions.length, 24,
+      "The owner-approved live migration baseline contains exactly 24 versions.");
+    const approvedSource = read("supabase/migrations/20261028090000_deep_scan_jobs.sql");
+    const gitBlobSha = createHash("sha1")
+      .update("blob " + Buffer.byteLength(approvedSource) + "\\0")
+      .update(approvedSource).digest("hex");
+    assert.equal(gitBlobSha, approvedDeepScanSqlBlobSha,
+      "Deep Scan SQL no longer matches the exact owner-approved migration; new approval required.");
   }],
   ["Recovered form-source RLS migration binds to storage object path", () => {
     const sql = read("supabase/migrations/20261014060417_fix_form_source_policy_object_path.sql");
@@ -85,7 +97,7 @@ const checks = [
       "Any additional preview bindings, routes or account overrides require explicit review",
     );
   }],
-  ["Proposed protection remains versioned as a future change", () => {
+  ["Previously approved client protection remains represented in applied source", () => {
     const sql = read("supabase/migrations/20261017030000_phase3_client_decision_sender_guard.sql");
     assert.match(sql, /private\.guard_client_approval_decision\(\)/);
     assert.match(sql, /sender_id = \(select auth\.uid\(\)\)/);
