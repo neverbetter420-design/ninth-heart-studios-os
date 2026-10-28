@@ -8,9 +8,10 @@ export type IndustryAuditSignal = {
   label: string;
   status: "observed" | "not_observed_on_homepage";
   evidence: string;
+  evidence_url?: string; // Same-origin link only. Never store raw remote HTML.
 };
 export type IndustryAudit = {
-  version: 1;
+  version: 1 | 2; // Version 1 rows remain readable after this additive change.
   category: NicheKey;
   scope: "homepage_only";
   scanned_at: string;
@@ -80,34 +81,74 @@ const INDUSTRY: Record<NicheKey, AuditCriterion[]> = {
   ],
 };
 
-/** Restrict inspection to visible text and navigation labels, not JS bundles.
- * Never persist raw customer homepage HTML in our Supabase prospect data.
+/**
+ * Return only publicly navigable same-origin evidence URLs.
+ * A business homepage may contain arbitrary remote links, so this is also
+ * used by the UI when displaying a URL saved in an older prospect record.
+ */
+export function safeIndustryEvidenceUrl(homepageUrl: string | null, candidate: string | null | undefined): string | null {
+  if (!homepageUrl || !candidate || candidate.length > 1000) return null;
+  try {
+    const base = new URL(homepageUrl);
+    const target = new URL(candidate.replace(/&amp;/gi, "&"), base);
+    if (!["https:", "http:"].includes(base.protocol) ||
+        !["https:", "http:"].includes(target.protocol) ||
+        target.origin !== base.origin ||
+        target.username || target.password ||
+        !base.hostname.includes(".") || !target.hostname.includes(".")) return null;
+    target.hash = "";
+    return target.toString();
+  } catch {
+    return null;
+  }
+}
+
+/** Inspect already-fetched homepage markup only. This is NOT a site-wide crawl,
+ * mobile device test, accessibility audit or proof an unobserved action is absent.
  */
 export function auditIndustryHomepage(
-  category: NicheKey, html: string, scannedAt = new Date().toISOString(),
+  category: NicheKey, html: string,
+  scannedAt = new Date().toISOString(), homepageUrl: string | null = null,
 ): IndustryAudit {
   const safe = html.slice(0, 1_500_000)
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, "")
+    .replace(/<script\\b[^>]*>[\\s\\S]*?<\\/script\\s*>/gi, "")
+    .replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style\\s*>/gi, "")
     .replace(/<!--[^]*?-->/g, "");
-  const actions = [...safe.matchAll(/<a\b([^>]*?)>([\s\S]*?)<\/a\s*>/gi)]
+  const actions = [...safe.matchAll(/<a\\b([^>]*?)>([\\s\\S]*?)<\\/a\\s*>/gi)]
     .slice(0, 250)
     .map(m => ({
-      href: (m[1].match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1] ?? "").slice(0, 500),
-      text: m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 140),
+      href: (m[1].match(/\\bhref\\s*=\\s*["']([^"']+)["']/i)?.[1] ?? "").slice(0, 500),
+      text: m[2].replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").trim().slice(0, 140),
     }));
-  const visible = safe.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 100000);
-  const signals = [...COMMON, ...INDUSTRY[category]].map(criterion => {
-    const found = actions.some(a =>
-      Boolean(criterion.href?.test(a.href) || criterion.labelPattern?.test(a.text)),
-    ) || Boolean(criterion.text?.test(visible));
+  const visible = safe.replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ").slice(0, 100000);
+  const signals: IndustryAuditSignal[] = [...COMMON, ...INDUSTRY[category]].map(criterion => {
+    const linked = actions.find(a =>
+      Boolean(criterion.href?.test(a.href) || criterion.labelPattern?.test(a.text)));
+    const mentioned = !linked && criterion.text?.exec(visible)?.[0];
+    const observed = Boolean(linked || mentioned);
+    const link = linked ? safeIndustryEvidenceUrl(homepageUrl, linked.href) : null;
     return {
       key: criterion.key,
       label: criterion.label,
-      status: found ? "observed" as const : "not_observed_on_homepage" as const,
-      evidence: found ? "Action or text detected on homepage" :
-        "Not observed on the homepage; may exist on another page. Review manually.",
+      status: observed ? "observed" as const : "not_observed_on_homepage" as const,
+      evidence: linked
+        ? `Homepage navigation: ${linked.text || "matching link target"}`
+        : mentioned
+          ? `Homepage text: ${mentioned.slice(0, 90)}`
+          : "Not observed on the homepage; may exist on another page. Review manually.",
+      ...(link ? { evidence_url: link } : {}),
     };
   });
-  return { version: 1, category, scope: "homepage_only", scanned_at: scannedAt, signals };
+  // The presence of a viewport tag is only a mobile-readiness clue.
+  // A real responsive / touch target check needs an actual browser audit.
+  const viewport = /<meta\\b(?=[^>]*\\bname\\s*=\\s*(?:["']viewport["']|viewport\\b))[^>]*>/i.test(safe);
+  signals.push({
+    key: "mobile_viewport",
+    label: "Mobile viewport declaration",
+    status: viewport ? "observed" : "not_observed_on_homepage",
+    evidence: viewport
+      ? "Viewport metadata detected; mobile layout was not tested."
+      : "No viewport declaration detected in homepage HTML; manual mobile review needed.",
+  });
+  return { version: 2, category, scope: "homepage_only", scanned_at: scannedAt, signals };
 }
