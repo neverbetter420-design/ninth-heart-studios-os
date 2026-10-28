@@ -57,8 +57,8 @@ assert.equal(rows.length, 9, "ranking does not mutate input collection");
 // User-visible shortlist length is a view preference, not a new scan or a DB write.
 assert.deepEqual(SHORTLIST_DEPTHS, [3,10,20]);
 for (const [input, expected] of [
-  [undefined, 3], [null, 3], ["10"], ["20"], [10], [20],
-  ["3"], ["10 "], ["01"], ["999"], ["-1"], ["<script>"],
+  [undefined, 3], [null, 3], [["10"], 3], [["20"], 3], [10, 3], [20, 3],
+  ["3", 3], ["10 ", 3], ["01", 3], ["999", 3], ["-1", 3], ["<script>", 3],
 ] as const) assert.equal(parseShortlistDepth(input), expected ?? 3);
 assert.equal(parseShortlistDepth("3"), 3);
 assert.equal(parseShortlistDepth("10"), 10);
