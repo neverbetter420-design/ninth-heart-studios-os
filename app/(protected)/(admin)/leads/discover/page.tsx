@@ -6,6 +6,7 @@ import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-
 import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
 import { buildProspectInsights } from "@/lib/prospect-insights";
 import { safeVerificationLink } from "@/lib/prospect-verification";
+import { compareSavedTerritories } from "@/lib/prospect-territories";
 import {
   NICHES,
   signalBadges,
@@ -56,9 +57,17 @@ function scoreTone(score: number | null): string {
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string }>;
+  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string;
+    scan_location?: string; scan_radius?: string; scan_niches?: string | string[] }>;
 }) {
-  const { msg, show, sort, category } = await searchParams;
+  const { msg, show, sort, category, scan_location, scan_radius, scan_niches } = await searchParams;
+  // These parameters only prefill the form. The owner must still press Scan.
+  const selectedLocation = scan_location && scan_location.trim().length >= 2 && scan_location.length <= 160
+    ? scan_location.trim() : "Puyallup, WA";
+  const selectedRadius = ["5", "10", "15", "25"].includes(scan_radius ?? "") ? scan_radius : "10";
+  const replayNiches = (Array.isArray(scan_niches) ? scan_niches : scan_niches ? [scan_niches] : [])
+    .filter((name): name is keyof typeof NICHES => Object.hasOwn(NICHES, name));
+  const selectedNiches = replayNiches.length ? replayNiches : ["restaurants", "bars", "salons"];
   const supabase = await createClient();
   const showArchived = show === "archived";
   const sortByPriority = sort === "priority";
@@ -114,6 +123,7 @@ export default async function DiscoverPage({
     .limit(1000);
   const shortlistReady = !shortlistError && shortlistData &&
     shortlistData.length < 1000 && typeof shortlistCount === "number" && shortlistCount < 1000;
+  const territoryComparison = shortlistReady ? compareSavedTerritories(shortlistData as SavedChallenger[]) : null;
   const challengerGroups = shortlistReady ? buildChallengerShortlists(
     (shortlistData as SavedChallenger[]).map(p => ({
       ...p,
@@ -147,16 +157,16 @@ export default async function DiscoverPage({
 
       {msg && <p className="notice">{msg}</p>}
 
-      <section className="card scanner-controls" aria-label="Run a scan">
+      <section id="scan-controls" className="card scanner-controls" aria-label="Run a scan">
         <h3>Run a scan</h3>
         <form action={runScan} className="form-grid">
           <label>
             Location
-            <input name="location" defaultValue="Puyallup, WA" required />
+            <input name="location" defaultValue={selectedLocation} maxLength={160} required />
           </label>
           <label>
             Radius
-            <select name="radius_mi" defaultValue="10">
+            <select name="radius_mi" defaultValue={selectedRadius}>
               <option value="5">5 miles</option>
               <option value="10">10 miles</option>
               <option value="15">15 miles</option>
@@ -173,11 +183,7 @@ export default async function DiscoverPage({
                       type="checkbox"
                       name="niches"
                       value={key}
-                      defaultChecked={[
-                        "restaurants",
-                        "bars",
-                        "salons",
-                      ].includes(key)}
+                      defaultChecked={selectedNiches.includes(key)}
                     />
                     {NICHES[key].label}
                   </label>
