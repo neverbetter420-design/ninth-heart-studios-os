@@ -206,7 +206,7 @@ export async function analyzeProspect(id: string) {
   if (!p) return;
   const refreshed = await refreshSocialProfiles(p.source_ref);
   const { signals, website } = await analyzeBusinessPresence({
-    name: p.business_name, category: p.category, website: p.website, address: p.address, phone: p.phone,
+    source_ref: p.source_ref, name: p.business_name, category: p.category, website: p.website, address: p.address, phone: p.phone,
     social_profiles: [...refreshed, ...(p.signals?.social_profiles ?? [])],
   });
   await supabase

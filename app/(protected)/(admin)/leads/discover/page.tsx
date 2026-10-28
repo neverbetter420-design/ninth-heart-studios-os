@@ -5,6 +5,7 @@ import { PortalSubmitButton } from "@/components/portal/PortalActionForm";
 import { buildChallengerShortlists, type SavedChallenger } from "@/lib/prospect-shortlists";
 import { safeIndustryEvidenceUrl } from "@/lib/prospect-industry-audit";
 import { buildProspectInsights } from "@/lib/prospect-insights";
+import { safeVerificationLink } from "@/lib/prospect-verification";
 import {
   NICHES,
   signalBadges,
@@ -326,6 +327,41 @@ export default async function DiscoverPage({
                     Compared with {p.signals.curation.compared_to} in this business category.
                     Review contact details before outreach.
                   </p>
+                )}
+                {p.signals?.verification && (
+                  <details className="draft-details" aria-label={`Business verification for ${p.business_name}`}>
+                    <summary>
+                      Identity evidence · {p.signals.verification.status === "corroborated"
+                        ? "Public profile corroborated"
+                        : p.signals.verification.status === "needs_review"
+                          ? "Manual review needed" : "Directory listing only"}
+                    </summary>
+                    <p className="management-help">
+                      Source history · checked {p.signals.verification.checked_at.slice(0, 10)}.
+                      Public signals do not establish legal ownership, current phone service,
+                      or authorization to contact.
+                    </p>
+                    <ul className="scanner-audit-findings">
+                      {p.signals.verification.evidence.map((item) => {
+                        const verifiedLink = safeVerificationLink(item);
+                        return (
+                          <li key={item.key}>
+                            <strong>
+                              {item.status === "corroborated" ? "✓" : item.status === "unconfirmed" ? "?" : "·"}
+                              {" "}{item.label}
+                            </strong>
+                            <small>{item.detail}</small>
+                            <small>{item.source} · {item.status.replace("_", " ")} · {item.observed_at.slice(0, 10)}</small>
+                            {verifiedLink && (
+                              <a href={verifiedLink} target="_blank" rel="noopener noreferrer">
+                                View public evidence ↗
+                              </a>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </details>
                 )}
                 {p.signals?.industry_audit && (
                   <details className="draft-details">
