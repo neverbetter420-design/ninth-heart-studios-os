@@ -58,6 +58,27 @@ as $$
   returning j.*;
 $$;
 
+-- A long external website audit must prove it still owns the batch BEFORE
+-- every prospect write. Renewals are atomic UPDATEs on the same job row used
+-- by the claim RPC, so a reclaimed/expired lease cannot be silently revived.
+-- No independent schedule/worker is created.
+create or replace function public.renew_deep_scan_batch(p_id uuid, p_lease uuid)
+returns setof public.deep_scan_jobs
+language sql volatile security invoker
+set search_path = ''
+as $
+  update public.deep_scan_jobs j
+  set lease_until = now() + interval '90 seconds',
+      updated_at = now()
+  where j.id = p_id
+    and j.created_by = (select auth.uid())
+    and (select private.is_admin())
+    and j.status = 'running'
+    and j.lease_token = p_lease
+    and j.lease_until > now()
+  returning j.*;
+$;
+
 -- Finish only with the live lease token. Progress increments in ONE transaction
 -- and cannot double-count a previously completed batch.
 create or replace function public.finish_deep_scan_batch(
@@ -106,8 +127,10 @@ as $$
 $$;
 
 revoke all on function public.claim_deep_scan_batch(uuid) from public, anon;
+revoke all on function public.renew_deep_scan_batch(uuid,uuid) from public, anon;
 revoke all on function public.finish_deep_scan_batch(uuid,uuid,integer,integer,integer,integer,integer) from public, anon;
 revoke all on function public.pause_deep_scan_batch(uuid,uuid,text) from public, anon;
 grant execute on function public.claim_deep_scan_batch(uuid) to authenticated;
+grant execute on function public.renew_deep_scan_batch(uuid,uuid) to authenticated;
 grant execute on function public.finish_deep_scan_batch(uuid,uuid,integer,integer,integer,integer,integer) to authenticated;
 grant execute on function public.pause_deep_scan_batch(uuid,uuid,text) to authenticated;
