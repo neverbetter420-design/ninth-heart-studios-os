@@ -363,6 +363,23 @@ export default async function DiscoverPage({
                     </ul>
                   </details>
                 )}
+                {p.signals?.scan_memory && p.signals.scan_memory.events.length > 0 && (
+                  <details className="draft-details" aria-label={`Scan history for ${p.business_name}`}>
+                    <summary>Evidence history · {p.signals.scan_memory.events.length} recorded changes</summary>
+                    <p className="management-help">
+                      Recent directory, website or social observations. A changed signal
+                      is not proof of a closed business or removed service.
+                    </p>
+                    <ul className="scanner-audit-findings">
+                      {[...p.signals.scan_memory.events].reverse().slice(0, 6).map((event, index) => (
+                        <li key={`${event.at}-${event.key}-${index}`}>
+                          <strong>{event.kind === "new_evidence" ? "✓" : "?"} {event.description}</strong>
+                          <small>{event.source} · {event.at.slice(0, 10)} · {event.kind === "new_evidence" ? "New supporting observation" : "Review suggested"}</small>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
                 {p.signals?.industry_audit && (
                   <details className="draft-details">
                     <summary>{p.signals.industry_audit.category.replace("_", " ")} website evidence</summary>
