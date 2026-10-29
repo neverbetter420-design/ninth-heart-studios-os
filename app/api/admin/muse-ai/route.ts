@@ -84,6 +84,9 @@ export async function POST(request: NextRequest) {
   if (question.length < 2 || question.length > 1000)
     return NextResponse.json({ error: "Ask a question between 2 and 1,000 characters." }, { status: 400 });
 
+  if (process.env.MUSE_AI_ENABLED !== "true") return NextResponse.json({
+    error: "Muse AI is in private preview and has not been enabled yet.",
+  }, { status: 503 });
   const key = process.env.OPENAI_API_KEY;
   if (!key) return NextResponse.json({
     error: "Muse AI is not configured yet. Add the server-only OPENAI_API_KEY first.",
