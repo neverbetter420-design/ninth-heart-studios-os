@@ -59,5 +59,7 @@ insert into public.profiles(id,role) values
 insert into public.projects(id,client_id,name)
   values ('11111111-1111-1111-1111-111111111111','22222222-2222-2222-2222-222222222222','Test project');
 alter table public.milestones enable row level security;
+create policy "Admins manage milestones" on public.milestones
+  for all to authenticated using ((select private.is_admin())) with check ((select private.is_admin()));
 create policy "Clients read own project milestones" on public.milestones
   for select to authenticated using ((select private.can_access_project(project_id)));
