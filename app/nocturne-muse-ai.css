@@ -54,7 +54,7 @@
   background:linear-gradient(180deg,rgba(37,25,47,.43),rgba(25,17,36,.78))}
 .nhs-muse-composer form{position:relative;display:grid;gap:12px}
 .nhs-muse-input-label{font-size:13px;font-weight:650;color:#f5d1e7}
-.nhs-muse-composer textarea{display:block;width:100%;min-height:88px;max-height:180px;resize:vertical;padding:15px 16px;font:normal 15px/1.6 inherit;
+.nhs-muse-composer textarea{display:block;width:100%;min-height:88px;max-height:180px;resize:vertical;padding:15px 16px;font-family:inherit;font-size:15px;line-height:1.6;
   border:1px solid rgba(246,200,232,.28);border-radius:15px;color:#fff1fa;background:rgba(7,6,14,.42);outline:none}
 .nhs-muse-composer textarea:focus{border-color:#f6c5e3;box-shadow:0 0 0 3px rgba(234,159,208,.12)}
 .nhs-muse-composer textarea::placeholder{color:#ad99b0}
