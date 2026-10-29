@@ -6,7 +6,7 @@ on:
       - 'lib/muse-plan-approval.ts'
       - 'scripts/verify-muse-project-guide.ts'
       - 'scripts/verify-muse-plan-approval.ts'
-      - 'supabase/migrations/2026102905*_muse_*.sql'
+      - 'supabase/proposals/muse-project-guide/*.sql'
       - 'supabase/tests/muse_project_guide*'
       - '.github/workflows/muse-project-guide-qa.yml'
   workflow_dispatch:
@@ -50,8 +50,8 @@ jobs:
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/muse_project_guide_fixture.sql
       - name: Apply proposed Muse migrations to isolated database ONLY
         run: |
-          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261029050000_muse_project_guide_pg02.sql
-          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261029051000_muse_project_plan_workflow.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/proposals/muse-project-guide/20261029050000_muse_project_guide_pg02.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/proposals/muse-project-guide/20261029051000_muse_project_plan_workflow.sql
       - name: Verify approvals and RLS
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/muse_project_guide_workflow.test.sql
       - name: Explain isolation
