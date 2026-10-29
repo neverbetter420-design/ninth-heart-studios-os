@@ -40,7 +40,7 @@ function evidence(
     tool, rows, note, partial,
     sources: rows.flatMap(row => {
       const id = safeId(row.id);
-      return id ? [{ label: String(row[title] ?? "Open record").slice(0, 80), href: `/${prefix}/${id}` }] : [];
+      return id ? [{ label: String(row[title] ?? "Open record").slice(0, 80), href: prefix.includes("?") ? `/${prefix}` : `/${prefix}/${id}` }] : [];
     }).slice(0, 12),
   };
 }
@@ -115,7 +115,7 @@ export async function runMuseReadTool(tool: MuseReadTool): Promise<MuseEvidence>
         social_profiles_verified: Array.isArray(checked.social_profiles)
           ? checked.social_profiles.filter(p => p && typeof p === "object" && (p as Record<string, unknown>).verified === true).length : null,
       };
-    }), "leads/discover?prospect", "business_name",
+    }), "leads/discover?workspace=prospects", "business_name",
       error ? "Scanner prospects unavailable." :
         "Top 15 active saved prospects by recorded score. Scores are leads indicators, not independently verified conclusions.",
       Boolean(error));
