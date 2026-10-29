@@ -19,7 +19,7 @@ const views = {
     ["contracts", "Contracts"], ["contract-detail", "Contract details"],
     ["forms", "Forms"], ["form-detail", "Form details"],
     ["templates", "Templates"], ["template-detail", "Template details"],
-    ["muse", "Muse"], ["muse-guide", "Muse Project Guide"], ["settings", "Settings"],
+    ["muse", "Muse"], ["muse-guide", "Muse Project Guide"], ["muse-connected", "Muse plan approval"], ["muse-applied", "Muse applied guide"], ["settings", "Settings"],
     ["opportunities", "Opportunities"], ["opportunity-detail", "Opportunity details"],
     ["automations", "Automations"], ["controls", "Interface controls"],
   ],
