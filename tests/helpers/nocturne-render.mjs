@@ -51,6 +51,8 @@ export const previewCSS = (sourceCSS + (built
 // Render the actual draft components with in-memory synthetic reads. No hosted
 // SDK, credentials, server actions, database, or network connection is loaded.
 export async function renderNocturne(role, scenario = "normal", view = "home", section = "") {
+  const musePreview = view === "muse-ai-preview";
+  if (musePreview) view = "muse";
   const longTitle = "Alexandria's extraordinarily detailed studio website and international collection";
   const project = { id: "synthetic-a", client_id: "synthetic-client", name: scenario === "long" ? longTitle : "Synthetic Studio Website", status: "design", progress: 100, due_date: null, internal_notes: null, clients: { name: "Synthetic Studio" } };
   const rows = {
@@ -194,6 +196,10 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
         const base = name.startsWith("@/") ? resolve(root, name.slice(2)) : resolve(dirname(file), name);
         const resolved = [base, base + ".tsx", base + ".ts"].find((candidate) => existsSync(candidate));
         if (!resolved) throw new Error(`Missing preview import: ${name}`);
+        if (musePreview && role === "admin" && name === "./MuseConcierge") {
+          const { MuseConcierge } = load(resolved);
+          return { MuseConcierge: props => React.createElement(MuseConcierge, { ...props, previewOpen: true }) };
+        }
         return load(resolved);
       }
       if (!["react", "react-dom", "react/jsx-runtime"].includes(name)) throw new Error(`Unapproved preview import: ${name}`);
