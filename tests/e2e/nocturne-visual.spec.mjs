@@ -271,56 +271,71 @@ test("Pipeline keeps real phases, bounded progress and move controls in view", a
   }
 });
 
-test("Scanner lowers old missing-website scores and exposes honest social verification", async ({ page }) => {
+test("Scanner glass workspaces retain safety, scoring and manual Deep Scan across screens", async ({ page }) => {
+  test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const scenario of ["normal", "long", "empty", "error"]) {
     await show(page, "admin", scenario, "scanner");
-    const prospects = page.locator("article.prospect-card");
+    await expect(page.getByRole("heading", { name: "Scan studio.", exact: true })).toBeVisible();
+    const workspaces = page.getByRole("navigation", { name: "Scanner workspaces" });
+    await expect(workspaces.getByRole("link")).toHaveCount(4);
+    await expect(workspaces.getByRole("link", { name: "Scan studio" })).toHaveAttribute("aria-current", "page");
+    const scan = page.getByRole("button", { name: "Scan", exact: true });
+    await scan.focus();
+    expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
+    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage)).toContain("gradient");
+    const radius = await page.getByRole("region", { name: "Run a scan" })
+      .evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
+    expect(radius, "Glass scanner geometry remains rounded").toBeGreaterThanOrEqual(19);
+    expect(radius).toBeLessThanOrEqual(30);
+    const deep = page.getByRole("region", { name: "Resumable deep scan jobs" });
     if (["normal", "long"].includes(scenario)) {
-      // Default now displays newest scans, not highest opportunity. Never
-      // couple social-verification assertions to score-based result order.
-      const studio = prospects.filter({ hasText: "Mira Studio" });
-      // The long-content preview intentionally replaces the Cedar & Stone
-      // name with a stress-test string. Select by the unique verified profile
-      // link instead of relying on a specific name or row position.
-      const unverified = prospects.filter({ has: page.getByRole("link", { name: "Facebook ↗", exact: true }) });
-      await expect(studio).toHaveCount(1);
-      await expect(unverified).toHaveCount(1);
-      const challengerBoard = page.getByRole("region", { name: "Qualified category challengers" });
-      await expect(challengerBoard).toContainText("Mira Studio");
-      await expect(challengerBoard).toContainText("Salons & Barbers");
-      await expect(challengerBoard).not.toContainText("Cedar & Stone");
-      const depthNav = challengerBoard.getByRole("navigation", { name: "Best-fit shortlist length" });
-      await expect(depthNav.getByRole("link", { name: "3", exact: true })).toHaveAttribute("aria-current", "page");
-      await expect(depthNav.getByRole("link", { name: "10", exact: true })).toHaveAttribute("href", "/leads/discover?shortlist=10#qualified-shortlists");
-      await expect(depthNav.getByRole("link", { name: "20", exact: true })).toHaveAttribute("href", "/leads/discover?shortlist=20#qualified-shortlists");
-      await expect(depthNav).toContainText("focused view");
-      // Manually resumable Deep Scan is visible and does not block the
-      // existing quick-scan or unverified social reviews.
-      const deep = page.getByRole("region", { name: "Resumable deep scan jobs" });
       const readyJob = deep.locator(".scanner-deep-job").filter({ hasText: "Puyallup, WA" });
       await expect(readyJob).toContainText("12/25");
       await expect(readyJob.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "12");
       await expect(readyJob.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "25");
       await expect(readyJob.getByRole("button", { name: "Process next six" })).toBeVisible();
       await expect(readyJob.getByRole("button", { name: "Cancel" })).toBeVisible();
-      const pausedJob = deep.locator(".scanner-deep-job").filter({ hasText: "Lakewood, WA" });
-      await expect(pausedJob.getByRole("button", { name: "Resume" })).toBeVisible();
-      await expect(pausedJob.getByRole("button", { name: "Cancel" })).toBeVisible();
-      const expiredJob = deep.locator(".scanner-deep-job").filter({ hasText: "Tacoma, WA" });
-      await expect(expiredJob).toContainText("Expired · retry or cancel");
-      await expect(expiredJob.getByRole("button", { name: "Retry expired batch" })).toBeVisible();
-      await expect(expiredJob.getByRole("button", { name: "Cancel" })).toBeVisible();
-      await expect(expiredJob.getByRole("button", { name: "Pause" })).toHaveCount(0);
-      await expect(page.getByRole("button", { name: "Create resumable deep scan" })).toBeVisible();
+      const paused = deep.locator(".scanner-deep-job").filter({ hasText: "Lakewood, WA" });
+      await expect(paused.getByRole("button", { name: "Resume" })).toBeVisible();
+      await expect(paused.getByRole("button", { name: "Cancel" })).toBeVisible();
+      const expired = deep.locator(".scanner-deep-job").filter({ hasText: "Tacoma, WA" });
+      await expect(expired).toContainText("Expired · retry or cancel");
+      await expect(expired.getByRole("button", { name: "Retry expired batch" })).toBeVisible();
+      await expect(expired.getByRole("button", { name: "Cancel" })).toBeVisible();
+      await expect(expired.getByRole("button", { name: "Pause" })).toHaveCount(0);
+    }
+    const deepDetails = page.locator(".scanner-deep-disclosure");
+    await expect(deepDetails).not.toHaveAttribute("open", "");
+    await deepDetails.locator("summary").press("Enter");
+    await expect(page.getByRole("button", { name: "Create resumable deep scan" })).toBeVisible();
+    for (const width of [1440, 1024, 620, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Scan studio ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+    }
+
+    // Saved prospects are a distinct task, not a stacked section of Scan Studio.
+    await show(page, "admin", scenario, "scanner", "prospects");
+    await expect(page.getByRole("heading", { name: "Saved prospects." })).toBeVisible();
+    const prospects = page.locator("article.prospect-card");
+    if (["normal", "long"].includes(scenario)) {
+      const studio = prospects.filter({ hasText: "Mira Studio" });
+      const unverified = prospects.filter({
+        has: page.getByRole("link", { name: "Facebook ↗", exact: true }),
+      });
+      await expect(studio).toHaveCount(1);
+      await expect(unverified).toHaveCount(1);
       await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
       await expect(page.getByRole("link", { name: "Highest opportunity" })).toBeVisible();
       await expect(unverified.locator(".score")).toHaveText("10");
       await expect(unverified).toContainText("Needs verification");
       await expect(unverified).toContainText("Website unconfirmed · low priority");
-      await expect(unverified.getByRole("link", { name: "Facebook ↗", exact: true })).toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
-      await expect(unverified.getByRole("link", { name: "Search Instagram ↗", exact: true })).toHaveAttribute("href", /site%3Ainstagram.com/);
-      await expect(unverified.getByRole("button", { name: "Re-analyze & check socials" })).toBeVisible();
+      await expect(unverified.getByRole("link", { name: "Facebook ↗", exact: true }))
+        .toHaveAttribute("href", "https://www.facebook.com/cedarandstone/");
+      await expect(unverified.getByRole("link", { name: "Search Instagram ↗", exact: true }))
+        .toHaveAttribute("href", /site%3Ainstagram.com/);
+      await expect(unverified.getByRole("button", { name: "Re-analyze & check socials" }))
+        .toBeVisible();
     } else {
       await expect(prospects).toHaveCount(0);
       if (scenario === "error") {
@@ -329,18 +344,27 @@ test("Scanner lowers old missing-website scores and exposes honest social verifi
         await expect(page.getByText(/No prospects yet/)).toHaveCount(0);
       }
     }
-    await expect(page.getByRole("heading", { name: "Better leads. A closer look." })).toBeVisible();
-    const scan = page.getByRole("button", { name: "Scan", exact: true });
-    await scan.focus();
-    expect((await scan.boundingBox()).height).toBeGreaterThanOrEqual(44);
-    expect(await scan.evaluate(el => getComputedStyle(el).backgroundImage), "Scan remains visibly branded").toContain("gradient");
-    const scannerRadius = await page.getByRole("region", { name: "Run a scan" }).evaluate(el => parseFloat(getComputedStyle(el).borderTopLeftRadius));
-    expect(scannerRadius, "The Intelligence Chamber must preserve softly rounded glass geometry").toBeGreaterThanOrEqual(19);
-    expect(scannerRadius).toBeLessThanOrEqual(30);
-    for (const width of [1440, 1024, 620, 390, 320]) {
+    for (const width of [1440, 390, 320]) {
       await page.setViewportSize({ width, height: 900 });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth), `scanner ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Saved prospects ${scenario} at ${width}px`).toBeLessThanOrEqual(width);
     }
+
+    // Best Fits uses the same qualified shortlist safety logic in its own view.
+    await show(page, "admin", scenario, "scanner", "best");
+    await expect(page.getByRole("heading", { name: "Best fits." })).toBeVisible();
+    const challenger = page.getByRole("region", { name: "Qualified category challengers" });
+    const depth = challenger.getByRole("navigation", { name: "Best-fit shortlist length" });
+    await expect(depth.getByRole("link", { name: "3", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(depth.getByRole("link", { name: "10", exact: true }))
+      .toHaveAttribute("href", "/leads/discover?workspace=best&shortlist=10#qualified-shortlists");
+    await expect(depth.getByRole("link", { name: "20", exact: true }))
+      .toHaveAttribute("href", "/leads/discover?workspace=best&shortlist=20#qualified-shortlists");
+    if (["normal", "long"].includes(scenario)) {
+      await expect(challenger).toContainText("Mira Studio");
+      await expect(challenger).toContainText("Salons & Barbers");
+      await expect(challenger).not.toContainText("Cedar & Stone");
+    }
+    await expect(page.locator(".scanner-controls")).toHaveCount(0);
   }
 });
 

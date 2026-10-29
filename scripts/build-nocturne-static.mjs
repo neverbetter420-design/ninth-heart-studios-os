@@ -11,7 +11,7 @@ const safeJSON = value => JSON.stringify(value)
   .replace(/>/g, "\\u003e")
   .replace(/&/g, "\\u0026");
 const routes = {
-  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","settings","opportunities","opportunity-detail","automations","controls"],
+  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","scanner-best","scanner-prospects","scanner-insights","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","settings","opportunities","opportunity-detail","automations","controls"],
   client: ["home","project","portal-projects","portal-documents","portal-messages","portal-files","portal-approvals","portal-contracts","portal-forms","controls"]
 };
 const escape = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -36,7 +36,8 @@ const visualStyles = previewCSS + "\nbutton[disabled]{cursor:not-allowed!importa
 writeFileSync(join(root,"visual.css"), visualStyles);
 for(const [role,views] of Object.entries(routes)){
   for(const view of views){
-    const result=await renderNocturne(role,"populated",view);
+    const scannerSection = view.startsWith("scanner-") ? view.slice("scanner-".length) : "";
+    const result=await renderNocturne(role,"populated",scannerSection ? "scanner" : view,scannerSection);
     const html=stripActions(result.html);
     screenMarkup[role + "/" + view] = html;
     const frame='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NHS OS synthetic visual review</title><link rel="stylesheet" href="../../visual.css"></head><body>'+html+'</body></html>';
@@ -66,6 +67,11 @@ const chromeCSS = [
   "#nhs-preview-stage{padding:24px 16px 40px;display:flex;justify-content:center}",
   "#preview{display:block;width:100%;max-width:100%;min-height:570px;background:#100d15;border:1px solid #8d7188;border-radius:17px;overflow:auto;box-shadow:0 20px 65px #04010880}",
   "#preview>.app-shell{min-height:650px}",
+  "#preview{container-type:inline-size}",
+  // Only in the isolated review frame: adapt source styles to the frame width,
+  // not the browser width. In production real @media rules remain authoritative.
+  "@container (max-width:860px){#preview .app-shell{grid-template-columns:minmax(0,1fr)!important}#preview .sidebar{position:absolute!important;transform:translateX(-110%)!important;pointer-events:none!important}#preview .main-shell{grid-column:1!important;min-width:0!important;width:100%!important}#preview .mobile-topbar{display:flex!important}#preview .nhs-mobile-quicknav{display:none!important}#preview .content-wrap{padding:28px 20px 58px!important}#preview .page-header{flex-direction:column!important;align-items:flex-start!important}#preview .scanner-glass-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}#preview .scanner-glass-prospects .prospect-grid{grid-template-columns:minmax(0,1fr)!important}}",
+  "@container (max-width:520px){#preview .scanner-workroom.scanner-page{padding:25px 17px 66px!important}#preview .scanner-glass-header h2{font-size:39px!important}#preview .scanner-glass-nav{gap:5px!important;padding:6px!important;border-radius:18px!important}#preview .scanner-glass-tab{padding:14px 8px!important;min-height:53px!important;gap:7px!important;font-size:13px!important}#preview .scanner-glass-discovery .scanner-controls{padding:22px 18px!important;border-radius:22px!important}#preview .scanner-controls .form-grid{grid-template-columns:minmax(0,1fr)!important;gap:22px!important}#preview .check-grid{grid-template-columns:minmax(0,1fr)!important}#preview .scanner-deep-job-list{grid-template-columns:minmax(0,1fr)!important}#preview .scanner-glass-prospects .prospect-card{padding:23px 19px!important}#preview .scanner-conversion-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}}",
   ".nhs-preview-file-warning{padding:12px;background:#633c55;color:white;border:1px solid #c79bb2;border-radius:9px}",
   ".nhs-preview-file-warning[hidden]{display:none}",
   "@media(max-width:600px){.nhs-preview-header{padding:16px}.nhs-preview-controls select{min-width:125px}#nhs-preview-stage{padding:16px 8px}}"
@@ -154,7 +160,7 @@ writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
   "",
   "1. In Downloads, right-click nhs-nocturne-html-preview.zip and choose Extract All.",
   "2. Open the extracted folder. Open index.html in Chrome or Edge.",
-  "3. index.html now includes all 30 screens and styles. It works without a server or separate files.",
+  "3. index.html now includes all 33 screens and styles. It works without a server or separate files.",
   "4. Open seven-rooms.html for the all-room comparison, or use index.html screen controls.",
   "",
   "This is a visual demonstration with synthetic data, not the production app.",

@@ -76,3 +76,56 @@ test("seven approved rooms render distinctly and fit desktop/mobile with no outb
   expect(errors).toEqual([]);
   expect(outbound).toEqual([]);
 });
+
+
+test("scanner glass workspace separates tasks without exposing data or triggering actions", async ({page}) => {
+  test.setTimeout(90_000);
+  const errors = [], external = [];
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("request", request => {
+    if (/^https?:/i.test(request.url())) external.push(request.url());
+  });
+  await page.goto(pathToFileURL(resolve("nocturne-static-preview/index.html")).href);
+  await page.locator("#role").selectOption("admin");
+  const samples = [
+    ["scanner", "Scan studio.", ".scanner-controls", "scan"],
+    ["scanner-best", "Best fits.", ".scanner-challenger-board", "best"],
+    ["scanner-prospects", "Saved prospects.", ".scanner-glass-prospects", "prospects"],
+    ["scanner-insights", "Insights.", ".scanner-glass-insights", "insights"],
+  ];
+  for (const [view, heading, target, selected] of samples) {
+    await page.locator("#view").selectOption(view);
+    const preview = page.locator("#preview");
+    await expect(preview.locator(".scanner-glass-header h2")).toHaveText(heading);
+    await expect(preview.locator(".scanner-glass-nav .scanner-glass-tab")).toHaveCount(4);
+    await expect(preview.locator(target)).toHaveCount(1);
+    await expect(preview.locator('.scanner-glass-tab[aria-current="page"]')).toHaveCount(1);
+    // Offline previews deliberately disable navigation actions; switching is
+    // exercised with the synthetic gallery selector instead of real links.
+    await expect(preview.locator('.scanner-glass-tab[aria-current="page"]')).toHaveAttribute("aria-disabled", "true");
+    if (selected !== "scan") await expect(preview.locator(".scanner-controls")).toHaveCount(0);
+    if (selected !== "best") await expect(preview.locator(".scanner-challenger-board")).toHaveCount(0);
+    if (selected !== "prospects") await expect(preview.locator(".scanner-glass-prospects")).toHaveCount(0);
+    if (selected !== "insights") await expect(preview.locator(".scanner-glass-insights")).toHaveCount(0);
+  }
+  await page.locator("#view").selectOption("scanner");
+  await page.locator("#width").selectOption("mobile");
+  await expect(page.locator("#preview .scanner-glass-nav")).toBeVisible();
+  // A narrow review frame must trigger the scanner mobile layout even when the
+  // outer preview gallery is open in a wide desktop browser.
+  const responsive = await page.locator("#preview").evaluate((preview) => {
+    const shell = preview.querySelector(".app-shell");
+    const scanner = preview.querySelector(".scanner-controls");
+    const nav = preview.querySelector(".scanner-glass-nav");
+    return {
+      columns: getComputedStyle(shell).gridTemplateColumns.trim().split(/\s+/).length,
+      controlsWidth: scanner.getBoundingClientRect().width,
+      navColumns: getComputedStyle(nav).gridTemplateColumns.trim().split(/\s+/).length,
+    };
+  });
+  expect(responsive.columns).toBe(1);
+  expect(responsive.controlsWidth).toBeGreaterThan(280);
+  expect(responsive.navColumns).toBe(2);
+  expect(errors).toEqual([]);
+  expect(external).toEqual([]);
+});

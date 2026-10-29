@@ -36,6 +36,13 @@ const CATEGORY_FILTERS = {
   salons: ["hairdresser", "beauty", "barber", "service.beauty", "service.beauty.hairdresser"],
 } as const;
 type CategoryFilter = keyof typeof CATEGORY_FILTERS;
+type ScannerWorkspace = "scan" | "best" | "prospects" | "insights";
+const WORKSPACES: ReadonlyArray<{ id: ScannerWorkspace; label: string; glyph: string }> = [
+  { id: "scan", label: "Scan studio", glyph: "⌕" },
+  { id: "best", label: "Best fits", glyph: "✧" },
+  { id: "prospects", label: "Saved prospects", glyph: "▤" },
+  { id: "insights", label: "Insights", glyph: "◈" },
+];
 
 type DeepScanPreview = {
   id: string;
@@ -78,10 +85,17 @@ function scoreTone(score: number | null): string {
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string; shortlist?: string;
+  searchParams: Promise<{ msg?: string; show?: string; sort?: string; category?: string; shortlist?: string; workspace?: string;
     scan_location?: string; scan_radius?: string; scan_niches?: string | string[] }>;
 }) {
-  const { msg, show, sort, category, shortlist, scan_location, scan_radius, scan_niches } = await searchParams;
+  const { msg, show, sort, category, shortlist, workspace: requestedWorkspace, scan_location, scan_radius, scan_niches } = await searchParams;
+  const workspace: ScannerWorkspace = WORKSPACES.find(item => item.id === requestedWorkspace)?.id ?? "scan";
+  const pageIntro: Record<ScannerWorkspace, { eyebrow: string; heading: string; intro: string }> = {
+    scan: { eyebrow: "01 / Discovery", heading: "Scan studio.", intro: "Find the right businesses. Skip the noise." },
+    best: { eyebrow: "02 / Curation", heading: "Best fits.", intro: "Your strongest opportunities, beautifully sorted." },
+    prospects: { eyebrow: "03 / Your library", heading: "Saved prospects.", intro: "Your research, decisions and drafts in one place." },
+    insights: { eyebrow: "04 / Intelligence", heading: "Insights.", intro: "Understand what your searches actually found." },
+  };
   // These parameters only prefill the form. The owner must still press Scan.
   const selectedLocation = scan_location && scan_location.trim().length >= 2 && scan_location.length <= 160
     ? scan_location.trim() : "Puyallup, WA";
@@ -98,8 +112,10 @@ export default async function DiscoverPage({
   const categoryFilter: CategoryFilter = category && Object.prototype.hasOwnProperty.call(CATEGORY_FILTERS, category)
     ? category as CategoryFilter : "all";
   // Keep sort and filters when switching between views, without copying arbitrary query parameters.
-  const viewPath = (changes: { show?: string; sort?: string; category?: string; shortlist?: string } = {}) => {
+  const viewPath = (changes: { show?: string; sort?: string; category?: string; shortlist?: string; workspace?: ScannerWorkspace } = {}) => {
+    const nextWorkspace = changes.workspace ?? workspace;
     const queryParams = new URLSearchParams();
+    if (nextWorkspace !== "scan") queryParams.set("workspace", nextWorkspace);
     if ((changes.show ?? (showArchived ? "archived" : "")) === "archived") queryParams.set("show", "archived");
     if ((changes.sort ?? (sortByPriority ? "priority" : "recent")) === "priority") queryParams.set("sort", "priority");
     const type = changes.category ?? categoryFilter;
@@ -193,28 +209,38 @@ export default async function DiscoverPage({
 
   return (
     <div className="content-wrap management-page scanner-page scanner-workroom">
-      <header className="page-header management-heading">
+      <header className="page-header management-heading scanner-glass-header">
         <div>
-          <p className="eyebrow">Lead Scanner · Local intelligence</p>
-          <h2>
-            Better leads.
-            <br />
-            <em>A closer look.</em>
-          </h2>
-          <p className="page-description">
-            Discover local businesses, review website signals and check listed
-            Instagram or Facebook profiles before drafting your first approach.
-          </p>
+          <p className="eyebrow">{pageIntro[workspace].eyebrow}</p>
+          <h2>{pageIntro[workspace].heading}</h2>
+          <p className="page-description">{pageIntro[workspace].intro}</p>
         </div>
         <Link href="/leads" className="management-text-link">
           Lead Intelligence <span aria-hidden="true">↗</span>
         </Link>
       </header>
 
+      <nav className="scanner-glass-nav" aria-label="Scanner workspaces">
+        {WORKSPACES.map(item => (
+          <Link
+            key={item.id}
+            href={viewPath({ workspace: item.id })}
+            className="scanner-glass-tab"
+            aria-current={workspace === item.id ? "page" : undefined}
+          >
+            <span className="scanner-glass-glyph" aria-hidden="true">{item.glyph}</span>
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+      <div className="scanner-glass-surface">
+
       {msg && <p className="notice">{msg}</p>}
 
+      {workspace === "scan" && (
+        <div className="scanner-glass-panel scanner-glass-discovery">
       <section id="scan-controls" className="card scanner-controls" aria-label="Run a scan">
-        <h3>Run a scan</h3>
+        <h3>New search</h3>
         <form action={runScan} className="form-grid">
           <label>
             Location
@@ -251,6 +277,8 @@ export default async function DiscoverPage({
             </div>
           </fieldset>
           <ScannerSubmitButton />
+          <details className="scanner-deep-disclosure">
+            <summary>Deep scan <span>Manual · 12–100 businesses</span></summary>
           <div className="scanner-deep-setup">
             <label>
               Deep scan size
@@ -270,6 +298,9 @@ export default async function DiscoverPage({
               next action, not an invisible background job.
             </p>
           </div>
+          </details>
+          <details className="scanner-methodology">
+            <summary>How we select and protect prospects</summary>
           <p className="form-hint">
             Reviews the most promising listings from up to 72 directory results,
             compares their contact reliability and redesign opportunity with saved
@@ -283,6 +314,7 @@ export default async function DiscoverPage({
             <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>
             {" "}(ODbL). Scans are on-demand, not continuous.
           </p>
+          </details>
         </form>
       </section>
 
@@ -363,7 +395,10 @@ export default async function DiscoverPage({
           </div>
         )}
       </section>
+        </div>
+      )}
 
+      {workspace === "best" && (
       <section id="qualified-shortlists" className="scanner-challenger-board" aria-label="Qualified category challengers">
         <div className="section-head">
           <h3>Best-fit shortlist</h3>
@@ -432,7 +467,10 @@ export default async function DiscoverPage({
           </div>
         )}
       </section>
+      )}
 
+      {workspace === "insights" && (
+        <div className="scanner-glass-insights">
       <section className="scanner-territory-report" aria-label="Territory comparison from saved prospects">
         <div className="section-head">
           <h3>Territory study</h3>
@@ -557,8 +595,11 @@ export default async function DiscoverPage({
           </>
         )}
       </section>
+        </div>
+      )}
 
-      <section aria-label="Prospects">
+      {workspace === "prospects" && (
+      <section className="scanner-glass-prospects" aria-label="Prospects">
         <div className="section-head">
           <h3>
             Prospects{" "}
@@ -594,7 +635,7 @@ export default async function DiscoverPage({
         ) : null}
         {!readError && prospects.length === 0 && (
           <p className="empty-state">
-            No prospects yet. Run a scan above and they&apos;ll land here,
+            No prospects yet. Start in Scan studio and they&apos;ll appear here,
             scored and ready.
           </p>
         )}
@@ -905,6 +946,8 @@ export default async function DiscoverPage({
           })}
         </div>
       </section>
+      )}
+      </div>
     </div>
   );
 }
