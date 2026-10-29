@@ -69,7 +69,7 @@ const chromeCSS = [
   "#preview>.app-shell{min-height:650px}",
   "#preview{container-type:inline-size;position:relative}",
   "#preview .nhs-muse-overlay{position:absolute!important;inset:0!important}",
-  "#preview .nhs-muse-drawer{height:100%!important;min-height:550px!important}",
+  "#preview .nhs-muse-drawer{width:100%!important;max-width:100%!important;height:100%!important;min-height:550px!important}",
   // Only in the isolated review frame: adapt source styles to the frame width,
   // not the browser width. In production real @media rules remain authoritative.
   "@container (max-width:860px){#preview .app-shell{grid-template-columns:minmax(0,1fr)!important}#preview .sidebar{position:absolute!important;transform:translateX(-110%)!important;pointer-events:none!important}#preview .main-shell{grid-column:1!important;min-width:0!important;width:100%!important}#preview .mobile-topbar{display:flex!important}#preview .nhs-mobile-quicknav{display:none!important}#preview .content-wrap{padding:28px 20px 58px!important}#preview .page-header{flex-direction:column!important;align-items:flex-start!important}#preview .scanner-glass-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}#preview .scanner-glass-prospects .prospect-grid{grid-template-columns:minmax(0,1fr)!important}}",
