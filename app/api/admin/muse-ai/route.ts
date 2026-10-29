@@ -73,8 +73,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request origin or size." }, { status: 403 });
 
   let payload: Record<string, unknown>;
-  try { payload = await request.json() as Record<string, unknown>; }
-  catch { return NextResponse.json({ error: "Invalid request body." }, { status: 400 }); }
+  try {
+    const raw = await request.text();
+    if (raw.length > 12000) return NextResponse.json({ error: "Request too large." }, { status: 413 });
+    const body = JSON.parse(raw) as unknown;
+    if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("invalid_body");
+    payload = body as Record<string, unknown>;
+  } catch { return NextResponse.json({ error: "Invalid request body." }, { status: 400 }); }
   const question = typeof payload.question === "string" ? payload.question.trim() : "";
   if (question.length < 2 || question.length > 1000)
     return NextResponse.json({ error: "Ask a question between 2 and 1,000 characters." }, { status: 400 });
@@ -112,7 +117,13 @@ export async function POST(request: NextRequest) {
       input.push(...(response.output ?? []));
       for (const call of calls.slice(0, 1)) {
         const tool = MUSE_READ_TOOLS.find(t => t.name === call.name);
-        if (!tool || !call.call_id || call.arguments !== "{}") {
+        if (!call.call_id) throw new Error("invalid_tool_call");
+        let safeArguments = false;
+        try {
+          const parsed = JSON.parse(call.arguments || "{}") as unknown;
+          safeArguments = !!parsed && typeof parsed === "object" && !Array.isArray(parsed) && Object.keys(parsed).length === 0;
+        } catch { /* Tool arguments were malformed. */ }
+        if (!tool || !safeArguments) {
           input.push({ type: "function_call_output", call_id: call.call_id, output: JSON.stringify({ error: "Unsupported or malformed tool call" }) });
           continue;
         }
