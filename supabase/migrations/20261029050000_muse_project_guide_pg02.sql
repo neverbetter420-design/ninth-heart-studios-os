@@ -3,6 +3,11 @@
 -- Reuses public.projects, public.tasks and public.milestones. Never touches client approvals.
 
 alter table public.projects add column if not exists muse_revision bigint not null default 0;
+-- Generated internal phases must not appear in the client portal by default.
+alter table public.milestones add column if not exists muse_internal boolean not null default false;
+drop policy if exists "Clients read own project milestones" on public.milestones;
+create policy "Clients read own project milestones" on public.milestones
+  for select to authenticated using (not muse_internal and (select private.can_access_project(project_id)));
 alter table public.tasks add column if not exists muse_phase_id uuid;
 alter table public.tasks add column if not exists muse_position integer;
 alter table public.tasks add column if not exists muse_description text;
