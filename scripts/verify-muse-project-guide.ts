@@ -1,0 +1,11 @@
+import assert from "node:assert/strict";
+import { validateMuseProjectPlan, readyTaskIds, type MuseProjectPlan } from "../lib/muse-project-guide.ts";
+const mk=(id:string, dependsOn:string[]=[])=>({tempId:id,title:id,description:"Test",priority:"normal" as const,position:id==="a"?0:1,estimatedMinutes:30,completionCriteria:["Reviewed"],dependsOn,subtasks:[]});
+const plan: MuseProjectPlan={schemaVersion:"1.0",projectId:"project-test",projectRevision:0,summary:"Fixture",warnings:[],phases:[{tempId:"phase-1",title:"Discovery",position:0,tasks:[mk("a"),mk("b",["a"])]}]};
+assert.equal(validateMuseProjectPlan(plan).ok,true);
+assert.deepEqual(readyTaskIds(plan,new Set()),["a"]);
+assert.deepEqual(readyTaskIds(plan,new Set(["a"])),["b"]);
+assert.equal(validateMuseProjectPlan({...plan,phases:[{...plan.phases[0],tasks:[mk("a",["b"]),mk("b",["a"])]}]}).ok,false);
+assert.equal(validateMuseProjectPlan({...plan,phases:[{...plan.phases[0],tasks:[mk("a"),mk("b",["missing"])]}]}).ok,false);
+assert.equal(validateMuseProjectPlan({...plan,phases:[{...plan.phases[0],tasks:[mk("a"),mk("a")]}]}).ok,false);
+console.log("verify:muse-project-guide — fixture assertions passed");
