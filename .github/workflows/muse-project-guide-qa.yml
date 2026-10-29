@@ -3,6 +3,11 @@ on:
   pull_request:
     paths:
       - 'lib/muse-project-guide.ts'
+      - 'lib/muse-project-guide-demo.ts'
+      - 'components/muse/**'
+      - 'app/muse-project-guide.css'
+      - 'app/(protected)/(admin)/muse/project-guide/**'
+      - 'scripts/verify-muse-project-guide-ui.ts'
       - 'lib/muse-plan-approval.ts'
       - 'scripts/verify-muse-project-guide.ts'
       - 'scripts/verify-muse-plan-approval.ts'
