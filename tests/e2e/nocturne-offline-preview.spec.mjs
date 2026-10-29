@@ -129,3 +129,31 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });
+
+test("Muse Project Guide renders an isolated desktop/mobile review frame", async ({ page }, testInfo) => {
+  const outbound = [];
+  page.on("request", request => {
+    if (/^https?:/i.test(request.url())) outbound.push(request.url());
+  });
+  await page.goto(pathToFileURL(resolve("nocturne-static-preview/index.html")).href);
+  await page.locator("#role").selectOption("admin");
+  await page.locator("#view").selectOption("muse-guide");
+  const surface = page.locator("#preview");
+  await expect(surface.locator(".muse-guide")).toHaveCount(1);
+  await expect(surface.locator(".muse-guide-hero h1")).toContainText("A little magic");
+  await expect(surface.locator(".muse-guide-ribbon")).toContainText("Sample data only");
+  await expect(surface.locator(".muse-guide-phase-nav button")).toHaveCount(4);
+  await expect(surface.locator(".muse-guide-tabs button")).toHaveCount(4);
+  await expect(surface.locator(".muse-guide-primary")).toBeDisabled();
+  for (const width of ["desktop", "mobile"]) {
+    await page.locator("#width").selectOption(width);
+    await page.screenshot({
+      path: resolve("nocturne-static-preview/review-muse-guide-" + width + "-" + testInfo.project.name + ".png"),
+      fullPage: true,
+      animations: "disabled"
+    });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, width + " preview overflow").toBeLessThanOrEqual(1);
+  }
+  expect(outbound).toEqual([]);
+});
