@@ -1,0 +1,120 @@
+/* Muse Project Guide, Nocturne Atelier. Read-only synthetic review surface. */
+.muse-guide { position:relative; isolation:isolate; width:100%; max-width:1450px; margin:0 auto; color:#f0e6f1; }
+.muse-guide * {box-sizing:border-box}
+.muse-guide-atmosphere {position:absolute;z-index:-1;pointer-events:none;inset:-50px -30px auto;height:640px;background:radial-gradient(ellipse at 90% 15%,rgba(131,72,155,.16),transparent 44%),radial-gradient(ellipse at 45% 15%,rgba(98,124,183,.08),transparent 36%),radial-gradient(ellipse at 5% 70%,rgba(140,49,91,.12),transparent 42%);filter:blur(12px)}
+.muse-guide a {color:#d7cadf;text-decoration:none}
+.muse-guide button, .muse-guide input {font:inherit}
+.muse-guide button:focus-visible,.muse-guide input:focus-visible {outline:2px solid #aebfea;outline-offset:4px}
+.muse-guide-hero {display:flex;justify-content:space-between;align-items:center;gap:32px;padding:38px 0 30px}
+.muse-guide-hero h1,.muse-guide-view-heading h2,.muse-guide-detail h2 {font-family:Georgia,serif;font-weight:400;letter-spacing:-.035em;line-height:1.16}
+.muse-guide-hero h1 {font-size:clamp(37px,5vw,73px);margin:18px 0 15px;max-width:730px}
+.muse-guide-hero h1 em {font-weight:400;font-style:italic;color:#d5a9c8}
+.muse-guide-hero p,.muse-guide-view-heading p {color:#c1b0c7;line-height:1.7;margin:0;font-size:14px}
+.muse-guide-kicker,.muse-guide-overline {font-size:10px;font-weight:650;letter-spacing:.19em;text-transform:uppercase;color:#c7a8ca}
+.muse-guide-monogram {width:130px;height:170px;border-radius:68px 68px 36px 36px;flex:none;display:grid;place-items:center;border:1px solid rgba(240,211,228,.17);background:linear-gradient(145deg,rgba(203,151,195,.09),rgba(91,99,150,.08));box-shadow:inset 0 0 56px rgba(173,111,165,.07),0 20px 80px rgba(92,67,121,.1);transform:rotate(7deg)}
+.muse-guide-monogram span {font:65px Georgia,serif;color:#cfb8cf;text-shadow:0 0 32px rgba(201,159,218,.4)}
+.muse-guide-ribbon {display:flex;align-items:center;gap:12px;border-top:1px solid rgba(245,211,235,.13);border-bottom:1px solid rgba(245,211,235,.13);padding:14px 0;color:#bdadbf;font-size:12px;line-height:1.5;flex-wrap:wrap}
+.muse-guide-ribbon strong {color:#e8d5e6;font-size:11px}
+.muse-guide-status-dot {width:7px;height:7px;flex:none;border-radius:50%;background:#a9c7d9;box-shadow:0 0 14px rgba(155,210,241,.38)}
+.muse-guide-stats {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:25px;padding:31px 0 26px}
+.muse-guide-stats>div {display:flex;align-items:baseline;gap:13px;min-width:0}
+.muse-guide-stats strong {font:400 clamp(26px,3vw,43px) Georgia,serif;color:#f1e6ed;font-variant-numeric:tabular-nums}
+.muse-guide-stats span {font-size:11px;color:#af9eb6}
+.muse-guide-progress {height:3px;background:rgba(255,255,255,.07);border-radius:30px;overflow:hidden}
+.muse-guide-progress span {display:block;height:100%;border-radius:30px;background:linear-gradient(90deg,#b08eaf,#b7c2e1);transition:width .25s ease}
+.muse-guide-tabs {display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(235,205,238,.11);margin:17px 0 30px;padding:0 0 10px;flex-wrap:wrap}
+.muse-guide-tabs button {border:0;color:#a99bb0;background:transparent;padding:11px 17px;border-radius:30px;font-size:12px;transition:background .15s ease,color .15s ease}
+.muse-guide-tabs button:hover,.muse-guide-tabs button.is-active {color:#f3e8f5;background:rgba(213,172,218,.13)}
+.muse-guide-tabs button.muse-guide-reset {margin-left:auto;font-size:11px;color:#c5b1bd}
+.muse-guide-columns {display:grid;grid-template-columns:minmax(235px, .75fr) minmax(0,1.65fr);gap:clamp(23px,3.5vw,62px);align-items:start}
+.muse-guide-sidebar {border-right:1px solid rgba(226,186,226,.12);padding:18px clamp(14px,2.5vw,36px) 16px 0;min-width:0}
+.muse-guide-phase-nav {display:grid;gap:5px;margin:23px 0 36px}
+.muse-guide-phase-nav button {display:flex;align-items:center;text-align:left;gap:15px;padding:16px 12px;border:0;border-radius:17px;background:transparent;color:#b5a5be}
+.muse-guide-phase-nav button:hover,.muse-guide-phase-nav button.is-active {background:rgba(233,210,239,.075);color:#f3e7f3}
+.muse-guide-phase-nav button span {font:19px Georgia,serif;color:#b7a1bf}
+.muse-guide-phase-nav button strong {font-weight:450;font-size:13px}
+.muse-guide-task-menu {display:grid;gap:5px}
+.muse-guide-task-menu>.muse-guide-overline {padding:0 10px;margin-bottom:12px}
+.muse-guide-task-menu button {display:flex;align-items:center;gap:12px;border:0;border-radius:12px;padding:12px;text-align:left;background:transparent;color:#b8a9bd;font-size:12px;line-height:1.4}
+.muse-guide-task-menu button:hover,.muse-guide-task-menu button.is-selected {background:rgba(172,139,188,.12);color:#f1e8f4}
+.muse-guide-task-menu button>span:first-child {color:#cbafcd;font-size:17px}
+.muse-guide-detail {min-width:0;padding:12px 0 26px}
+.muse-guide-task-head {display:flex;gap:17px;align-items:flex-start;justify-content:space-between}
+.muse-guide-detail h2 {font-size:clamp(31px,3.3vw,48px);margin:13px 0}
+.muse-guide-state {border:1px solid rgba(215,191,231,.24);border-radius:30px;padding:7px 11px;font-size:10px;color:#d8c4d9;white-space:nowrap;margin-top:18px}
+.muse-guide-state[data-state="blocked"] {color:#dbb1aa;border-color:rgba(219,177,170,.3)}
+.muse-guide-state[data-state="complete"] {color:#b0d4c0;border-color:rgba(176,212,192,.3)}
+.muse-guide-detail-description {font-size:14px;line-height:1.85;color:#c1b4c9;max-width:680px;margin:0 0 30px}
+.muse-guide-guidance {display:flex;align-items:flex-start;gap:20px;padding:26px 28px;background:linear-gradient(135deg,rgba(180,149,195,.12),rgba(139,137,184,.05));border:1px solid rgba(223,193,230,.13);border-radius:26px 26px 45px 26px;max-width:730px}
+.muse-guide-sparkle {font-size:26px;color:#d0accb}
+.muse-guide-guidance strong {font:22px Georgia,serif;color:#ecdce9}
+.muse-guide-guidance p {font-size:13px;line-height:1.9;color:#c8b9cd;margin:9px 0 0}
+.muse-guide-blocked {color:#e0bcb9;font-size:12px;padding:10px 0}
+.muse-guide-section-heading {display:flex;justify-content:space-between;align-items:baseline;gap:18px;margin:34px 0 11px}
+.muse-guide-section-heading h3 {font:27px Georgia,serif;font-weight:400;margin:0}
+.muse-guide-section-heading span {color:#baafbe;font-size:12px;font-variant-numeric:tabular-nums}
+.muse-guide-checklist {border-top:1px solid rgba(230,206,238,.1);max-width:730px}
+.muse-guide-check {display:flex;align-items:flex-start;gap:16px;padding:18px 3px;border-bottom:1px solid rgba(230,206,238,.1);cursor:pointer}
+.muse-guide-check input {width:18px;height:18px;accent-color:#a18bba;flex:none;margin-top:3px}
+.muse-guide-check input:disabled {cursor:not-allowed}
+.muse-guide-check span {display:grid;gap:5px}
+.muse-guide-check strong {color:#e8dce9;font-size:13px;font-weight:500}
+.muse-guide-check small {line-height:1.7;color:#a89bb0;font-size:11px}
+.muse-guide-actions {display:flex;gap:12px;align-items:center;margin:26px 0 10px;flex-wrap:wrap}
+.muse-guide-primary,.muse-guide-secondary {padding:13px 20px;border-radius:30px;font-size:12px;border:1px solid rgba(213,186,217,.24)}
+.muse-guide-primary {color:#1d1425;background:linear-gradient(125deg,#e6cfdf,#c0bddb);border:0;font-weight:650}
+.muse-guide-primary:disabled {opacity:.4;cursor:not-allowed}
+.muse-guide-secondary {color:#e9dbe9;background:rgba(215,177,215,.06)}
+.muse-guide-secondary:hover {background:rgba(215,177,215,.13)}
+.muse-guide-rename {display:grid;gap:8px;color:#cdbccc;font-size:12px;margin:20px 0}
+.muse-guide-rename input {max-width:560px;min-width:0;width:100%;background:rgba(241,229,244,.06);color:#f7eff6;border:1px solid rgba(239,206,237,.23);border-radius:12px;padding:13px}
+.muse-guide-feedback {font-size:12px;color:#d0c1d3}
+.muse-guide-view-heading {padding:16px 0 33px;max-width:720px}
+.muse-guide-view-heading h2 {font-size:clamp(34px,4vw,52px);margin:14px 0}
+.muse-guide-roadmap-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.muse-guide-roadmap-phase {padding:clamp(24px,3vw,40px);border-radius:34px;background:linear-gradient(153deg,rgba(40,30,48,.8),rgba(29,25,37,.6));border:1px solid rgba(223,187,220,.11);min-width:0}
+.muse-guide-roadmap-phase:nth-child(2) {background:linear-gradient(153deg,rgba(40,39,57,.75),rgba(30,25,43,.6))}
+.muse-guide-roadmap-phase:nth-child(3) {background:linear-gradient(153deg,rgba(49,29,43,.7),rgba(31,25,40,.6))}
+.muse-guide-roadmap-phase:nth-child(4) {background:linear-gradient(153deg,rgba(39,39,54,.72),rgba(30,22,38,.6))}
+.muse-guide-phase-index {font:27px Georgia,serif;color:#c7b4cb}
+.muse-guide-roadmap-phase h3 {font:normal 27px Georgia,serif;margin:18px 0 8px}
+.muse-guide-roadmap-phase>p {font-size:11px;color:#b5a6bb}
+.muse-guide-roadmap-tasks {display:grid;gap:4px;margin-top:23px}
+.muse-guide-roadmap-tasks button {display:flex;align-items:center;gap:11px;text-align:left;color:#d1c1d4;background:transparent;border:0;border-bottom:1px solid rgba(220,191,227,.08);padding:12px 0;font-size:12px}
+.muse-guide-roadmap-tasks button:hover {color:#fff}
+.muse-guide-roadmap-tasks button>span {color:#d2afcf;font-size:14px}
+.muse-guide-approval-body {display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.75fr);gap:35px;align-items:start}
+.muse-guide-approval-list {border-top:1px solid rgba(230,205,228,.15)}
+.muse-guide-approval-list>div {display:flex;justify-content:space-between;gap:14px;padding:19px 6px;border-bottom:1px solid rgba(230,205,228,.12);font-size:13px;color:#c6b7c7}
+.muse-guide-approval-list strong {color:#ecdeeb;font-weight:500;text-align:right}
+.muse-guide-approval-note {border-radius:32px;background:linear-gradient(155deg,rgba(111,80,116,.18),rgba(91,80,129,.07));border:1px solid rgba(217,186,217,.15);padding:34px}
+.muse-guide-approval-note>span {font-size:31px;color:#dab9d9}
+.muse-guide-approval-note h3 {font:30px Georgia,serif;margin:12px 0 16px}
+.muse-guide-approval-note p {color:#c1b1c8;font-size:13px;line-height:1.85}
+.muse-guide-approval-note button {width:100%;border:1px solid rgba(235,210,238,.18);border-radius:30px;padding:13px 16px;margin-top:18px;background:rgba(190,161,202,.11);color:#cdbbce;cursor:not-allowed}
+.muse-guide-footer {display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;border-top:1px solid rgba(227,196,222,.12);margin-top:52px;padding:24px 0 15px;font-size:10px;letter-spacing:.07em;color:#ac9fb3}
+@media (max-width: 900px) {
+ .muse-guide-hero {padding-top:17px}
+ .muse-guide-columns {grid-template-columns:1fr;gap:13px}
+ .muse-guide-sidebar {border-right:0;border-bottom:1px solid rgba(226,186,226,.12);padding:0 0 20px}
+ .muse-guide-phase-nav {grid-template-columns:repeat(2,minmax(0,1fr));margin:18px 0 24px}
+ .muse-guide-approval-body {grid-template-columns:1fr}
+}
+@media (max-width: 600px) {
+ .muse-guide-hero h1 {font-size:37px}
+ .muse-guide-monogram {display:none}
+ .muse-guide-stats {grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ .muse-guide-stats>div {display:grid;gap:1px}
+ .muse-guide-tabs button {padding:10px 13px}
+ .muse-guide-tabs button.muse-guide-reset {margin-left:0}
+ .muse-guide-phase-nav {grid-template-columns:1fr 1fr;gap:4px}
+ .muse-guide-phase-nav button {padding:13px 7px;gap:9px}
+ .muse-guide-phase-nav button strong {font-size:11px}
+ .muse-guide-roadmap-grid {grid-template-columns:1fr}
+ .muse-guide-task-head {flex-wrap:wrap;gap:5px}
+ .muse-guide-state {margin:0 0 12px}
+ .muse-guide-guidance {padding:19px;border-radius:21px}
+ .muse-guide-approval-list>div {flex-direction:column;gap:6px}
+ .muse-guide-approval-list strong {text-align:left}
+}
+@media (prefers-reduced-motion: reduce) { .muse-guide * {transition:none!important;animation:none!important;scroll-behavior:auto!important} }
