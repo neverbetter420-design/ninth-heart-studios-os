@@ -66,6 +66,16 @@
 .nhs-muse-workspace-link{color:#edbddc;text-decoration:underline;text-underline-offset:3px;font-size:12px;line-height:1.6}
 .nhs-muse-error{color:#ffe0e0;background:rgba(181,56,75,.17);border:1px solid rgba(248,147,170,.25);padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5;margin:0 0 15px}
 .nhs-muse-drawer :is(button,a,textarea):focus-visible{outline:2px solid #ffe5f5;outline-offset:3px}
+@media(max-width:860px){
+  /* Existing mobile shell hides account controls. Keep Muse accessible,
+     while leaving name and sign-out in their normal mobile navigation. */
+  .nhs-theme-admin .nhs-context-account{display:flex;gap:7px;flex-shrink:0}
+  .nhs-theme-admin .nhs-context-account>.nhs-context-name,
+  .nhs-theme-admin .nhs-context-account>form{display:none}
+  .nhs-theme-admin .nhs-context-bar{gap:9px;justify-content:space-between}
+  .nhs-theme-admin .nhs-context-location{min-width:0;overflow:hidden}
+  .nhs-theme-admin .nhs-muse-shortcut{min-height:35px;padding:6px 10px;font-size:12px;white-space:nowrap}
+}
 @media(max-width:650px){
   .nhs-muse-drawer{width:100vw;border-left:0}
   .nhs-muse-drawer-head{padding:25px 21px 20px}
