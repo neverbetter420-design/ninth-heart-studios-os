@@ -295,6 +295,7 @@ export default async function MusePage({
         </Link>
       </header>
       <nav className="management-destinations" aria-label="Muse destinations">
+        <Link href="/muse/project-guide">Project Guide · preview</Link>
         <a href="#muse-focus">Studio focus</a>
         <a href="#muse-compose">Write a draft</a>
         <a href="#muse-saved">Saved drafts</a>
