@@ -169,7 +169,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     chain.maybeSingle = () => { result.data = rows[table][0] ?? null; return chain; };
     return chain;
   } };
-  const path = view === "muse-guide" ? "/muse/project-guide" : view.startsWith("portal-") ? `/portal/${view.slice(7)}` : view === "navigation" ? section : view === "opportunity-detail" ? "/opportunities/synthetic-opportunity" : ["muse", "settings", "automations", "opportunities"].includes(view) ? `/${view}` : view in documentViews ? `/${documentViews[view]}${view.endsWith("-detail") ? "/synthetic-document" : ""}` : view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
+  const path = (view === "muse-connected" || view === "muse-applied") ? "/muse/project-guide?mode=connected" : view === "muse-guide" ? "/muse/project-guide" : view.startsWith("portal-") ? `/portal/${view.slice(7)}` : view === "navigation" ? section : view === "opportunity-detail" ? "/opportunities/synthetic-opportunity" : ["muse", "settings", "automations", "opportunities"].includes(view) ? `/${view}` : view in documentViews ? `/${documentViews[view]}${view.endsWith("-detail") ? "/synthetic-document" : ""}` : view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -214,7 +214,29 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     ? load(resolve(root, role === "admin" ? "app/(protected)/(admin)/projects/[projectId]/page.tsx" : "app/(protected)/portal/projects/[projectId]/page.tsx")).default
     : role === "admin" ? load(resolve(root, "components/Dashboard.tsx")).Dashboard : load(resolve(root, "app/(protected)/portal/page.tsx")).default;
   let content;
-  if (view === "controls") {
+  if (view === "muse-connected" || view === "muse-applied") {
+    const { MuseProjectGuideConnected } = load(resolve(root,"components/muse/MuseProjectGuideConnected.tsx"));
+    const { MUSE_DEMO_PLAN } = load(resolve(root,"lib/muse-project-guide-demo.ts"));
+    const selected = { id:"synthetic-project", name:"Cedar & Stone Website Redesign", muse_revision:2 };
+    const sample = { ...MUSE_DEMO_PLAN, projectId:selected.id,projectRevision:2 };
+    const applied = view === "muse-applied";
+    const draft = {
+      id:"synthetic-plan", project_id:selected.id, plan_version:1,
+      base_project_revision:2, plan:sample, approved_hash:"a".repeat(64),
+      status:applied ? "applied" : "pending_approval",
+    };
+    const taskData = sample.phases.flatMap(phase=>phase.tasks).slice(0,5);
+    const work = applied ? taskData.map((task,index)=>({
+      id:task.tempId,title:task.title,status:index===0?"complete":"not_started",position:index,
+      phase:sample.phases.find(p=>p.tasks.includes(task))?.title??null,
+      blockedBy:index>1?[taskData[index-1].title]:[],
+      subtaskCount:2,subtaskComplete:index===0?2:0,ready:index===1,
+    })) : [];
+    const review = applied ? null : { plan_version:1,plan_digest:"a".repeat(64),plan:sample };
+    content = renderToStaticMarkup(React.createElement(MuseProjectGuideConnected, {
+      selected, projects:[selected], draft, review, work, result:"", unavailable:false,
+    }));
+  } else if (view === "controls") {
     const { MessageThread } = load(resolve(root, "components/projects/MessageThread.tsx"));
     const { FeedbackFrame } = load(resolve(root, "components/projects/FeedbackFrame.tsx"));
     const { FormFill } = load(resolve(root, "components/portal/FormFill.tsx"));
