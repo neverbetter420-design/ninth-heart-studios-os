@@ -148,12 +148,13 @@ await check("Muse plans are admin-owner-only and clients cannot apply them",asyn
  const savedPlan=got(await Admin.from("muse_project_plans").select("status,approved_at,applied_at").eq("id",planId).single(),"applied plan receipt");
  assert.equal(savedPlan.status,"applied");assert.ok(savedPlan.approved_at);assert.ok(savedPlan.applied_at);
  const created=got(await Admin.from("tasks").select("id,parent_task_id,source,muse_plan_id,client_visible").eq("muse_plan_id",planId).order("position"),"Muse tasks");
- assert.equal(created.length,2);assert.equal(created[0].parent_task_id,null);assert.equal(created[1].parent_task_id,created[0].id);
+ const parent=created.find(task=>task.parent_task_id===null);const child=created.find(task=>task.parent_task_id!==null);
+ assert.equal(created.length,2);assert.ok(parent);assert.ok(child);assert.equal(child.parent_task_id,parent.id);
  assert.ok(created.every(task=>task.source==="muse"&&task.muse_plan_id===planId&&!task.client_visible));
  assert.equal(got(await A.from("tasks").select("id").eq("muse_plan_id",planId),"client hidden Muse tasks").length,0);
- const nested=await Admin.from("tasks").insert({project_id:projectA,parent_task_id:created[1].id,title:"Forbidden nested step"}).select("id");
+ const nested=await Admin.from("tasks").insert({project_id:projectA,parent_task_id:child.id,title:"Forbidden nested step"}).select("id");
  assert.ok(nested.error,"third task level must be rejected");
- const parentDelete=await Admin.from("tasks").delete().eq("id",created[0].id).select("id");
+ const parentDelete=await Admin.from("tasks").delete().eq("id",parent.id).select("id");
  assert.ok(parentDelete.error,"parent with subtasks must be protected from deletion");
  const activity=got(await Admin.from("activities").select("event_type,metadata").eq("project_id",projectA).eq("event_type","muse_plan_applied"),"Muse audit activity");
  assert.equal(activity.length,1);assert.equal(activity[0].metadata.created_count,2);
