@@ -13,7 +13,7 @@ assert.deepEqual(plan.phases.map(p=>p.tasks.length),[4,5,7,5]);
 assert.equal(validateMuseProjectPlan(plan).ok,true);
 assert.ok(parseMuseProjectPlan(plan));
 assert.equal(parseMuseProjectPlan({...plan,projectId:""}),null);
-assert.equal(parseMuseProjectPlan({...plan,phases:[{...plan.phases[0],tasks:[]}, ...plan.phases.slice(1)]})?.phases[0].tasks.length,0);
+assert.equal(parseMuseProjectPlan({...plan,phases:[{...plan.phases[0],tasks:[]}, ...plan.phases.slice(1)]}),null, "Removing a required prerequisite invalidates the plan");
 assert.equal(parseMuseProjectPlan({...plan,phases:[]}),null);
 assert.equal(parseMuseProjectPlan(null),null);
 assert.equal(parseMuseProjectPlan({...plan,phases: new Array(13).fill(plan.phases[0])}),null);
