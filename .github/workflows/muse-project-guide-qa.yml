@@ -4,6 +4,9 @@ on:
     paths:
       - 'lib/muse-project-guide.ts'
       - 'lib/muse-project-guide-demo.ts'
+      - 'lib/muse-project-guide-runtime.ts'
+      - 'app/(protected)/(admin)/muse/project-guide/actions.ts'
+      - 'scripts/verify-muse-project-guide-connected.ts'
       - 'components/muse/**'
       - 'app/muse-project-guide.css'
       - 'app/(protected)/(admin)/muse/project-guide/**'
