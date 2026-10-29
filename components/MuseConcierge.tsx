@@ -14,8 +14,8 @@ const SUGGESTIONS = [
 
 /** Admin-only AI drawer. All live data reads are independently authorized on
  * the server. Drafts and existing Muse tools remain separate and unchanged. */
-export function MuseConcierge() {
-  const [open, setOpen] = useState(false);
+export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean } = {}) {
+  const [open, setOpen] = useState(previewOpen);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<ChatEntry[]>([]);
   const [busy, setBusy] = useState(false);
