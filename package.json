@@ -12,7 +12,7 @@
     "seed:test-users": "node --env-file=.env.local scripts/seed-test-users.mjs",
     "verify:security": "node --env-file=.env.local scripts/verify-security.mjs",
     "verify:flowkeep": "node --experimental-strip-types scripts/verify-flowkeep.ts",
-    "verify:muse": "node --experimental-strip-types scripts/verify-muse.ts",
+    "verify:muse": "node --experimental-strip-types scripts/verify-muse.ts && node scripts/verify-muse-ai.mjs",
     "verify:automations": "node --experimental-strip-types scripts/verify-automations.ts",
     "verify:email": "node --experimental-strip-types scripts/verify-email.ts",
     "verify:contracts": "node --experimental-strip-types scripts/verify-contracts.ts",
