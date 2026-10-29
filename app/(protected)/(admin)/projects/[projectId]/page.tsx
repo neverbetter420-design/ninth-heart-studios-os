@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProjectSectionLink } from "@/components/projects/ProjectSectionLink";
 import { DesignGallery } from "@/components/projects/DesignGallery";
 import { notFound } from "next/navigation";
@@ -195,6 +196,7 @@ export default async function ProjectWorkspacePage({
 
       <nav className="studio-workspace-nav" aria-label="Project destinations">
         <ProjectSectionLink href="#workspace-priorities">Working plan</ProjectSectionLink>
+        <Link href="/muse/project-guide" className="management-text-link">Muse Guide · preview</Link>
         <ProjectSectionLink href="?section=creative#workspace-collaboration">Design & feedback</ProjectSectionLink>
         <ProjectSectionLink href="?section=files#workspace-resources">Files & documents</ProjectSectionLink>
         <ProjectSectionLink href="?section=messages#workspace-conversation">Conversation</ProjectSectionLink>
