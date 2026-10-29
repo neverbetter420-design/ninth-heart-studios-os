@@ -40,7 +40,7 @@ jobs:
           cache: npm
       - name: Install project dependencies without hosted credentials
         run: npm ci
-      - name: Render the 33 actual synthetic Admin and Client workspace screens
+      - name: Render the 34 actual synthetic Admin and Client workspace screens
         run: node scripts/build-nocturne-static.mjs
       - name: Validate static output and no production connections
         run: node scripts/verify-nocturne-static.mjs
@@ -50,7 +50,7 @@ jobs:
         run: npm install --no-save --package-lock=false @playwright/test@1.56.1
       - name: Install Chromium for source-rendered desktop/mobile preview
         run: npx playwright install --with-deps chromium
-      - name: Test offline 33-screen gallery and seven-room designs in desktop/mobile Chromium
+      - name: Test offline 34-screen gallery and seven-room designs in desktop/mobile Chromium
         run: npx playwright test --config playwright.offline-review.config.mjs
       - name: Upload actual source-rendered HTML preview package
         uses: actions/upload-artifact@v4
