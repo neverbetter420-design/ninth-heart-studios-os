@@ -22,19 +22,19 @@ begin
 end $$;
 -- Explicit apply is separate from approval and runs in one transaction.
 select public.muse_apply_project_plan(:'draft_id'::uuid,1,:'plan_digest');
-do $
+do $apply_test$
 begin
  if (select count(*) from public.tasks) <> 1 then raise exception 'Approved plan did not create one task'; end if;
  if (select count(*) from public.muse_project_subtasks) <> 1 then raise exception 'Approved plan did not create one subtask'; end if;
  if (select count(*) from public.muse_project_plan_drafts where status='applied') <> 1 then raise exception 'Apply audit status not committed'; end if;
  if (select count(*) from public.milestones where muse_internal) <> 2 then raise exception 'Internal phase missing'; end if;
-end $;
+end $apply_test$;
 -- Repeated apply is idempotent; it never duplicates tasks or phases.
 select public.muse_apply_project_plan(:'draft_id'::uuid,1,:'plan_digest');
-do $
+do $apply_test$
 begin
  if (select count(*) from public.tasks) <> 1 then raise exception 'Duplicate tasks on repeated apply'; end if;
-end $;
+end $apply_test$;
 -- A client cannot read a draft, approval event or internal milestone or invoke the admin review RPC.
 set request.jwt.claim.sub = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 do $$
