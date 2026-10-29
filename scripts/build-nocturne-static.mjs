@@ -69,6 +69,7 @@ const chromeCSS = [
   "#preview>.app-shell{min-height:650px}",
   "#preview{container-type:inline-size;position:relative}",
   "#preview .nhs-muse-area{position:static!important}",
+  "#preview:has(.nhs-muse-overlay)>.app-shell{overflow-x:hidden!important;max-width:100%!important}",
   "#preview .nhs-muse-overlay{position:absolute!important;inset:0!important}",
   "#preview .nhs-muse-drawer{width:100%!important;max-width:100%!important;height:100%!important;min-height:550px!important}",
   // Only in the isolated review frame: adapt source styles to the frame width,
