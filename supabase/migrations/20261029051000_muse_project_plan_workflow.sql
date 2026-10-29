@@ -153,6 +153,20 @@ begin
     values (p_draft_id,auth.uid(),'submitted',d.plan_version);
 end; $$;
 
+-- The review endpoint returns a server-canonical digest for the exact visible plan.
+-- Clients never receive this admin-only payload through RLS or this RPC.
+create or replace function public.muse_review_project_plan(p_draft_id uuid)
+returns table(plan jsonb, plan_version integer, plan_digest text, base_project_revision bigint)
+language plpgsql stable security definer set search_path = '' as $
+begin
+  if not private.is_admin() then raise exception 'Admin required' using errcode = '42501'; end if;
+  return query select d.plan,d.plan_version,
+    pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(d.plan::text,'UTF8')),'hex'),
+    d.base_project_revision
+  from public.muse_project_plan_drafts d
+  where d.id=p_draft_id and d.status='pending_approval';
+end; $;
+
 create or replace function public.muse_approve_project_plan(p_draft_id uuid, p_expected_version integer, p_expected_hash text)
 returns text language plpgsql security definer set search_path = '' as $$
 declare d public.muse_project_plan_drafts%rowtype; v_revision bigint; v_hash text;
@@ -195,11 +209,13 @@ begin
 end; $$;
 
 revoke all on function public.muse_create_project_plan(uuid,jsonb),
+  public.muse_review_project_plan(uuid),
   public.muse_edit_project_plan(uuid,integer,jsonb),
   public.muse_submit_project_plan(uuid,integer),
   public.muse_approve_project_plan(uuid,integer,text),
   public.muse_reject_project_plan(uuid) from public,anon;
 grant execute on function public.muse_create_project_plan(uuid,jsonb),
+  public.muse_review_project_plan(uuid),
   public.muse_edit_project_plan(uuid,integer,jsonb),
   public.muse_submit_project_plan(uuid,integer),
   public.muse_approve_project_plan(uuid,integer,text),
