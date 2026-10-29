@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner", "muse-project-guide"];
 // The visual suite denies network access, so embed only these two local, vetted
 // decorative assets. This allows screenshots to show the same artwork as the app.
 const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg", "nhs-dark-rose-photographic.webp", "nhs-room-electric-oracle.svg", "nhs-room-rose-reliquary.svg", "nhs-room-artist-atelier.svg", "nhs-room-archive-seal.svg", "nhs-room-velvet-oracle.svg", "nhs-room-private-atelier.svg"]);
@@ -169,7 +169,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     chain.maybeSingle = () => { result.data = rows[table][0] ?? null; return chain; };
     return chain;
   } };
-  const path = view.startsWith("portal-") ? `/portal/${view.slice(7)}` : view === "navigation" ? section : view === "opportunity-detail" ? "/opportunities/synthetic-opportunity" : ["muse", "settings", "automations", "opportunities"].includes(view) ? `/${view}` : view in documentViews ? `/${documentViews[view]}${view.endsWith("-detail") ? "/synthetic-document" : ""}` : view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
+  const path = view === "muse-guide" ? "/muse/project-guide" : view.startsWith("portal-") ? `/portal/${view.slice(7)}` : view === "navigation" ? section : view === "opportunity-detail" ? "/opportunities/synthetic-opportunity" : ["muse", "settings", "automations", "opportunities"].includes(view) ? `/${view}` : view in documentViews ? `/${documentViews[view]}${view.endsWith("-detail") ? "/synthetic-document" : ""}` : view === "clients" ? "/clients" : view === "client-detail" ? "/clients/synthetic-client" : view === "pipeline" ? "/projects" : view === "scanner" ? "/leads/discover" : view.startsWith("lead") ? (view === "leads" ? "/leads" : "/leads/synthetic-lead-0") : view === "project" ? (role === "admin" ? "/projects/synthetic-a" : "/portal/projects/synthetic-a") : role === "admin" ? "/" : "/portal";
   const cache = new Map();
   function load(file) {
     if (cache.has(file)) return cache.get(file).exports;
@@ -180,6 +180,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
       fileName: file,
     }).outputText;
     const localRequire = (name) => {
+      if (name.endsWith(".css")) return {};
       if (name === "next/cache") return { revalidatePath: () => { throw new Error("Preview mutations are disabled"); } };
       if (name === "@/lib/email") return { isEmailConfigured: () => scenario === "email-configured" };
       if (name === "@/lib/supabase/server") return { createClient: async () => supabase };
@@ -203,7 +204,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
     return module.exports;
   }
   const { AppShell } = load(resolve(root, "components/AppShell.tsx"));
-  const Page = portalResource && !["projects", "documents"].includes(portalResource) ? () => load(resolve(root, "components/portal/PortalResourcePage.tsx")).PortalResourcePage({ kind: portalResource }) : portalResource ? load(resolve(root, `app/(protected)/portal/${portalResource}/page.tsx`)).default : view === "opportunity-detail" ? load(resolve(root, "app/(protected)/(admin)/opportunities/[id]/page.tsx")).default : ["muse", "settings", "automations", "opportunities"].includes(view) ? load(resolve(root, `app/(protected)/(admin)/${view}/page.tsx`)).default : view in documentViews ? load(resolve(root, `app/(protected)/(admin)/${documentViews[view]}/${view.endsWith("-detail") ? "[id]/" : ""}page.tsx`)).default : ["clients", "client-detail", "pipeline"].includes(view)
+  const Page = portalResource && !["projects", "documents"].includes(portalResource) ? () => load(resolve(root, "components/portal/PortalResourcePage.tsx")).PortalResourcePage({ kind: portalResource }) : portalResource ? load(resolve(root, `app/(protected)/portal/${portalResource}/page.tsx`)).default : view === "muse-guide" ? load(resolve(root, "app/(protected)/(admin)/muse/project-guide/page.tsx")).default : view === "opportunity-detail" ? load(resolve(root, "app/(protected)/(admin)/opportunities/[id]/page.tsx")).default : ["muse", "settings", "automations", "opportunities"].includes(view) ? load(resolve(root, `app/(protected)/(admin)/${view}/page.tsx`)).default : view in documentViews ? load(resolve(root, `app/(protected)/(admin)/${documentViews[view]}/${view.endsWith("-detail") ? "[id]/" : ""}page.tsx`)).default : ["clients", "client-detail", "pipeline"].includes(view)
     ? load(resolve(root, { clients: "app/(protected)/(admin)/clients/page.tsx", "client-detail": "app/(protected)/(admin)/clients/[id]/page.tsx", pipeline: "app/(protected)/(admin)/projects/page.tsx" }[view])).default
     : view === "scanner"
     ? load(resolve(root, "app/(protected)/(admin)/leads/discover/page.tsx")).default
