@@ -19,7 +19,7 @@ const views = {
     ["contracts", "Contracts"], ["contract-detail", "Contract details"],
     ["forms", "Forms"], ["form-detail", "Form details"],
     ["templates", "Templates"], ["template-detail", "Template details"],
-    ["muse", "Muse"], ["settings", "Settings"],
+    ["muse", "Muse"], ["muse-guide", "Muse Project Guide"], ["muse-connected", "Muse plan approval"], ["muse-applied", "Muse applied guide"], ["settings", "Settings"],
     ["opportunities", "Opportunities"], ["opportunity-detail", "Opportunity details"],
     ["automations", "Automations"], ["controls", "Interface controls"],
   ],
@@ -64,7 +64,7 @@ function mapSourceHref(href, selected, sourcePath) {
       : /^\/portal\/projects\/[^/]+$/.test(path) ? "project"
       : ({ "/portal/projects": "portal-projects", "/portal/documents": "portal-documents", "/portal/messages": "portal-messages", "/portal/files": "portal-files", "/portal/approvals": "portal-approvals", "/portal/contracts": "portal-contracts", "/portal/forms": "portal-forms" })[path];
   } else {
-    view = ({ "/": "home", "/projects": "pipeline", "/clients": "clients", "/leads": "leads", "/leads/discover": "scanner", "/contracts": "contracts", "/forms": "forms", "/templates": "templates", "/muse": "muse", "/settings": "settings", "/opportunities": "opportunities", "/automations": "automations" })[path];
+    view = ({ "/": "home", "/projects": "pipeline", "/clients": "clients", "/leads": "leads", "/leads/discover": "scanner", "/contracts": "contracts", "/forms": "forms", "/templates": "templates", "/muse": "muse", "/muse/project-guide": "muse-guide", "/settings": "settings", "/opportunities": "opportunities", "/automations": "automations" })[path];
     if (!view) {
       for (const [prefix, detail] of [["projects", "project"], ["clients", "client-detail"], ["leads", "lead-detail"], ["contracts", "contract-detail"], ["forms", "form-detail"], ["templates", "template-detail"], ["opportunities", "opportunity-detail"]]) {
         if (new RegExp(`^/${prefix}/[^/]+$`).test(path)) { view = detail; break; }

@@ -129,3 +129,61 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });
+
+test("Muse Project Guide renders an isolated desktop/mobile review frame", async ({ page }, testInfo) => {
+  const outbound = [];
+  page.on("request", request => {
+    if (/^https?:/i.test(request.url())) outbound.push(request.url());
+  });
+  await page.goto(pathToFileURL(resolve("nocturne-static-preview/index.html")).href);
+  await page.locator("#role").selectOption("admin");
+  await page.locator("#view").selectOption("muse-guide");
+  const surface = page.locator("#preview");
+  await expect(surface.locator(".muse-guide")).toHaveCount(1);
+  await expect(surface.locator(".muse-guide-hero h1")).toContainText("A little magic");
+  await expect(surface.locator(".muse-guide-ribbon")).toContainText("Sample data only");
+  await expect(surface.locator(".muse-guide-phase-nav button")).toHaveCount(4);
+  await expect(surface.locator(".muse-guide-tabs button")).toHaveCount(4);
+  await expect(surface.locator(".muse-guide-primary")).toBeDisabled();
+  for (const width of ["desktop", "mobile"]) {
+    await page.locator("#width").selectOption(width);
+    await page.screenshot({
+      path: resolve("nocturne-static-preview/review-muse-guide-" + width + "-" + testInfo.project.name + ".png"),
+      fullPage: true,
+      animations: "disabled"
+    });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow, width + " preview overflow").toBeLessThanOrEqual(1);
+  }
+  expect(outbound).toEqual([]);
+});
+
+test("Muse connected approval and applied states render safely offline", async ({page},testInfo) => {
+  const requests=[];
+  page.on("request", r=>{if(/^https?:/i.test(r.url()))requests.push(r.url());});
+  await page.goto(pathToFileURL(resolve("nocturne-static-preview/index.html")).href);
+  await page.locator("#role").selectOption("admin");
+  for(const [screen,term] of [
+    ["muse-connected","Approve this exact version?"],
+    ["muse-applied","What's ready next?"],
+  ]) {
+    await page.locator("#view").selectOption(screen);
+    const surface=page.locator("#preview");
+    await expect(surface.locator(".muse-guide-connected")).toBeVisible();
+    await expect(surface).toContainText(term);
+    const controls = surface.locator("form button");
+    const count = await controls.count();
+    expect(count).toBeGreaterThan(0);
+    for(let i=0;i<count;i++) await expect(controls.nth(i)).toBeDisabled();
+    for(const width of ["desktop","mobile"]) {
+      await page.locator("#width").selectOption(width);
+      await page.screenshot({
+        path:resolve("nocturne-static-preview/review-"+screen+"-"+width+"-"+testInfo.project.name+".png"),
+        fullPage:true,animations:"disabled"
+      });
+      const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    }
+  }
+  expect(requests).toEqual([]);
+});

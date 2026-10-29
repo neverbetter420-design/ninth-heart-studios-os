@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProjectSectionLink } from "@/components/projects/ProjectSectionLink";
 import { DesignGallery } from "@/components/projects/DesignGallery";
 import { notFound } from "next/navigation";
@@ -13,6 +14,7 @@ import { RevisionSection } from "@/components/projects/RevisionSection";
 import { TaskSection } from "@/components/projects/TaskSection";
 import { sendProjectMessage } from "../actions";
 import { requireAdmin } from "@/lib/auth";
+import { projectGuideEnabled } from "@/lib/muse-project-guide-runtime";
 import { analyzeScopeCreep, buildScopeCorpus, type ScopeCreepVerdict } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import type { ChangeOrder, FeedbackPin, LaunchItem, Milestone, ProjectDocument, ProjectMessage, ProjectTask, RevisionRound } from "@/lib/supabase/types";
@@ -195,6 +197,7 @@ export default async function ProjectWorkspacePage({
 
       <nav className="studio-workspace-nav" aria-label="Project destinations">
         <ProjectSectionLink href="#workspace-priorities">Working plan</ProjectSectionLink>
+        <Link href={projectGuideEnabled() ? `/muse/project-guide?mode=connected&project=${encodeURIComponent(projectId)}` : "/muse/project-guide"} className="management-text-link">{projectGuideEnabled() ? "Muse Project Guide" : "Muse Guide · preview"}</Link>
         <ProjectSectionLink href="?section=creative#workspace-collaboration">Design & feedback</ProjectSectionLink>
         <ProjectSectionLink href="?section=files#workspace-resources">Files & documents</ProjectSectionLink>
         <ProjectSectionLink href="?section=messages#workspace-conversation">Conversation</ProjectSectionLink>
