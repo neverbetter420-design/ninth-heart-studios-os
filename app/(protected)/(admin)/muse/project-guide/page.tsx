@@ -21,6 +21,7 @@ export default async function MuseProjectGuidePage({ searchParams }: { searchPar
       <div className="content-wrap studio-page">
         <div style={{ marginBottom: 10 }}>
           <Link href="/muse" className="management-text-link">← Back to Muse</Link>
+          {enabled && <Link href="/muse/project-guide?mode=connected" className="management-text-link" style={{marginLeft:18}}>Open connected projects ↗</Link>}
         </div>
         <MuseProjectGuidePreview />
         {params.mode === "connected" && !enabled && (
