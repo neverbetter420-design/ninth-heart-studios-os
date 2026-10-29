@@ -1,0 +1,59 @@
+name: Muse Project Guide isolated QA
+on:
+  pull_request:
+    paths:
+      - 'lib/muse-project-guide.ts'
+      - 'lib/muse-plan-approval.ts'
+      - 'scripts/verify-muse-project-guide.ts'
+      - 'scripts/verify-muse-plan-approval.ts'
+      - 'supabase/migrations/2026102905*_muse_*.sql'
+      - 'supabase/tests/muse_project_guide*'
+      - '.github/workflows/muse-project-guide-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: nhs-ephemeral-muse-only
+          POSTGRES_USER: postgres
+          POSTGRES_DB: muse_isolated_qa
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d muse_isolated_qa"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: nhs-ephemeral-muse-only
+      PGDATABASE: muse_isolated_qa
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install postgres client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y postgresql-client
+          fi
+      - name: Synthetic identity fixture
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/muse_project_guide_fixture.sql
+      - name: Apply proposed Muse migrations to isolated database ONLY
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261029050000_muse_project_guide_pg02.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/migrations/20261029051000_muse_project_plan_workflow.sql
+      - name: Verify approvals and RLS
+        run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/muse_project_guide_workflow.test.sql
+      - name: Explain isolation
+        if: always()
+        run: echo 'Disposable PostgreSQL 17 only. No NHS production, Supabase credentials, deployment, scans, or email.' >> "$GITHUB_STEP_SUMMARY"
