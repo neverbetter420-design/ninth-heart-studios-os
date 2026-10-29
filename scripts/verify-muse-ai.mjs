@@ -12,7 +12,7 @@ const ui = read("components/MuseConcierge.tsx");
 for (const token of ["getCurrentAuth", 'auth.profile.role !== "admin"', "auth.profile?.active",
   "OPENAI_API_KEY", 'MUSE_AI_ENABLED !== "true"', "store: false",
   "parallel_tool_calls: false", 'tool_choice: turn === 2 ? "none" : "auto"',
-  "response.json()", "No automatic"]) {
+  "result.json()", "No automatic"]) {
   if (token !== "No automatic") assert.ok(route.includes(token), "Missing Muse route security rule: " + token);
 }
 assert.ok(route.includes("origin !== new URL(request.url).origin"), "Origin validation must be present");
