@@ -68,6 +68,7 @@ const chromeCSS = [
   "#preview{display:block;width:100%;max-width:100%;min-height:570px;background:#100d15;border:1px solid #8d7188;border-radius:17px;overflow:auto;box-shadow:0 20px 65px #04010880}",
   "#preview>.app-shell{min-height:650px}",
   "#preview{container-type:inline-size;position:relative}",
+  "#preview .nhs-muse-area{position:static!important}",
   "#preview .nhs-muse-overlay{position:absolute!important;inset:0!important}",
   "#preview .nhs-muse-drawer{width:100%!important;max-width:100%!important;height:100%!important;min-height:550px!important}",
   // Only in the isolated review frame: adapt source styles to the frame width,
