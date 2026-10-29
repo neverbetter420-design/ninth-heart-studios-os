@@ -118,3 +118,58 @@
  .muse-guide-approval-list strong {text-align:left}
 }
 @media (prefers-reduced-motion: reduce) { .muse-guide * {transition:none!important;animation:none!important;scroll-behavior:auto!important} }
+
+/* PG-04 connected mode: calm surfaces, explicit human control, no dense dashboard cards. */
+.muse-connected-picker {display:flex;gap:14px;align-items:end;padding:25px 0 29px;flex-wrap:wrap;border-bottom:1px solid rgba(230,206,238,.13)}
+.muse-connected-picker label {font-size:12px;color:#d4bfd4;font-weight:500;padding-bottom:14px}
+.muse-connected-picker select {flex:1 1 240px;max-width:480px;min-height:44px;border-radius:15px;padding:11px 14px;color:#efe3ef;background:#2e2536;border:1px solid rgba(215,194,224,.2)}
+.muse-connected-picker .management-text-link {font-size:12px;padding:14px 0}
+.muse-connected-project-heading {display:flex;align-items:flex-start;justify-content:space-between;gap:22px;margin:39px 0 27px}
+.muse-connected-project-heading h2,.muse-connected-start h3,.muse-connected-review h2 {font:400 clamp(29px,3.6vw,43px)/1.2 Georgia,serif;margin:13px 0;color:#f1e3f1}
+.muse-connected-project-heading p,.muse-connected-start p,.muse-connected-review p,.muse-connected-summary {font-size:13px;color:#c2b3c8;line-height:1.85}
+.muse-connected-start {display:flex;align-items:center;justify-content:space-between;gap:30px;padding:45px 0;max-width:920px}
+.muse-connected-start>div {max-width:620px}
+.muse-connected-summary {margin:0 0 10px}
+.muse-connected-phase-list {display:grid;gap:16px}
+.muse-connected-phase {border:1px solid rgba(210,188,221,.13);border-radius:29px;background:linear-gradient(155deg,rgba(54,41,62,.55),rgba(27,24,39,.42));overflow:hidden}
+.muse-connected-phase>summary {display:flex;align-items:center;gap:18px;padding:22px 26px;cursor:pointer;list-style:none}
+.muse-connected-phase>summary::-webkit-details-marker {display:none}
+.muse-connected-phase>summary strong {font:400 clamp(20px,2.2vw,29px) Georgia,serif;color:#ead9e9;flex:1}
+.muse-connected-phase>summary small {font-size:11px;color:#c1afc5}
+.muse-connected-plus {color:#d5bdd5;font-size:23px;font-weight:300}
+.muse-connected-phase[open] .muse-connected-plus {transform:rotate(45deg)}
+.muse-connected-task-list {padding:4px 28px 29px;display:grid;gap:16px}
+.muse-connected-task {display:grid;grid-template-columns:minmax(0,1fr) minmax(155px,.75fr);gap:13px 30px;border-top:1px solid rgba(230,205,237,.12);padding:24px 0 0;align-items:start}
+.muse-connected-task h3,.muse-connected-work-row h3 {font:400 21px Georgia,serif;margin:0 0 8px;color:#f1e4ed}
+.muse-connected-task p,.muse-connected-task small {font-size:12px;line-height:1.7;color:#bbacbf;margin:0}
+.muse-connected-task ul {margin:13px 0 0;padding-left:18px;color:#c9b7c9;font-size:12px;line-height:1.9}
+.muse-connected-rename {grid-column:1/-1;color:#bcaec3;font-size:11px}
+.muse-connected-rename>summary {cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.muse-connected-rename form {display:flex;align-items:end;flex-wrap:wrap;gap:13px;padding:15px 0}
+.muse-connected-rename label {display:grid;gap:7px;flex:1;min-width:230px}
+.muse-connected-rename input {border:1px solid rgba(232,199,223,.2);border-radius:11px;background:rgba(241,222,242,.06);padding:12px;color:#f0e4f0}
+.muse-connected-warnings {border-left:2px solid #bb9dc2;padding:9px 23px;margin:28px 0;color:#d8bed3;background:rgba(204,175,210,.04);font-size:12px;line-height:1.8}
+.muse-connected-review {display:grid;gap:16px;max-width:930px;border-top:1px solid rgba(228,202,225,.16);padding:42px 0 30px;margin-top:42px}
+.muse-connected-review h2 {margin:12px 0}
+.muse-connected-approval-form {display:grid;align-items:start;justify-items:start;gap:16px;border:1px solid rgba(211,175,210,.16);background:linear-gradient(135deg,rgba(186,153,192,.11),rgba(102,115,167,.06));border-radius:26px;padding:27px}
+.muse-connected-approval-form p {margin:0}
+.muse-connected-digest {overflow-wrap:anywhere;max-width:100%}
+.muse-connected-digest code {font-size:11px;line-height:1.8;color:#efdfeb;user-select:all}
+.muse-connected-confirm {display:flex;align-items:center;gap:12px;font-size:12px;line-height:1.6;color:#e5d5e8}
+.muse-connected-confirm input {width:18px;height:18px;accent-color:#b99dbc;flex:none}
+.muse-connected-work {padding:20px 0 35px}
+.muse-connected-work-list {border-top:1px solid rgba(227,197,227,.12);margin:10px 0 25px}
+.muse-connected-work-row {display:flex;gap:24px;align-items:flex-start;padding:22px 0;border-bottom:1px solid rgba(227,197,227,.12)}
+.muse-connected-work-row .muse-guide-state {margin:0}
+.muse-connected-work-row p {font-size:12px;color:#b8aabc;line-height:1.6;margin:0}
+@media (max-width:720px) {
+ .muse-connected-picker {align-items:stretch}
+ .muse-connected-picker label {width:100%;padding:0}
+ .muse-connected-start,.muse-connected-project-heading {flex-direction:column;align-items:flex-start;gap:14px}
+ .muse-connected-task {grid-template-columns:1fr}
+ .muse-connected-task-list {padding:0 20px 23px}
+ .muse-connected-phase>summary {padding:21px 17px;gap:11px}
+ .muse-connected-phase>summary small {white-space:nowrap}
+ .muse-connected-review {padding-top:27px}
+ .muse-connected-approval-form {padding:21px}
+}
