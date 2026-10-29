@@ -31,5 +31,6 @@ assert.match(component, /readyTaskIds/);
 assert.match(css, /prefers-reduced-motion/);
 assert.match(css, /focus-visible/);
 assert.match(muse, /href="\/muse\/project-guide"/);
-assert.match(workspace, /href="\/muse\/project-guide"/);
+assert.match(workspace, /muse\/project-guide\?mode=connected&project=/, "Connected mode should deep-link to its own project");
+assert.match(workspace, /projectGuideEnabled\(\)/, "Connected link must be feature gated");
 console.log("verify:muse-project-guide-ui — 4 phases, 21 tasks, 42 steps, admin-only inert preview and a11y hooks verified.");
