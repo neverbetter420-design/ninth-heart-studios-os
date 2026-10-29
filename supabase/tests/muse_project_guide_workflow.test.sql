@@ -50,7 +50,7 @@ set request.jwt.claim.sub = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 do $$
 begin
  begin
-   perform public.muse_submit_project_plan(:'stale_id'::uuid,1);
+   perform public.muse_submit_project_plan((select id from public.muse_project_plan_drafts where status='draft' order by created_at desc limit 1),1);
    raise exception 'Stale draft unexpectedly submitted';
  exception when serialization_failure then null;
  end;
