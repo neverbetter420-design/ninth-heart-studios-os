@@ -1,11 +1,10 @@
 import { MUSE_DEMO_PLAN } from "./muse-project-guide-demo.ts";
 import { validateMuseProjectPlan, type MuseProjectPlan } from "./muse-project-guide.ts";
 
-export const MUSE_GUIDE_ENABLED = process.env.MUSE_PROJECT_GUIDE_PG04_ENABLED === "true";
 export const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function projectGuideEnabled(): boolean {
-  return process.env.MUSE_PROJECT_GUIDE_PG04_ENABLED === "true";
+  return typeof process !== "undefined" && process.env.MUSE_PROJECT_GUIDE_PG04_ENABLED === "true";
 }
 
 // AI generation is deliberately NOT wired in PG-04. A deterministic, owner-reviewable
