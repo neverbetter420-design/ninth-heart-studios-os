@@ -134,6 +134,10 @@ create trigger muse_task_revision after insert or update or delete on public.tas
   for each row execute function private.muse_bump_project_revision();
 create trigger muse_milestone_revision after insert or update or delete on public.milestones
   for each row execute function private.muse_bump_project_revision();
+create trigger muse_subtask_revision after insert or update or delete on public.muse_project_subtasks
+  for each row execute function private.muse_bump_project_revision();
+create trigger muse_dependency_revision after insert or update or delete on public.muse_task_dependencies
+  for each row execute function private.muse_bump_project_revision();
 
 create or replace function private.muse_bump_project_fields_revision()
 returns trigger language plpgsql set search_path = '' as $$
@@ -151,6 +155,8 @@ create or replace function private.muse_check_dependency_cycle()
 returns trigger language plpgsql security definer set search_path = '' as $$
 declare cycle_found boolean;
 begin
+  -- Serialize dependency graph edits per project, including concurrent inserts.
+  perform 1 from public.projects where id = new.project_id for update;
   with recursive paths(node, trail) as (
     select new.depends_on_task_id, array[new.task_id, new.depends_on_task_id]::uuid[]
     union all
