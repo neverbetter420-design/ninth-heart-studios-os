@@ -11,7 +11,7 @@ const safeJSON = value => JSON.stringify(value)
   .replace(/>/g, "\\u003e")
   .replace(/&/g, "\\u0026");
 const routes = {
-  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","scanner-best","scanner-prospects","scanner-insights","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","muse-guide","settings","opportunities","opportunity-detail","automations","controls"],
+  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","scanner-best","scanner-prospects","scanner-insights","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","muse-guide","muse-connected","muse-applied","settings","opportunities","opportunity-detail","automations","controls"],
   client: ["home","project","portal-projects","portal-documents","portal-messages","portal-files","portal-approvals","portal-contracts","portal-forms","controls"]
 };
 const escape = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -160,7 +160,7 @@ writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
   "",
   "1. In Downloads, right-click nhs-nocturne-html-preview.zip and choose Extract All.",
   "2. Open the extracted folder. Open index.html in Chrome or Edge.",
-  "3. index.html now includes all 34 screens and styles. It works without a server or separate files.",
+  "3. index.html now includes all 36 screens and styles. It works without a server or separate files.",
   "4. Open seven-rooms.html for the all-room comparison, or use index.html screen controls.",
   "",
   "This is a visual demonstration with synthetic data, not the production app.",
