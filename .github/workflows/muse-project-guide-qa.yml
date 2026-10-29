@@ -52,6 +52,7 @@ jobs:
         run: |
           psql -X -v ON_ERROR_STOP=1 -f supabase/proposals/muse-project-guide/20261029050000_muse_project_guide_pg02.sql
           psql -X -v ON_ERROR_STOP=1 -f supabase/proposals/muse-project-guide/20261029051000_muse_project_plan_workflow.sql
+          psql -X -v ON_ERROR_STOP=1 -f supabase/proposals/muse-project-guide/20261029052000_muse_plan_apply.sql
       - name: Verify approvals and RLS
         run: psql -X -v ON_ERROR_STOP=1 -f supabase/tests/muse_project_guide_workflow.test.sql
       - name: Explain isolation
