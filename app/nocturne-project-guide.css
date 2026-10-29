@@ -1,0 +1,98 @@
+.muse-project-guide {
+  position: relative;
+  overflow: hidden;
+  margin: 8px 0 32px;
+  padding: clamp(22px, 4vw, 38px);
+  border: 1px solid rgba(231, 185, 218, .14);
+  border-radius: 30px 10px 30px 10px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(202, 118, 169, .16), transparent 32%),
+    linear-gradient(135deg, rgba(29, 20, 31, .86), rgba(15, 13, 21, .68));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 22px 70px rgba(6, 3, 9, .24);
+  backdrop-filter: blur(22px);
+}
+.muse-project-guide::after {
+  content: "✦"; position: absolute; right: 7%; bottom: -65px; color: rgba(233, 184, 218, .045);
+  font-family: Georgia, serif; font-size: 170px; pointer-events: none;
+}
+.muse-guide-intro { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 30px; align-items: center; }
+.muse-guide-intro h3 { margin: 8px 0 9px; color: #fff3f9; font: 400 clamp(27px,4vw,42px)/1.1 Georgia,serif; letter-spacing: -.04em; }
+.muse-guide-intro > div:first-child > p:last-child { max-width: 620px; margin: 0; color: #d2c0cb; font-size: 13px; line-height: 1.75; }
+.muse-heartbeat {
+  --heartbeat: 0deg; width: 118px; aspect-ratio: 1; padding: 8px; border-radius: 50%; display: grid; place-items: center;
+  background: conic-gradient(#d5a5be var(--heartbeat), rgba(255,255,255,.06) 0);
+  box-shadow: 0 0 45px rgba(205, 123, 169, .13);
+}
+.muse-heartbeat > span { width: 100%; height: 100%; display: grid; place-content: center; text-align: center; border-radius: 50%; background: #171219; border: 1px solid rgba(255,255,255,.07); }
+.muse-heartbeat strong { color: #fff1f8; font: 400 35px/1 Georgia,serif; }
+.muse-heartbeat small { margin-top: 7px; color: #d4c2ce; font-size: 9px; text-transform: uppercase; letter-spacing: .1em; }
+.muse-guide-signal-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.35fr .65fr; gap: 28px; margin: 30px 0 24px; padding: 22px 0; border-block: 1px solid rgba(255,255,255,.08); }
+.muse-guide-kicker { margin: 0 0 8px; color: #e1a9c6; font-size: 9px; letter-spacing: .14em; }
+.muse-one-move h4,.muse-plan-preview h4 { margin: 0 0 8px; color: #fff1f8; font: 400 22px/1.25 Georgia,serif; }
+.muse-one-move p:last-child,.muse-heartbeat-reasons p,.muse-heartbeat-reasons li { color: #cebdc8; font-size: 11px; line-height: 1.65; }
+.muse-heartbeat-reasons ul { margin: 0 0 8px; padding-left: 18px; }
+.muse-plan-builder { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px 18px; align-items: end; }
+.muse-plan-builder label,.muse-task-create-form label { display: grid; gap: 7px; color: #decbd7; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.muse-plan-builder textarea,.muse-task-create-form :is(input,select,textarea) { width: 100%; border: 1px solid rgba(236,190,219,.15); border-radius: 12px; padding: 11px 12px; color: #fff8fc; background: rgba(5,4,8,.34); resize: vertical; }
+.muse-plan-builder textarea:focus,.muse-task-create-form :is(input,select,textarea):focus { outline: 2px solid rgba(209,150,186,.36); outline-offset: 2px; }
+.muse-plan-boundary { grid-column: 1/-1; margin: 0; color: #8f8290; font-size: 10px; }
+.nhs-theme-admin .studio-workspace-admin .muse-plan-builder textarea,
+.nhs-theme-admin .studio-workspace-admin .muse-task-create-form :is(input,select,textarea) {
+  color: #fff7fb; border-color: rgba(239,190,220,.22); background: rgba(13,9,16,.52);
+}
+.nhs-theme-admin .studio-workspace-admin .muse-plan-builder textarea::placeholder,
+.nhs-theme-admin .studio-workspace-admin .muse-task-create-form :is(input,textarea)::placeholder { color: #9e8d98; }
+.muse-guide-error,.muse-guide-success { position: relative; z-index: 1; margin: 16px 0 0; padding: 11px 13px; border-radius: 10px; font-size: 11px; }
+.muse-guide-error { border: 1px solid rgba(255,100,150,.25); color: #ffc1d4; background: rgba(145,24,67,.12); }
+.muse-guide-success { border: 1px solid rgba(122,227,178,.23); color: #bff5d8; background: rgba(25,110,72,.12); }
+.muse-plan-preview { position: relative; z-index: 1; margin-top: 25px; padding-top: 23px; border-top: 1px solid rgba(255,255,255,.08); }
+.muse-plan-preview-head { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.muse-plan-preview-head > span { flex: 0 0 auto; color: #c4aebb; font-size: 10px; }
+.muse-plan-list { display: grid; gap: 0; margin: 18px 0 0; padding: 0; list-style: none; counter-reset: muse-plan; }
+.muse-plan-list > li { counter-increment: muse-plan; position: relative; padding: 18px 0 18px 40px; border-top: 1px solid rgba(255,255,255,.07); }
+.muse-plan-list > li::before { content: counter(muse-plan, decimal-leading-zero); position: absolute; left: 0; top: 20px; color: #9c718b; font: 400 13px Georgia,serif; }
+.muse-plan-task-head { display: flex; gap: 14px; justify-content: space-between; }
+.muse-plan-task-head strong { color: #f7e7ef; font: 400 17px Georgia,serif; }
+.muse-plan-task-head span { color: #a994a3; font-size: 9px; text-transform: uppercase; }
+.muse-plan-list > li > p { max-width: 780px; margin: 7px 0 0; color: #cdbcc7; font-size: 11px; line-height: 1.65; }
+.muse-done-definition b { color: #e4cbd9; }
+.muse-plan-list ul { display: grid; gap: 6px; margin: 13px 0 0; padding: 0; list-style: none; }
+.muse-plan-list ul li { display: grid; grid-template-columns: minmax(140px,.45fr) minmax(0,1fr); gap: 12px; padding: 9px 12px; border-left: 1px solid rgba(210,149,185,.32); background: rgba(255,255,255,.018); }
+.muse-plan-list ul strong { color: #edc9dc; font-size: 10px; }
+.muse-plan-list ul span { color: #c8b7c2; font-size: 10px; line-height: 1.55; }
+.muse-plan-approval { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+.muse-task-section .delivery-list,.muse-task-group > ul { list-style: none; margin: 0; padding: 0; }
+.muse-task-group { list-style: none; border-bottom: 1px solid var(--studio-rule); }
+.muse-task-group .delivery-row { border-bottom-color: rgba(255,255,255,.045); }
+.muse-subtask-row { padding-left: clamp(18px,4vw,44px); background: linear-gradient(90deg, rgba(211,146,182,.04), transparent 45%); }
+.muse-task-title-line { display: flex; align-items: center; gap: 8px; }
+.muse-task-title-line > span:first-child { color: #9f7b91; }
+.muse-created-pill { padding: 2px 6px; border: 1px solid rgba(214,151,188,.2); border-radius: 999px; color: #cda8bc; font-size: 8px; text-transform: uppercase; letter-spacing: .09em; }
+.muse-task-guidance { margin-top: 8px; max-width: 680px; }
+.muse-task-guidance summary,.muse-add-subtask summary,.muse-add-root-task summary { color: #ad92a2; font-size: 10px; cursor: pointer; }
+.muse-task-guidance p { margin: 8px 0 0; color: var(--studio-muted); font-size: 11px; line-height: 1.65; }
+.muse-add-subtask { padding: 9px 0 13px clamp(18px,4vw,44px); }
+.muse-add-root-task { margin: 0 0 10px; padding: 16px 0; border-top: 1px solid var(--studio-rule); }
+.muse-task-create-form { display: grid; gap: 12px; margin-top: 14px; padding: 16px; border: 1px solid rgba(255,255,255,.07); border-radius: 14px; background: rgba(4,3,7,.16); }
+.muse-task-create-grid { display: grid; grid-template-columns: minmax(180px,1.5fr) repeat(3,minmax(110px,.5fr)); gap: 10px; }
+.muse-task-client-toggle { display: flex !important; grid-auto-flow: column; justify-content: start; align-items: center; }
+.muse-task-client-toggle input { width: auto !important; }
+.muse-task-create-form > .mini-button { justify-self: start; }
+
+@media (max-width: 780px) {
+  .muse-project-guide { padding: 22px 18px; border-radius: 22px 8px; }
+  .muse-guide-intro,.muse-guide-signal-grid,.muse-plan-builder { grid-template-columns: 1fr; }
+  .muse-heartbeat { width: 100px; justify-self: start; }
+  .muse-plan-builder .mini-button { width: 100%; min-height: 44px; }
+  .muse-plan-preview-head,.muse-plan-task-head { display: grid; }
+  .muse-plan-list ul li { grid-template-columns: 1fr; }
+  .muse-plan-approval { display: grid; grid-template-columns: 1fr; }
+  .muse-plan-approval button { min-height: 44px; }
+  .muse-task-create-grid { grid-template-columns: 1fr 1fr; }
+  .muse-task-row { align-items: flex-start; }
+}
+@media (max-width: 430px) {
+  .muse-task-create-grid { grid-template-columns: 1fr; }
+  .muse-plan-list > li { padding-left: 30px; }
+}

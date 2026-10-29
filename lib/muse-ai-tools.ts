@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { rankLeads, type FlowkeepLead } from "./flowkeep.ts";
+import { calculateProjectHeartbeat, type GuideTask } from "./muse-project-guide.ts";
 import { buildChallengerShortlists, type SavedChallenger } from "./prospect-shortlists.ts";
 
 // Models cannot choose SQL, columns, filters, URLs or record identifiers.
@@ -8,6 +9,7 @@ export const MUSE_READ_TOOLS = [
   { name: "studio_overview", description: "Review lead priorities, project tasks and approvals, and saved opportunities to suggest today's focus." },
   { name: "lead_priorities", description: "Read leads in deterministic attention order, with next actions and SLA evidence." },
   { name: "project_watch", description: "Read projects, unfinished tasks, milestones and pending approvals. On project detail pages review that project only." },
+  { name: "project_guide", description: "On a project detail page, calculate its explainable heartbeat and strongest recorded next move from current tasks and pending approvals." },
   { name: "prospect_comparison", description: "Compare qualified uncontacted saved prospects within each category using reliability-first ranking." },
   { name: "opportunity_radar", description: "Review saved freelance opportunities by recorded fit score and source. No live marketplace browsing." },
 ] as const;
@@ -108,6 +110,34 @@ export function createMuseReader(db: Db, context: MuseReadContext) {
         coverage: [coverage("projects", projects), coverage("unfinished tasks", tasks), coverage("unfinished milestones", milestones), coverage("pending approvals", approvals)],
         partial: !complete,
         note: complete ? `${projectId ? "Current project only." : "Up to 18 projects, on-hold first then earliest project due date."} Counts use complete bounded reads; details show at most 5 tasks, 3 milestones and 3 pending approvals per project. Pending is not proof of a blocker; due dates are not payment evidence.` : "Project review unavailable: at least one related read is incomplete. Do not infer tasks, milestones or approvals are clear." };
+    }
+    if (tool === "project_guide") {
+      const match = /^\/projects\/([0-9a-f-]{36})$/i.exec(context.page);
+      const projectId = match && id(match[1]) ? match[1] : null;
+      if (!projectId) return { tool, rows: [], sources: [], partial: false,
+        coverage: [{ area: "current project", available: 0, reviewed: 0, complete: true }],
+        note: "Project Guide evidence is available only from a specific project workspace." };
+      const [project, tasks, approvals] = await Promise.all([
+        query(db.from("projects").select("id,name,status,due_date", { count: "exact" }).eq("id", projectId).order("id").range(0, READ_CAP - 1)),
+        query(db.from("tasks").select("id,project_id,parent_task_id,title,status,priority,due_at,estimated_minutes,description,definition_of_done", { count: "exact" })
+          .eq("project_id", projectId).order("id").range(0, READ_CAP - 1)),
+        query(db.from("approvals").select("id,project_id,status", { count: "exact" }).eq("project_id", projectId).eq("status", "pending").order("id").range(0, READ_CAP - 1)),
+      ]);
+      const complete = project.complete && project.rows.length === 1 && tasks.complete && approvals.complete;
+      if (!complete) return { tool, rows: [], sources: [], partial: true,
+        coverage: [coverage("current project", project), coverage("project tasks", tasks), coverage("pending approvals", approvals)],
+        note: "Project Guide evidence is incomplete. No heartbeat or next move can be inferred." };
+      const validTasks = tasks.rows.every(task => id(task.id) && typeof task.title === "string" &&
+        (task.parent_task_id == null || id(task.parent_task_id)) && (task.due_at == null || date(task.due_at)));
+      if (!validTasks) return { tool, rows: [], sources: [], partial: true,
+        coverage: [coverage("current project", project), { ...coverage("project tasks", tasks), complete: false }, coverage("pending approvals", approvals)],
+        note: "Project task evidence is malformed. No heartbeat or next move can be inferred." };
+      const heartbeat = calculateProjectHeartbeat(tasks.rows as unknown as GuideTask[], approvals.rows.length, new Date(context.now));
+      const p = project.rows[0];
+      return { tool, rows: [{ project_id: projectId, project_name: short(p.name), status: short(p.status), due_date: date(p.due_date), heartbeat }],
+        sources: [source(p.name, `/projects/${projectId}`)], partial: false,
+        coverage: [coverage("current project", project), coverage("project tasks", tasks), coverage("pending approvals", approvals)],
+        note: "Heartbeat is a deterministic advisory: 100 minus recorded blocked tasks, overdue tasks and pending approvals. One Move prefers executable high-priority subtasks, then earliest due work. It never changes records." };
     }
     if (tool === "prospect_comparison") {
       const r = await query(db.from("prospects").select(

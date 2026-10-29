@@ -26,6 +26,7 @@ const form = (values) => {
 };
 const row = (extra = {}) => ({ id: ids.record, project_id: ids.project, ...extra });
 const response = (data) => ({ data, error: null });
+const count = (value) => ({ data: null, error: null, count: value });
 const query = (table, operation, result, options = {}) => ({ table, operation, result, ...options });
 
 function harness(file, expectations = [], options = {}) {
@@ -181,24 +182,45 @@ for (const [label, result, status] of [["confirmed", response(member), "success"
 }
 
 const taskInput = { project_id: ids.project, title: "Prepare handoff", due_at: "2026-11-02", priority: "high", client_visible: "on" };
-const taskRow = row({ title: taskInput.title, client_visible: true });
+const taskRow = row({ title: taskInput.title, parent_task_id: null, client_visible: true });
 for (const [label, result, status] of [["confirmed", response(taskRow), "success"], ["rejected", failed, "error"], ["zero rows", missing, "error"], ["wrong visibility", response({ ...taskRow, client_visible: false }), "error"]]) {
   await check(`task creation ${label}`, projects, "createTaskWithFeedback", taskInput,
-    [query("tasks", "insert", result, { confirmed: true, values: {
-      project_id: ids.project, title: taskInput.title, due_at: "2026-11-02T00:00:00Z", priority: "high", client_visible: true,
+    [query("tasks", "select", count(0), { eq: { project_id: ids.project } }),
+      query("tasks", "insert", result, { confirmed: true, values: {
+      project_id: ids.project, parent_task_id: null, title: taskInput.title, description: null,
+      definition_of_done: null, due_at: "2026-11-02T00:00:00Z", priority: "high",
+      estimated_minutes: null, position: 100, source: "manual", client_visible: true,
     } })], status);
 }
 for (const invalid of [{ title: " " }, { title: "x".repeat(161) }, { due_at: "2026-02-30" }, { priority: "urgent" }]) {
   await check(`invalid task ${Object.keys(invalid)[0]} performs no writes`, projects, "createTaskWithFeedback",
     { ...taskInput, ...invalid }, [], "error");
 }
+await check("subtask creation confirms same-project root parent", projects, "createTaskWithFeedback",
+  { ...taskInput, title: "Write the handoff notes", parent_task_id: ids.record, client_visible: "off", estimated_minutes: "30" }, [
+    query("tasks", "select", response(row({ parent_task_id: null })), { eq: { id: ids.record, project_id: ids.project } }),
+    query("tasks", "select", count(2), { eq: { project_id: ids.project, parent_task_id: ids.record } }),
+    query("tasks", "insert", response(row({ parent_task_id: ids.record, title: "Write the handoff notes", client_visible: false })), {
+      confirmed: true, values: { parent_task_id: ids.record, position: 30, estimated_minutes: 30, source: "manual" },
+    }),
+  ], "success");
+await check("nested subtask parent is rejected before insert", projects, "createTaskWithFeedback",
+  { ...taskInput, parent_task_id: ids.record }, [
+    query("tasks", "select", response(row({ parent_task_id: ids.other })), { eq: { id: ids.record, project_id: ids.project } }),
+  ], "error");
 for (const [table, action, field] of [["tasks", "deleteTaskWithFeedback", "task_id"], ["milestones", "deleteMilestoneWithFeedback", "milestone_id"]]) {
   for (const [label, result, status] of [["confirmed", response(row()), "success"], ["rejected", failed, "error"], ["already removed", missing, "error"], ["wrong record", response(row({ id: ids.other })), "error"]]) {
+    const expectations = table === "tasks" ? [
+      query("tasks", "select", count(0), { eq: { parent_task_id: ids.record } }),
+      query(table, "delete", result, { confirmed: true, eq: { id: ids.record } }),
+    ] : [query(table, "delete", result, { confirmed: true, eq: { id: ids.record } })];
     await check(`${table} deletion ${label}`, projects, action, { [field]: ids.record },
-      [query(table, "delete", result, { confirmed: true, eq: { id: ids.record } })], status);
+      expectations, status);
   }
   await check(`${table} missing selection performs no writes`, projects, action, {}, [], "error");
 }
+await check("parent task with subtasks cannot be deleted", projects, "deleteTaskWithFeedback",
+  { task_id: ids.record }, [query("tasks", "select", count(2), { eq: { parent_task_id: ids.record } })], "error");
 
 for (const [table, action, field] of [["tasks", "setTaskStatusWithFeedback", "task_id"], ["milestones", "setMilestoneStatusWithFeedback", "milestone_id"]]) {
   const current = row({ title: "Prepare handoff", status: "not_started" });

@@ -1,7 +1,8 @@
 // Read-only, frozen, explicitly checked production-source inventory (2026-10-28).
 // The 2026-10-28 read-only live recheck confirms 25 APPLIED migrations,
 // including the owner-reviewed Deep Scan SQL. This test is a frozen source
-// inventory check, not a connection to production or a deployment action.
+// inventory check, plus one explicitly reviewed source-only Project Guide
+// candidate; it is not a connection to production or a deployment action.
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 
@@ -32,20 +33,21 @@ const verifiedAppliedVersions = [
   "20261020063055",
   "20261028090000",
 ];
+const proposedVersions = ["20261029184832"];
 const filenames = readdirSync("supabase/migrations").filter(f => f.endsWith(".sql"));
 const versions = filenames.map(f => f.split("_")[0]);
 assert.equal(verifiedAppliedVersions.length, 25);
 assert.equal(new Set(verifiedAppliedVersions).size, 25);
-assert.equal(filenames.length, 25, "All 25 applied production migration sources must be represented exactly");
+assert.equal(filenames.length, 26, "All 25 applied production sources plus one reviewed Project Guide draft must be represented exactly");
 assert.equal(new Set(versions).size, filenames.length, "all migration filenames must have unique version prefixes");
-assert.deepEqual([...versions].sort(),
-  verifiedAppliedVersions.slice().sort(),
-  "A source version is missing, duplicated, or not part of the frozen inventory");
+assert.deepEqual([...versions].sort(), [...verifiedAppliedVersions, ...proposedVersions].sort(),
+  "A source version is missing, duplicated, or not part of the applied-plus-reviewed-draft inventory");
 for (const required of [
   "20261017030000_phase3_client_decision_sender_guard.sql",
   "20261020063055_lead_search_review_queue.sql",
   "20261028090000_deep_scan_jobs.sql",
 ]) assert.ok(filenames.includes(required), "Missing reviewed migration file: " + required);
+assert.ok(filenames.includes("20261029184832_muse_project_guide_v1.sql"), "Missing reviewed Project Guide draft migration");
 const deep = readFileSync("supabase/migrations/20261028090000_deep_scan_jobs.sql", "utf8");
 assert.match(deep, /alter table public\.deep_scan_jobs enable row level security;/);
 assert.match(deep, /security invoker/i);
@@ -56,6 +58,7 @@ assert.match(preflight, /approvedDeepScanSqlBlobSha = "997b2ffbb0f36223dd72a781c
 assert.match(preflight, /Deep Scan SQL no longer matches the exact owner-approved migration/);
 assert.match(preflight, /"20261017030000","20261020063055"/);
 assert.match(preflight, /"20261028090000"/);
-assert.match(preflight, /migrations\.length, appliedVersions\.length,/);
-assert.doesNotMatch(preflight, /not yet counted as applied|const proposedVersion/);
-console.log("verify:deep-migration-inventory — all 25 APPLIED migration source versions and pinned Deep Scan SQL represented; no database writes.");
+assert.match(preflight, /const proposedVersions = \["20261029184832"\]/);
+assert.match(preflight, /migrations\.length, appliedVersions\.length \+ proposedVersions\.length,/);
+assert.doesNotMatch(preflight, /not yet counted as applied/);
+console.log("verify:deep-migration-inventory — 25 APPLIED sources plus one reviewed Project Guide draft represented; no database writes.");

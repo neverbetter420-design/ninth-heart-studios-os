@@ -8,7 +8,7 @@ type Source = { label: string; href: string };
 type Coverage = { area: string; available: number | null; reviewed: number; complete: boolean };
 type ChatEntry = { role: "user" | "assistant"; content: string; sources?: Source[]; coverage?: Coverage[]; partial?: boolean };
 function suggestions(page: string) {
-  if (/^\/projects\//.test(page)) return ["What needs attention on this project?", "Which tasks and approvals are still open?", "Draft a short project update from the records"];
+  if (/^\/projects\//.test(page)) return ["What is this project's Heartbeat and One Move?", "Walk me through the strongest next task", "Which tasks and approvals are still open?"];
   if (page.startsWith("/leads/discover")) return ["Compare my strongest saved prospects by category", "Why is my best prospect ranked first?", "Where is my prospect evidence weak?"];
   if (page.startsWith("/opportunities")) return ["Which saved opportunities fit NHS best?", "Compare the recorded marketplace sources", "What evidence is missing before I bid?"];
   return ["What deserves my attention today?", "Compare my strongest saved prospects", "Which projects need watching?"];

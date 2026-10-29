@@ -15,6 +15,9 @@ const appliedVersions = [
   "20261015001941","20261015005039","20261017030000","20261020063055",
   "20261028090000",
 ];
+// Source-only Project Guide candidate. It is intentionally not counted in the
+// verified production baseline and must not be described as applied.
+const proposedVersions = ["20261029184832"];
 // Owner-approved exact Deep Scan SQL, now verified APPLIED in hosted Supabase
 // (live inventory has 25 applied versions). The source preflight is intentionally
 // read-only; a new migration needs a separately approved inventory change.
@@ -27,7 +30,11 @@ const checks = [
         "Missing or duplicate production migration: " + version);
     }
     assert.equal(new Set(appliedVersions).size, appliedVersions.length);
-    assert.equal(migrations.length, appliedVersions.length,
+    for (const version of proposedVersions) {
+      assert.equal(migrations.filter((file) => file.startsWith(version + "_")).length, 1,
+        "Missing or duplicate reviewed draft migration: " + version);
+    }
+    assert.equal(migrations.length, appliedVersions.length + proposedVersions.length,
       "Unexpected additional SQL migrations require a new approved inventory review.");
     assert.equal(appliedVersions.length, 25,
       "The verified live migration baseline contains exactly 25 applied versions.");
@@ -39,6 +46,14 @@ const checks = [
       .update(approvedSource).digest("hex");
     assert.equal(gitBlobSha, approvedDeepScanSqlBlobSha,
       "Deep Scan SQL no longer matches the exact owner-approved migration; new approval required.");
+    const guide = read("supabase/migrations/20261029184832_muse_project_guide_v1.sql");
+    assert.match(guide, /alter table public\.muse_project_plans enable row level security;/);
+    assert.match(guide, /security invoker/i);
+    assert.match(guide, /created_by = \(select auth\.uid\(\)\)/i);
+    assert.match(guide, /apply_muse_project_plan/);
+    assert.doesNotMatch(guide, /security definer/i);
+    assert.match(read(".env.example"), /MUSE_PROJECT_GUIDE_ENABLED="false"/,
+      "Project Guide must remain disabled in the checked-in release defaults.");
   }],
   ["Recovered form-source RLS migration binds to storage object path", () => {
     const sql = read("supabase/migrations/20261014060417_fix_form_source_policy_object_path.sql");

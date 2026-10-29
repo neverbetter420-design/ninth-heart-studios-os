@@ -124,6 +124,40 @@ await check("Anonymous request cannot read approvals or messages",async()=>{
   if(!r.error)assert.equal(r.data?.length,0,table+" leaked anonymously");
  }
 });
+await check("Muse plans are admin-owner-only and clients cannot apply them",async()=>{
+ const planId=randomUUID();
+ const plan={summary:"Synthetic verified guide plan",tasks:[{
+  title:"Build the synthetic deliverable",description:"Complete the bounded synthetic parent task.",
+  definition_of_done:"The parent and its subtask are recorded.",priority:"high",due_date:null,
+  estimated_minutes:60,client_visible:false,subtasks:[{
+   title:"Complete the synthetic step",description:"Perform one isolated CI-only step.",
+   definition_of_done:"The isolated step is marked ready.",priority:"normal",due_date:null,
+   estimated_minutes:30,client_visible:false
+  }]
+ }]};
+ got(await Admin.from("muse_project_plans").insert({
+  id:planId,project_id:projectA,objective:"Verify Muse plan application",summary:plan.summary,plan,
+  source_model:"synthetic-ci",evidence_checked_at:new Date().toISOString(),created_by:ids.admin
+ }).select("id,status"),"admin Muse plan draft");
+ assert.equal(got(await A.from("muse_project_plans").select("id").eq("id",planId),"client A plan read").length,0);
+ assert.equal(got(await B.from("muse_project_plans").select("id").eq("id",planId),"client B plan read").length,0);
+ const clientApply=await A.rpc("apply_muse_project_plan",{target_plan_id:planId});
+ assert.ok(clientApply.error,"client must not apply Muse plan");
+ const applied=got(await Admin.rpc("apply_muse_project_plan",{target_plan_id:planId}),"admin applies exact Muse plan");
+ assert.equal(applied[0].applied_plan_id,planId);assert.equal(applied[0].applied_project_id,projectA);assert.equal(applied[0].created_count,2);
+ const savedPlan=got(await Admin.from("muse_project_plans").select("status,approved_at,applied_at").eq("id",planId).single(),"applied plan receipt");
+ assert.equal(savedPlan.status,"applied");assert.ok(savedPlan.approved_at);assert.ok(savedPlan.applied_at);
+ const created=got(await Admin.from("tasks").select("id,parent_task_id,source,muse_plan_id,client_visible").eq("muse_plan_id",planId).order("position"),"Muse tasks");
+ assert.equal(created.length,2);assert.equal(created[0].parent_task_id,null);assert.equal(created[1].parent_task_id,created[0].id);
+ assert.ok(created.every(task=>task.source==="muse"&&task.muse_plan_id===planId&&!task.client_visible));
+ assert.equal(got(await A.from("tasks").select("id").eq("muse_plan_id",planId),"client hidden Muse tasks").length,0);
+ const nested=await Admin.from("tasks").insert({project_id:projectA,parent_task_id:created[1].id,title:"Forbidden nested step"}).select("id");
+ assert.ok(nested.error,"third task level must be rejected");
+ const parentDelete=await Admin.from("tasks").delete().eq("id",created[0].id).select("id");
+ assert.ok(parentDelete.error,"parent with subtasks must be protected from deletion");
+ const activity=got(await Admin.from("activities").select("event_type,metadata").eq("project_id",projectA).eq("event_type","muse_plan_applied"),"Muse audit activity");
+ assert.equal(activity.length,1);assert.equal(activity[0].metadata.created_count,2);
+});
 console.log("PASS "+checks.length+" full local Supabase Auth + PostgREST integration cases, synthetic accounts only");
 await verifyDeepScanLeaseLocal({
   admin: Admin, clientA: A, clientB: B,

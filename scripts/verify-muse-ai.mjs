@@ -28,7 +28,7 @@ assert.ok(!/service_role|serviceRole|SUPABASE_SERVICE_ROLE|SUPABASE_SECRET_KEY/.
   "Never use privileged Supabase credentials for Muse");
 assert.ok(!/\.insert\(|\.update\(|\.delete\(|\.upsert\(|\.rpc\(|sendEmail\(|runScan\(/.test(tools),
   "Muse tool implementations must remain read-only");
-for (const name of ["studio_overview", "lead_priorities", "project_watch", "prospect_comparison", "opportunity_radar"]) {
+for (const name of ["studio_overview", "lead_priorities", "project_watch", "project_guide", "prospect_comparison", "opportunity_radar"]) {
   assert.ok(tools.includes('name: "' + name + '"'), "Missing bounded read tool: " + name);
 }
 assert.ok(runner.includes("strict: true"), "Tools must use strict schemas");

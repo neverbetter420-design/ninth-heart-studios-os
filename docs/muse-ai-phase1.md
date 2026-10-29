@@ -1,5 +1,9 @@
 # Muse AI: evidence-backed studio concierge
 
+Project planning and confirmation-bound task creation are documented separately
+in `docs/muse-project-guide-v1.md`. Phase 1 conversational Muse remains
+read-only; the Project Guide uses an independent feature flag and approval flow.
+
 Muse extends the existing admin drawer and deterministic draft manager. This is
 an implementation on PR #51's development branch. It is disabled by default;
 source review does not activate the model or publish a production Worker.
@@ -17,13 +21,16 @@ source review does not activate the model or publish a production Worker.
   reasoning, is replayed in order with `store:false`. Tool results are cached
   only within the current request. There is a shared 45-second provider/data
   deadline and a 20-second timeout per provider call.
-- Five tools with no model-supplied arguments. All use the current user session
+- Six tools with no model-supplied arguments. All use the current user session
   and existing RLS, never a privileged Supabase client:
   - `lead_priorities`: canonical Flowkeep attention/SLA rules, not recency or an
     AI-generated score. Up to 18 ranked lead summaries.
   - `project_watch`: projects plus unfinished tasks/milestones and pending
     approvals. Current project detail pages narrow this read to that project.
     Up to 18 projects, 5 task details, 3 milestones and 3 approvals per project.
+  - `project_guide`: on a specific project page, reads current tasks and pending
+    approvals to explain the deterministic Heartbeat and One Move. It does not
+    mutate the project or claim the score predicts success.
   - `prospect_comparison`: the scanner's shared category shortlist algorithm,
     70% public contact reliability and 30% recorded opportunity. Top 3 within
     each category, excluding contacted/drafted/protected/uncontactable records.

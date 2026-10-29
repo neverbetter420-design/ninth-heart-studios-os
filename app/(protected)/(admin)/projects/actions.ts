@@ -218,19 +218,44 @@ export async function createTask(formData: FormData) {
   const priority = clean(formData.get("priority")) ?? "normal";
   if (!["low", "normal", "high"].includes(priority)) throw new Error("Invalid task priority.");
   const clientVisible = formData.get("client_visible") === "on";
+  const parentTaskId = clean(formData.get("parent_task_id"));
+  const description = clean(formData.get("description"));
+  const definitionOfDone = clean(formData.get("definition_of_done"));
+  if (description && description.length > 1200) throw new Error("Task guidance must be 1,200 characters or fewer.");
+  if (definitionOfDone && definitionOfDone.length > 600) throw new Error("Definition of done must be 600 characters or fewer.");
+  const estimateRaw = clean(formData.get("estimated_minutes"));
+  const estimatedMinutes = estimateRaw === null ? null : Number(estimateRaw);
+  if (estimatedMinutes !== null && (!Number.isInteger(estimatedMinutes) || estimatedMinutes < 5 || estimatedMinutes > 1440)) {
+    throw new Error("Estimated focus must be between 5 and 1,440 minutes.");
+  }
+  if (parentTaskId) {
+    const { data: parent, error: parentError } = await supabase.from("tasks")
+      .select("id,project_id,parent_task_id").eq("id", parentTaskId).eq("project_id", projectId).single();
+    if (parentError || !parent || parent.parent_task_id) throw new Error("Choose a parent task from this project.");
+  }
+  let siblingQuery = supabase.from("tasks").select("id", { count: "exact", head: true }).eq("project_id", projectId);
+  siblingQuery = parentTaskId ? siblingQuery.eq("parent_task_id", parentTaskId) : siblingQuery.is("parent_task_id", null);
+  const { count: siblingCount, error: countError } = await siblingQuery;
+  if (countError || siblingCount === null) throw new Error("Task order could not be confirmed. Please retry.");
 
   const { data: task, error } = await supabase
     .from("tasks")
     .insert({
       project_id: projectId,
+      parent_task_id: parentTaskId,
       title,
+      description,
+      definition_of_done: definitionOfDone,
       due_at: dueDate ? `${dueDate}T00:00:00Z` : null,
       priority,
+      estimated_minutes: estimatedMinutes,
+      position: (siblingCount + 1) * (parentTaskId ? 10 : 100),
+      source: "manual",
       client_visible: clientVisible,
     })
-    .select("id, project_id, title, client_visible")
+    .select("id, project_id, parent_task_id, title, client_visible")
     .single();
-  if (error || !task?.id || task.project_id !== projectId || task.title !== title || task.client_visible !== clientVisible) {
+  if (error || !task?.id || task.project_id !== projectId || task.parent_task_id !== parentTaskId || task.title !== title || task.client_visible !== clientVisible) {
     throw new Error("Task creation was not confirmed. Please retry.");
   }
   revalidateProject(projectId);
@@ -294,6 +319,10 @@ export async function deleteTask(formData: FormData) {
   const supabase = await createClient();
   const taskId = clean(formData.get("task_id"));
   if (!taskId) throw new Error("Task not selected.");
+  const { count: childCount, error: childError } = await supabase.from("tasks")
+    .select("id", { count: "exact", head: true }).eq("parent_task_id", taskId);
+  if (childError || childCount === null) throw new Error("Task dependencies could not be checked. Please retry.");
+  if (childCount > 0) throw new Error("Delete or move this task's subtasks first.");
   const { data: task, error } = await supabase
     .from("tasks")
     .delete()

@@ -98,7 +98,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await page.addInitScript(() => { window.fixturePage = "/projects/00000000-0000-4000-8000-000000000001"; });
   await page.goto(base); await page.getByRole("button", { name: "Muse AI", exact: false }).click();
-  assert.equal(await page.getByRole("button", { name: "What needs attention on this project?", exact: false }).isVisible(), true);
+  assert.equal(await page.getByRole("button", { name: "What is this project's Heartbeat and One Move?", exact: false }).isVisible(), true);
   await page.close();
   console.log(`Muse browser QA passed: ${count} viewports plus project-context prompts. Synthetic records only.`);
 } finally { await browser.close(); await new Promise(done => server.close(done)); }
