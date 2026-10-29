@@ -36,6 +36,7 @@ jobs:
           node --experimental-strip-types scripts/verify-muse-project-guide.ts
           node --experimental-strip-types scripts/verify-muse-plan-approval.ts
           node --experimental-strip-types scripts/verify-muse-project-guide-ui.ts
+          node --experimental-strip-types scripts/verify-muse-project-guide-connected.ts
           npm run verify:automations
           npm run verify:email
           npm run verify:contracts
