@@ -85,3 +85,11 @@
   .nhs-muse-welcome{min-height:300px}
 }
 @media(prefers-reduced-motion:reduce){.nhs-muse-conversation{scroll-behavior:auto}}
+
+.nhs-muse-header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nhs-muse-reset{padding:9px 3px;min-height:40px;background:none;border:0;color:#e5c7de;font-size:12px;text-decoration:underline;text-underline-offset:4px}
+.nhs-muse-evidence{margin-top:18px;color:#d7bfd3;font-size:12px;line-height:1.65}
+.nhs-muse-evidence summary{cursor:pointer;min-height:34px;padding:6px 0;color:#f0c9e2}
+.nhs-muse-evidence ul{padding-left:18px;margin:6px 0 9px}
+.nhs-muse-evidence p{margin:0;font-size:11px}
+@media(max-width:520px){.nhs-muse-drawer-head{gap:10px}.nhs-muse-header-actions{flex-direction:column-reverse;gap:2px}.nhs-muse-reset{font-size:11px}}

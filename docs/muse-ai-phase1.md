@@ -1,80 +1,103 @@
-# Muse AI: Studio Concierge · Phase 1 review
+# Muse AI: evidence-backed studio concierge
 
-This feature branch adds a **disabled-by-default**, authenticated, read-only
-conversational assistant in the existing admin shell. It is a new intelligence
-interface, *not* a replacement for the deterministic Muse draft manager.
+Muse extends the existing admin drawer and deterministic draft manager. This is
+an implementation on PR #51's development branch. It is disabled by default;
+source review does not activate the model or publish a production Worker.
 
-## What is real in this implementation
+## Implemented
 
-- A responsive Nocturne glass drawer launched through the existing **Muse AI**
-  admin header control. Keyboard-friendly close, focus trap, scrollable history,
-  contextual prompts, business-record deep links, phone layout.
-- Server route `POST /api/admin/muse-ai` that rechecks active admin status for
-  **every request** and rejects other users, oversize bodies and cross-origin
-  requests. No API key is present in the client JavaScript or repository.
-- OpenAI **Responses API** with server-only model credentials; default
-  `gpt-6.1-sol`, with allowlisted `gpt-6-luna` and `gpt-6-astra` as
-  configurable alternatives. The owner should choose based on real API access,
-  latency and cost, not arbitrary UI labels.
-- Exactly five narrowly scoped, read-only tools, using the current session's
-  Supabase client and RLS: studio overview, current leads, projects, saved
-  prospects, and Opportunity Radar. Results cap at 8-18 rows per area, redact
-  contact details and link back to real NHS OS screens.
-- Up to two tool requests plus a synthesis response, with `store:false`,
-  response size limits and a strict server-owned tool allowlist. Records are
-  untrusted evidence, never commands. No business record is modified.
-- No autonomous processing, scheduled scans, email, client messaging, payments,
-  client access or database migration. Existing Muse drafts and send guards
-  remain unchanged.
+- Active-admin authorization on every API request, same-origin JSON only,
+  bounded UTF-8 request/provider streams and no-store responses on every path.
+- Server-only OpenAI Responses API; allowlisted existing model choices remain
+  `gpt-6.1-sol` (default), `gpt-6-luna`, `gpt-6-astra`. The first model response
+  must request current evidence. Answers without a successful evidence-tool
+  invocation, incomplete responses and malformed/unknown tool calls fail closed.
+- At most four sequential read-tool calls plus synthesis (five model requests,
+  each capped at 2,000 output tokens). Every response item, including encrypted
+  reasoning, is replayed in order with `store:false`. Tool results are cached
+  only within the current request. There is a shared 45-second provider/data
+  deadline and a 20-second timeout per provider call.
+- Five tools with no model-supplied arguments. All use the current user session
+  and existing RLS, never a privileged Supabase client:
+  - `lead_priorities`: canonical Flowkeep attention/SLA rules, not recency or an
+    AI-generated score. Up to 18 ranked lead summaries.
+  - `project_watch`: projects plus unfinished tasks/milestones and pending
+    approvals. Current project detail pages narrow this read to that project.
+    Up to 18 projects, 5 task details, 3 milestones and 3 approvals per project.
+  - `prospect_comparison`: the scanner's shared category shortlist algorithm,
+    70% public contact reliability and 30% recorded opportunity. Top 3 within
+    each category, excluding contacted/drafted/protected/uncontactable records.
+    Recorded Instagram/Facebook `status=matched` is used; no new scan runs.
+  - `opportunity_radar`: top 15 saved, non-closed opportunities by recorded
+    score, preserving source labels. No marketplace account access is implied.
+  - `studio_overview`: evidence from leads, project delivery and saved
+    opportunities, with up to six displayed summaries from each area.
+- Each underlying table read requests an exact count and at most 1,000 rows.
+  Errors, lower API row caps, missing counts and larger lists withhold that
+  area's conclusions. Project review fails closed if a related read fails.
+  Coverage is returned separately from the smaller displayed/model summaries.
+  Queries are not a transactionally consistent cross-table snapshot.
+- Contact addresses, phones, emails, full signals, internal notes, client
+  comments and protected outreach drafts are not sent to the model. Record and
+  task titles remain untrusted content; they never define tool instructions.
+- Request controls use `MUSE_AI_RATE_LIMITER`, keyed by authenticated owner ID.
+  Missing/unavailable binding returns 503 before any provider call. A denied
+  request returns 429 and `Retry-After: 60`.
+- Sparse glass drawer with contextual prompts, source links, expandable evidence
+  coverage, Stop, New chat, keyboard focus containment and body scroll locking.
+  No external/AI-generated links or HTML are rendered from model text.
 
-## Flags and secrets for a future, separately approved release
+## Release configuration
 
-1. Configure `OPENAI_API_KEY` as a **server-side Cloudflare Worker secret**,
-   not as a NEXT_PUBLIC variable and never in GitHub source.
-2. Optionally set `OPENAI_MUSE_MODEL` to `gpt-6.1-sol`, `gpt-6-luna`,
-   or `gpt-6-astra`. Defaults to Sol if omitted.
-3. `MUSE_AI_ENABLED=true` is **required** for any paid API request. Leave
-   absent/false throughout staging and source review.
-4. Recheck that the production Cloudflare deployment uses its existing guarded,
-   SHA-bound GitHub Actions workflow. Merely merging the PR does **not**
-   authorize production publish or turning on Muse AI.
-5. Provision per-owner cost controls and request-rate limiting at the edge
-   before enabling production. The current model token/round caps limit one
-   request's work but are **not** a distributed rate limiter.
+`MUSE_AI_ENABLED` stays absent/false until a separately approved release.
+`OPENAI_API_KEY` must be a server-side Worker secret. Never put it in chat,
+source, a pull-request check or any `NEXT_PUBLIC_` variable. The UI reports an
+unconfigured state without asking an ordinary user for credentials.
 
-This release is not fully activated by code changes alone. If the flag or API
-key is absent, the drawer displays a clear configuration message.
+The proposed Wrangler binding uses namespace `929010`, six requests per
+60 seconds per owner per Cloudflare location. Verify namespace uniqueness in
+the account before publishing. Cloudflare limits are approximate and local to
+each location; this is **not a strict global quota or dollar spend cap**.
+Separate provider budget controls/AI Gateway cost policy remain release work.
+No cloud configuration has been applied merely by editing this file.
 
-## Important limitations
+## Verification
 
-- **No long-term memory yet.** Conversation messages are held in the browser
-  React state and sent back only as a bounded six-message context. Closing the
-  page or reloading removes them. Preferences or business notes are **not**
-  persisted in this phase.
-- AI answers are probabilistic and can still be wrong. Record links and sample
-  sizes help the owner verify. Only stored records are consulted; no external
-  internet research, live Freelancer/Upwork/Fiverr account reading, or automatic
-  background tasks.
-- Avoid entering passwords, payment secrets, or sensitive client material in
-  chat. Ordinary API data-handling policies still apply; `store:false` does
-  not assert zero operational retention by the provider.
-- Lists are bounded, not exhaustive. Muse must disclose partial/unavailable
-  source data rather than interpreting absence as a zero count.
-- The command drawer has no write-capable tools. The existing Muse email-send
-  feature remains a separate, explicit per-recipient manual action.
+- `npm run verify:muse` includes the existing deterministic Muse tests, static
+  read-only/security contracts and 25 runtime checks of the actual route,
+  data reader, model loop and limiter with injected synthetic dependencies.
+- `node scripts/verify-muse-ai-browser.mjs` hydrates the real drawer on the
+  source-rendered synthetic Admin page. It exercises answer/coverage links,
+  reset/cancel, keyboard focus/return and geometry at 1440, 390 and 320 pixels,
+  plus project-context prompts. Provider answers are fixtures, not AI evals.
+- Standard TypeScript, scanner/domain checks, guarded migration inventory,
+  production build, Cloudflare dry-run/runtime and existing offline gallery QA
+  still apply. Browser screenshots are synthetic, not live client records.
 
-## Acceptance before production
+## Remaining release and feature work
 
-- CI: TypeScript, npm build, browser QA (desktop/mobile), existing RLS and
-  access-control tests, `npm run verify:muse` including static AI guard checks.
-- API QA: logged-out returns 401; client returns 403; inactive user returns 403;
-  valid admin with flag off receives 503; oversized/cross-origin requests fail;
-  live admin with enabled server key can request each read tool.
-- Reasoning QA with synthetic fixtures: empty/partial rows, conflicting scores,
-  stale due dates, malicious instructions inserted into record names, unknown
-  tools, and attempts to send outreach must fail closed or answer with limits.
-- Visual QA: check drawer focus/close/trap, phone viewport, source links,
-  slow responses and errors; existing Muse drafts and admin navigation still
-  work.
-- Production release is **not** authorized by this design task. No migrations
-  or storage changes were applied anywhere.
+No hosted data/identity or paid-model evaluation is performed by these tests.
+Before enabling, run authenticated admin/client/inactive session tests against
+an isolated environment, verify current model access and evidence quality with
+real provider responses, review visual output, set budget controls and obtain
+approval for the exact guarded deployment. Existing migration inventory guards
+are unchanged; this implementation adds no schema migration.
+
+Conversation state lasts only in the mounted browser session (bounded recent
+context); reload clears it. There is no durable history, saved memory, write
+execution, scheduling, autonomous outreach or background scans. Stop cancels
+the browser request; provider cancellation/billing may not be instantaneous.
+Saved Fiverr/Upwork/Freelancer source labels are supported in analysis, but live
+account integrations and discovery must be implemented through supported APIs
+and verified independently. Do not label this milestone a live marketplace
+integration or a fully activated assistant.
+
+`store:false` disables provider response storage for later retrieval; it does
+not assert zero operational retention. Only factual saved evidence should be
+used for claims; probabilistic answers still require owner judgment.
+
+References:
+- https://developers.openai.com/api/docs/guides/function-calling
+- https://developers.openai.com/api/docs/guides/conversation-state
+- https://supabase.com/docs/guides/api/sql-to-api
+- https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
