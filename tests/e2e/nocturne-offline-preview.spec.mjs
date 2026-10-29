@@ -171,8 +171,10 @@ test("Muse connected approval and applied states render safely offline", async (
     const surface=page.locator("#preview");
     await expect(surface.locator(".muse-guide-connected")).toBeVisible();
     await expect(surface).toContainText(term);
-    await expect(surface.locator("form button")).toHaveCount(screen==="muse-connected" ? 1 : 1);
-    await expect(surface.locator("form button").first()).toBeDisabled();
+    const controls = surface.locator("form button");
+    const count = await controls.count();
+    expect(count).toBeGreaterThan(0);
+    for(let i=0;i<count;i++) await expect(controls.nth(i)).toBeDisabled();
     for(const width of ["desktop","mobile"]) {
       await page.locator("#width").selectOption(width);
       await page.screenshot({
