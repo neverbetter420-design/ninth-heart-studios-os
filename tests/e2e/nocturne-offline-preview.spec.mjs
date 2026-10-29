@@ -157,3 +157,31 @@ test("Muse Project Guide renders an isolated desktop/mobile review frame", async
   }
   expect(outbound).toEqual([]);
 });
+
+test("Muse connected approval and applied states render safely offline", async ({page},testInfo) => {
+  const requests=[];
+  page.on("request", r=>{if(/^https?:/i.test(r.url()))requests.push(r.url());});
+  await page.goto(pathToFileURL(resolve("nocturne-static-preview/index.html")).href);
+  await page.locator("#role").selectOption("admin");
+  for(const [screen,term] of [
+    ["muse-connected","Approve this exact version?"],
+    ["muse-applied","What's ready next?"],
+  ]) {
+    await page.locator("#view").selectOption(screen);
+    const surface=page.locator("#preview");
+    await expect(surface.locator(".muse-guide-connected")).toBeVisible();
+    await expect(surface).toContainText(term);
+    await expect(surface.locator("form button")).toHaveCount(screen==="muse-connected" ? 1 : 1);
+    await expect(surface.locator("form button").first()).toBeDisabled();
+    for(const width of ["desktop","mobile"]) {
+      await page.locator("#width").selectOption(width);
+      await page.screenshot({
+        path:resolve("nocturne-static-preview/review-"+screen+"-"+width+"-"+testInfo.project.name+".png"),
+        fullPage:true,animations:"disabled"
+      });
+      const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+    }
+  }
+  expect(requests).toEqual([]);
+});
