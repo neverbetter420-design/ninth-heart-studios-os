@@ -11,7 +11,7 @@ const safeJSON = value => JSON.stringify(value)
   .replace(/>/g, "\\u003e")
   .replace(/&/g, "\\u0026");
 const routes = {
-  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","scanner-best","scanner-prospects","scanner-insights","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","settings","opportunities","opportunity-detail","automations","controls"],
+  admin: ["home","project","clients","client-detail","pipeline","leads","lead-detail","scanner","scanner-best","scanner-prospects","scanner-insights","contracts","contract-detail","forms","form-detail","templates","template-detail","muse","muse-ai-preview","settings","opportunities","opportunity-detail","automations","controls"],
   client: ["home","project","portal-projects","portal-documents","portal-messages","portal-files","portal-approvals","portal-contracts","portal-forms","controls"]
 };
 const escape = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -67,7 +67,11 @@ const chromeCSS = [
   "#nhs-preview-stage{padding:24px 16px 40px;display:flex;justify-content:center}",
   "#preview{display:block;width:100%;max-width:100%;min-height:570px;background:#100d15;border:1px solid #8d7188;border-radius:17px;overflow:auto;box-shadow:0 20px 65px #04010880}",
   "#preview>.app-shell{min-height:650px}",
-  "#preview{container-type:inline-size}",
+  "#preview{container-type:inline-size;position:relative}",
+  "#preview .nhs-muse-area{position:static!important}",
+  "#preview:has(.nhs-muse-overlay)>.app-shell{overflow-x:hidden!important;max-width:100%!important}",
+  "#preview .nhs-muse-overlay{position:absolute!important;inset:0!important}",
+  "#preview .nhs-muse-drawer{width:100%!important;max-width:100%!important;height:100%!important;min-height:550px!important}",
   // Only in the isolated review frame: adapt source styles to the frame width,
   // not the browser width. In production real @media rules remain authoritative.
   "@container (max-width:860px){#preview .app-shell{grid-template-columns:minmax(0,1fr)!important}#preview .sidebar{position:absolute!important;transform:translateX(-110%)!important;pointer-events:none!important}#preview .main-shell{grid-column:1!important;min-width:0!important;width:100%!important}#preview .mobile-topbar{display:flex!important}#preview .nhs-mobile-quicknav{display:none!important}#preview .content-wrap{padding:28px 20px 58px!important}#preview .page-header{flex-direction:column!important;align-items:flex-start!important}#preview .scanner-glass-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}#preview .scanner-glass-prospects .prospect-grid{grid-template-columns:minmax(0,1fr)!important}}",
@@ -160,7 +164,7 @@ writeFileSync(join(root,"OPEN_PREVIEW_FIRST.txt"),[
   "",
   "1. In Downloads, right-click nhs-nocturne-html-preview.zip and choose Extract All.",
   "2. Open the extracted folder. Open index.html in Chrome or Edge.",
-  "3. index.html now includes all 33 screens and styles. It works without a server or separate files.",
+  "3. index.html now includes all 34 screens and styles. It works without a server or separate files.",
   "4. Open seven-rooms.html for the all-room comparison, or use index.html screen controls.",
   "",
   "This is a visual demonstration with synthetic data, not the production app.",

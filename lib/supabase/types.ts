@@ -43,10 +43,17 @@ export type LaunchItem = {
 export type ProjectTask = {
   id: string;
   project_id: string;
+  parent_task_id: string | null;
   title: string;
+  description: string | null;
+  definition_of_done: string | null;
   status: string;
   priority: string;
   due_at: string | null;
+  position: number;
+  estimated_minutes: number | null;
+  source: "manual" | "muse";
+  muse_plan_id: string | null;
   client_visible: boolean;
 };
 

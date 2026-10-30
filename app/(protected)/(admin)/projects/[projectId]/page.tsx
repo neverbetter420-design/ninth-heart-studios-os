@@ -8,12 +8,14 @@ import { FileSection, type WorkspaceFile } from "@/components/projects/FileSecti
 import { LaunchGateSection } from "@/components/projects/LaunchGateSection";
 import { MessageThread } from "@/components/projects/MessageThread";
 import { MilestoneSection } from "@/components/projects/MilestoneSection";
+import { MuseProjectGuide } from "@/components/projects/MuseProjectGuide";
 import { ProjectOverview } from "@/components/projects/ProjectOverview";
 import { RevisionSection } from "@/components/projects/RevisionSection";
 import { TaskSection } from "@/components/projects/TaskSection";
 import { sendProjectMessage } from "../actions";
 import { requireAdmin } from "@/lib/auth";
 import { analyzeScopeCreep, buildScopeCorpus, type ScopeCreepVerdict } from "@/lib/muse";
+import { calculateProjectHeartbeat, type GuideTask } from "@/lib/muse-project-guide";
 import { createClient } from "@/lib/supabase/server";
 import type { ChangeOrder, FeedbackPin, LaunchItem, Milestone, ProjectDocument, ProjectMessage, ProjectTask, RevisionRound } from "@/lib/supabase/types";
 
@@ -71,8 +73,9 @@ export default async function ProjectWorkspacePage({
       .order("position", { ascending: true }),
     supabase
       .from("tasks")
-      .select("id, project_id, title, status, priority, due_at, client_visible")
+      .select("id, project_id, parent_task_id, title, description, definition_of_done, status, priority, due_at, client_visible, position, estimated_minutes, source, muse_plan_id")
       .eq("project_id", projectId)
+      .order("position", { ascending: true })
       .order("created_at", { ascending: true }),
     supabase
       .from("approvals")
@@ -128,6 +131,9 @@ export default async function ProjectWorkspacePage({
   }
   if (!rawProject) notFound();
   const project = rawProject as ProjectRow;
+  const projectTasks = (rawTasks ?? []) as ProjectTask[];
+  const pendingApprovalCount = ((rawApprovals ?? []) as { status: string }[]).filter(item => item.status === "pending").length;
+  const heartbeat = calculateProjectHeartbeat(projectTasks as GuideTask[], pendingApprovalCount);
 
   const rounds = (rawRounds ?? []) as RevisionRound[];
   const activeRound =
@@ -209,6 +215,8 @@ export default async function ProjectWorkspacePage({
           <h3>Keep the project moving.</h3>
           <p>Milestones, decisions, and the work that matters next.</p>
         </div>
+        <MuseProjectGuide projectId={projectId} projectName={project.name} heartbeat={heartbeat}
+          enabled={typeof process !== "undefined" && process.env.MUSE_PROJECT_GUIDE_ENABLED === "true"} />
         <div className="workspace-grid">
           <div className="workspace-span-7">
             <MilestoneSection projectId={projectId} milestones={(rawMilestones ?? []) as Milestone[]} />
@@ -217,7 +225,7 @@ export default async function ProjectWorkspacePage({
             <ApprovalSection projectId={projectId} approvals={(rawApprovals ?? []) as { id: string; title: string; status: string; requested_at: string; decided_at: string | null; client_comment: string | null }[]} />
           </div>
           <div className="workspace-span-12">
-            <TaskSection projectId={projectId} tasks={(rawTasks ?? []) as ProjectTask[]} />
+            <TaskSection projectId={projectId} tasks={projectTasks} />
           </div>
         </div>
       </section>

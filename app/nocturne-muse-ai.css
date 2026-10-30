@@ -1,0 +1,95 @@
+/* Muse AI / Studio Concierge · Nocturne glass, sparse and readable.
+   Admin-only launcher lives in the existing authenticated AppShell. */
+.nhs-theme-admin .nhs-muse-shortcut {
+  display: inline-flex; align-items:center; justify-content:center; gap:8px;
+  min-height:42px; padding:9px 15px; border-radius:999px;
+  color:#f8e8f5; font-size:13px; font-weight:600;
+  background:linear-gradient(125deg,rgba(231,154,202,.16),rgba(116,82,157,.16));
+  border:1px solid rgba(242,198,227,.33);
+  box-shadow:inset 0 1px rgba(255,255,255,.11),0 8px 24px rgba(8,2,14,.14);
+  backdrop-filter:blur(18px);
+}
+.nhs-theme-admin .nhs-muse-shortcut:hover {background:rgba(211,143,197,.24)}
+.nhs-muse-overlay {position:fixed;inset:0;z-index:200;display:flex;justify-content:flex-end}
+.nhs-muse-backdrop {position:absolute;inset:0;background:rgba(4,2,10,.68);border:0;cursor:default;backdrop-filter:blur(7px)}
+.nhs-muse-drawer {
+  --muse-ink:#f9eff7;--muse-soft:#d5c4d7;--muse-pink:#f5c0df;
+  position:relative;z-index:1;display:flex;flex-direction:column;
+  width:min(510px,100vw);height:100dvh;min-height:0;
+  color:var(--muse-ink);
+  background:radial-gradient(ellipse 90% 42% at 88% 0,rgba(198,105,170,.23),transparent 75%),linear-gradient(140deg,rgba(44,29,54,.95),rgba(19,14,29,.97));
+  border-left:1px solid rgba(247,200,233,.23);
+  box-shadow:-35px 0 100px rgba(6,1,13,.52),inset 1px 0 rgba(255,255,255,.05);
+  backdrop-filter:blur(35px) saturate(130%);
+  -webkit-backdrop-filter:blur(35px) saturate(130%);
+}
+.nhs-muse-drawer-head {padding:34px 34px 25px;display:flex;justify-content:space-between;gap:20px;align-items:start;border-bottom:1px solid rgba(245,196,228,.13)}
+.nhs-muse-overline{color:#e2aecf;font-size:11px!important;letter-spacing:.18em;font-weight:600;margin:0 0 13px}
+.nhs-muse-drawer-head h2{font:normal clamp(30px,4vw,39px)/1.16 Georgia,serif!important;letter-spacing:-.035em;color:#faeefa;margin:0 0 9px}
+.nhs-muse-drawer-head h2 span{font:normal 23px system-ui,sans-serif;color:#e8a8cf;vertical-align:middle;margin-right:8px}
+.nhs-muse-drawer-head p:last-child{color:var(--muse-soft);font-size:13px;line-height:1.6;margin:0}
+.nhs-muse-close {display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border:1px solid rgba(243,198,226,.20);border-radius:13px;background:rgba(255,255,255,.05);color:#f7e9f6;font:normal 26px/1 system-ui}
+.nhs-muse-close:hover{background:rgba(244,192,223,.13)}
+.nhs-muse-conversation{flex:1;overflow:auto;overscroll-behavior:contain;min-height:0;display:flex;flex-direction:column;gap:22px;padding:30px 30px 38px}
+.nhs-muse-welcome{display:flex;flex-direction:column;justify-content:center;flex:1;min-height:360px;gap:12px}
+.nhs-muse-emblem{color:#efb8d9;font:normal 44px/1 Georgia,serif;margin-bottom:13px}
+.nhs-muse-welcome h3{font:normal 30px/1.24 Georgia,serif;letter-spacing:-.025em;color:#fff1fa;margin:0}
+.nhs-muse-welcome p{color:var(--muse-soft);font-size:15px;line-height:1.7;margin:0;max-width:340px}
+.nhs-muse-prompts{display:grid;gap:12px;margin-top:22px}
+.nhs-muse-prompts button{display:flex;justify-content:space-between;text-align:left;gap:16px;align-items:center;min-height:58px;
+  padding:16px 18px;border:1px solid rgba(248,204,231,.19);border-radius:16px;background:rgba(109,66,107,.17);color:#f9e9f5;font-size:14px;line-height:1.45}
+.nhs-muse-prompts button:hover{background:rgba(174,107,154,.21);border-color:rgba(248,204,231,.4)}
+.nhs-muse-prompts span{color:#eab8d7}
+.nhs-muse-message{max-width:96%;border:1px solid rgba(246,201,231,.12);border-radius:19px;padding:20px 22px;box-shadow:0 15px 34px rgba(6,2,13,.1)}
+.nhs-muse-user{align-self:flex-end;background:rgba(209,145,189,.18);border-color:rgba(250,197,227,.22);border-bottom-right-radius:6px}
+.nhs-muse-assistant{align-self:flex-start;background:rgba(31,24,42,.72);border-bottom-left-radius:6px}
+.nhs-muse-speaker{margin:0 0 8px;color:#f5bfdc;font-size:12px;font-weight:700;letter-spacing:.04em}
+.nhs-muse-message-text{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-size:14px;line-height:1.75;color:#f6ebf6}
+.nhs-muse-sources{display:flex;flex-wrap:wrap;gap:8px;margin-top:19px;padding-top:14px;border-top:1px solid rgba(248,205,236,.15)}
+.nhs-muse-sources>span{width:100%;color:#c6acc9;font-size:12px}
+.nhs-muse-sources a{display:inline-flex;max-width:100%;min-height:34px;align-items:center;padding:6px 10px;border-radius:10px;background:rgba(202,144,193,.17);color:#f3c9e4;font-size:12px;text-decoration:none}
+.nhs-muse-sources a:hover{background:rgba(228,179,219,.25)}
+.nhs-muse-thinking{color:#ddbdd3;font-size:13px;line-height:1.5;padding:11px 4px;margin:0}
+.nhs-muse-composer{padding:23px 30px max(24px,env(safe-area-inset-bottom));border-top:1px solid rgba(247,201,234,.18);
+  background:linear-gradient(180deg,rgba(37,25,47,.43),rgba(25,17,36,.78))}
+.nhs-muse-composer form{position:relative;display:grid;gap:12px}
+.nhs-muse-input-label{font-size:13px;font-weight:650;color:#f5d1e7}
+.nhs-muse-composer textarea{display:block;width:100%;min-height:88px;max-height:180px;resize:vertical;padding:15px 16px;font-family:inherit;font-size:15px;line-height:1.6;
+  border:1px solid rgba(246,200,232,.28);border-radius:15px;color:#fff1fa;background:rgba(7,6,14,.42);outline:none}
+.nhs-muse-composer textarea:focus{border-color:#f6c5e3;box-shadow:0 0 0 3px rgba(234,159,208,.12)}
+.nhs-muse-composer textarea::placeholder{color:#ad99b0}
+.nhs-muse-send{justify-self:end;border:1px solid rgba(250,207,236,.34);border-radius:13px;
+  background:linear-gradient(120deg,#f0c7e1,#b6a0d7);color:#251629;
+  padding:11px 18px;min-height:44px;font-size:14px;font-weight:700}
+.nhs-muse-send:disabled{opacity:.56;cursor:not-allowed}
+.nhs-muse-disclaimer{font-size:12px!important;line-height:1.6;color:#c4b3c7;margin:14px 0 7px}
+.nhs-muse-workspace-link{color:#edbddc;text-decoration:underline;text-underline-offset:3px;font-size:12px;line-height:1.6}
+.nhs-muse-error{color:#ffe0e0;background:rgba(181,56,75,.17);border:1px solid rgba(248,147,170,.25);padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5;margin:0 0 15px}
+.nhs-muse-drawer :is(button,a,textarea):focus-visible{outline:2px solid #ffe5f5;outline-offset:3px}
+@media(max-width:860px){
+  /* Existing mobile shell hides account controls. Keep Muse accessible,
+     while leaving name and sign-out in their normal mobile navigation. */
+  .nhs-theme-admin .nhs-context-account{display:flex;gap:7px;flex-shrink:0}
+  .nhs-theme-admin .nhs-context-account>.nhs-context-name,
+  .nhs-theme-admin .nhs-context-account>form{display:none}
+  .nhs-theme-admin .nhs-context-bar{gap:9px;justify-content:space-between}
+  .nhs-theme-admin .nhs-context-location{min-width:0;overflow:hidden}
+  .nhs-theme-admin .nhs-muse-shortcut{min-height:35px;padding:6px 10px;font-size:12px;white-space:nowrap}
+}
+@media(max-width:650px){
+  .nhs-muse-drawer{width:100vw;border-left:0}
+  .nhs-muse-drawer-head{padding:25px 21px 20px}
+  .nhs-muse-conversation{padding:24px 19px 26px;gap:16px}
+  .nhs-muse-composer{padding:19px 20px max(19px,env(safe-area-inset-bottom))}
+  .nhs-muse-message{padding:17px 18px}
+  .nhs-muse-welcome{min-height:300px}
+}
+@media(prefers-reduced-motion:reduce){.nhs-muse-conversation{scroll-behavior:auto}}
+
+.nhs-muse-header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nhs-muse-reset{padding:9px 3px;min-height:40px;background:none;border:0;color:#e5c7de;font-size:12px;text-decoration:underline;text-underline-offset:4px}
+.nhs-muse-evidence{margin-top:18px;color:#d7bfd3;font-size:12px;line-height:1.65}
+.nhs-muse-evidence summary{cursor:pointer;min-height:34px;padding:6px 0;color:#f0c9e2}
+.nhs-muse-evidence ul{padding-left:18px;margin:6px 0 9px}
+.nhs-muse-evidence p{margin:0;font-size:11px}
+@media(max-width:520px){.nhs-muse-drawer-head{gap:10px}.nhs-muse-header-actions{flex-direction:column-reverse;gap:2px}.nhs-muse-reset{font-size:11px}}

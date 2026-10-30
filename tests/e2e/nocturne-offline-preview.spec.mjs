@@ -129,3 +129,41 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });
+
+
+test("Muse AI opens as an actual glass admin-only synthetic preview at mobile width", async ({ page }) => {
+  test.setTimeout(90000);
+  const outbound = [];
+  page.on("request", req => { if (/^https?:/i.test(req.url())) outbound.push(req.url()); });
+  await page.goto(pathToFileURL(resolve("nocturne-static-preview/index.html")).href);
+  await page.locator("#role").selectOption("admin");
+  await page.locator("#view").selectOption("muse-ai-preview");
+  await page.locator("#width").selectOption("mobile");
+  const preview = page.locator("#preview");
+  await expect(preview.getByRole("dialog", { name: "Muse AI" })).toBeVisible();
+  await expect(preview.getByRole("heading", { name: "What needs your attention?" })).toBeVisible();
+  await expect(preview.locator(".nhs-muse-prompts button")).toHaveCount(3);
+  await expect(preview.getByText("No automatic scans or messages")).toBeVisible();
+  await expect(preview.locator(".nhs-muse-drawer")).toHaveCSS("height", /px$/);
+  const geometry = await preview.evaluate(el => {
+    const host = el.getBoundingClientRect();
+    const drawer = el.querySelector(".nhs-muse-drawer").getBoundingClientRect();
+    return {
+      viewport: window.innerWidth,
+      backgroundOverflow: el.scrollWidth - el.clientWidth,
+      drawerOverflow: Math.max(0, drawer.right - host.right, host.left - drawer.left),
+    };
+  });
+  // The desktop gallery simulates 390px with a narrow container, while older
+  // background pages still evaluate browser-wide @media. The modal itself must
+  // never spill out, and the actual phone viewport must have zero page overflow.
+  expect(geometry.drawerOverflow).toBeLessThanOrEqual(1);
+  if (geometry.viewport <= 500) expect(geometry.backgroundOverflow).toBeLessThanOrEqual(1);
+  const panel = preview.locator(".nhs-muse-drawer");
+  await expect(panel).toHaveCSS("backdrop-filter", /blur/);
+  await page.screenshot({ path: resolve("nocturne-static-preview/review-muse-ai-mobile.png"),
+    fullPage: false, animations: "disabled" });
+  await page.locator("#role").selectOption("client");
+  await expect(page.locator("#preview .nhs-muse-drawer")).toHaveCount(0);
+  expect(outbound).toEqual([]);
+});
