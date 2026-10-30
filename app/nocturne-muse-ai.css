@@ -93,3 +93,9 @@
 .nhs-muse-evidence ul{padding-left:18px;margin:6px 0 9px}
 .nhs-muse-evidence p{margin:0;font-size:11px}
 @media(max-width:520px){.nhs-muse-drawer-head{gap:10px}.nhs-muse-header-actions{flex-direction:column-reverse;gap:2px}.nhs-muse-reset{font-size:11px}}
+
+/* Inactive Muse is a genuine, no-inference preview: spacious labels, no fake chat composer. */
+.nhs-muse-preview-topics{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:27px;max-width:380px}
+.nhs-muse-preview-topics span{padding:7px 0 9px;border-bottom:1px solid rgba(245,192,223,.26);color:#e7cade;font-size:13px;line-height:1.45}
+.nhs-muse-composer-preview{padding-top:18px}
+.nhs-muse-composer-preview .nhs-muse-disclaimer{margin:0 0 9px}
