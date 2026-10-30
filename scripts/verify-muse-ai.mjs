@@ -33,7 +33,7 @@ for (const name of ["studio_overview", "lead_priorities", "project_watch", "proj
 }
 assert.ok(runner.includes("strict: true"), "Tools must use strict schemas");
 assert.ok(runner.includes("additionalProperties: false"), "Tools must reject model-invented arguments");
-assert.ok(shell.includes('role === "admin" && <MuseConcierge enabled={process.env.MUSE_AI_ENABLED === "true"} />'), "Admin-only Muse must receive its server-side feature gate");
+assert.ok(shell.includes('role === "admin" && <MuseConcierge enabled={typeof process !== "undefined" && process.env.MUSE_AI_ENABLED === "true"} />'), "Admin-only Muse must receive its server-side feature gate");
 assert.ok(ui.includes('if (!enabled || activeRequest.current'), "Disabled Muse must not submit provider requests");
 assert.ok(ui.includes('!enabled ? ('), "Disabled Muse needs an explicit preview state");
 assert.ok(ui.includes('Preview only · No AI calls · No scans or outreach'), "Inactive Muse must disclose that no requests are made");
