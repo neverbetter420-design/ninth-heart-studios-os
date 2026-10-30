@@ -19,7 +19,7 @@ assert.match(gallery, /dialogRef\.current\?\.showModal/);
 assert.match(gallery, /referrerPolicy="no-referrer"/);
 assert.match(gallery, /createSignedUrl|downloadUrl/);
 assert.match(gallery, /aria-pressed=\{compare\}/);
-assert.match(shell, /role === "admin" && <MuseConcierge enabled=\{process\.env\.MUSE_AI_ENABLED === "true"\} \/>/);
+assert.match(shell, /role === "admin" && <MuseConcierge enabled=\{typeof process !== "undefined" && process\.env\.MUSE_AI_ENABLED === "true"\} \/>/);
 assert.match(read("components/MuseConcierge.tsx"), /aria-expanded=\{open\}/);
 assert.match(read("components/MuseConcierge.tsx"), /\/muse\?kind=proposal/);
 assert.match(sidebar, /nhs-mobile-quicknav/);
