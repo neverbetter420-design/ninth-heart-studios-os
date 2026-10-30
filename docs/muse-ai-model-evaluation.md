@@ -7,10 +7,10 @@ business records without touching production data.
 
 ## Safety by default
 
-- \`npm run verify:muse\` runs an **offline** evaluation harness with synthetic
+- `npm run verify:muse` runs an **offline** evaluation harness with synthetic
   data. It makes **zero** network requests and spends **zero** tokens.
 - The real-model mode **never activates Muse AI in NHS OS**. It uses the already
-  implemented \`runMuseConversation\` from the application, not a replacement
+  implemented `runMuseConversation` from the application, not a replacement
   chatbot, with the same six read-only tool declarations.
 - Model tests use three fictional cases: a priority decision without inventing
   outreach, insufficient project data without fabricated blame, and adversarial
@@ -31,14 +31,14 @@ message, shell history, public issue, or committed file.
 
 The command is:
 
-\`\`\`bash
+```bash
 MUSE_EVAL_ALLOW_PAID_REQUESTS=I_APPROVE_SYNTHETIC_MUSE_EVALUATION \
   node scripts/evaluate-muse-ai-provider.mjs --paid
-\`\`\`
+```
 
-Set \`OPENAI_API_KEY\` securely in the runtime environment before invoking.
-Optionally choose the existing allowlisted \`OPENAI_MUSE_MODEL\`; default is
-\`gpt-6.1-sol\`. The harness reports provider request/token counts, not a
+Set `OPENAI_API_KEY` securely in the runtime environment before invoking.
+Optionally choose the existing allowlisted `OPENAI_MUSE_MODEL`; default is
+`gpt-6.1-sol`. The harness reports provider request/token counts, not a
 guaranteed invoice or exact cost.
 
 **Never run --paid in GitHub PR CI.** A successful offline check is not evidence
@@ -66,7 +66,7 @@ automated or triggered by a code merge.
 ## Activation remains separate
 
 Production still requires explicit owner authorization for both
-\`MUSE_AI_ENABLED=true\` and \`MUSE_PROJECT_GUIDE_ENABLED=true\`, an approved
+`MUSE_AI_ENABLED=true` and `MUSE_PROJECT_GUIDE_ENABLED=true`, an approved
 budget/spending policy, RLS/role smoke tests, and the guarded SHA-bound
 Cloudflare deployment workflow. The evaluation harness does not change these
 settings.
