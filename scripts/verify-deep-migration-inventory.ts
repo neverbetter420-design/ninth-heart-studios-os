@@ -33,7 +33,7 @@ const verifiedAppliedVersions = [
   "20261028090000",
   "20261029184832",
 ];
-const proposedVersions = [];
+const proposedVersions: string[] = [];
 const filenames = readdirSync("supabase/migrations").filter(f => f.endsWith(".sql"));
 const versions = filenames.map(f => f.split("_")[0]);
 assert.equal(verifiedAppliedVersions.length, 26);
