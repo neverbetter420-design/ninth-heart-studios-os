@@ -5,6 +5,7 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "keep_vars": true,
+  "ai": { "binding": "MUSE_AI" },
   "ratelimits": [
     {
       "name": "MUSE_AI_RATE_LIMITER",

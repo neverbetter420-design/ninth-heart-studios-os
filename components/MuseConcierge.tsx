@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 type Source = { label: string; href: string };
 type Coverage = { area: string; available: number | null; reviewed: number; complete: boolean };
-type ChatEntry = { role: "user" | "assistant"; content: string; sources?: Source[]; coverage?: Coverage[]; partial?: boolean };
+type ChatEntry = { role: "user" | "assistant"; content: string; sources?: Source[]; coverage?: Coverage[]; partial?: boolean; free?: boolean };
 function suggestions(page: string) {
   if (/^\/projects\//.test(page)) return ["What is this project's Heartbeat and One Move?", "Walk me through the strongest next task", "Which tasks and approvals are still open?"];
   if (page.startsWith("/leads/discover")) return ["Compare my strongest saved prospects by category", "Why is my best prospect ranked first?", "Where is my prospect evidence weak?"];
@@ -100,13 +100,13 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: prompt, history, page }),
       });
-      const data = await response.json() as { answer?: string; error?: string; sources?: Source[]; coverage?: Coverage[]; partial?: boolean };
+      const data = await response.json() as { answer?: string; error?: string; sources?: Source[]; coverage?: Coverage[]; partial?: boolean; provider?: string };
       if (!response.ok || typeof data.answer !== "string") throw new Error(data.error || "Muse is unavailable.");
       if (activeRequest.current !== controller) return;
       setMessages(previous => [...previous, {
         role: "assistant", content: data.answer!.slice(0, 4800),
         sources: Array.isArray(data.sources) ? data.sources : [],
-        coverage: Array.isArray(data.coverage) ? data.coverage : [], partial: data.partial === true,
+        coverage: Array.isArray(data.coverage) ? data.coverage : [], partial: data.partial === true, free: data.provider === "cloudflare-free",
       }]);
     } catch (cause) {
       if (activeRequest.current === controller) setError(controller.signal.aborted ? "Stopped. You can ask again." : cause instanceof Error ? cause.message : "Muse is unavailable.");
@@ -163,7 +163,7 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
                 </div>
               ) : messages.map((message, index) => (
                 <article className={`nhs-muse-message nhs-muse-${message.role}`} key={index}>
-                  <p className="nhs-muse-speaker">{message.role === "user" ? "You" : "✧ Muse"}</p>
+                  <p className="nhs-muse-speaker">{message.role === "user" ? "You" : message.free ? "✧ Muse · Free preview" : "✧ Muse"}</p>
                   <p className="nhs-muse-message-text">{message.content}</p>
                   {message.role === "assistant" && !!message.coverage?.length && (
                     <details className="nhs-muse-evidence">
