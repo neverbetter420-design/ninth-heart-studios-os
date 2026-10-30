@@ -87,6 +87,11 @@ jobs:
         run: npm run cf:deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: Diagnose Cloudflare metadata (read only)
+        if: failure()
+        run: node scripts/diagnose-cloudflare-metadata.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Inspect deployment in Cloudflare
         run: npx wrangler deployments list --name ninth-heart-studios-os
         env:
