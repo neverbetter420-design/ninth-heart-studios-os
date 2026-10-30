@@ -26,7 +26,7 @@ export function AppShell({
             <RoomIdentity role={role} />
           </div>
           <div className="nhs-context-account">
-            {role === "admin" && <MuseConcierge enabled={process.env.MUSE_AI_ENABLED === "true"} />}
+            {role === "admin" && <MuseConcierge enabled={typeof process !== "undefined" && process.env.MUSE_AI_ENABLED === "true"} />}
             <span className="nhs-context-name" title={user.email}>{user.name}</span>
             <form action="/auth/sign-out" method="post">
               <button type="submit" className="nhs-sign-out">Sign out <span aria-hidden="true">↗</span></button>
