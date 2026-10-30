@@ -16,7 +16,7 @@ function suggestions(page: string) {
 
 /** Admin-only AI drawer. All live data reads are independently authorized on
  * the server. Drafts and existing Muse tools remain separate and unchanged. */
-export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean } = {}) {
+export function MuseConcierge({ previewOpen = false, enabled = false }: { previewOpen?: boolean; enabled?: boolean } = {}) {
   const [open, setOpen] = useState(previewOpen);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<ChatEntry[]>([]);
@@ -82,7 +82,7 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
 
   async function ask(text: string) {
     const prompt = text.trim();
-    if (activeRequest.current || prompt.length < 2 || prompt.length > 1000) return;
+    if (!enabled || activeRequest.current || prompt.length < 2 || prompt.length > 1000) return;
     const controller = new AbortController();
     activeRequest.current = controller;
     const history = messages.slice(-6).map(({ role, content }) => ({ role, content: content.slice(0, 1500) }));
@@ -129,7 +129,7 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
     <div className="nhs-muse-area">
       <button ref={trigger} type="button" className="nhs-muse-shortcut" aria-expanded={open}
         aria-controls="nhs-muse-concierge" onClick={() => setOpen(v => !v)}>
-        <span aria-hidden="true">✧</span> Muse AI
+        <span aria-hidden="true">✧</span> {enabled ? "Muse AI" : "Muse · Preview"}
       </button>
       {open && (
         <div className="nhs-muse-overlay">
@@ -140,7 +140,7 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
               <div>
                 <p className="nhs-muse-overline">NINTH HEART · STUDIO INTELLIGENCE</p>
                 <h2 id="nhs-muse-title"><span aria-hidden="true">✧</span> Muse AI</h2>
-                <p id="nhs-muse-description">An intelligent second look. Your decisions stay yours.</p>
+                <p id="nhs-muse-description">{enabled ? "An intelligent second look. Your decisions stay yours." : "A look at Muse before activation. No AI requests are made."}</p>
               </div>
               <div className="nhs-muse-header-actions">
                 {!!messages.length && <button className="nhs-muse-reset" type="button" onClick={resetConversation}>New chat</button>}
@@ -148,7 +148,18 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
               </div>
             </header>
             <div className="nhs-muse-conversation" role="log" aria-live="polite" aria-relevant="additions text">
-              {!messages.length ? (
+              {!enabled ? (
+                <div className="nhs-muse-welcome" aria-label="Muse private preview">
+                  <span className="nhs-muse-emblem" aria-hidden="true">✦</span>
+                  <h3>Meet Muse.</h3>
+                  <p>Studio intelligence is installed, but not activated. This preview does not read your records, call an AI provider, or change anything.</p>
+                  <div className="nhs-muse-preview-topics" aria-label="Planned read-only capabilities">
+                    <span>Today’s priorities</span>
+                    <span>Project guidance</span>
+                    <span>Prospect comparisons</span>
+                  </div>
+                </div>
+              ) : !messages.length ? (
                 <div className="nhs-muse-welcome">
                   <span className="nhs-muse-emblem" aria-hidden="true">✦</span>
                   <h3>What needs your attention?</h3>
@@ -189,6 +200,7 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
               {busy && <p className="nhs-muse-thinking" role="status">✧ Reviewing your studio records…</p>}
               <div ref={scrollEnd} />
             </div>
+            {enabled ? (
             <div className="nhs-muse-composer">
               {error && <p role="alert" className="nhs-muse-error">{error}</p>}
               <form onSubmit={handleSubmit}>
@@ -209,10 +221,18 @@ export function MuseConcierge({ previewOpen = false }: { previewOpen?: boolean }
               <p className="nhs-muse-disclaimer">
                 Read-only · Chat clears on reload · No automatic scans or messages
               </p>
-              <Link className="nhs-muse-workspace-link" href="/muse" onClick={() => setOpen(false)}>
+              <Link className="nhs-muse-workspace-link" href="/muse?kind=proposal" onClick={() => setOpen(false)}>
                 Muse drafts & existing studio tools ↗
               </Link>
             </div>
+            ) : (
+              <div className="nhs-muse-composer nhs-muse-composer-preview">
+                <p className="nhs-muse-disclaimer">Preview only · No AI calls · No scans or outreach</p>
+                <Link className="nhs-muse-workspace-link" href="/muse?kind=proposal" onClick={() => setOpen(false)}>
+                  Explore Muse drafts &amp; studio tools ↗
+                </Link>
+              </div>
+            )}
           </section>
         </div>
       )}
