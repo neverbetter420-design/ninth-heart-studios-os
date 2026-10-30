@@ -1,0 +1,29 @@
+name: Verify Cloudflare Token (read only)
+
+# Manual only. This workflow never builds, uploads, deploys, or changes resources.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.actor == 'neverbetter420-design' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Checkout approved main
+        uses: actions/checkout@v4
+
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check GitHub production Cloudflare credential (GET only)
+        run: node scripts/diagnose-cloudflare-metadata.mjs
+        env:
+          CLOUDFLARE_ACCOUNT_ID: 1cab715a285ef1f9cabff977ccda18da
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
