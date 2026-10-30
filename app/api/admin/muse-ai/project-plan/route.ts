@@ -43,6 +43,9 @@ export async function POST(request: NextRequest) {
   if (process.env.MUSE_PROJECT_GUIDE_ENABLED !== "true") {
     return error("Muse Project Guide is in private preview and has not been enabled yet.", 503);
   }
+  if ((process.env.MUSE_AI_PROVIDER || "openai") !== "openai") {
+    return error("Project-plan generation and application are unavailable in the free preview. Muse chat stays read-only.", 503);
+  }
   const action = payload.action;
   const projectId = typeof payload.project_id === "string" ? payload.project_id : "";
   if (!UUID.test(projectId)) return error("Select a valid project.", 400);

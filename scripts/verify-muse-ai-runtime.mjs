@@ -34,7 +34,7 @@ function load(path) {
   };
   vm.runInNewContext(`(function(require,module,exports){${code}\n})`, {
     process: { env }, console, Error, URL, Map, Set, Date, Intl, JSON, Promise,
-    AbortSignal, ReadableStream, TextDecoder, TextEncoder, Uint8Array,
+    AbortSignal, ReadableStream, TextDecoder, TextEncoder, Uint8Array, Response,
     fetch: async (...args) => { providerCalls++; return fakeFetch(...args); },
   }, { filename: path })(customRequire, module, module.exports);
   return module.exports;
@@ -220,5 +220,56 @@ await check("byte-limited reader cancels chunked oversized stream", async () => 
   let cancelled = false;
   const stream = new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode("💀".repeat(10))); }, cancel() { cancelled = true; } });
   await assert.rejects(runner.boundedText(stream, 10), /body_too_large/); assert.equal(cancelled, true);
+});
+const free = load(resolve(root, "lib/muse-cloudflare-free.ts"));
+const binding = load(resolve(root, "lib/muse-cloudflare-binding.ts"));
+const freeEvidence = { ...evidence, rows: [{ name: "Synthetic studio task", next_action: "Review" }] };
+const freeRun = extras => free.runFreeMuse({ question: "Which leads need attention?", history: [], page: "/muse", now,
+  read: async () => freeEvidence, ask: async () => ({ response: "Review the saved task.", usage: { completion_tokens: 8 } }), ...extras });
+await check("free preview routes bounded evidence on the server", async () => {
+  assert.equal(free.freeMuseTool("Compare my strongest saved prospects by categories", "/muse"), "prospect_comparison");
+  assert.equal(free.freeMuseTool("Which projects need watching?", "/muse"), "project_watch");
+  assert.equal(free.freeMuseTool("Which leads and projects need attention?", "/muse"), "studio_overview");
+  assert.equal(free.freeMuseTool("Heartbeat and One Move", "/projects/" + uid(1)), "project_guide");
+  assert.equal(free.freeMuseTool("Fiverr opportunities", "/muse"), "opportunity_radar");
+  let calls = 0;
+  const answer = await freeRun({ ask: async body => { calls++; assert.equal(body.max_tokens, 700); assert.equal(body.stream, false); assert.ok(!body.tools); return { response: "Review.", usage: { completion_tokens: 3 } }; } });
+  assert.equal(calls, 1); assert.equal(answer.provider, "cloudflare-free"); assert.equal(answer.coverage[0].available, 0);
+});
+await check("partial, empty and oversized free evidence never consumes inference", async () => {
+  const ask = async () => { throw Error("must not infer"); };
+  assert.equal((await freeRun({ read: async () => ({ ...freeEvidence, partial: true }), ask })).partial, true);
+  assert.equal((await freeRun({ read: async () => evidence, ask })).provider, "cloudflare-free");
+  assert.equal((await freeRun({ read: async () => ({ ...freeEvidence, rows: [{ name: "💀".repeat(7000) }] }), ask })).partial, true);
+});
+await check("free output rejects tool requests, missing usage and likely truncation", async () => {
+  for (const value of [null, {}, { response: "" }, { response: "Review." },
+    { response: "Review.", usage: { completion_tokens: 700 } },
+    { response: "Review.", usage: { completion_tokens: -1 } },
+    { response: "Review.", usage: { completion_tokens: 3 }, tool_calls: [{ name: "send" }] }]) {
+    await assert.rejects(freeRun({ ask: async () => value }), /free_model_/);
+  }
+});
+await check("free provider requires explicit billing verification and an AI binding", async () => {
+  delete env.MUSE_CF_FREE_PLAN_CONFIRMED;
+  await assert.rejects(binding.getFreeMuseProvider(AbortSignal.timeout(1000)), /free_plan_unverified/);
+  env.MUSE_CF_FREE_PLAN_CONFIRMED = "true"; cloudEnv = {};
+  await assert.rejects(binding.getFreeMuseProvider(AbortSignal.timeout(1000)), /free_binding_unavailable/);
+});
+await check("free route never falls back to OpenAI, including quota and provider failures", async () => {
+  env.MUSE_AI_PROVIDER = "cloudflare-free"; db = mockDb({ leads: [{ id: uid(1), business_name: "Synthetic", status: "new", created_at: now, updated_at: now }] });
+  let calls = 0;
+  cloudEnv = { MUSE_AI: { run: async (model, body, opts) => { calls++; assert.equal(model, free.FREE_MUSE_MODEL); assert.equal(opts.returnRawResponse, true); return Response.json({ response: "Review Synthetic.", usage: { completion_tokens: 4 } }); } } };
+  const before = providerCalls;
+  let result = await route.POST(request({ question: "Which leads need attention?" }));
+  assert.equal(result.status, 200); assert.equal((await result.json()).provider, "cloudflare-free"); assert.equal(calls, 1);
+  cloudEnv.MUSE_AI.run = async () => { calls++; return new Response("private details", { status: 429 }); };
+  result = await route.POST(request({ question: "Which leads need attention?" })); assert.equal(result.status, 429);
+  assert.match(await result.text(), /No paid fallback/);
+  cloudEnv.MUSE_AI.run = async () => { calls++; throw Error("private upstream error"); };
+  result = await route.POST(request({ question: "Which leads need attention?" })); assert.equal(result.status, 502);
+  assert.equal(providerCalls, before); assert.equal(calls, 3);
+  delete env.MUSE_CF_FREE_PLAN_CONFIRMED; await status(request(), 503);
+  delete env.MUSE_AI_PROVIDER;
 });
 console.log(`Muse AI runtime verification: ${passed} checks passed, zero hosted requests.`);
