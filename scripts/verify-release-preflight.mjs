@@ -13,13 +13,14 @@ const appliedVersions = [
   "20261013040000","20261013050000","20261013050001","20261013060000",
   "20261013232917","20261014060417","20261014070000","20261015001632",
   "20261015001941","20261015005039","20261017030000","20261020063055",
-  "20261028090000",
+  "20261028090000","20261029184832",
 ];
-// Source-only Project Guide candidate. It is intentionally not counted in the
-// verified production baseline and must not be described as applied.
-const proposedVersions = ["20261029184832"];
+// Read-only live Supabase inventory on 2026-10-30 confirms 26 applied versions,
+// including Muse Project Guide v1. This is an inventory correction only;
+// do not execute migrations or change approval gates through this script.
+const proposedVersions = [];
 // Owner-approved exact Deep Scan SQL, now verified APPLIED in hosted Supabase
-// (live inventory has 25 applied versions). The source preflight is intentionally
+// (live inventory now has 26 applied versions). The source preflight is intentionally
 // read-only; a new migration needs a separately approved inventory change.
 // Preserve the Git blob integrity pin against accidental SQL alteration.
 const approvedDeepScanSqlBlobSha = "997b2ffbb0f36223dd72a781c13f0aca24010fd8";
@@ -36,8 +37,8 @@ const checks = [
     }
     assert.equal(migrations.length, appliedVersions.length + proposedVersions.length,
       "Unexpected additional SQL migrations require a new approved inventory review.");
-    assert.equal(appliedVersions.length, 25,
-      "The verified live migration baseline contains exactly 25 applied versions.");
+    assert.equal(appliedVersions.length, 26,
+      "The verified live migration baseline contains exactly 26 applied versions.");
     assert.equal(migrations.filter((f) => f === "20261028090000_deep_scan_jobs.sql").length, 1,
       "Already-applied Deep Scan source must have exactly its approved filename.");
     const approvedSource = read("supabase/migrations/20261028090000_deep_scan_jobs.sql");
