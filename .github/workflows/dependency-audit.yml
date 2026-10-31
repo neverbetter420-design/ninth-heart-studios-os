@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          npm audit --json > "$RUNNER_TEMP/nhs-npm-audit.json"
+          npm audit --audit-level=high --json > "$RUNNER_TEMP/nhs-npm-audit.json"
           audit_exit_code=$?
           set -e
           export AUDIT_EXIT_CODE="$audit_exit_code"
