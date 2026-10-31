@@ -19,10 +19,10 @@ begin
   if jsonb_typeof(item) is distinct from 'object' then
     raise exception 'Invalid Muse task object.';
   end if;
-  if is_parent then keys := keys || 'subtasks'; end if;
+  if is_parent then keys := pg_catalog.array_append(keys, 'subtasks'); end if;
   if (select count(*) from pg_catalog.jsonb_object_keys(item)) <> pg_catalog.array_length(keys, 1)
-     or exists (select 1 from pg_catalog.jsonb_object_keys(item) k
-                where not (k = any(keys)))
+     or exists (select 1 from pg_catalog.jsonb_object_keys(item) as kv(key_name)
+                where not (kv.key_name = any(keys)))
      or not (item ?& keys) then
     raise exception 'Muse task fields are missing or unexpected.';
   end if;
