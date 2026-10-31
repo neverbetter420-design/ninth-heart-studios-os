@@ -61,7 +61,9 @@ jobs:
           supabase init
           mkdir -p supabase/migrations
           cp ../supabase/migrations/*.sql supabase/migrations/
-          echo "Copied application migrations into disposable project."
+          # Candidate files are permitted ONLY in disposable local CI, never in production inventory.
+          cp ../supabase/migration-candidates/*.sql supabase/migrations/
+          echo "Copied the approved baseline and unapproved candidates into a disposable test project."
 
       - name: Apply migrations and start local Supabase Auth + REST stack
         working-directory: .nhs-phase3-local
