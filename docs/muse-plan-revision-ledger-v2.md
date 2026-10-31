@@ -1,6 +1,6 @@
 # Muse Project Guide v2: revision ledger and exact approval
 
-Status: **SOURCE-ONLY DRAFT**. No hosted Supabase migration, live feature flags, paid AI, production deploy, lead scan, outreach or client message has been performed.
+Status: **SOURCE-ONLY CANDIDATE; NOT IN PRODUCTION MIGRATIONS**. No hosted Supabase migration, live feature flags, paid AI, production deploy, lead scan, outreach or client message has been performed.
 
 ## What this PR adds
 
@@ -32,7 +32,7 @@ A private SECURITY DEFINER function is used only to bridge intentionally revoked
 
 ## Known release considerations
 
-- The migration uses a **manually authored filename** because the Supabase CLI was not available in the authoring environment. CI must verify the timestamp order and complete migration chain.
+- The migration uses a **manually authored candidate filename** because the Supabase CLI was not available in the authoring environment. CI copies this candidate into an ephemeral local Supabase stack; the production release preflight still blocks any unapproved source migration.
 - This backend-only revision milestone does **not** provide finished end-user editing. Only the typed local revision helper from v1 and the guarded RPC are available for follow-on integration.
 - Any promotion of this branch requires a separate review of changes to privilege grants and the callable private functions. The presence of an AI binding or secret does not authorize paid model usage.
 
