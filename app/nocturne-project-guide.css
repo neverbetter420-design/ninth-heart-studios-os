@@ -57,9 +57,15 @@
 .muse-plan-list > li > p { max-width: 780px; margin: 7px 0 0; color: #cdbcc7; font-size: 11px; line-height: 1.65; }
 .muse-done-definition b { color: #e4cbd9; }
 .muse-plan-list ul { display: grid; gap: 6px; margin: 13px 0 0; padding: 0; list-style: none; }
-.muse-plan-list ul li { display: grid; grid-template-columns: minmax(140px,.45fr) minmax(0,1fr); gap: 12px; padding: 9px 12px; border-left: 1px solid rgba(210,149,185,.32); background: rgba(255,255,255,.018); }
+.muse-plan-list ul li { display: grid; grid-template-columns: 1fr; gap: 6px; padding: 12px 14px; border-left: 1px solid rgba(210,149,185,.32); background: rgba(255,255,255,.018); }
 .muse-plan-list ul strong { color: #edc9dc; font-size: 10px; }
-.muse-plan-list ul span { color: #c8b7c2; font-size: 10px; line-height: 1.55; }
+.muse-plan-list ul p { margin: 0; color: #c8b7c2; font-size: 11px; line-height: 1.6; }
+.muse-plan-list ul .muse-done-definition b { color: #e4cbd9; }
+.muse-plan-review-note { margin: 12px 0; color: #cbb7c5; font-size: 11px; line-height: 1.6; }
+.muse-plan-task-meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; margin: 8px 0; color: #c4b2c0; font-size: 10px; }
+.muse-plan-task-meta > span { line-height: 1.5; }
+.muse-plan-visibility-private { color: #bca4b3; }
+.muse-plan-visibility-visible { color: #f3c5a0; font-weight: 600; }
 .muse-plan-approval { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
 .muse-task-section .delivery-list,.muse-task-group > ul { list-style: none; margin: 0; padding: 0; }
