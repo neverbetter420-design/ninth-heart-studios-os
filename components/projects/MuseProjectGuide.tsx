@@ -2,9 +2,28 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { MuseProjectPlan, ProjectHeartbeat } from "@/lib/muse-project-guide";
+import { parseMuseProjectPlan, type MuseProjectPlan, type ProjectHeartbeat } from "@/lib/muse-project-guide";
 
 type DraftPlan = MuseProjectPlan & { plan_id: string; expires_at: string };
+const UUID = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+
+// Never trust the shape, identity or lifetime of a draft returned to the browser.
+function validatedDraft(response: Record<string, unknown>): DraftPlan {
+  const planId = typeof response.plan_id === "string" ? response.plan_id : "";
+  const expires = typeof response.expires_at === "string" ? Date.parse(response.expires_at) : NaN;
+  if (!UUID.test(planId) || !Number.isFinite(expires) || expires <= Date.now()) {
+    throw new Error("Muse returned an invalid or expired draft. No tasks were created.");
+  }
+  let parsed: MuseProjectPlan;
+  try { parsed = parseMuseProjectPlan(response); }
+  catch { throw new Error("Muse returned an invalid project plan. No tasks were created."); }
+  return { ...parsed, plan_id: planId, expires_at: response.expires_at as string };
+}
+
+function clientVisibleCount(plan: MuseProjectPlan) {
+  return plan.tasks.reduce((count, task) => count + Number(task.client_visible)
+    + task.subtasks.filter(subtask => subtask.client_visible).length, 0);
+}
 
 function taskCount(plan: MuseProjectPlan) {
   return plan.tasks.length + plan.tasks.reduce((sum, task) => sum + task.subtasks.length, 0);
@@ -54,21 +73,29 @@ export function MuseProjectGuide({
     setBusy("draft"); setError(""); setCreated(null); setPlan(null);
     try {
       const data = await call({ action: "draft", project_id: projectId, objective: objective.trim() });
-      setPlan(data as unknown as DraftPlan);
+      setPlan(validatedDraft(data));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Muse couldn't prepare the plan.");
     } finally { setBusy(null); }
   }
 
   async function apply() {
-    if (!plan || busy) return;
+    if (!enabled || !plan || busy) return;
+    if (Date.parse(plan.expires_at) <= Date.now()) {
+      setPlan(null);
+      setError("This plan has expired. Draft a fresh plan before approving any tasks.");
+      return;
+    }
     const count = taskCount(plan);
     if (!window.confirm(`Create the exact ${count}-task Muse plan you reviewed? This changes the project task list.`)) return;
     setBusy("apply"); setError("");
     try {
       const data = await call({ action: "apply", project_id: projectId, plan_id: plan.plan_id });
-      const countCreated = typeof data.created_count === "number" ? data.created_count : count;
-      setCreated(countCreated); setPlan(null);
+      if (data.plan_id !== plan.plan_id || data.created_count !== count) {
+        setPlan(null);
+        throw new Error("Muse returned an unexpected approval receipt. Review the project task list before retrying.");
+      }
+      setCreated(count); setPlan(null);
       router.refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Muse couldn't apply the plan.");
@@ -129,13 +156,32 @@ export function MuseProjectGuide({
           <div><p className="muse-guide-kicker">PROPOSED · NOTHING CREATED</p><h4>{plan.summary}</h4></div>
           <span>{taskCount(plan)} total tasks</span>
         </div>
+        <p className="muse-plan-review-note">
+          Review every task before approval · {clientVisibleCount(plan)} client-visible ·
+          Draft expires {new Date(plan.expires_at).toLocaleString()}.
+        </p>
         <ol className="muse-plan-list">
           {plan.tasks.map((task, index) => <li key={`${task.title}-${index}`}>
             <div className="muse-plan-task-head"><strong>{task.title}</strong><span>{task.priority}{task.estimated_minutes ? ` · ${minutes(task.estimated_minutes)}` : ""}</span></div>
+            <div className="muse-plan-task-meta">
+              {task.due_date && <span>Due {task.due_date}</span>}
+              <span className={task.client_visible ? "muse-plan-visibility-visible" : "muse-plan-visibility-private"}>
+                {task.client_visible ? "Visible to client" : "Studio-only"}
+              </span>
+            </div>
             <p>{task.description}</p>
             <p className="muse-done-definition"><b>Done:</b> {task.definition_of_done}</p>
             {!!task.subtasks.length && <ul>{task.subtasks.map((subtask, subIndex) => <li key={`${subtask.title}-${subIndex}`}>
-              <strong>{subtask.title}</strong><span>{subtask.description}</span>
+              <strong>{subtask.title}</strong>
+              <p>{subtask.description}</p>
+              <p className="muse-done-definition"><b>Done:</b> {subtask.definition_of_done}</p>
+              <div className="muse-plan-task-meta">
+                <span>{subtask.priority}{subtask.estimated_minutes ? ` · ${minutes(subtask.estimated_minutes)}` : ""}</span>
+                {subtask.due_date && <span>Due {subtask.due_date}</span>}
+                <span className={subtask.client_visible ? "muse-plan-visibility-visible" : "muse-plan-visibility-private"}>
+                  {subtask.client_visible ? "Visible to client" : "Studio-only"}
+                </span>
+              </div>
             </li>)}</ul>}
           </li>)}
         </ol>
