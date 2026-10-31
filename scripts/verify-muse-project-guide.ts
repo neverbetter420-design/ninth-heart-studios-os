@@ -108,4 +108,21 @@ check("project UI requires a reviewed confirmation and keeps details collapsible
   assert.match(tasks, /Add subtask beneath/);
 });
 
+check("review rejects malformed or expired drafts and mismatched approval receipts", () => {
+  const guide = read("components/projects/MuseProjectGuide.tsx");
+  for (const token of [
+    "validatedDraft(data)",
+    "parseMuseProjectPlan(response)",
+    "expires <= Date.now()",
+    "Date.parse(plan.expires_at) <= Date.now()",
+    "data.plan_id !== plan.plan_id || data.created_count !== count",
+    "if (!enabled || !plan || busy) return",
+    "clientVisibleCount(plan)",
+    "subtask.definition_of_done",
+    "subtask.client_visible",
+    "task.due_date",
+  ]) assert.ok(guide.includes(token), "Missing plan-review control: " + token);
+  assert.doesNotMatch(guide, /data as unknown as DraftPlan|countCreated = typeof data\.created_count/);
+});
+
 console.log(`Muse Project Guide verification: ${passed} checks passed, zero hosted requests or business writes.`);
