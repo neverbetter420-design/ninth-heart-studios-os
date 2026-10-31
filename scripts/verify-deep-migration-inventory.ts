@@ -33,14 +33,12 @@ const verifiedAppliedVersions = [
   "20261028090000",
   "20261029184832",
 ];
-// Source candidate only. Never counted as applied or approved for production.
-const proposedVersions: string[] = ["20261031214507"];
+const proposedVersions: string[] = [];
 const filenames = readdirSync("supabase/migrations").filter(f => f.endsWith(".sql"));
 const versions = filenames.map(f => f.split("_")[0]);
 assert.equal(verifiedAppliedVersions.length, 26);
 assert.equal(new Set(verifiedAppliedVersions).size, 26);
-assert.equal(filenames.length, verifiedAppliedVersions.length + proposedVersions.length,
-  "Only the 26 recorded applied migrations and explicitly listed source-only candidates are allowed");
+assert.equal(filenames.length, 26, "All 26 recorded production migration versions must be represented exactly");
 assert.equal(new Set(versions).size, filenames.length, "all migration filenames must have unique version prefixes");
 assert.deepEqual([...versions].sort(), [...verifiedAppliedVersions, ...proposedVersions].sort(),
   "A source version is missing, duplicated, or not part of the recorded production inventory");
@@ -63,4 +61,4 @@ assert.match(preflight, /"20261028090000"/);
 assert.match(preflight, /const proposedVersions = \[\]/);
 assert.match(preflight, /migrations\.length, appliedVersions\.length \+ proposedVersions\.length,/);
 assert.doesNotMatch(preflight, /not yet counted as applied/);
-console.log("verify:deep-migration-inventory — 26 applied migration sources + 1 unapproved source candidate; no database writes.");
+console.log("verify:deep-migration-inventory — 26 recorded applied sources represented; no database writes.");
