@@ -141,10 +141,67 @@ await check("Muse plans are admin-owner-only and clients cannot apply them",asyn
  }).select("id,status"),"admin Muse plan draft");
  assert.equal(got(await A.from("muse_project_plans").select("id").eq("id",planId),"client A plan read").length,0);
  assert.equal(got(await B.from("muse_project_plans").select("id").eq("id",planId),"client B plan read").length,0);
- const clientApply=await A.rpc("apply_muse_project_plan",{target_plan_id:planId});
+ // Exact revision 1 must be captured by a database-owned trigger.
+ const initial=got(await Admin.from("muse_project_plan_revisions").select("revision,plan").eq("plan_id",planId),"original plan ledger");
+ assert.equal(initial.length,1);assert.equal(initial[0].revision,1);
+ assert.deepEqual(initial[0].plan,plan);
+ assert.equal(got(await A.from("muse_project_plan_revisions").select("revision").eq("plan_id",planId),"client ledger denial").length,0);
+ assert.equal(got(await B.from("muse_project_plan_revisions").select("revision").eq("plan_id",planId),"cross-client ledger denial").length,0);
+ const directChange=await Admin.from("muse_project_plans").update({summary:"Forbidden direct update"}).eq("id",planId).select("id");
+ assert.ok(directChange.error,"Admin REST must not update a plan outside the ledger RPC");
+ const directDelete=await Admin.from("muse_project_plans").delete().eq("id",planId).select("id");
+ assert.ok(directDelete.error,"Admin REST must not delete a versioned plan");
+ const forgedLedger=await Admin.from("muse_project_plan_revisions").insert({
+  plan_id:planId,revision:2,plan,change_summary:"Spoofed revision",created_by:ids.admin,
+ }).select("revision");
+ assert.ok(forgedLedger.error,"Admin REST must not insert version history");
+
+ // A save must be owner-checked, atomic and version-bound; the original remains.
+ const revised={...plan,summary:"An explicitly reviewed synthetic revision."};
+ const saved=got(await Admin.rpc("save_muse_project_plan_revision",{
+  target_plan_id:planId,target_project_id:projectA,expected_revision:1,
+  updated_plan:revised,change_note:"Review and adjust plan summary",
+ }),"save exact revision one");
+ assert.equal(saved[0].saved_plan_id,planId);
+ assert.equal(saved[0].saved_project_id,projectA);
+ assert.equal(saved[0].saved_revision,2);
+ assert.equal(saved[0].saved_plan.summary,revised.summary);
+ const history=got(await Admin.from("muse_project_plan_revisions").select("revision,plan").eq("plan_id",planId).order("revision"),"immutable plan history");
+ assert.deepEqual(history.map(x=>x.revision),[1,2]);assert.deepEqual(history[0].plan,plan);
+
+ const [editX,editY]=await Promise.all([
+  Admin.rpc("save_muse_project_plan_revision",{
+   target_plan_id:planId,target_project_id:projectA,expected_revision:2,
+   updated_plan:{...revised,summary:"Competing edit one."},change_note:"Competing synthetic edit X",
+  }),
+  Admin.rpc("save_muse_project_plan_revision",{
+   target_plan_id:planId,target_project_id:projectA,expected_revision:2,
+   updated_plan:{...revised,summary:"Competing edit two."},change_note:"Competing synthetic edit Y",
+  }),
+ ]);
+ assert.equal([editX,editY].filter(r=>!r.error).length,1,"exactly one concurrent save must win");
+ assert.equal([editX,editY].filter(r=>r.error).length,1,"stale concurrent save must fail");
+ const latest=got(await Admin.from("muse_project_plans").select("plan,current_revision").eq("id",planId).single(),"latest stored revision");
+ assert.equal(latest.current_revision,3);
+ assert.equal(got(await Admin.from("muse_project_plan_revisions").select("revision").eq("plan_id",planId),"immutable history count").length,3);
+
+ const argumentsForApply={target_plan_id:planId,target_project_id:projectA,expected_revision:3,expected_count:2};
+ const oldRpc=await Admin.rpc("apply_muse_project_plan",{target_plan_id:planId});
+ assert.ok(oldRpc.error,"old unversioned RPC signature must no longer be callable");
+ const clientApply=await A.rpc("apply_muse_project_plan",argumentsForApply);
  assert.ok(clientApply.error,"client must not apply Muse plan");
- const applied=got(await Admin.rpc("apply_muse_project_plan",{target_plan_id:planId}),"admin applies exact Muse plan");
- assert.equal(applied[0].applied_plan_id,planId);assert.equal(applied[0].applied_project_id,projectA);assert.equal(applied[0].created_count,2);
+ const staleApply=await Admin.rpc("apply_muse_project_plan",{...argumentsForApply,expected_revision:2});
+ assert.ok(staleApply.error,"stale revision must not apply");
+ const mismatchCount=await Admin.rpc("apply_muse_project_plan",{...argumentsForApply,expected_count:1});
+ assert.ok(mismatchCount.error,"incorrect task count must not apply");
+ const mismatchProject=await Admin.rpc("apply_muse_project_plan",{...argumentsForApply,target_project_id:projectB});
+ assert.ok(mismatchProject.error,"wrong project must not apply");
+ assert.equal(got(await Admin.from("tasks").select("id").eq("muse_plan_id",planId),"no tasks from failed approval").length,0);
+ const applied=got(await Admin.rpc("apply_muse_project_plan",argumentsForApply),"admin applies exact verified revision");
+ assert.equal(applied[0].applied_plan_id,planId);assert.equal(applied[0].applied_project_id,projectA);
+ assert.equal(applied[0].applied_revision,3);assert.equal(applied[0].created_count,2);
+ const repeat=await Admin.rpc("apply_muse_project_plan",argumentsForApply);
+ assert.ok(repeat.error,"duplicate approval must be rejected");
  const savedPlan=got(await Admin.from("muse_project_plans").select("status,approved_at,applied_at").eq("id",planId).single(),"applied plan receipt");
  assert.equal(savedPlan.status,"applied");assert.ok(savedPlan.approved_at);assert.ok(savedPlan.applied_at);
  const created=got(await Admin.from("tasks").select("id,parent_task_id,source,muse_plan_id,client_visible").eq("muse_plan_id",planId).order("position"),"Muse tasks");
@@ -158,6 +215,7 @@ await check("Muse plans are admin-owner-only and clients cannot apply them",asyn
  assert.ok(parentDelete.error,"parent with subtasks must be protected from deletion");
  const activity=got(await Admin.from("activities").select("event_type,metadata").eq("project_id",projectA).eq("event_type","muse_plan_applied"),"Muse audit activity");
  assert.equal(activity.length,1);assert.equal(activity[0].metadata.created_count,2);
+ assert.equal(activity[0].metadata.applied_revision,3);
 });
 console.log("PASS "+checks.length+" full local Supabase Auth + PostgREST integration cases, synthetic accounts only");
 await verifyDeepScanLeaseLocal({
