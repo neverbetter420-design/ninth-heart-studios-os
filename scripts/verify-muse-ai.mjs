@@ -33,7 +33,10 @@ for (const name of ["studio_overview", "lead_priorities", "project_watch", "proj
 }
 assert.ok(runner.includes("strict: true"), "Tools must use strict schemas");
 assert.ok(runner.includes("additionalProperties: false"), "Tools must reject model-invented arguments");
-assert.ok(shell.includes('role === "admin" && <MuseConcierge />'), "Never expose Muse to client portal");
+assert.ok(shell.includes('role === "admin" && <MuseConcierge enabled={typeof process !== "undefined" && process.env.MUSE_AI_ENABLED === "true"} />'), "Admin-only Muse must receive its server-side feature gate");
+assert.ok(ui.includes('if (!enabled || activeRequest.current'), "Disabled Muse must not submit provider requests");
+assert.ok(ui.includes('!enabled ? ('), "Disabled Muse needs an explicit preview state");
+assert.ok(ui.includes('Preview only · No AI calls · No scans or outreach'), "Inactive Muse must disclose that no requests are made");
 assert.ok(ui.includes('fetch("/api/admin/muse-ai"'), "Muse drawer must use secured server route");
 assert.ok(ui.includes("No automatic scans or messages"), "Show read-only boundary visibly");
 console.log("Muse AI static safety contract passed: admin-only, feature gated, RLS reads, fixed tool allowlist, no writes or automatic outreach.");

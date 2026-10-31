@@ -11,10 +11,11 @@ let chromium;
 try { ({ chromium } = require("playwright")); }
 catch { ({ chromium } = require(require.resolve("playwright", { paths: [process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES] }))); }
 const root = resolve(import.meta.dirname, "..");
+// The interactive QA fixture explicitly enables synthetic chat, independent of production flags.
 const bundle = await build({ absWorkingDir: root, stdin: { resolveDir: root, contents: `
 import React from 'react'; import {createRoot} from 'react-dom/client';
 import {MuseConcierge} from './components/MuseConcierge.tsx';
-createRoot(document.querySelector('.nhs-muse-area')).render(React.createElement(MuseConcierge));`, loader: "tsx" },
+createRoot(document.querySelector('.nhs-muse-area')).render(React.createElement(MuseConcierge, { enabled: true }));`, loader: "tsx" },
   bundle: true, write: false, platform: "browser", define: { "process.env.NODE_ENV": '"production"' },
   plugins: [{ name: "synthetic-next", setup(b) {
     b.onResolve({ filter: /^next\/(link|navigation)$/ }, args => ({ path: args.path, namespace: "synthetic" }));

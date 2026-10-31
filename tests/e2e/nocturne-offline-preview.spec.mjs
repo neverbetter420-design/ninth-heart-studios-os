@@ -131,7 +131,7 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
 });
 
 
-test("Muse AI opens as an actual glass admin-only synthetic preview at mobile width", async ({ page }) => {
+test("Disabled Muse renders a safe glass admin-only preview at mobile width", async ({ page }) => {
   test.setTimeout(90000);
   const outbound = [];
   page.on("request", req => { if (/^https?:/i.test(req.url())) outbound.push(req.url()); });
@@ -141,9 +141,11 @@ test("Muse AI opens as an actual glass admin-only synthetic preview at mobile wi
   await page.locator("#width").selectOption("mobile");
   const preview = page.locator("#preview");
   await expect(preview.getByRole("dialog", { name: "Muse AI" })).toBeVisible();
-  await expect(preview.getByRole("heading", { name: "What needs your attention?" })).toBeVisible();
-  await expect(preview.locator(".nhs-muse-prompts button")).toHaveCount(3);
-  await expect(preview.getByText("No automatic scans or messages")).toBeVisible();
+  await expect(preview.getByRole("heading", { name: "Meet Muse." })).toBeVisible();
+  await expect(preview.getByText("Preview only · No AI calls · No scans or outreach")).toBeVisible();
+  await expect(preview.locator(".nhs-muse-preview-topics span")).toHaveCount(3);
+  await expect(preview.locator(".nhs-muse-prompts button")).toHaveCount(0);
+  await expect(preview.locator(".nhs-muse-composer textarea, .nhs-muse-send")).toHaveCount(0);
   await expect(preview.locator(".nhs-muse-drawer")).toHaveCSS("height", /px$/);
   const geometry = await preview.evaluate(el => {
     const host = el.getBoundingClientRect();
