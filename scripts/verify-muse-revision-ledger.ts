@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 
 const root = new URL("../", import.meta.url);
 const read = (p: string) => readFileSync(new URL(p, root), "utf8");
-const sql = read("supabase/migrations/20261031214507_muse_plan_revision_ledger_v2.sql");
+const sql = read("supabase/migration-candidates/20261031214507_muse_plan_revision_ledger_v2.sql");
 const route = read("app/api/admin/muse-ai/project-plan/route.ts");
 const ui = read("components/projects/MuseProjectGuide.tsx");
 const browser = read("scripts/verify-muse-project-guide-browser.mjs");
