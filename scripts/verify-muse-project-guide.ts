@@ -115,7 +115,7 @@ check("review rejects malformed or expired drafts and mismatched approval receip
     "parseMuseProjectPlan(response)",
     "expires <= Date.now()",
     "Date.parse(plan.expires_at) <= Date.now()",
-    "data.plan_id !== plan.plan_id || data.created_count !== count",
+    "data.plan_id !== plan.plan_id || data.applied_revision !== plan.revision || data.created_count !== count",
     "if (!enabled || !plan || busy) return",
     "clientVisibleCount(plan)",
     "subtask.definition_of_done",
