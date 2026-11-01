@@ -13,6 +13,16 @@
       "simple": { "limit": 6, "period": 60 }
     }
   ],
+  "previews": {
+    "ai": { "binding": "MUSE_AI" },
+    "ratelimits": [
+      {
+        "name": "MUSE_AI_RATE_LIMITER",
+        "namespace_id": "929011",
+        "simple": { "limit": 6, "period": 60 }
+      }
+    ]
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
