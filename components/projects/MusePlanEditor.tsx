@@ -143,7 +143,7 @@ export function MusePlanEditor({
         onChange={event => setEdited(current => ({ ...current, summary: event.target.value }))} />
     </label>
     <div className="muse-editor-task-list">
-      {edited.tasks.map((task, index) => <details className="muse-editor-task" key={index} open={index === 0 ? undefined : undefined} >
+      {edited.tasks.map((task, index) => <details className="muse-editor-task" key={index} open={undefined}>
         <summary><span>Task {index + 1} · {task.title || "Untitled"}</span>
           <small>{task.subtasks.length} steps · {task.client_visible ? "Client-visible" : "Private"}</small>
         </summary>
