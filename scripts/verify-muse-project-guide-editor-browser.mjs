@@ -76,16 +76,37 @@ try {
         await route.fulfill({status:409,contentType:"application/json",
           body:JSON.stringify({error:"Revision conflict. Reload the saved plan."})});
       } else {
-        assert.equal(body.plan.tasks[0].client_visible,true);
+        assert.equal(body.plan.tasks[0].client_visible, saved.revision === 1);
         saved={...body.plan,plan_id:id,project_id:project,revision:saved.revision+1,expires_at:first.expires_at};
         await route.fulfill({contentType:"application/json",body:JSON.stringify(saved)});
       }
+    } else if(body.action==="load_history") {
+      assert.equal(body.plan_id,id);
+      assert.equal(saved.revision,2);
+      const metadata=(draft, revision, note, date)=>({
+        revision, change_summary:note, created_at:date, summary:draft.summary,
+        task_count:2,client_visible:Number(draft.tasks[0].client_visible),
+      });
+      await route.fulfill({contentType:"application/json",body:JSON.stringify({
+        plan_id:id,project_id:project,current_revision:saved.revision,
+        revisions:[
+          metadata(saved,2,"Prioritize booking conversion and share review","2026-10-31T22:00:00.000Z"),
+          metadata(first,1,"Original proposal","2026-10-31T21:00:00.000Z"),
+        ],
+      })});
+    } else if(body.action==="load_revision") {
+      assert.equal(body.plan_id,id);assert.equal(body.revision,1);
+      await route.fulfill({contentType:"application/json",body:JSON.stringify({
+        plan_id:id,project_id:project,current_revision:2,revision:1,
+        change_summary:"Original proposal",created_at:"2026-10-31T21:00:00.000Z",
+        plan:{summary:first.summary,tasks:first.tasks},
+      })});
     } else if(body.action==="apply") {
       assert.equal(body.plan_id,id);
-      assert.equal(body.expected_revision,2);
+      assert.equal(body.expected_revision,3);
       assert.equal(body.expected_count,2);
       await route.fulfill({contentType:"application/json",
-        body:JSON.stringify({plan_id:id,applied_revision:2,created_count:2})});
+        body:JSON.stringify({plan_id:id,applied_revision:3,created_count:2})});
     } else throw Error("Unexpected Project Guide action: "+body.action);
   });
   await page.goto(base);
@@ -117,12 +138,31 @@ try {
   await page.getByRole("button",{name:"Reopen latest saved draft"}).click();
   await page.getByText("Revision 2 · 2 total tasks").waitFor();
   assert.deepEqual(actions,["draft","save_revision","load_latest"]);
+  // A historic snapshot is read-only until separately reviewed and saved as
+  // a NEW revision. No silent overwrite or task creation during restoration.
+  await page.getByRole("button",{name:"View revision history"}).click();
+  await page.getByRole("button",{name:"Compare"}).last().click();
+  await page.getByRole("button",{name:/Open as new reviewed revision/}).waitFor();
+  await page.getByText("Revision 1: Plan the small studio website.").waitFor();
+  page.once("dialog",dialog=>dialog.accept());
+  await page.getByRole("button",{name:/Open as new reviewed revision/}).click();
+  await page.locator("#muse-edit-0-parent-visible").waitFor({state:"attached"});
+  assert.equal(await page.locator("#muse-edit-0-parent-visible").isChecked(),false);
+  assert.equal(await page.locator("#muse-edit-0-parent-title").inputValue(),"Map the home page");
+  assert.equal(await page.getByRole("button",{name:/Save revision 3/}).isDisabled(),true);
+  await page.locator("#muse-edit-note").fill("Restore previous private-first homepage tasks");
+  await page.getByRole("button",{name:"Mark these changes reviewed"}).click();
+  page.once("dialog",dialog=>dialog.accept());
+  await page.getByRole("button",{name:/Save revision 3/}).click();
+  await page.getByText("Saved revision 3. No project tasks were created.").waitFor();
+  await page.getByText("Revision 3 · 2 total tasks").waitFor();
+  assert.deepEqual(actions,["draft","save_revision","load_latest","load_history","load_revision","save_revision"]);
   assert.ok(await page.locator(".muse-project-guide").evaluate(el=>el.scrollWidth<=el.clientWidth+1),
     "Editor must not overflow the container horizontally");
   page.once("dialog",dialog=>dialog.accept());
   await page.getByRole("button",{name:"Approve & create 2 tasks"}).click();
   await page.getByText("Created 2 approved tasks.").waitFor();
-  assert.deepEqual(actions,["draft","save_revision","load_latest","apply"]);
+  assert.deepEqual(actions,["draft","save_revision","load_latest","load_history","load_revision","save_revision","apply"]);
   assert.equal(await page.evaluate(()=>window.__refreshed),1);
   // A rejected/indeterminate save must close approval until server reload.
   await page.getByRole("button",{name:"Draft the project plan"}).click();
