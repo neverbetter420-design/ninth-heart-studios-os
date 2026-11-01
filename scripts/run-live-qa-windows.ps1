@@ -6,7 +6,13 @@ $ErrorActionPreference = 'Stop'
 $expected = 'cf58845a61f4eb6c0d46e67cd10fefbd0e0a54bd'
 if (-not (Test-Path '.\playwright.config.mjs')) { throw 'Run this script from the NHS OS repository root.' }
 $head = (git rev-parse HEAD).Trim()
-if ($head -ne $expected) { throw "Unreviewed checkout $head. Required live release QA commit: $expected. Do not reset or change branches automatically." }
+# This source-only branch adds this runner to the exact reviewed main snapshot.
+git merge-base --is-ancestor $expected HEAD
+if ($LASTEXITCODE -ne 0) { throw "Checkout $head does not descend from reviewed release $expected." }
+$changed = @(git diff --name-only $expected HEAD)
+if (@($changed | Where-Object { $_ -ne 'scripts/run-live-qa-windows.ps1' }).Count -gt 0) {
+  throw 'Checkout differs from reviewed release in application or test files. Do not run live QA.'
+}
 if ((git status --porcelain).Length -gt 0) { throw 'Working tree must be clean. This prevents accidental QA against modified source.' }
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw 'Install Node.js 22 first.' }
 $major = [int]((node --version).TrimStart('v').Split('.')[0])
