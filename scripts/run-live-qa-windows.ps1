@@ -41,6 +41,48 @@ try {
   $env:CI = 'true'
   Write-Host 'Installing locked dependencies and isolated Playwright runner (no deployment)...'
   npm ci; if ($LASTEXITCODE -ne 0) { throw 'npm ci failed' }
+  # Stop before installing browsers or running 18 tests when a disposable QA
+  # identity cannot authenticate. This signs in via the publishable Auth API only.
+  # Never print account identifiers, passwords, tokens, or raw provider errors.
+  Write-Host 'Checking disposable Admin, Client A and Client B Auth credentials...'
+  $authPreflight = @'
+import { createClient } from '@supabase/supabase-js';
+
+const required = [
+  ['Admin', 'E2E_ADMIN_EMAIL', 'E2E_ADMIN_PASSWORD'],
+  ['Client A', 'E2E_CLIENT_A_EMAIL', 'E2E_CLIENT_A_PASSWORD'],
+  ['Client B', 'E2E_CLIENT_B_EMAIL', 'E2E_CLIENT_B_PASSWORD'],
+];
+
+let failed = false;
+for (const [label, emailKey, passwordKey] of required) {
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } },
+  );
+  try {
+    const { data, error } = await client.auth.signInWithPassword({
+      email: process.env[emailKey],
+      password: process.env[passwordKey],
+    });
+    if (error || !data?.user?.id || !data?.session?.access_token) {
+      failed = true;
+      console.error('[QA preflight] ' + label + ': authentication failed; verify the disposable QA credentials privately.');
+      continue;
+    }
+    console.log('[QA preflight] ' + label + ': authentication passed.');
+  } catch {
+    failed = true;
+    console.error('[QA preflight] ' + label + ': Auth request failed; check service availability and disposable QA credentials.');
+  }
+}
+if (failed) process.exitCode = 1;
+'@
+  $authPreflight | node --input-type=module
+  if ($LASTEXITCODE -ne 0) {
+    throw 'QA Auth preflight failed. Fix the dedicated test credentials or Auth availability before running browser acceptance. Do not reset accounts or deploy as a workaround.'
+  }
   npm install --no-save --package-lock=false '@playwright/test@1.56.1'
   if ($LASTEXITCODE -ne 0) { throw 'Playwright install failed' }
   npx playwright install chromium
