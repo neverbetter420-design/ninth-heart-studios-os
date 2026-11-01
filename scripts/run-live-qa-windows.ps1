@@ -55,11 +55,24 @@ const required = [
 ];
 
 let failed = false;
+const authenticatedIds = new Set();
 for (const [label, emailKey, passwordKey] of required) {
+  // Bound every provider request to avoid a frozen network call hanging local QA.
+  // AbortSignal.any retains an upstream abort if Supabase provides one.
   const client = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-    { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } },
+    {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      global: {
+        fetch: (input, init = {}) => fetch(input, {
+          ...init,
+          signal: init.signal
+            ? AbortSignal.any([init.signal, AbortSignal.timeout(15_000)])
+            : AbortSignal.timeout(15_000),
+        }),
+      },
+    },
   );
   try {
     const { data, error } = await client.auth.signInWithPassword({
@@ -71,10 +84,16 @@ for (const [label, emailKey, passwordKey] of required) {
       console.error('[QA preflight] ' + label + ': authentication failed; verify the disposable QA credentials privately.');
       continue;
     }
+    if (authenticatedIds.has(data.user.id)) {
+      failed = true;
+      console.error('[QA preflight] ' + label + ': duplicates another QA identity; use three distinct disposable accounts.');
+      continue;
+    }
+    authenticatedIds.add(data.user.id);
     console.log('[QA preflight] ' + label + ': authentication passed.');
   } catch {
     failed = true;
-    console.error('[QA preflight] ' + label + ': Auth request failed; check service availability and disposable QA credentials.');
+    console.error('[QA preflight] ' + label + ': Auth request failed or timed out; verify the disposable QA credentials and service availability.');
   }
 }
 if (failed) process.exitCode = 1;
