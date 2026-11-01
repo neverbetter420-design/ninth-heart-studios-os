@@ -14,16 +14,20 @@ const totalTasks = (p: MuseProjectPlan) =>
   p.tasks.reduce((n, task) => n + 1 + task.subtasks.length, 0);
 
 export function MusePlanEditor({
-  original, revision, expiresAt, saving, onCancel, onSave,
+  original, initialDraft, revision, expiresAt, saving, onCancel, onSave,
 }: {
   original: MuseProjectPlan;
+  initialDraft?: MuseProjectPlan;
   revision: number;
   expiresAt: string;
   saving: boolean;
   onCancel: () => void;
   onSave: (next: MuseProjectPlan, note: string) => Promise<void>;
 }) {
-  const [edited, setEdited] = useState<MuseProjectPlan>(() => structuredClone(original));
+  // A historic snapshot is only an unsaved starting point. Saving always uses
+  // the current revision as the CAS base and goes through normal diff review.
+  const [edited, setEdited] = useState<MuseProjectPlan>(() =>
+    structuredClone(initialDraft ?? original));
   const [changeNote, setChangeNote] = useState("");
   const [reviewedSignature, setReviewedSignature] = useState<string | null>(null);
   const [showDiff, setShowDiff] = useState(false);
