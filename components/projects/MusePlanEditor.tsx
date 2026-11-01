@@ -28,6 +28,7 @@ export function MusePlanEditor({
   const [reviewedSignature, setReviewedSignature] = useState<string | null>(null);
   const [showDiff, setShowDiff] = useState(false);
   const signature = JSON.stringify(edited);
+  const hasUnsavedInput = signature !== JSON.stringify(original);
   let clean: MuseProjectPlan | null = null;
   let diff: MuseReviewDiff | null = null;
   try {
@@ -74,7 +75,7 @@ export function MusePlanEditor({
     });
   }
   function cancel() {
-    if (!hasChanges || window.confirm("Discard these unsaved edits? Your saved revision will remain untouched.")) onCancel();
+    if (!hasUnsavedInput || window.confirm("Discard these unsaved edits? Your saved revision will remain untouched.")) onCancel();
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -143,7 +144,7 @@ export function MusePlanEditor({
         onChange={event => setEdited(current => ({ ...current, summary: event.target.value }))} />
     </label>
     <div className="muse-editor-task-list">
-      {edited.tasks.map((task, index) => <details className="muse-editor-task" key={index} open={undefined}>
+      {edited.tasks.map((task, index) => <details className="muse-editor-task" key={index}>
         <summary><span>Task {index + 1} · {task.title || "Untitled"}</span>
           <small>{task.subtasks.length} steps · {task.client_visible ? "Client-visible" : "Private"}</small>
         </summary>
