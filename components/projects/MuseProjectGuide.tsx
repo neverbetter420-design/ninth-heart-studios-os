@@ -2,6 +2,7 @@
 
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { MusePlanEditor } from "./MusePlanEditor";
 import { parseMuseProjectPlan, type MuseProjectPlan, type ProjectHeartbeat } from "@/lib/muse-project-guide";
 
 type DraftPlan = MuseProjectPlan & { plan_id: string; revision: number; expires_at: string };
@@ -51,7 +52,9 @@ export function MuseProjectGuide({
   const router = useRouter();
   const [objective, setObjective] = useState(`Build the next practical development plan for ${projectName}.`);
   const [plan, setPlan] = useState<DraftPlan | null>(null);
-  const [busy, setBusy] = useState<"draft" | "apply" | null>(null);
+  const [busy, setBusy] = useState<"draft" | "apply" | "save" | "load" | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [saveNotice, setSaveNotice] = useState("");
   const [error, setError] = useState("");
   const [created, setCreated] = useState<number | null>(null);
 
@@ -71,7 +74,7 @@ export function MuseProjectGuide({
   async function draft(event: FormEvent) {
     event.preventDefault();
     if (!enabled || busy || objective.trim().length < 2) return;
-    setBusy("draft"); setError(""); setCreated(null); setPlan(null);
+    setBusy("draft"); setError(""); setCreated(null); setPlan(null); setEditing(false); setSaveNotice("");
     try {
       const data = await call({ action: "draft", project_id: projectId, objective: objective.trim() });
       setPlan(validatedDraft(data));
@@ -80,8 +83,44 @@ export function MuseProjectGuide({
     } finally { setBusy(null); }
   }
 
+  async function loadLatest() {
+    if (!enabled || busy || editing) return;
+    setBusy("load"); setError(""); setPlan(null); setSaveNotice(""); setCreated(null);
+    try {
+      const data = await call({ action: "load_latest", project_id: projectId });
+      if (data.project_id !== projectId) throw new Error("Saved plan belongs to a different project.");
+      setPlan(validatedDraft(data));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Couldn't reopen the saved draft.");
+    } finally { setBusy(null); }
+  }
+
+  async function saveRevision(next: MuseProjectPlan, changeNote: string) {
+    if (!enabled || !plan || busy || !editing) return;
+    const previous = plan;
+    setBusy("save"); setError(""); setSaveNotice("");
+    try {
+      const data = await call({ action: "save_revision", project_id: projectId,
+        plan_id: previous.plan_id, expected_revision: previous.revision,
+        plan: next, change_note: changeNote });
+      if (data.plan_id !== previous.plan_id || data.project_id !== projectId ||
+          data.revision !== previous.revision + 1) throw new Error("Unexpected revision receipt.");
+      const saved = validatedDraft(data);
+      if (JSON.stringify({ summary: saved.summary, tasks: saved.tasks }) !==
+          JSON.stringify({ summary: next.summary, tasks: next.tasks })) throw new Error("Saved plan differs from reviewed edits.");
+      setPlan(saved); setEditing(false);
+      setSaveNotice(`Saved revision ${saved.revision}. No project tasks were created.`);
+    } catch (cause) {
+      // Network failures are indeterminate: the database may already have
+      // committed. Never approve from this browser snapshot; reload from server.
+      setPlan(null); setEditing(false);
+      setError("Save was not confirmed. Reopen the latest saved draft before editing or approving. "
+        + (cause instanceof Error ? cause.message : ""));
+    } finally { setBusy(null); }
+  }
+
   async function apply() {
-    if (!enabled || !plan || busy) return;
+    if (!enabled || !plan || busy || editing) return;
     if (Date.parse(plan.expires_at) <= Date.now()) {
       setPlan(null);
       setError("This plan has expired. Draft a fresh plan before approving any tasks.");
@@ -97,10 +136,14 @@ export function MuseProjectGuide({
         setPlan(null);
         throw new Error("Muse returned an unexpected approval receipt. Review the project task list before retrying.");
       }
-      setCreated(count); setPlan(null);
+      setCreated(count); setPlan(null); setSaveNotice("");
       router.refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Muse couldn't apply the plan.");
+      // If the network dropped after a commit we cannot assert the task list.
+      // Close the approval controls until the user reloads from the server.
+      setPlan(null); setSaveNotice("");
+      setError("Approval status is unconfirmed. Review the project task list before retrying. "
+        + (cause instanceof Error ? cause.message : ""));
     } finally { setBusy(null); }
   }
 
@@ -149,11 +192,24 @@ export function MuseProjectGuide({
           {enabled ? "Draft only. Nothing is created until you review the exact plan and approve it." : "Private preview is installed but disabled pending activation and release approval."}
         </p>
       </form>
+      <div className="muse-plan-reopen">
+        <button type="button" className="mini-button" disabled={!enabled || !!busy || editing}
+          onClick={loadLatest}>{busy === "load" ? "Loading saved draft…" : "Reopen latest saved draft"}</button>
+        <span>Securely loads your most recent unexpired revision. No AI request or new tasks.</span>
+      </div>
 
       {error && <p className="muse-guide-error" role="alert">{error}</p>}
       {created !== null && <p className="muse-guide-success" role="status">Created {created} approved {created === 1 ? "task" : "tasks"}.</p>}
+      {saveNotice && <p className="muse-guide-success" role="status">{saveNotice}</p>}
 
-      {plan && <div className="muse-plan-preview" aria-live="polite">
+      {plan && editing && <MusePlanEditor
+        key={`${plan.plan_id}:${plan.revision}`}
+        original={{ summary: plan.summary, tasks: plan.tasks }}
+        revision={plan.revision} expiresAt={plan.expires_at} saving={busy === "save"}
+        onCancel={() => setEditing(false)} onSave={saveRevision}
+      />}
+
+      {plan && !editing && <div className="muse-plan-preview" aria-live="polite">
         <div className="muse-plan-preview-head">
           <div><p className="muse-guide-kicker">PROPOSED · NOTHING CREATED</p><h4>{plan.summary}</h4></div>
           <span>Revision {plan.revision} · {taskCount(plan)} total tasks</span>
@@ -188,7 +244,9 @@ export function MuseProjectGuide({
           </li>)}
         </ol>
         <div className="muse-plan-approval">
-          <button type="button" className="mini-button" onClick={() => setPlan(null)} disabled={!!busy}>Discard</button>
+          <button type="button" className="mini-button" onClick={() => setPlan(null)} disabled={!!busy}>Close preview</button>
+          <button type="button" className="mini-button" onClick={() => { setEditing(true); setSaveNotice(""); }}
+            disabled={!enabled || !!busy || plan.revision >= 25}>Edit proposed tasks</button>
           <button type="button" className="mini-button go" onClick={apply} disabled={!!busy}>
             {busy === "apply" ? "Creating approved plan…" : `Approve & create ${taskCount(plan)} tasks`}
           </button>
