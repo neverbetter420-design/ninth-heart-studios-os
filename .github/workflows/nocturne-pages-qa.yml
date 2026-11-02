@@ -17,6 +17,7 @@ on:
       - 'scripts/verify-nocturne-static.mjs'
       - 'scripts/verify-muse-ai-browser.mjs'
       - 'scripts/verify-muse-project-guide-browser.mjs'
+      - 'scripts/verify-muse-project-guide-editor-browser.mjs'
       - 'wrangler.nocturne-static.jsonc'
       - '.github/workflows/nocturne-pages-qa.yml'
   workflow_dispatch:
@@ -58,6 +59,8 @@ jobs:
         run: node scripts/verify-muse-ai-browser.mjs
       - name: Test Muse Project Guide plan review and approval flow
         run: node scripts/verify-muse-project-guide-browser.mjs
+      - name: Test versioned Muse editing, exact review and safe reload on desktop and mobile
+        run: node scripts/verify-muse-project-guide-editor-browser.mjs
       - name: Upload actual source-rendered HTML preview package
         uses: actions/upload-artifact@v4
         with:

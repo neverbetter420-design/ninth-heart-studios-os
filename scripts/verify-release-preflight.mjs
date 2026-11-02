@@ -98,20 +98,27 @@ const checks = [
     assert.deepEqual(preview.assets, live.assets);
     assert.equal(preview.compatibility_date, live.compatibility_date);
     assert.deepEqual(preview.compatibility_flags, live.compatibility_flags);
-    assert.equal(preview.workers_dev, true);
+    assert.equal(preview.workers_dev, false, "No standalone public workers.dev endpoint");
+    assert.equal(preview.preview_urls, true, "Explicitly enable only protected Preview URLs");
     assert.deepEqual(preview.routes, [], "Preview cannot attach to an existing domain");
     assert.equal(preview.keep_vars, false, "Preview cannot retain unrelated existing variables");
-    assert.deepEqual(preview.previews, {
-      vars: {
-        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_placeholder",
-        NHS_APP_URL: "https://example.invalid",
-      },
-    }, "Preview Worker must use only inert, test-only backend values");
+    const inertVars = {
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_placeholder",
+      NHS_APP_URL: "https://example.invalid",
+      MUSE_AI_ENABLED: "false",
+      MUSE_PROJECT_GUIDE_ENABLED: "false",
+    };
+    // Standalone Worker and Worker Preview configurations do not inherit
+    // each other's variables. Lock both to exactly the same synthetic values.
+    assert.deepEqual(preview.vars, inertVars,
+      "Standalone preview Worker must use only inert runtime variables");
+    assert.deepEqual(preview.previews, { vars: inertVars },
+      "Worker Preview must use only inert, test-only backend values");
     assert.deepEqual(
       Object.keys(preview).sort(),
       ["$schema", "name", "main", "compatibility_date", "compatibility_flags",
-        "workers_dev", "routes", "keep_vars", "assets", "previews"].sort(),
+        "workers_dev", "preview_urls", "routes", "keep_vars", "assets", "vars", "previews"].sort(),
       "Any additional preview bindings, routes or account overrides require explicit review",
     );
   }],

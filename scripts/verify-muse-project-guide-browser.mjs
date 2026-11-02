@@ -36,7 +36,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const output = resolve(root, "nocturne-static-preview"); mkdirSync(output, { recursive: true });
 const planId = "00000000-0000-4000-8000-000000000099";
 const plan = {
-  plan_id: planId, expires_at: "2099-10-30T20:00:00Z",
+  plan_id: planId, revision: 1, expires_at: "2099-10-30T20:00:00Z",
   summary: "Build the homepage strategy before decorating the void.",
   tasks: [{ title: "Define homepage strategy", description: "Set the conversion goal, promise and proof before layout work.",
     definition_of_done: "Goal, promise and proof are recorded.", priority: "high", due_date: null,
@@ -65,9 +65,12 @@ try {
           : body.objective.includes("Expired") ? { ...plan, expires_at: "2020-01-01T00:00:00Z" } : plan;
         await route.fulfill({ contentType: "application/json", body: JSON.stringify(response) });
       } else {
+        assert.equal(body.action, "apply");
         assert.equal(body.plan_id, planId);
+        assert.equal(body.expected_revision, 1);
+        assert.equal(body.expected_count, 2);
         await route.fulfill({ contentType: "application/json", body: JSON.stringify({
-          plan_id: planId, created_count: rejectReceipt ? 1 : 2,
+          plan_id: planId, applied_revision: 1, created_count: rejectReceipt ? 1 : 2,
         }) });
       }
     });
@@ -78,6 +81,7 @@ try {
     await page.getByText("PROPOSED · NOTHING CREATED").waitFor();
     assert.deepEqual(actions, ["draft"]);
     assert.equal(await page.getByRole("button", { name: "Approve & create 2 tasks" }).isVisible(), true);
+    assert.equal(await page.getByText("Revision 1 · 2 total tasks").isVisible(), true);
     assert.equal(await page.getByText("Visible to client", { exact: true }).count(), 1);
     assert.equal(await page.getByText("Studio-only", { exact: true }).count(), 1);
     assert.equal(await page.getByText("Due 2099-11-02").isVisible(), true);
