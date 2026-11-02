@@ -26,22 +26,33 @@ function Read-Secret([string]$name) {
 }
 
 $keys = @('E2E_ADMIN_EMAIL','E2E_ADMIN_PASSWORD','E2E_CLIENT_A_EMAIL','E2E_CLIENT_A_PASSWORD','E2E_CLIENT_B_EMAIL','E2E_CLIENT_B_PASSWORD')
+# Dependency-install lifecycle scripts must never inherit live QA passwords.
+# Refuse pre-filled credentials rather than silently passing them to npm.
+foreach ($key in $keys) {
+  if (-not [string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($key, 'Process'))) {
+    throw 'Clear pre-set E2E_* test credentials from this PowerShell session before running QA. This runner prompts only after installing dependencies.'
+  }
+}
 try {
+  Write-Host 'Installing locked dependencies and isolated Playwright runner (no deployment)...'
+  npm ci; if ($LASTEXITCODE -ne 0) { throw 'npm ci failed' }
+  npm install --no-save --package-lock=false '@playwright/test@1.56.1'
+  if ($LASTEXITCODE -ne 0) { throw 'Playwright install failed' }
+  npx --no-install playwright install chromium
+  if ($LASTEXITCODE -ne 0) { throw 'Chromium install failed' }
+
+  # Collect credentials only after all npm/Playwright installation commands.
   foreach ($key in $keys) {
-    if (-not [Environment]::GetEnvironmentVariable($key, 'Process')) {
-      $value = if ($key.EndsWith('_PASSWORD')) { Read-Secret $key } else { Read-Host -Prompt "Enter disposable QA $key" }
-      if ([string]::IsNullOrWhiteSpace($value)) { throw "Missing required QA identity: $key" }
-      [Environment]::SetEnvironmentVariable($key, $value, 'Process')
-      $value = $null
-    }
+    $value = if ($key.EndsWith('_PASSWORD')) { Read-Secret $key } else { Read-Host -Prompt "Enter disposable QA $key" }
+    if ([string]::IsNullOrWhiteSpace($value)) { throw "Missing required QA identity: $key" }
+    [Environment]::SetEnvironmentVariable($key, $value, 'Process')
+    $value = $null
   }
   $env:E2E_BASE_URL = 'https://app.ninthheartstudios.com'
   $env:NEXT_PUBLIC_SUPABASE_URL = 'https://rquscwgdrqkzwjukiqtk.supabase.co'
   $env:NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_7N1_IhU0_mvs6q0ppgyssA_0O6xj-L2'
   $env:CI = 'true'
-  Write-Host 'Installing locked dependencies and isolated Playwright runner (no deployment)...'
-  npm ci; if ($LASTEXITCODE -ne 0) { throw 'npm ci failed' }
-  # Stop before installing browsers or running 18 tests when a disposable QA
+  # Stop before running live browser tests when a disposable QA
   # identity cannot authenticate. This signs in via the publishable Auth API only.
   # Never print account identifiers, passwords, tokens, or raw provider errors.
   Write-Host 'Checking disposable Admin, Client A and Client B Auth credentials...'
@@ -102,12 +113,8 @@ if (failed) process.exitCode = 1;
   if ($LASTEXITCODE -ne 0) {
     throw 'QA Auth preflight failed. Fix the dedicated test credentials or Auth availability before running browser acceptance. Do not reset accounts or deploy as a workaround.'
   }
-  npm install --no-save --package-lock=false '@playwright/test@1.56.1'
-  if ($LASTEXITCODE -ne 0) { throw 'Playwright install failed' }
-  npx playwright install chromium
-  if ($LASTEXITCODE -ne 0) { throw 'Chromium install failed' }
   Write-Host 'Testing live public pages, admin, both clients, and direct API isolation (read-only).'
-  npx playwright test tests/e2e/navigation.spec.mjs tests/e2e/phase3-access.spec.mjs --retries=0
+  npx --no-install playwright test tests/e2e/navigation.spec.mjs tests/e2e/phase3-access.spec.mjs --retries=0
   if ($LASTEXITCODE -ne 0) { throw 'Live acceptance failed. Review test-results/ and playwright-report/. Do not deploy.' }
   Write-Host 'Live local QA passed. This does not authorize a production deployment.'
 }
