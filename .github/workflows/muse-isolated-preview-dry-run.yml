@@ -9,6 +9,8 @@ on:
       - 'package-lock.json'
       - 'wrangler.jsonc'
       - 'wrangler.nocturne-preview.jsonc'
+      - 'wrangler.nocturne-staging-preview.jsonc'
+      - 'scripts/verify-staging-preview.mjs'
       - 'scripts/verify-muse-isolated-preview.mjs'
       - 'app/**'
       - 'components/**'
@@ -44,12 +46,16 @@ jobs:
         run: npm ci
       - name: Verify inert preview config and absence of credentials
         run: node scripts/verify-muse-isolated-preview.mjs
+      - name: Verify staging-only Supabase public key, no production bindings, Muse off
+        run: node scripts/verify-staging-preview.mjs
       - name: Build actual OpenNext Worker bundle, not only Next.js
         run: npm run cf:build
       - name: Assert generated Worker and inert preview config
         run: node scripts/verify-muse-isolated-preview.mjs --require-bundle
       - name: Validate isolated preview Worker bundle without publishing
         run: npx wrangler deploy --dry-run --config wrangler.nocturne-preview.jsonc
+      - name: Validate staging-auth Worker bundle without publishing
+        run: npx wrangler deploy --dry-run --config wrangler.nocturne-staging-preview.jsonc
       - name: Record strictly non-deploying result
         run: |
           echo "Built OpenNext Worker, validated isolated Nocturne preview config, and ran Wrangler --dry-run only." >> "$GITHUB_STEP_SUMMARY"
