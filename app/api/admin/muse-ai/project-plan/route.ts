@@ -126,36 +126,37 @@ export async function POST(request: NextRequest) {
     const requested = payload.revision;
     if (!Number.isSafeInteger(requested) || Number(requested) < 1 ||
       Number(requested) > current.current_revision) return error("Choose a valid saved revision.", 400);
-    const { data: entry, error: revisionError } = await db.from("muse_project_plan_revisions")
+    // Direct snapshot reads must obey the same complete-ledger contract as
+    // the index. Otherwise a caller can bypass missing intermediate revisions
+    // by requesting an older saved revision directly.
+    const { data: history, error: historyError } = await db.from("muse_project_plan_revisions")
       .select("revision,change_summary,created_at,plan")
       .eq("plan_id", planId).eq("created_by", auth.user.id)
-      .eq("revision", Number(requested)).maybeSingle();
-    if (revisionError) return error("Muse revision is temporarily unavailable.", 503);
-    if (!entry) return error("That revision is not available.", 404);
-    // A historical snapshot may look valid even when the live plan has lost
-    // its latest ledger row. Verify the current snapshot for EVERY requested
-    // revision, not only when the caller explicitly requests the current one.
-    const { data: latest, error: latestError } = await db.from("muse_project_plan_revisions")
-      .select("revision,plan").eq("plan_id", planId).eq("created_by", auth.user.id)
-      .eq("revision", current.current_revision).maybeSingle();
-    if (latestError) return error("Muse revision history is temporarily unavailable.", 503);
-    if (!latest) return error("The current revision ledger is missing; restoration is blocked.", 409);
+      .order("revision", { ascending: false }).limit(25);
+    if (historyError) return error("Muse revision history is temporarily unavailable.", 503);
+    if (!history || history.length !== current.current_revision) {
+      return error("The revision ledger is incomplete; restoration is blocked.", 409);
+    }
     try {
-      const latestPlan = parseMuseProjectPlan(latest.plan);
-      if (latest.revision !== current.current_revision ||
-        JSON.stringify(latestPlan) !== JSON.stringify(currentPlan)) throw new Error("history_mismatch");
-      const historic = parseMuseProjectPlan(entry.plan);
-      if (entry.revision !== requested || typeof entry.created_at !== "string" ||
-        !Number.isFinite(Date.parse(entry.created_at)) || typeof entry.change_summary !== "string") {
-        throw new Error("invalid_history");
+      const verified = history.map((row, index) => {
+        if (row.revision !== current.current_revision - index ||
+          typeof row.change_summary !== "string" || row.change_summary.length < 2 ||
+          row.change_summary.length > 250 || typeof row.created_at !== "string" ||
+          !Number.isFinite(Date.parse(row.created_at))) throw new Error("invalid_history");
+        return { row, plan: parseMuseProjectPlan(row.plan) };
+      });
+      if (JSON.stringify(verified[0].plan) !== JSON.stringify(currentPlan)) {
+        throw new Error("history_mismatch");
       }
+      const selected = verified.find(item => item.row.revision === requested);
+      if (!selected) throw new Error("missing_revision");
       return NextResponse.json({
         plan_id: planId, project_id: projectId,
-        revision: entry.revision, current_revision: current.current_revision,
-        change_summary: entry.change_summary, created_at: entry.created_at,
-        plan: historic,
+        revision: selected.row.revision, current_revision: current.current_revision,
+        change_summary: selected.row.change_summary, created_at: selected.row.created_at,
+        plan: selected.plan,
       }, { headers: HEADERS });
-    } catch { return error("The saved revision is invalid; restoration is blocked.", 409); }
+    } catch { return error("The saved revision ledger is invalid; restoration is blocked.", 409); }
   }
 
   if (action === "apply" || action === "save_revision") {
