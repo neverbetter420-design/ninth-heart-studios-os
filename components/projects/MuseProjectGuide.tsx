@@ -4,20 +4,21 @@ import { useState, type CSSProperties, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { parseMuseProjectPlan, type MuseProjectPlan, type ProjectHeartbeat } from "@/lib/muse-project-guide";
 
-type DraftPlan = MuseProjectPlan & { plan_id: string; expires_at: string };
+type DraftPlan = MuseProjectPlan & { plan_id: string; revision: number; expires_at: string };
 const UUID = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
 
 // Never trust the shape, identity or lifetime of a draft returned to the browser.
 function validatedDraft(response: Record<string, unknown>): DraftPlan {
   const planId = typeof response.plan_id === "string" ? response.plan_id : "";
   const expires = typeof response.expires_at === "string" ? Date.parse(response.expires_at) : NaN;
-  if (!UUID.test(planId) || !Number.isFinite(expires) || expires <= Date.now()) {
+  const revision = response.revision;
+  if (!UUID.test(planId) || !Number.isSafeInteger(revision) || Number(revision) < 1 || Number(revision) > 25 || !Number.isFinite(expires) || expires <= Date.now()) {
     throw new Error("Muse returned an invalid or expired draft. No tasks were created.");
   }
   let parsed: MuseProjectPlan;
   try { parsed = parseMuseProjectPlan(response); }
   catch { throw new Error("Muse returned an invalid project plan. No tasks were created."); }
-  return { ...parsed, plan_id: planId, expires_at: response.expires_at as string };
+  return { ...parsed, plan_id: planId, revision: Number(revision), expires_at: response.expires_at as string };
 }
 
 function clientVisibleCount(plan: MuseProjectPlan) {
@@ -87,11 +88,12 @@ export function MuseProjectGuide({
       return;
     }
     const count = taskCount(plan);
-    if (!window.confirm(`Create the exact ${count}-task Muse plan you reviewed? This changes the project task list.`)) return;
+    if (!window.confirm(`Approve revision ${plan.revision} with exactly ${count} reviewed tasks? This changes the project task list.`)) return;
     setBusy("apply"); setError("");
     try {
-      const data = await call({ action: "apply", project_id: projectId, plan_id: plan.plan_id });
-      if (data.plan_id !== plan.plan_id || data.created_count !== count) {
+      const data = await call({ action: "apply", project_id: projectId, plan_id: plan.plan_id,
+        expected_revision: plan.revision, expected_count: count });
+      if (data.plan_id !== plan.plan_id || data.applied_revision !== plan.revision || data.created_count !== count) {
         setPlan(null);
         throw new Error("Muse returned an unexpected approval receipt. Review the project task list before retrying.");
       }
@@ -154,7 +156,7 @@ export function MuseProjectGuide({
       {plan && <div className="muse-plan-preview" aria-live="polite">
         <div className="muse-plan-preview-head">
           <div><p className="muse-guide-kicker">PROPOSED · NOTHING CREATED</p><h4>{plan.summary}</h4></div>
-          <span>{taskCount(plan)} total tasks</span>
+          <span>Revision {plan.revision} · {taskCount(plan)} total tasks</span>
         </div>
         <p className="muse-plan-review-note">
           Review every task before approval · {clientVisibleCount(plan)} client-visible ·
