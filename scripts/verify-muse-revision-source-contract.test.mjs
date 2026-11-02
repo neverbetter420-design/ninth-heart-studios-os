@@ -54,16 +54,16 @@ test("private privileged functions use fixed search paths", () => {
 
 test("project ownership is enforced at insert and privileged mutation boundaries", () => {
   const trigger = fn("private.enforce_muse_plan_project_owner");
-  assert.match(trigger, /public\\.projects p/);
-  assert.match(trigger, /p\\.id = new\\.project_id and p\\.created_by = new\\.created_by/);
-  assert.match(sql, /before insert or update of project_id, created_by on public\\.muse_project_plans/);
+  assert.ok(trigger.includes("from public.projects p"));
+  assert.ok(trigger.includes("p.id = new.project_id and p.created_by = new.created_by"));
+  assert.ok(sql.includes("before insert or update of project_id, created_by on public.muse_project_plans"));
   for (const name of [
     "private.save_muse_plan_revision_internal",
     "private.apply_muse_plan_revision_internal",
   ]) {
     const body = fn(name);
-    assert.match(body, /public\\.projects project_owner/);
-    assert.match(body, /project_owner\\.created_by = \\(select auth\\.uid\\(\\)\\)/);
+    assert.ok(body.includes("from public.projects project_owner"));
+    assert.ok(body.includes("project_owner.created_by = (select auth.uid())"));
   }
 });
 
