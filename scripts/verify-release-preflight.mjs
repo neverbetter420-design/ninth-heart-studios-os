@@ -105,6 +105,8 @@ const checks = [
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_placeholder",
       NHS_APP_URL: "https://example.invalid",
+      MUSE_AI_ENABLED: "false",
+      MUSE_PROJECT_GUIDE_ENABLED: "false",
     };
     // Standalone Worker and Worker Preview configurations do not inherit
     // each other's variables. Lock both to exactly the same synthetic values.
