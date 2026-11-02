@@ -2,15 +2,15 @@
 
 **Status:** Source-only preparation on draft PR #67. **No online preview has been deployed or authorized.** This is an operational safety checklist, not permission to merge, migrate, pay for anything, or deploy.
 
-## Verified baseline (2026-11-01 PT)
+## Verified current state (read-only, November 2, 2026 PT)
 
-- Source: `neverbetter420-design/ninth-heart-studios-os`, `review/muse-62-64-integrated-main-20261101`.
-- At this review: `main` = `cf58845a61f4eb6c0d46e67cd10fefbd0e0a54bd`, combined Muse head = `44a8af37f78deb4245eaa9f65380eec46b198d11`.
-- All **nine GitHub Actions checks passed** on that combined head, including disposable local Supabase Auth/RLS, desktop/mobile Chromium, and the **credential-free OpenNext preview dry-run**.
-- Current connected Cloudflare Worker: `ninth-heart-studios-os`. **Do not modify** its live scripts, routes, variables, tokens, deployments, or Git build connection under this review.
-- Its existing Workers Builds configuration identifies the **review branch as the production build branch**, has `previews_enabled=false`, and uses `npm run build` then `npx wrangler preview`. The Cloudflare automatic build failed because `npm run build` only executes `next build`, while `wrangler.jsonc` expects `.open-next/worker.js`.
-- No successful live Worker deployment was observed from that failed build. The latest observed live deployment predates this PR.
-- Cloudflare documents that switching existing connected Workers to the newer Worker Previews model is **one-way** and Preview URLs are **public by default**. Do **not** turn previews on for the production Worker as a shortcut.
+- Source: `neverbetter420-design/ninth-heart-studios-os`, draft branch `review/muse-62-64-integrated-main-20261101`. GitHub `main` remains `cf58845a61f4eb6c0d46e67cd10fefbd0e0a54bd`. Do not merge this draft or deploy either branch.
+- GitHub's nine checks passed on Muse review head `de6d84b1f8f7aa28a1f3656cec726c5491f54886`, including disposable Supabase auth/RLS, desktop/mobile browser tests, and the **credential-free OpenNext dry-run**. The newer source-only safety-check commits must pass checks on their own exact head; prior success is not transferable.
+- Cloudflare's connected production Worker is **`ninth-heart-studios-os`**, last observed deployed on **October 31, 2026 at 08:21:22 UTC**. That production deployment is separate from the current Muse draft.
+- **Current Cloudflare Workers Builds settings (verified via read-only API November 2):** Git repository branch is `main`; `auto_build_enabled=false`; `previews_enabled=true`. The production command is `npm run build` then `npx wrangler deploy`. The connected preview command is **`npm run build` then `npx wrangler preview`**. A historical note saying the production branch is this review branch, or that previews are disabled, is no longer accurate.
+- Cloudflare's automatic preview for exact Muse commit `de6d84b1f8f7aa28a1f3656cec726c5491f54886` **failed November 2 at 09:39 UTC**. Deployment logs state: `The entry-point file at ".open-next/worker.js" was not found.` Plain `next build` does not generate the Worker bundle that Wrangler expects. This is a **connected Cloudflare preview configuration issue**, not evidence that the separate GitHub OpenNext dry-run failed.
+- **Do not repair this by editing the production-linked Worker's build settings or triggering a deployment without separate authorization.** Cloudflare preview URLs may be public by default, and enabling/disabling preview capability on an existing connected Worker can have operational consequences. Successful offline CI does not authorize online preview publication.
+- No live Worker, routing, build configuration, hosted Supabase data, Muse flag, AI credential, or paid service was changed by this source-only review.
 
 ## Approved-for-CI offline verification (already implemented)
 
