@@ -25,6 +25,15 @@ foreach ($key in $keys) {
     throw 'Offline QA must run without any pre-existing E2E test credentials.'
   }
 }
+# GitHub Actions sets CI=true in the parent process. The offline harness
+# isolates and restores these process variables so cleanup assertions compare
+# against an intentionally empty starting state, not runner-supplied defaults.
+$endpointKeys = @('E2E_BASE_URL','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','CI')
+$inheritedEndpoints = @{}
+foreach ($key in $endpointKeys) {
+  $inheritedEndpoints[$key] = [Environment]::GetEnvironmentVariable($key, 'Process')
+  [Environment]::SetEnvironmentVariable($key, $null, 'Process')
+}
 $global:NhsQaEvents = New-Object 'System.Collections.Generic.List[string]'
 $global:NhsQaInstallDone = $false
 $global:NhsQaForceAuthError = $false
@@ -142,4 +151,7 @@ finally {
   foreach ($key in $keys) { [Environment]::SetEnvironmentVariable($key, $null, 'Process') }
   Remove-Item Function:\git, Function:\npm, Function:\npx, Function:\node, Function:\Read-Host -ErrorAction SilentlyContinue
   Remove-Variable NhsQaEvents, NhsQaInstallDone, NhsQaForceAuthError -Scope Global -ErrorAction SilentlyContinue
+  foreach ($key in $endpointKeys) {
+    [Environment]::SetEnvironmentVariable($key, $inheritedEndpoints[$key], 'Process')
+  }
 }
