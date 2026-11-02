@@ -75,6 +75,90 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Immutable version browsing is read-only and never invokes an AI provider.
+  // Both the parent plan and each history row are owner/project bound by RLS.
+  if (action === "load_history" || action === "load_revision") {
+    const planId = typeof payload.plan_id === "string" ? payload.plan_id : "";
+    if (!UUID.test(planId)) return error("Select an exact saved Muse plan.", 400);
+    const { data: current, error: currentError } = await db.from("muse_project_plans")
+      .select("id,project_id,created_by,status,current_revision,expires_at,plan")
+      .eq("id", planId).eq("project_id", projectId).eq("created_by", auth.user.id)
+      .eq("status", "draft").maybeSingle();
+    if (currentError) return error("Muse history is temporarily unavailable.", 503);
+    if (!current || !Number.isSafeInteger(current.current_revision) ||
+      current.current_revision < 1 || current.current_revision > 25 ||
+      !Number.isFinite(Date.parse(current.expires_at)) ||
+      Date.parse(current.expires_at) <= Date.now()) {
+      return error("No active owner-owned draft is available for history.", 404);
+    }
+    let currentPlan;
+    try { currentPlan = parseMuseProjectPlan(current.plan); }
+    catch { return error("The saved plan is inconsistent; revision recovery is blocked.", 409); }
+    if (action === "load_history") {
+      const { data: rows, error: historyError } = await db.from("muse_project_plan_revisions")
+        .select("revision,change_summary,created_at,plan")
+        .eq("plan_id", planId).eq("created_by", auth.user.id)
+        .order("revision", { ascending: false }).limit(25);
+      if (historyError) return error("Muse revision history is temporarily unavailable.", 503);
+      try {
+        if (!rows || rows.length !== current.current_revision) throw new Error("incomplete_history");
+        const entries = rows.map((row, index) => {
+          if (row.revision !== current.current_revision - index ||
+            typeof row.change_summary !== "string" || row.change_summary.length < 2 ||
+            row.change_summary.length > 250 || typeof row.created_at !== "string" ||
+            !Number.isFinite(Date.parse(row.created_at))) throw new Error("invalid_history");
+          const validated = parseMuseProjectPlan(row.plan);
+          return { revision: row.revision, change_summary: row.change_summary,
+            created_at: row.created_at, summary: validated.summary,
+            task_count: validated.tasks.reduce((n, task) => n + 1 + task.subtasks.length, 0),
+            client_visible: validated.tasks.reduce((n, task) =>
+              n + Number(task.client_visible) +
+              task.subtasks.filter(child => child.client_visible).length, 0) };
+        });
+        const latest = parseMuseProjectPlan(rows[0].plan);
+        if (JSON.stringify(latest) !== JSON.stringify(currentPlan)) throw new Error("history_mismatch");
+        return NextResponse.json({
+          plan_id: planId, project_id: projectId,
+          current_revision: current.current_revision, revisions: entries,
+        }, { headers: HEADERS });
+      } catch { return error("The revision ledger is incomplete or inconsistent; restoration is blocked.", 409); }
+    }
+    const requested = payload.revision;
+    if (!Number.isSafeInteger(requested) || Number(requested) < 1 ||
+      Number(requested) > current.current_revision) return error("Choose a valid saved revision.", 400);
+    // Direct snapshot reads must obey the same complete-ledger contract as
+    // the index. Otherwise a caller can bypass missing intermediate revisions
+    // by requesting an older saved revision directly.
+    const { data: history, error: historyError } = await db.from("muse_project_plan_revisions")
+      .select("revision,change_summary,created_at,plan")
+      .eq("plan_id", planId).eq("created_by", auth.user.id)
+      .order("revision", { ascending: false }).limit(25);
+    if (historyError) return error("Muse revision history is temporarily unavailable.", 503);
+    if (!history || history.length !== current.current_revision) {
+      return error("The revision ledger is incomplete; restoration is blocked.", 409);
+    }
+    try {
+      const verified = history.map((row, index) => {
+        if (row.revision !== current.current_revision - index ||
+          typeof row.change_summary !== "string" || row.change_summary.length < 2 ||
+          row.change_summary.length > 250 || typeof row.created_at !== "string" ||
+          !Number.isFinite(Date.parse(row.created_at))) throw new Error("invalid_history");
+        return { row, plan: parseMuseProjectPlan(row.plan) };
+      });
+      if (JSON.stringify(verified[0].plan) !== JSON.stringify(currentPlan)) {
+        throw new Error("history_mismatch");
+      }
+      const selected = verified.find(item => item.row.revision === requested);
+      if (!selected) throw new Error("missing_revision");
+      return NextResponse.json({
+        plan_id: planId, project_id: projectId,
+        revision: selected.row.revision, current_revision: current.current_revision,
+        change_summary: selected.row.change_summary, created_at: selected.row.created_at,
+        plan: selected.plan,
+      }, { headers: HEADERS });
+    } catch { return error("The saved revision ledger is invalid; restoration is blocked.", 409); }
+  }
+
   if (action === "apply" || action === "save_revision") {
     const planId = typeof payload.plan_id === "string" ? payload.plan_id : "";
     const expectedRevision = payload.expected_revision;

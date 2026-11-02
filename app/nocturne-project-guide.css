@@ -159,3 +159,28 @@
  .muse-editor-heading { display: grid; gap: 8px; }
  .muse-plan-editor .mini-button { width: 100%; min-height: 44px; }
 }
+
+
+/* Revision history v4: a quiet timeline, never a replacement for explicit review. */
+.muse-history { display:grid; gap:12px; margin:18px 0 8px; padding:16px 0; border-block:1px solid rgba(255,255,255,.075); min-width:0; }
+.muse-history-heading { display:flex; justify-content:space-between; align-items:center; gap:14px; }
+.muse-history h5 { margin:0; color:#ffeaf5; font:400 19px/1.3 Georgia,serif; }
+.muse-history-heading > .mini-button { flex-shrink:0; }
+.muse-history-content { display:grid; gap:14px; min-width:0; }
+.muse-history-list { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
+.muse-history-list > li { display:flex; justify-content:space-between; align-items:center; gap:14px;
+  min-width:0; padding:12px 14px; border:1px solid rgba(237,193,216,.1);
+  border-radius:12px; background:rgba(255,255,255,.018); }
+.muse-history-list li > div { display:grid; gap:5px; min-width:0; }
+.muse-history-list strong { color:#f4e0eb; font-size:12px; }
+.muse-history-list small { color:#bca4b2; font-size:10px; }
+.muse-history-list p { margin:0; color:#cdb7c4; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+.muse-history-compare { display:grid; gap:12px; min-width:0; padding:17px; border-radius:14px;
+  border:1px solid rgba(222,159,196,.18); background:linear-gradient(145deg,rgba(186,104,154,.09),rgba(4,3,7,.18)); }
+.muse-history-compare .muse-editor-diff-list { max-height:330px; }
+.muse-history-compare > .mini-button { justify-self:start; }
+@media(max-width:780px){
+  .muse-history-heading,.muse-history-list > li { display:grid; gap:10px; }
+  .muse-history-heading .mini-button,.muse-history-list .mini-button,.muse-history-compare > .mini-button { width:100%; min-height:44px; }
+  .muse-history-compare { padding:13px; }
+}
