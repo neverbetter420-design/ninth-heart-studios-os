@@ -40,6 +40,29 @@ npx wrangler deploy --dry-run --config wrangler.nocturne-preview.jsonc
 
 This produces and validates `.open-next/worker.js` **without publishing**. The job deliberately receives no Cloudflare, hosted Supabase, or AI-provider credentials. It is evidence about bundle compatibility, not online deployment.
 
+## Preview exposure audit and owner-controlled Access setup (November 2, 2026)
+
+A read-only inventory of **all 64** Preview build configurations on the production-connected Worker found **63 with `auto_build=true`** and only the corrected Muse branch with `auto_build=false`. The 63 were **not** changed. All 64 Preview build histories were inspected; **three branches recorded a successful Worker Preview deployment**:
+
+| Branch | Last known successful build | Read-only anonymous probe |
+| --- | --- | --- |
+| `fix/cloudflare-preview-isolated-bindings` | November 1, 2026 | Public URL responds with HTTP 500; no private data was requested |
+| `release/nocturne-atelier-nhs-os-20261018` | October 20, 2026 | Returned a login-required result |
+| `design/nocturne-atelier-implementation-20261018` | October 20, 2026 | Returned a login-required result |
+
+The other **61** branches had **no successful deployment in the inspected build histories**. A successful build means a Preview URL was issued in the logs; it does not prove that the URL is currently working or exposing data. These URL probes **do not establish** protection by Cloudflare Access: the Access apps API returned `403 access.api.error.not_enabled`, explicitly indicating that **Zero Trust / Access is not enabled for this Cloudflare account**. An application login screen is not a substitute for account-edge Access rules.
+
+### Owner-controlled dashboard setup: preview-only, never production
+
+1. Open [Cloudflare Workers & Pages](https://dash.cloudflare.com/?to=/:account/workers-and-pages) and choose the current account. If prompted, initialize **Zero Trust / Access** only after reviewing the offered plan and confirming there is **no paid commitment**. Do not add a payment method or choose a paid tier without separate approval.
+2. In **Workers & Pages**, locate **Protect all Workers**. Choose **Previews only**, *not* all production Worker traffic, or select the specific NHS Worker and **Settings → Domains & Routes → Preview URLs → Enable Cloudflare Access**, where available. Production `app.ninthheartstudios.com` must remain publicly reachable for its normal login.
+3. Set the preview policy to **Allow only the owner/admin identity** (an explicit email or existing Cloudflare account membership), deny other identities, and retain a normal authenticated sign-in challenge. Do not allow **Everyone**, wildcard domains, or bypass rules. Confirm that no policy applies to production routes.
+4. **Verify before publishing**: an anonymous request to an existing Preview URL must be blocked or challenged by Cloudflare Access **before the Next.js application runs**. Repeat with the approved owner login and check that it succeeds. Verify production login is unaffected.
+5. Only after verifying edge protection, request separate approval for **one exact preview branch and SHA**. Confirm no production bindings or database keys are attached. Keep `MUSE_PROJECT_GUIDE_ENABLED=false` and `MUSE_AI_ENABLED=false`. Begin with manual build, **not** branch-wide auto-build.
+6. Inventory all existing successful Preview deployments again and decide whether to keep, disable, or delete the legacy three. Do **not** bulk-delete 64 configurations, update every Preview via `patch_existing_previews=true`, re-enable `auto_build`, or change global `previews_enabled` without a separate scoped decision.
+
+**Current release state:** No Access initialization, policy change, online Preview publication, new credential, paid service, production deployment, route change, or deletion was performed by this investigation. Cloudflare preview builds for the Muse branch remain disabled.
+
 ## Before any online preview (NOT approved yet)
 
 1. **Keep the existing production Worker and its Git connection untouched.** Do not patch its `git_repository.branch`, production build/deploy command, `previews_enabled`, or trigger. These are operational settings on a production-linked resource.
