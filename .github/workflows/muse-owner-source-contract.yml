@@ -1,0 +1,28 @@
+name: Muse source-contract tests (isolated)
+
+on:
+  push:
+    branches:
+      - build/muse-owner-security-tests-20261101
+    paths:
+      - 'scripts/verify-muse-revision-source-contract.test.mjs'
+      - 'supabase/migration-candidates/20261031214507_muse_plan_revision_ledger_v2.sql'
+      - '.github/workflows/muse-owner-source-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Muse source guards without database or secrets
+        run: node --test scripts/verify-muse-revision-source-contract.test.mjs
