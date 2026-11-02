@@ -89,6 +89,21 @@ Current online-preview proposal, **not yet authorized for publication**:
 
 The only remaining deployment gate is an owner-approved **single** online preview identifying the exact commit SHA, Worker name, private Access scope, synthetic bindings and any resource creation. After explicit approval, manually publish only that candidate, check auth challenge and live Worker invariance, and leave auto-build disabled.
 
+## Private-preview-only routing hardening (November 2, 2026; latest source-only draft)
+
+Cloudflare's documented routing behavior distinguishes a standalone Worker's ordinary `workers.dev` URL from a Worker Preview URL. Our **Access policy protects `all_preview_workers`**, which is **not sufficient evidence** that a standalone, non-preview `workers.dev` deployment would be private. The independent `wrangler.nocturne-preview.jsonc` therefore now explicitly uses:
+
+- `workers_dev: false`: no ordinary publicly routable `nhs-os-nocturne-preview.<account>.workers.dev` endpoint if the standalone Worker is ever created.
+- `preview_urls: true`: allow **only intentional Preview URLs**, which are challenged by the verified account-level Worker Preview Access application.
+- `routes: []`, `keep_vars: false`: no production domain or retained secret bindings.
+- Identical inert `vars` and `previews.vars`, including both `MUSE_AI_ENABLED: "false"` and `MUSE_PROJECT_GUIDE_ENABLED: "false"`. Source verifiers `scripts/verify-muse-isolated-preview.mjs` **and** `scripts/verify-release-preflight.mjs` require these exact choices. Any new binding or route fails the source-only safety checks.
+- The connected branch Preview's `auto_build` remains `false`, its build command is `npm run cf:build`, and its **saved deploy command** is now `npx wrangler preview --config wrangler.nocturne-preview.jsonc --ignore-base-config`. The final flag prevents accidental inheritance of any Preview Base variables or bindings. No manual build or online Preview deployment has been initiated.
+- **Build-time** Next.js variables are separately set on that one Cloudflare Preview to the same six non-secret synthetic values used in offline CI: `CI=true`, an inert Supabase URL/publishable key, an invalid app URL, and the two disabled Muse flags. Runtime variables are still defined in the Wrangler file, not inferred from build variables.
+
+**The preceding tables and older preview command strings are historical and superseded by this section.** Verified independently: the Access destination remains `all_preview_workers` with a Cloudflare-account-member allow rule; production build configuration and last live deployment are unchanged. No Worker was created, and no published Preview URL is claimed. The newer source changes require **their own exact-commit CI success**, not earlier green results.
+
+Before any online action, verify the currently approved Git head, all CI checks, free-tier/billing eligibility, Access protection, and the new Worker's existence/permissions. The billing endpoint is not authorized for the current connector. **An explicit release approval is still required** before creating the standalone Worker or publishing one Preview, even if CI passes.
+
 ## Before any online preview (NOT approved yet)
 
 1. **Keep the existing production Worker and its Git connection untouched.** Do not patch its `git_repository.branch`, production build/deploy command, `previews_enabled`, or trigger. These are operational settings on a production-linked resource.
