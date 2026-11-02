@@ -132,14 +132,23 @@ export async function POST(request: NextRequest) {
       .eq("revision", Number(requested)).maybeSingle();
     if (revisionError) return error("Muse revision is temporarily unavailable.", 503);
     if (!entry) return error("That revision is not available.", 404);
+    // A historical snapshot may look valid even when the live plan has lost
+    // its latest ledger row. Verify the current snapshot for EVERY requested
+    // revision, not only when the caller explicitly requests the current one.
+    const { data: latest, error: latestError } = await db.from("muse_project_plan_revisions")
+      .select("revision,plan").eq("plan_id", planId).eq("created_by", auth.user.id)
+      .eq("revision", current.current_revision).maybeSingle();
+    if (latestError) return error("Muse revision history is temporarily unavailable.", 503);
+    if (!latest) return error("The current revision ledger is missing; restoration is blocked.", 409);
     try {
+      const latestPlan = parseMuseProjectPlan(latest.plan);
+      if (latest.revision !== current.current_revision ||
+        JSON.stringify(latestPlan) !== JSON.stringify(currentPlan)) throw new Error("history_mismatch");
       const historic = parseMuseProjectPlan(entry.plan);
       if (entry.revision !== requested || typeof entry.created_at !== "string" ||
         !Number.isFinite(Date.parse(entry.created_at)) || typeof entry.change_summary !== "string") {
         throw new Error("invalid_history");
       }
-      if (requested === current.current_revision &&
-        JSON.stringify(historic) !== JSON.stringify(currentPlan)) throw new Error("history_mismatch");
       return NextResponse.json({
         plan_id: planId, project_id: projectId,
         revision: entry.revision, current_revision: current.current_revision,
