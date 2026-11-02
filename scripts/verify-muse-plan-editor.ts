@@ -39,6 +39,39 @@ check("added client-visible subtask triggers a clear warning",()=>{
  assert.equal(result.newlyClientVisible,1);assert.equal(result.newTaskCount,3);
  assert.ok(result.changes.some(c=>c.field.includes("step 2")));
 });
+check("new parent lists all nested steps and new visibility in reviewed diff",()=>{
+ const proposed=structuredClone(original);
+ proposed.tasks.push({
+  ...proposed.tasks[0],title:"Launch booking flow",
+  client_visible:true,
+  subtasks:[
+   {...proposed.tasks[0].subtasks[0],title:"Client booking preview",client_visible:true},
+   {...proposed.tasks[0].subtasks[0],title:"Internal integration check",client_visible:false},
+  ],
+ });
+ const result=reviewMuseChanges(original,proposed);
+ assert.equal(result.oldTaskCount,2);assert.equal(result.newTaskCount,5);
+ assert.equal(result.newlyClientVisible,2);
+ assert.ok(result.changes.some(c=>c.field==="Task 2"&&c.after==="Launch booking flow"));
+ assert.ok(result.changes.some(c=>c.field==="Task 2 · step 1"&&c.after==="Client booking preview"));
+ assert.ok(result.changes.some(c=>c.field==="Task 2 · step 2"&&c.after==="Internal integration check"));
+ assert.equal(original.tasks.length,1);
+});
+check("deleted parent lists every removed nested step, never invents new exposure",()=>{
+ const proposed=structuredClone(original);
+ proposed.tasks.push({
+  ...proposed.tasks[0],title:"Keep existing task",
+  subtasks:[],
+ });
+ const before=structuredClone(proposed);
+ before.tasks[0].client_visible=true;
+ before.tasks[0].subtasks[0].client_visible=true;
+ const result=reviewMuseChanges(before,{...proposed,tasks:[proposed.tasks[1]]});
+ assert.equal(result.newlyClientVisible,0);
+ assert.equal(result.oldTaskCount,3);assert.equal(result.newTaskCount,1);
+ assert.ok(result.changes.some(c=>c.field==="Task 1"&&c.before==="Map the home page"&&c.after==="Keep existing task"));
+ assert.ok(result.changes.some(c=>c.field==="Task 1 · step 1"&&c.before==="Write the headline"&&c.after==="Removed from proposal"));
+});
 check("removed step shows before/after task count, without mutating source",()=>{
  const proposed=structuredClone(original);proposed.tasks[0].subtasks=[];
  const result=reviewMuseChanges(original,proposed);
