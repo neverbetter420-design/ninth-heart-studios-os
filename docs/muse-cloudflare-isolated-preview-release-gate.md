@@ -63,6 +63,32 @@ The other **61** branches had **no successful deployment in the inspected build 
 
 **Current release state:** No Access initialization, policy change, online Preview publication, new credential, paid service, production deployment, route change, or deletion was performed by this investigation. Cloudflare preview builds for the Muse branch remain disabled.
 
+## November 2 Access verification and exact preview release preflight
+
+**Later verified state supersedes the historical account-access findings above:** Cloudflare Zero Trust is now enabled. The Access application `All preview URLs` (`86b1f533-a23c-4368-b68a-e7c5fe2730c8`) targets `all_preview_workers` and its only policy allows **Cloudflare account members**, not Everyone. Anonymous checks on **all three** previously deployed legacy preview URLs returned `login_required` after Access was enabled. Separately, the production `https://app.ninthheartstudios.com/auth/sign-in` still rendered normally. These probes confirm an anonymous challenge, not that a full owner sign-in flow or new Preview deployment has been tested. **Do not narrow this policy to a guessed email address or broaden it without explicit authorization.**
+
+The source-only draft PR #67 at `653b395bb00e2011fc2f4b4d848e13d9ac68c2ce` completed **nine of nine** GitHub CI checks, including disposable-auth tests, browser QA, OpenNext generation and the credential-free Wrangler dry-run. Newer commits that explicitly set `MUSE_AI_ENABLED=false` and `MUSE_PROJECT_GUIDE_ENABLED=false` in **both** isolated preview var maps must independently pass their checks. **Do not transfer the earlier green status to a newer head.**
+
+Current online-preview proposal, **not yet authorized for publication**:
+
+| Field | Target / boundary |
+| --- | --- |
+| Candidate branch | `review/muse-62-64-integrated-main-20261101` |
+| Candidate SHA | **Re-read exact current PR head before authorization; do not deploy a moving branch implicitly** |
+| Independent target Worker name | `nhs-os-nocturne-preview` from `wrangler.nocturne-preview.jsonc` |
+| Preview build | `npm run cf:build`, not plain `npm run build` |
+| Candidate manual preview command | `npx wrangler preview --config wrangler.nocturne-preview.jsonc` |
+| Access scope | `all_preview_workers`, allow Cloudflare account members; ensure no bypass |
+| Data and services | `https://example.supabase.co` placeholder, placeholder publishable key, `https://example.invalid` app URL; **no real database, client records, external AI, secrets or service bindings** |
+| Feature flags | Both Muse flags explicitly `false` in top-level and Preview vars; keep off |
+| Routes and Worker settings | No custom production routes, `keep_vars=false`, dedicated Worker name |
+| Automatic builds | Keep `auto_build=false` for the Muse branch |
+| Production freeze | No merge, production deploy, Cloudflare production build-policy change, hosted migration, lead scan, outreach, paid service or AI activation |
+
+**Additional discovered launch gate:** Cloudflare's read-only Workers list contains `ninth-heart-studios-os` and `nhs-os-issue23-staging`, **but not** `nhs-os-nocturne-preview`. Wrangler's documented `preview --config` resolves `--worker-name` from the selected config by default, so this command targets a **new separate Worker namespace**, not a preview of the existing production Worker. A successful dry-run of `wrangler deploy` does not prove that the first cloud-side `wrangler preview` will create that separate Worker or that the connected Workers Builds credentials permit doing so. Before any manual publish, review the plan/permissions, explicit authorization to create a new Worker/Preview, and exact URL/access behavior. **Never fall back to the production Worker name to get around a permission error.**
+
+The only remaining deployment gate is an owner-approved **single** online preview identifying the exact commit SHA, Worker name, private Access scope, synthetic bindings and any resource creation. After explicit approval, manually publish only that candidate, check auth challenge and live Worker invariance, and leave auto-build disabled.
+
 ## Before any online preview (NOT approved yet)
 
 1. **Keep the existing production Worker and its Git connection untouched.** Do not patch its `git_repository.branch`, production build/deploy command, `previews_enabled`, or trigger. These are operational settings on a production-linked resource.
