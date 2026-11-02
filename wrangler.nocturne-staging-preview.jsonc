@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "nhs-os-nocturne-preview",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "preview_urls": true,
+  "routes": [],
+  "keep_vars": false,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://qihwmfwlhsetxwggaesd.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_afbg4GgstxVVPrDGPBco7w_nYnNzMra",
+    "NHS_APP_URL": "https://review-muse-62-64-integrated-main-202611-ninth-heart-studios-os.neverbetter420.workers.dev",
+    "MUSE_AI_ENABLED": "false",
+    "MUSE_PROJECT_GUIDE_ENABLED": "false"
+  },
+  "previews": {
+    "vars": {
+      "NEXT_PUBLIC_SUPABASE_URL": "https://qihwmfwlhsetxwggaesd.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_afbg4GgstxVVPrDGPBco7w_nYnNzMra",
+      "NHS_APP_URL": "https://review-muse-62-64-integrated-main-202611-ninth-heart-studios-os.neverbetter420.workers.dev",
+      "MUSE_AI_ENABLED": "false",
+      "MUSE_PROJECT_GUIDE_ENABLED": "false"
+    }
+  }
+}
