@@ -1,0 +1,56 @@
+name: NHS Muse isolated Worker preview dry-run
+
+# Source-only dry-run. No Cloudflare API token, deploy, production secrets,
+# live Supabase access, or AI provider calls are used by this workflow.
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'wrangler.jsonc'
+      - 'wrangler.nocturne-preview.jsonc'
+      - 'scripts/verify-muse-isolated-preview.mjs'
+      - 'app/**'
+      - 'components/**'
+      - '.github/workflows/muse-isolated-preview-dry-run.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-preview:
+    name: OpenNext preview bundle and inert Worker dry-run
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NHS_APP_URL: https://example.invalid
+      MUSE_PROJECT_GUIDE_ENABLED: 'false'
+      MUSE_AI_ENABLED: 'false'
+    steps:
+      - name: Checkout isolated source without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned packages
+        run: npm ci
+      - name: Verify inert preview config and absence of credentials
+        run: node scripts/verify-muse-isolated-preview.mjs
+      - name: Build actual OpenNext Worker bundle, not only Next.js
+        run: npm run cf:build
+      - name: Assert generated Worker and inert preview config
+        run: node scripts/verify-muse-isolated-preview.mjs --require-bundle
+      - name: Validate isolated preview Worker bundle without publishing
+        run: npx wrangler deploy --dry-run --config wrangler.nocturne-preview.jsonc
+      - name: Record strictly non-deploying result
+        run: |
+          echo "Built OpenNext Worker, validated isolated Nocturne preview config, and ran Wrangler --dry-run only." >> "$GITHUB_STEP_SUMMARY"
+          echo "No Cloudflare deployment, route or variable change; no hosted Supabase, client data, paid AI, or Muse feature activation." >> "$GITHUB_STEP_SUMMARY"
