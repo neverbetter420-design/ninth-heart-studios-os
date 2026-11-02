@@ -12,6 +12,18 @@
 - **Do not repair this by editing the production-linked Worker's build settings or triggering a deployment without separate authorization.** Cloudflare preview URLs may be public by default, and enabling/disabling preview capability on an existing connected Worker can have operational consequences. Successful offline CI does not authorize online preview publication.
 - No live Worker, routing, build configuration, hosted Supabase data, Muse flag, AI credential, or paid service was changed by this source-only review.
 
+## November 2, 2026 Cloudflare preview-configuration correction (owner-authorized)
+
+The owner requested that Cloudflare be fixed. A **targeted Cloudflare Workers Builds Preview settings patch** was applied only to the existing Muse review-branch preview `16c83a9d6ccf44e6b3ea49bf7430a9bb` under production-connected Worker `ninth-heart-studios-os`:
+
+- `auto_build: false`, to stop accidental online preview publication when pushing review commits.
+- `settings.build_command: "npm run cf:build"`, generating the required `.open-next/worker.js` instead of only compiling Next.js.
+- `settings.deploy_command: "npx wrangler preview --config wrangler.nocturne-preview.jsonc"`, explicitly selecting the inert, independently named, no-production-route review config if a separately approved preview is ever published.
+- A read-back verified these exact values. Cloudflare's **production settings, production Git branch, automatic production-build policy and live Worker deployment ID were unchanged**. This operation did not trigger a build, deploy a Worker or expose a Preview URL.
+- This change is scoped to **one existing review-branch Preview**. It does not fix historical failed runs, other Previews or the production build command, which intentionally remain out of scope. A successful hosted preview deployment has **not** been demonstrated. The preview command's end-to-end compatibility with the separate Worker name still requires a reviewed, safely access-controlled online test before enabling `auto_build`.
+
+The historical failing automatic-preview settings below are retained as incident evidence, not as current configuration. Do not turn automatic preview publishing back on merely because offline CI passes.
+
 ## Approved-for-CI offline verification (already implemented)
 
 The review branch has an isolated, independently named config: `wrangler.nocturne-preview.jsonc`. Its Worker name is `nhs-os-nocturne-preview`, not `ninth-heart-studios-os`. It has no routes, `keep_vars=false`, inert Supabase placeholders, and no AI, ratelimit, KV, R2, D1, or service bindings. The synthetic-only placeholders are explicitly configured **twice**: in top-level `vars` (required if a separately approved standalone preview Worker is ever published with `wrangler deploy`) and in `previews.vars` (required for Worker Preview deployments). Cloudflare does **not** inherit these variables across the two modes. Both maps are required to match exactly by the offline safety test.
