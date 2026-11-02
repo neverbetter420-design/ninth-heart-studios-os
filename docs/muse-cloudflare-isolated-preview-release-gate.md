@@ -14,7 +14,7 @@
 
 ## Approved-for-CI offline verification (already implemented)
 
-The review branch has an isolated, independently named config: `wrangler.nocturne-preview.jsonc`. Its Worker name is `nhs-os-nocturne-preview`, not `ninth-heart-studios-os`. It has no routes, `keep_vars=false`, inert Supabase placeholders, and no AI, ratelimit, KV, R2, D1, or service bindings.
+The review branch has an isolated, independently named config: `wrangler.nocturne-preview.jsonc`. Its Worker name is `nhs-os-nocturne-preview`, not `ninth-heart-studios-os`. It has no routes, `keep_vars=false`, inert Supabase placeholders, and no AI, ratelimit, KV, R2, D1, or service bindings. The synthetic-only placeholders are explicitly configured **twice**: in top-level `vars` (required if a separately approved standalone preview Worker is ever published with `wrangler deploy`) and in `previews.vars` (required for Worker Preview deployments). Cloudflare does **not** inherit these variables across the two modes. Both maps are required to match exactly by the offline safety test.
 
 The credential-free job `.github/workflows/muse-isolated-preview-dry-run.yml` executes:
 
