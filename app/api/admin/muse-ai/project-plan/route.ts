@@ -5,6 +5,7 @@ import { checkMuseRateLimit } from "@/lib/muse-ai-rate-limit";
 import { ALLOWED_MODELS, boundedText } from "@/lib/muse-ai-runner";
 import { buildProjectPlanRequest, extractPlanFromResponse, parseMuseProjectPlan } from "@/lib/muse-project-guide";
 import { createClient } from "@/lib/supabase/server";
+import { assertMuseRevisionChain } from "@/lib/muse-revision-chain";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,6 +67,14 @@ export async function POST(request: NextRequest) {
         !Number.isFinite(Date.parse(saved.expires_at)) || Date.parse(saved.expires_at) <= Date.now()) {
         throw new Error("invalid_saved_plan");
       }
+      // Reopening must be as strict as browsing history or database approval.
+      // An intact latest snapshot alone cannot hide missing earlier revisions.
+      const { data: history, error: historyError } = await db.from("muse_project_plan_revisions")
+        .select("revision,plan")
+        .eq("plan_id", saved.id).eq("created_by", auth.user.id)
+        .order("revision", { ascending: false }).limit(25);
+      if (historyError) return error("Muse revision history is temporarily unavailable.", 503);
+      assertMuseRevisionChain(history ?? [], saved.current_revision, clean);
       return NextResponse.json({
         plan_id: saved.id, project_id: projectId,
         revision: saved.current_revision, expires_at: saved.expires_at, ...clean,
