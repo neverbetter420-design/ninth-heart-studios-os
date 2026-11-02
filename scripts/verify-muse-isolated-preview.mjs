@@ -24,7 +24,8 @@ assert.equal(preview.name, "nhs-os-nocturne-preview");
 assert.notEqual(preview.name, live.name, "Preview must not target live Worker");
 assert.equal(preview.main, ".open-next/worker.js");
 assert.equal(preview.main, live.main);
-assert.equal(preview.workers_dev, true);
+assert.equal(preview.workers_dev, false, "No standalone publicly routable workers.dev URL");
+assert.equal(preview.preview_urls, true, "Only Access-gated Preview URLs may be served");
 assert.deepEqual(preview.routes, [], "Preview must not claim a production route");
 assert.equal(preview.keep_vars, false, "Preview must not inherit live variables");
 assert.equal(preview.compatibility_date, live.compatibility_date);
@@ -45,7 +46,7 @@ assert.deepEqual(preview.previews, { vars: inertVars },
   "Worker Previews must have their own identical inert runtime variables");
 assert.deepEqual(Object.keys(preview).sort(), [
   "$schema", "name", "main", "compatibility_date", "compatibility_flags",
-  "workers_dev", "routes", "keep_vars", "assets", "vars", "previews",
+  "workers_dev", "preview_urls", "routes", "keep_vars", "assets", "vars", "previews",
 ].sort(), "Unexpected preview bindings or routes require a new security review");
 
 // Lock the CI workflow itself to an offline OpenNext build and a Wrangler dry-run.
