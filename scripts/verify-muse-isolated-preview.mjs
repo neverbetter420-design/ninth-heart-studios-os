@@ -10,7 +10,12 @@ const live = read("wrangler.jsonc");
 assert.equal(process.env.CLOUDFLARE_API_TOKEN || "", "", "No Cloudflare deployment credential in CI");
 assert.equal(process.env.SUPABASE_ACCESS_TOKEN || "", "", "No hosted Supabase access token in CI");
 assert.equal(process.env.SUPABASE_DB_PASSWORD || "", "", "No hosted database password in CI");
+assert.equal(process.env.SUPABASE_SERVICE_ROLE_KEY || "", "", "No Supabase service-role key in CI");
+assert.equal(process.env.SUPABASE_SECRET_KEY || "", "", "No Supabase secret key in CI");
+assert.equal(process.env.CLOUDFLARE_API_KEY || "", "", "No Cloudflare API key in CI");
+assert.equal(process.env.RESEND_API_KEY || "", "", "No transactional email credential in CI");
 assert.equal(process.env.OPENAI_API_KEY || "", "", "No AI provider key in CI");
+assert.equal(process.env.ANTHROPIC_API_KEY || "", "", "No alternate AI provider key in CI");
 assert.notEqual(process.env.MUSE_PROJECT_GUIDE_ENABLED, "true", "Muse must stay disabled");
 assert.notEqual(process.env.MUSE_AI_ENABLED, "true", "Muse AI must stay disabled");
 
@@ -58,7 +63,7 @@ assert.doesNotMatch(workflow, /^\s*environment:\s*production\s*$/m,
 assert.doesNotMatch(workflow, /\$\{\{\s*secrets\./,
   "Offline preview CI must not import GitHub secrets");
 assert.doesNotMatch(workflow,
-  /^\s*(?:CLOUDFLARE_API_TOKEN|SUPABASE_ACCESS_TOKEN|SUPABASE_DB_PASSWORD|OPENAI_API_KEY):/m,
+  /^\s*(?:CLOUDFLARE_API_TOKEN|CLOUDFLARE_API_KEY|SUPABASE_ACCESS_TOKEN|SUPABASE_DB_PASSWORD|SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|RESEND_API_KEY|OPENAI_API_KEY|ANTHROPIC_API_KEY):/m,
   "Offline preview CI must not define hosted credentials");
 assert.match(workflow, /^\s*contents:\s*read\s*$/m,
   "Offline preview CI must retain read-only repository permissions");
