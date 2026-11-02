@@ -102,3 +102,60 @@
   .muse-task-create-grid { grid-template-columns: 1fr; }
   .muse-plan-list > li { padding-left: 30px; }
 }
+
+
+/* Muse editor v3: spare, readable glass surfaces and explicit review hierarchy. */
+.muse-plan-reopen { position: relative; z-index: 1; display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin: 14px 0 0; }
+.muse-plan-reopen span { font-size: 10px; color: #c3afbc; line-height: 1.5; }
+.muse-plan-editor { position: relative; z-index: 1; display: grid; gap: 18px; min-width: 0; margin-top: 22px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.1); }
+.muse-editor-heading { display: flex; gap: 20px; align-items: flex-start; justify-content: space-between; }
+.muse-editor-heading h4 { margin: 0; color: #fff2f8; font: 400 clamp(20px,3vw,25px)/1.2 Georgia,serif; }
+.muse-editor-heading p:last-child { margin: 9px 0 0; color: #c6b5c0; line-height: 1.55; font-size: 11px; }
+.muse-editor-heading > span,.muse-editor-counter { flex: 0 0 auto; color: #e8bdcf; font-size: 10px; letter-spacing: .04em; }
+.muse-plan-editor label { display: grid; min-width: 0; gap: 7px; color: #dbc7d4; font-size: 10px; line-height: 1.45; }
+.muse-plan-editor :is(input:not([type="checkbox"]),textarea,select) {
+  display: block; width: 100%; min-width: 0; max-width: 100%;
+  border: 1px solid rgba(235,189,217,.19); border-radius: 11px;
+  padding: 10px 12px; color: #fff6fa; background: rgba(9,6,13,.54);
+  font: inherit; font-size: 12px; line-height: 1.5; resize: vertical;
+}
+.muse-plan-editor :is(input,textarea,select):focus-visible { outline: 2px solid rgba(228,159,200,.64); outline-offset: 2px; }
+.muse-plan-editor :is(input,textarea,select):disabled { opacity: .62; }
+.muse-editor-task-list { display: grid; gap: 10px; }
+.muse-editor-task { border: 1px solid rgba(234,177,205,.13); border-radius: 16px; background: rgba(255,255,255,.025); min-width: 0; overflow: hidden; }
+.muse-editor-task > summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 18px; color: #faeaf3; cursor: pointer; font-size: 13px; }
+.muse-editor-task > summary::marker { color: #dfacc6; }
+.muse-editor-task > summary small { color: #bda1b1; font-size: 10px; }
+.muse-editor-task[open] > summary { border-bottom: 1px solid rgba(255,255,255,.06); }
+.muse-editor-task-body { display: grid; gap: 15px; padding: 16px 18px; }
+.muse-editor-fields { display: grid; gap: 12px; }
+.muse-editor-compact { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.muse-editor-visibility { display: flex !important; flex-direction: row; align-items: center; gap: 9px; }
+.muse-editor-visibility input { width: 18px; height: 18px; accent-color: #c891ad; }
+.muse-editor-task-actions { display: flex; justify-content: flex-end; }
+.muse-editor-subtasks { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.07); }
+.muse-editor-step { border-left: 2px solid rgba(225,167,198,.35); padding: 8px 0 8px 14px; background: rgba(255,255,255,.013); }
+.muse-editor-step > summary { color: #eed4e2; font-size: 11px; cursor: pointer; }
+.muse-editor-step-body { display: grid; gap: 12px; padding: 12px 12px 4px 0; }
+.muse-editor-review { display: grid; gap: 12px; padding: 18px; border: 1px solid rgba(238,186,211,.16); border-radius: 16px; background: linear-gradient(140deg,rgba(159,94,134,.08),rgba(255,255,255,.014)); }
+.muse-editor-review > .muse-plan-review-note { margin: 0; }
+.muse-editor-warning { margin: 0; padding: 12px 13px; border: 1px solid rgba(245,193,126,.25); border-radius: 11px; color: #f6d5b5; background: rgba(157,104,36,.1); font-size: 11px; line-height: 1.55; }
+.muse-editor-diff-list { display: grid; gap: 10px; padding: 0; margin: 3px 0; list-style: none; max-height: 360px; overflow-y: auto; }
+.muse-editor-diff-list li { display: grid; gap: 6px; min-width: 0; padding: 12px; background: rgba(10,7,14,.34); border-radius: 10px; }
+.muse-editor-diff-list strong { color: #f4d6e7; font-size: 11px; }
+.muse-editor-diff-list span { color: #cdbec8; font-size: 10px; line-height: 1.55; overflow-wrap: anywhere; }
+.muse-editor-diff-list b { color: #e1a9c6; }
+.muse-plan-editor .mini-button { min-height: 38px; }
+@media (max-width:780px) {
+ .muse-editor-compact { grid-template-columns: 1fr 1fr; }
+ .muse-editor-task > summary { padding: 14px; }
+ .muse-editor-task-body { padding: 14px; }
+ .muse-editor-review { padding: 14px; }
+ .muse-plan-reopen { align-items: stretch; }
+ .muse-plan-reopen button { width: 100%; }
+}
+@media (max-width:430px) {
+ .muse-editor-compact { grid-template-columns: 1fr; }
+ .muse-editor-heading { display: grid; gap: 8px; }
+ .muse-plan-editor .mini-button { width: 100%; min-height: 44px; }
+}

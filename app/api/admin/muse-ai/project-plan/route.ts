@@ -43,13 +43,37 @@ export async function POST(request: NextRequest) {
   if (process.env.MUSE_PROJECT_GUIDE_ENABLED !== "true") {
     return error("Muse Project Guide is in private preview and has not been enabled yet.", 503);
   }
-  if ((process.env.MUSE_AI_PROVIDER || "openai") !== "openai") {
-    return error("Project-plan generation and application are unavailable in the free preview. Muse chat stays read-only.", 503);
-  }
   const action = payload.action;
   const projectId = typeof payload.project_id === "string" ? payload.project_id : "";
   if (!UUID.test(projectId)) return error("Select a valid project.", 400);
   const db = await createClient();
+
+  // Reading an existing proposal requires neither a model configuration nor
+  // an external provider call. RLS + owner and project filters are mandatory.
+  if (action === "load_latest") {
+    const { data: saved, error: loadError } = await db.from("muse_project_plans")
+      .select("id,project_id,created_by,status,current_revision,expires_at,plan")
+      .eq("project_id", projectId).eq("created_by", auth.user.id).eq("status", "draft")
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (loadError) return error("Couldn't securely load the saved Muse proposal.", 503);
+    if (!saved) return error("No active saved Muse draft exists for this project.", 404);
+    try {
+      const clean = parseMuseProjectPlan(saved.plan);
+      if (!UUID.test(saved.id) || saved.project_id !== projectId || saved.created_by !== auth.user.id ||
+        saved.status !== "draft" || !Number.isSafeInteger(saved.current_revision) ||
+        saved.current_revision < 1 || saved.current_revision > 25 ||
+        !Number.isFinite(Date.parse(saved.expires_at)) || Date.parse(saved.expires_at) <= Date.now()) {
+        throw new Error("invalid_saved_plan");
+      }
+      return NextResponse.json({
+        plan_id: saved.id, project_id: projectId,
+        revision: saved.current_revision, expires_at: saved.expires_at, ...clean,
+      }, { headers: HEADERS });
+    } catch {
+      return error("The saved plan is inconsistent. Approval is blocked.", 409);
+    }
+  }
 
   if (action === "apply" || action === "save_revision") {
     const planId = typeof payload.plan_id === "string" ? payload.plan_id : "";
@@ -113,6 +137,9 @@ export async function POST(request: NextRequest) {
   }
 
   if (action !== "draft") return error("Choose a supported Project Guide action.", 400);
+  if ((process.env.MUSE_AI_PROVIDER || "openai") !== "openai") {
+    return error("Project-plan generation is unavailable in the free preview; saved draft review stays offline.", 503);
+  }
   const objective = typeof payload.objective === "string" ? payload.objective.trim() : "";
   if (objective.length < 2 || objective.length > 500) return error("Describe the project objective in 2 to 500 characters.", 400);
   const key = process.env.OPENAI_API_KEY;
