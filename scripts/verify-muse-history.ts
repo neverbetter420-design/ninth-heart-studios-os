@@ -31,14 +31,21 @@ check("history list excludes plan bodies and requires complete contiguous snapsh
     assert.ok(fragment.includes(token),"Missing ledger guard "+token);
   assert.ok(!fragment.includes('revisions: rows'),"Do not serialize entire history bodies");
 });
-check("historic snapshot requires exact revision and current version",()=>{
+check("single-revision fetch verifies current ledger integrity even for older snapshots",()=>{
+  const fragment=route.split('const requested = payload.revision;')[1].split('if (action === "apply" || action === "save_revision")')[0];
   for(const token of [
     'Number(requested) > current.current_revision',
     '.eq("revision", Number(requested)).maybeSingle()',
-    'requested === current.current_revision',
+    'if (!latest) return error("The current revision ledger is missing; restoration is blocked.", 409)',
+    '.eq("revision", current.current_revision).maybeSingle()',
+    'latest.revision !== current.current_revision',
+    'parseMuseProjectPlan(latest.plan)',
+    'JSON.stringify(latestPlan) !== JSON.stringify(currentPlan)',
     'parseMuseProjectPlan(entry.plan)',
     'current_revision: current.current_revision',
-  ])assert.ok(route.includes(token),"Missing snapshot verification "+token);
+  ])assert.ok(fragment.includes(token),"Missing single-revision ledger integrity guard "+token);
+  assert.ok(!fragment.includes('requested === current.current_revision &&'),
+    "An older selected revision must not bypass the current ledger integrity check");
 });
 check("history UI checks ID, project, current revision, chronological index and task count",()=>{
   for(const token of [
