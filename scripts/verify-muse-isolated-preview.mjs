@@ -41,6 +41,28 @@ assert.deepEqual(Object.keys(preview).sort(), [
   "workers_dev", "routes", "keep_vars", "assets", "vars", "previews",
 ].sort(), "Unexpected preview bindings or routes require a new security review");
 
+// Lock the CI workflow itself to an offline OpenNext build and a Wrangler dry-run.
+// GitHub passing must never imply that Cloudflare's separate, production-linked
+// automatic preview settings are safe or that an online Worker was published.
+const workflow = readFileSync(".github/workflows/muse-isolated-preview-dry-run.yml", "utf8");
+assert.match(workflow, /^\\s*run:\\s*npm run cf:build\\s*$/m,
+  "Offline CI must generate the OpenNext Worker, not only run next build");
+assert.match(workflow,
+  /^\\s*run:\\s*npx wrangler deploy --dry-run --config wrangler\\.nocturne-preview\\.jsonc\\s*$/m,
+  "Offline CI must target only the dedicated preview config using --dry-run");
+assert.doesNotMatch(workflow,
+  /^\\s*run:\\s*(?:npm run cf:deploy\\b|npx wrangler (?:deploy(?!\\s+--dry-run)|preview\\b))/m,
+  "Offline preview CI must not deploy or publish a Worker");
+assert.doesNotMatch(workflow, /^\\s*environment:\\s*production\\s*$/m,
+  "Offline preview CI must not request the production environment");
+assert.doesNotMatch(workflow, /\\$\\{\\{\\s*secrets\\./,
+  "Offline preview CI must not import GitHub secrets");
+assert.doesNotMatch(workflow,
+  /^\\s*(?:CLOUDFLARE_API_TOKEN|SUPABASE_ACCESS_TOKEN|SUPABASE_DB_PASSWORD|OPENAI_API_KEY):/m,
+  "Offline preview CI must not define hosted credentials");
+assert.match(workflow, /^\\s*contents:\\s*read\\s*$/m,
+  "Offline preview CI must retain read-only repository permissions");
+
 if (process.argv.includes("--require-bundle")) {
   assert.ok(existsSync(".open-next/worker.js"),
     "OpenNext Worker missing; use npm run cf:build, not npm run build");
