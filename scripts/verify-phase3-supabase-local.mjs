@@ -246,6 +246,66 @@ await check("Muse plans are admin-owner-only and clients cannot apply them",asyn
  assert.equal(activity.length,1);assert.equal(activity[0].metadata.created_count,2);
  assert.equal(activity[0].metadata.applied_revision,3);
 });
+await check("Muse save and apply reject a missing intermediate revision in disposable local Auth",async()=>{
+  // Service-role corruption is deliberately simulated ONLY on local 127.0.0.1.
+  // Admins have no direct DELETE grant, and no hosted project credentials exist.
+  const brokenId=randomUUID();
+  const brokenPlan={summary:"History continuity synthetic check",tasks:[{
+    title:"Parent task for chain test",description:"A synthetic isolated parent task.",
+    definition_of_done:"Synthetic parent validation complete.",priority:"normal",
+    due_date:null,estimated_minutes:30,client_visible:false,subtasks:[{
+      title:"Nested synthetic step",description:"A synthetic isolated step.",
+      definition_of_done:"Synthetic nested validation complete.",priority:"normal",
+      due_date:null,estimated_minutes:20,client_visible:false,
+    }],
+  }]};
+  got(await Admin.from("muse_project_plans").insert({
+    id:brokenId,project_id:projectA,objective:"Verify complete immutable revision chain",
+    summary:brokenPlan.summary,plan:brokenPlan,source_model:"synthetic-ci",
+    evidence_checked_at:new Date().toISOString(),created_by:ids.admin,
+  }).select("id"),"create synthetic incomplete-ledger fixture");
+  const revisionTwo={...brokenPlan,summary:"Synthetic chain revision two"};
+  const revisionThree={...brokenPlan,summary:"Synthetic chain revision three"};
+  got(await Admin.rpc("save_muse_project_plan_revision",{
+    target_plan_id:brokenId,target_project_id:projectA,expected_revision:1,
+    updated_plan:revisionTwo,change_note:"First synthetic revision",
+  }),"create synthetic revision two");
+  got(await Admin.rpc("save_muse_project_plan_revision",{
+    target_plan_id:brokenId,target_project_id:projectA,expected_revision:2,
+    updated_plan:revisionThree,change_note:"Second synthetic revision",
+  }),"create synthetic revision three");
+
+  const directRemove=await Admin.from("muse_project_plan_revisions")
+    .delete().eq("plan_id",brokenId).eq("revision",2).select("revision");
+  assert.ok(directRemove.error,"ordinary admin must not erase history");
+  const missing=got(await srv.from("muse_project_plan_revisions")
+    .delete().eq("plan_id",brokenId).eq("revision",2).select("revision"),
+    "simulate one missing intermediate revision with CI-only service role");
+  assert.deepEqual(missing.map(row=>row.revision),[2]);
+  const stillLatest=got(await Admin.from("muse_project_plan_revisions")
+    .select("revision").eq("plan_id",brokenId).order("revision"),
+    "check corrupted intermediate ledger");
+  assert.deepEqual(stillLatest.map(row=>row.revision),[1,3]);
+  const rejectedSave=await Admin.rpc("save_muse_project_plan_revision",{
+    target_plan_id:brokenId,target_project_id:projectA,expected_revision:3,
+    updated_plan:{...brokenPlan,summary:"Attempt after missing history"},
+    change_note:"Should refuse incomplete chain",
+  });
+  assert.ok(rejectedSave.error,"saving must reject missing revision two");
+  const rejectedApply=await Admin.rpc("apply_muse_project_plan",{
+    target_plan_id:brokenId,target_project_id:projectA,expected_revision:3,
+    expected_count:2,
+  });
+  assert.ok(rejectedApply.error,"approval must reject incomplete revision chain");
+  const unchanged=got(await Admin.from("muse_project_plans")
+    .select("status,current_revision,plan").eq("id",brokenId).single(),
+    "unchanged corrupted plan state");
+  assert.equal(unchanged.status,"draft");
+  assert.equal(unchanged.current_revision,3);
+  assert.deepEqual(unchanged.plan,revisionThree);
+  assert.equal(got(await Admin.from("tasks").select("id")
+    .eq("muse_plan_id",brokenId),"no tasks created on incomplete approval").length,0);
+});
 console.log("PASS "+checks.length+" full local Supabase Auth + PostgREST integration cases, synthetic accounts only");
 await verifyDeepScanLeaseLocal({
   admin: Admin, clientA: A, clientB: B,
