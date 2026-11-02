@@ -114,8 +114,11 @@ if (failed) process.exitCode = 1;
     throw 'QA Auth preflight failed. Fix the dedicated test credentials or Auth availability before running browser acceptance. Do not reset accounts or deploy as a workaround.'
   }
   Write-Host 'Testing live public pages, admin, both clients, and direct API isolation (read-only).'
-  npx --no-install playwright test tests/e2e/navigation.spec.mjs tests/e2e/phase3-access.spec.mjs --retries=0
-  if ($LASTEXITCODE -ne 0) { throw 'Live acceptance failed. Review test-results/ and playwright-report/. Do not deploy.' }
+  # The shared Playwright config retains traces on failure. Live authentication
+  # must not create trace archives that could contain test credential/session data.
+  # Keep screenshots/videos/reports local and private; never attach them publicly.
+  npx --no-install playwright test tests/e2e/navigation.spec.mjs tests/e2e/phase3-access.spec.mjs --retries=0 --trace=off
+  if ($LASTEXITCODE -ne 0) { throw 'Live acceptance failed. Review local test-results/ and playwright-report/ privately; they may contain test data. Do not deploy.' }
   Write-Host 'Live local QA passed. This does not authorize a production deployment.'
 }
 finally {
