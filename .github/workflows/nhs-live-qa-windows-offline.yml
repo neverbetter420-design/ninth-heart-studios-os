@@ -1,0 +1,24 @@
+name: NHS OS Windows QA runner offline safety
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/run-live-qa-windows.ps1'
+      - 'scripts/verify-live-qa-windows-offline.ps1'
+      - '.github/workflows/nhs-live-qa-windows-offline.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  windows-qa-runner-offline:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout without persisting GitHub credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run offline Windows PowerShell 5.1 acceptance
+        shell: powershell
+        run: .\scripts\verify-live-qa-windows-offline.ps1
