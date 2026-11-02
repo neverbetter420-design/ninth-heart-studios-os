@@ -37,14 +37,25 @@ foreach ($key in $endpointKeys) {
 $global:NhsQaEvents = New-Object 'System.Collections.Generic.List[string]'
 $global:NhsQaInstallDone = $false
 $global:NhsQaForceAuthError = $false
+# This is the exact allowlist checked by the real runner; never return an empty
+# mock diff, which would miss an accidentally impossible branch restriction.
+$global:NhsQaChangedPaths = @(
+  'scripts/run-live-qa-windows.ps1',
+  'scripts/verify-live-qa-windows-offline.ps1',
+  '.github/workflows/nhs-live-qa-windows-offline.yml'
+)
+$global:NhsQaGitDiffFails = $false
 
 # Functions are intentionally injected into the PowerShell command-resolution
 # scope of the script under test. This is NOT a simulated shell transcript.
 function global:git {
-  if ($args[0] -eq 'rev-parse') { return '4835f2eac86a13d1c10330a191700beca465a9c3' }
+  if ($args[0] -eq 'rev-parse') { return 'offline-synthetic-reviewed-branch' }
   if ($args[0] -eq 'merge-base') { $global:LASTEXITCODE = 0; return }
-  if ($args[0] -eq 'diff') { return }
-  if ($args[0] -eq 'status') { return }
+  if ($args[0] -eq 'diff') {
+    $global:LASTEXITCODE = if ($global:NhsQaGitDiffFails) { 1 } else { 0 }
+    return $global:NhsQaChangedPaths
+  }
+  if ($args[0] -eq 'status') { $global:LASTEXITCODE = 0; return }
   throw 'Unexpected git command during offline QA.'
 }
 function global:npm {
@@ -120,6 +131,36 @@ try {
   }
   Assert-RunnerCleanup
 
+  # The exact reviewed three-file PR diff is allowed, but unexpected app edits
+  # must fail before npm, prompts, Auth, or browser calls.
+  $global:NhsQaEvents.Clear()
+  $global:NhsQaChangedPaths = @('scripts/run-live-qa-windows.ps1', 'app/admin/page.tsx')
+  $unreviewedRejected = $false
+  try { & $runner }
+  catch { $unreviewedRejected = $_.Exception.Message -like '*unreviewed application*' }
+  if (-not $unreviewedRejected -or $global:NhsQaEvents.Count -ne 0) {
+    throw 'Unreviewed application code was not rejected before setup.'
+  }
+  Assert-RunnerCleanup
+
+  # A failed git diff must also block live QA, even when it produced no files.
+  $global:NhsQaChangedPaths = @()
+  $global:NhsQaGitDiffFails = $true
+  $global:NhsQaEvents.Clear()
+  $gitFailureRejected = $false
+  try { & $runner }
+  catch { $gitFailureRejected = $_.Exception.Message -like '*Cannot verify repository diff*' }
+  if (-not $gitFailureRejected -or $global:NhsQaEvents.Count -ne 0) {
+    throw 'Failed Git diff was not rejected before setup.'
+  }
+  Assert-RunnerCleanup
+  $global:NhsQaChangedPaths = @(
+    'scripts/run-live-qa-windows.ps1',
+    'scripts/verify-live-qa-windows-offline.ps1',
+    '.github/workflows/nhs-live-qa-windows-offline.yml'
+  )
+  $global:NhsQaGitDiffFails = $false
+
   # Success path: install -> browser install -> private config -> prompt -> Auth -> test -> cleanup.
   $global:NhsQaEvents.Clear()
   $global:NhsQaInstallDone = $false
@@ -149,12 +190,12 @@ try {
   # after every assertion succeeds, so the CI shell does not inherit a false
   # failure from an expected fail-closed scenario.
   $global:LASTEXITCODE = 0
-  Write-Host 'PASS: Windows PowerShell parsing, pre-set credential guard, mocked success, private capture config, fail-closed Auth, and cleanup.'
+  Write-Host 'PASS: Windows PowerShell parsing, exact QA diff allowlist, Git fail-closed checks, credential guard, mocked success, private capture config, fail-closed Auth, and cleanup.'
 }
 finally {
   foreach ($key in $keys) { [Environment]::SetEnvironmentVariable($key, $null, 'Process') }
   Remove-Item Function:\git, Function:\npm, Function:\npx, Function:\node, Function:\Read-Host -ErrorAction SilentlyContinue
-  Remove-Variable NhsQaEvents, NhsQaInstallDone, NhsQaForceAuthError -Scope Global -ErrorAction SilentlyContinue
+  Remove-Variable NhsQaEvents, NhsQaInstallDone, NhsQaForceAuthError, NhsQaChangedPaths, NhsQaGitDiffFails -Scope Global -ErrorAction SilentlyContinue
   foreach ($key in $endpointKeys) {
     [Environment]::SetEnvironmentVariable($key, $inheritedEndpoints[$key], 'Process')
   }
