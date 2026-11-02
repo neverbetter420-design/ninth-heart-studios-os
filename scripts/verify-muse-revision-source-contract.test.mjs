@@ -52,6 +52,21 @@ test("private privileged functions use fixed search paths", () => {
   ]) assert.match(fn(name), /security definer set search_path = ''/);
 });
 
+test("project ownership is enforced at insert and privileged mutation boundaries", () => {
+  const trigger = fn("private.enforce_muse_plan_project_owner");
+  assert.match(trigger, /public\\.projects p/);
+  assert.match(trigger, /p\\.id = new\\.project_id and p\\.created_by = new\\.created_by/);
+  assert.match(sql, /before insert or update of project_id, created_by on public\\.muse_project_plans/);
+  for (const name of [
+    "private.save_muse_plan_revision_internal",
+    "private.apply_muse_plan_revision_internal",
+  ]) {
+    const body = fn(name);
+    assert.match(body, /public\\.projects project_owner/);
+    assert.match(body, /project_owner\\.created_by = \\(select auth\\.uid\\(\\)\\)/);
+  }
+});
+
 // IMPORTANT: These are source-contract checks, NOT proof of project ownership.
 // Cross-project inserts and privileged writes must be tested against disposable
 // Supabase with two admin users. Do not infer authorization from these tests.
