@@ -9,11 +9,21 @@ $head = (git rev-parse HEAD).Trim()
 # This source-only branch adds this runner to the exact reviewed main snapshot.
 git merge-base --is-ancestor $expected HEAD
 if ($LASTEXITCODE -ne 0) { throw "Checkout $head does not descend from reviewed release $expected." }
+# Allow only the three reviewed source-only QA files from draft PR #66.
+# Reject all application, E2E fixture, migration and deployment changes.
+$allowedChanges = @(
+  'scripts/run-live-qa-windows.ps1',
+  'scripts/verify-live-qa-windows-offline.ps1',
+  '.github/workflows/nhs-live-qa-windows-offline.yml'
+)
 $changed = @(git diff --name-only $expected HEAD)
-if (@($changed | Where-Object { $_ -ne 'scripts/run-live-qa-windows.ps1' }).Count -gt 0) {
-  throw 'Checkout differs from reviewed release in application or test files. Do not run live QA.'
+if ($LASTEXITCODE -ne 0) { throw 'Cannot verify repository diff against reviewed main; refusing live QA.' }
+if (@($changed | Where-Object { $_ -notin $allowedChanges }).Count -gt 0) {
+  throw 'Checkout contains unreviewed application, test or deployment changes. Do not run live QA.'
 }
-if ((git status --porcelain).Length -gt 0) { throw 'Working tree must be clean. This prevents accidental QA against modified source.' }
+$workingTree = @(git status --porcelain)
+if ($LASTEXITCODE -ne 0) { throw 'Cannot verify clean working tree; refusing live QA.' }
+if ($workingTree.Count -gt 0) { throw 'Working tree must be clean. This prevents accidental QA against modified source.' }
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw 'Install Node.js 22 first.' }
 $major = [int]((node --version).TrimStart('v').Split('.')[0])
 if ($major -ne 22) { throw "Use Node.js 22 for parity with CI. Found Node major $major." }
