@@ -58,19 +58,17 @@ check("new parent lists all nested steps and new visibility in reviewed diff",()
  assert.equal(original.tasks.length,1);
 });
 check("deleted parent lists every removed nested step, never invents new exposure",()=>{
- const proposed=structuredClone(original);
- proposed.tasks.push({
-  ...proposed.tasks[0],title:"Keep existing task",
-  subtasks:[],
+ const before=structuredClone(original);
+ before.tasks.push({
+  ...before.tasks[0],title:"Remove this parent",client_visible:true,
+  subtasks:[{...before.tasks[0].subtasks[0],title:"Remove this step",client_visible:true}],
  });
- const before=structuredClone(proposed);
- before.tasks[0].client_visible=true;
- before.tasks[0].subtasks[0].client_visible=true;
- const result=reviewMuseChanges(before,{...proposed,tasks:[proposed.tasks[1]]});
+ const after=structuredClone(original);
+ const result=reviewMuseChanges(before,after);
  assert.equal(result.newlyClientVisible,0);
- assert.equal(result.oldTaskCount,3);assert.equal(result.newTaskCount,1);
- assert.ok(result.changes.some(c=>c.field==="Task 1"&&c.before==="Map the home page"&&c.after==="Keep existing task"));
- assert.ok(result.changes.some(c=>c.field==="Task 1 · step 1"&&c.before==="Write the headline"&&c.after==="Removed from proposal"));
+ assert.equal(result.oldTaskCount,4);assert.equal(result.newTaskCount,2);
+ assert.ok(result.changes.some(c=>c.field==="Task 2"&&c.before==="Remove this parent"&&c.after==="Removed from proposal"));
+ assert.ok(result.changes.some(c=>c.field==="Task 2 · step 1"&&c.before==="Remove this step"&&c.after==="Removed from proposal"));
 });
 check("removed step shows before/after task count, without mutating source",()=>{
  const proposed=structuredClone(original);proposed.tasks[0].subtasks=[];
