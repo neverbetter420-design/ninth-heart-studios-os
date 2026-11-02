@@ -14,20 +14,20 @@ if(process.env.CI!=="true"||!/^http:\/\/(localhost|127\.0\.0\.1):54321\/?$/.test
 const base={auth:{persistSession:false,autoRefreshToken:false}};
 const srv=createClient(url,secret,base);
 const password="SyntheticOnly-"+randomUUID();
-const names=["admin","a","b"];
+const names=["admin","otherAdmin","a","b"];
 const ids={};
 const userClients={};
 function got(result,what){assert.equal(result.error,null,what+": "+(result.error?.message||""));return result.data;}
 for(const k of names){
  const email="nhs-ci-"+k+"-"+randomUUID()+"@example.invalid";
- const role=k==="admin"?"admin":"client";
+ const role=k==="admin"||k==="otherAdmin"?"admin":"client";
  const created=got(await srv.auth.admin.createUser({
   email,password,email_confirm:true,app_metadata:{role}
  }),"local Auth create "+k);
  ids[k]=created.user.id;
  const profile=got(await srv.from("profiles").select("role,active").eq("id",ids[k]).single(),"profile trigger "+k);
  assert.equal(profile.active,true);
- if(k==="admin" && profile.role==="client"){
+ if(role==="admin" && profile.role==="client"){
   // The live signup trigger can run before GoTrue persists app_metadata.
   // Promote only this disposable CI account through the local service role,
   // mirroring a trusted explicit provisioning step. Report separately.
@@ -40,7 +40,7 @@ for(const k of names){
  assert.equal(auth.user.id,ids[k]);
  userClients[k]=client;
 }
-const A=userClients.a,B=userClients.b,Admin=userClients.admin;
+const A=userClients.a,B=userClients.b,Admin=userClients.admin,OtherAdmin=userClients.otherAdmin;
 const clientA=randomUUID(),clientB=randomUUID(),projectA=randomUUID(),projectB=randomUUID();
 got(await srv.from("clients").insert([{id:clientA,name:"Synthetic CI A"},{id:clientB,name:"Synthetic CI B"}]).select("id"),"client fixture");
 got(await srv.from("client_memberships").insert([
@@ -147,6 +147,35 @@ await check("Muse plans are admin-owner-only and clients cannot apply them",asyn
  assert.deepEqual(initial[0].plan,plan);
  assert.equal(got(await A.from("muse_project_plan_revisions").select("revision").eq("plan_id",planId),"client ledger denial").length,0);
  assert.equal(got(await B.from("muse_project_plan_revisions").select("revision").eq("plan_id",planId),"cross-client ledger denial").length,0);
+ // A second active admin is not the proposal owner. Confirm SELECT and
+ // both write RPCs fail, and that failed requests have no persisted side effects.
+ assert.equal(got(await OtherAdmin.from("muse_project_plans").select("id").eq("id",planId),"other-admin plan denial").length,0);
+ assert.equal(got(await OtherAdmin.from("muse_project_plan_revisions").select("revision").eq("plan_id",planId),"other-admin history denial").length,0);
+ const spoofedInsert=await OtherAdmin.from("muse_project_plans").insert({
+  id:randomUUID(),project_id:projectA,objective:"Synthetic impersonation attempt",
+  summary:plan.summary,plan,source_model:"synthetic-ci",
+  evidence_checked_at:new Date().toISOString(),created_by:ids.admin,
+ }).select("id");
+ assert.ok(spoofedInsert.error,"other admin must not spoof an owner draft");
+ const unauthorizedSave=await OtherAdmin.rpc("save_muse_project_plan_revision",{
+  target_plan_id:planId,target_project_id:projectA,expected_revision:1,
+  updated_plan:{...plan,summary:"Foreign admin overwrote the plan."},
+  change_note:"Unapproved cross-owner edit",
+ });
+ assert.ok(unauthorizedSave.error,"other admin must not save the owner's plan");
+ const unauthorizedApply=await OtherAdmin.rpc("apply_muse_project_plan",{
+  target_plan_id:planId,target_project_id:projectA,expected_revision:1,expected_count:2,
+ });
+ assert.ok(unauthorizedApply.error,"other admin must not apply the owner's plan");
+ const stillOriginal=got(await Admin.from("muse_project_plans")
+   .select("current_revision,status,plan").eq("id",planId).single(),"owner unchanged after denial");
+ assert.equal(stillOriginal.current_revision,1);
+ assert.equal(stillOriginal.status,"draft");
+ assert.deepEqual(stillOriginal.plan,plan);
+ assert.equal(got(await Admin.from("muse_project_plan_revisions").select("revision")
+   .eq("plan_id",planId),"ledger after denied calls").length,1);
+ assert.equal(got(await Admin.from("tasks").select("id").eq("muse_plan_id",planId),
+   "no tasks from unauthorized apply").length,0);
  const directChange=await Admin.from("muse_project_plans").update({summary:"Forbidden direct update"}).eq("id",planId).select("id");
  assert.ok(directChange.error,"Admin REST must not update a plan outside the ledger RPC");
  const directDelete=await Admin.from("muse_project_plans").delete().eq("id",planId).select("id");
