@@ -26,6 +26,9 @@ function Read-Secret([string]$name) {
 }
 
 $keys = @('E2E_ADMIN_EMAIL','E2E_ADMIN_PASSWORD','E2E_CLIENT_A_EMAIL','E2E_CLIENT_A_PASSWORD','E2E_CLIENT_B_EMAIL','E2E_CLIENT_B_PASSWORD')
+# Temporary, source-only override: never store browser videos/screenshots of passwords.
+$privateConfigPath = Join-Path (Get-Location).Path 'playwright.live-qa.private.config.mjs'
+$privateConfigCreated = $false
 # Dependency-install lifecycle scripts must never inherit live QA passwords.
 # Refuse pre-filled credentials rather than silently passing them to npm.
 foreach ($key in $keys) {
@@ -40,6 +43,25 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Playwright install failed' }
   npx --no-install playwright install chromium
   if ($LASTEXITCODE -ne 0) { throw 'Chromium install failed' }
+  # The shared config retains screenshots and videos on failures. For live
+  # authenticated QA, turn off ALL browser recordings without changing it.
+  $privateConfig = @'
+import base from "./playwright.config.mjs";
+export default {
+  ...base,
+  use: { ...base.use, trace: "off", screenshot: "off", video: "off" },
+  reporter: [["line"]],
+};
+'@
+  # CreateNew fails if a similarly named file unexpectedly exists.
+  $configStream = [System.IO.File]::Open($privateConfigPath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+  $privateConfigCreated = $true
+  try {
+    $writer = [System.IO.StreamWriter]::new($configStream, [System.Text.UTF8Encoding]::new($false))
+    try { $writer.Write($privateConfig) }
+    finally { $writer.Dispose() }
+  }
+  finally { $configStream.Dispose() }
 
   # Collect credentials only after all npm/Playwright installation commands.
   foreach ($key in $keys) {
@@ -114,11 +136,9 @@ if (failed) process.exitCode = 1;
     throw 'QA Auth preflight failed. Fix the dedicated test credentials or Auth availability before running browser acceptance. Do not reset accounts or deploy as a workaround.'
   }
   Write-Host 'Testing live public pages, admin, both clients, and direct API isolation (read-only).'
-  # The shared Playwright config retains traces on failure. Live authentication
-  # must not create trace archives that could contain test credential/session data.
-  # Keep screenshots/videos/reports local and private; never attach them publicly.
-  npx --no-install playwright test tests/e2e/navigation.spec.mjs tests/e2e/phase3-access.spec.mjs --retries=0 --trace=off
-  if ($LASTEXITCODE -ne 0) { throw 'Live acceptance failed. Review local test-results/ and playwright-report/ privately; they may contain test data. Do not deploy.' }
+  # This temporary config suppresses trace, video, screenshot and HTML output.
+  npx --no-install playwright test tests/e2e/navigation.spec.mjs tests/e2e/phase3-access.spec.mjs --config=playwright.live-qa.private.config.mjs --retries=0 --trace=off --reporter=line
+  if ($LASTEXITCODE -ne 0) { throw 'Live acceptance failed. Review terminal failures privately. No deploy is authorized.' }
   Write-Host 'Live local QA passed. This does not authorize a production deployment.'
 }
 finally {
@@ -126,4 +146,5 @@ finally {
   foreach ($key in @('E2E_BASE_URL','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','CI')) {
     [Environment]::SetEnvironmentVariable($key, $null, 'Process')
   }
+  if ($privateConfigCreated) { Remove-Item -LiteralPath $privateConfigPath -Force -ErrorAction SilentlyContinue }
 }
