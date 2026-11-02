@@ -25,16 +25,20 @@ assert.equal(preview.keep_vars, false, "Preview must not inherit live variables"
 assert.equal(preview.compatibility_date, live.compatibility_date);
 assert.deepEqual(preview.compatibility_flags, live.compatibility_flags);
 assert.deepEqual(preview.assets, live.assets);
-assert.deepEqual(preview.previews, {
-  vars: {
-    NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_placeholder",
-    NHS_APP_URL: "https://example.invalid",
-  },
-}, "Only inert preview values are permitted");
+const inertVars = {
+  NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_placeholder",
+  NHS_APP_URL: "https://example.invalid",
+};
+// A separate Worker deployed with wrangler deploy uses top-level vars,
+// whereas wrangler preview uses previews.vars. Never assume inheritance.
+assert.deepEqual(preview.vars, inertVars,
+  "Standalone isolated Worker must use synthetic-only runtime variables");
+assert.deepEqual(preview.previews, { vars: inertVars },
+  "Worker Previews must have their own identical inert runtime variables");
 assert.deepEqual(Object.keys(preview).sort(), [
   "$schema", "name", "main", "compatibility_date", "compatibility_flags",
-  "workers_dev", "routes", "keep_vars", "assets", "previews",
+  "workers_dev", "routes", "keep_vars", "assets", "vars", "previews",
 ].sort(), "Unexpected preview bindings or routes require a new security review");
 
 if (process.argv.includes("--require-bundle")) {
