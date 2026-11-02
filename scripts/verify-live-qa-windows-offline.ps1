@@ -145,6 +145,10 @@ try {
     throw 'Failed Auth did not block browser acceptance.'
   }
   Assert-RunnerCleanup
+  # The negative Auth test intentionally sets LASTEXITCODE=1; only clear it
+  # after every assertion succeeds, so the CI shell does not inherit a false
+  # failure from an expected fail-closed scenario.
+  $global:LASTEXITCODE = 0
   Write-Host 'PASS: Windows PowerShell parsing, pre-set credential guard, mocked success, private capture config, fail-closed Auth, and cleanup.'
 }
 finally {
