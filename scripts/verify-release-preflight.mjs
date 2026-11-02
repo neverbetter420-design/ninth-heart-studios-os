@@ -98,7 +98,8 @@ const checks = [
     assert.deepEqual(preview.assets, live.assets);
     assert.equal(preview.compatibility_date, live.compatibility_date);
     assert.deepEqual(preview.compatibility_flags, live.compatibility_flags);
-    assert.equal(preview.workers_dev, true);
+    assert.equal(preview.workers_dev, false, "No standalone public workers.dev endpoint");
+    assert.equal(preview.preview_urls, true, "Explicitly enable only protected Preview URLs");
     assert.deepEqual(preview.routes, [], "Preview cannot attach to an existing domain");
     assert.equal(preview.keep_vars, false, "Preview cannot retain unrelated existing variables");
     const inertVars = {
@@ -117,7 +118,7 @@ const checks = [
     assert.deepEqual(
       Object.keys(preview).sort(),
       ["$schema", "name", "main", "compatibility_date", "compatibility_flags",
-        "workers_dev", "routes", "keep_vars", "assets", "vars", "previews"].sort(),
+        "workers_dev", "preview_urls", "routes", "keep_vars", "assets", "vars", "previews"].sort(),
       "Any additional preview bindings, routes or account overrides require explicit review",
     );
   }],
