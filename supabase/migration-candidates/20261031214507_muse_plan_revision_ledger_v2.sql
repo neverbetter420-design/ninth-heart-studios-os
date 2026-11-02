@@ -7,6 +7,28 @@ alter table public.muse_project_plans
 alter table public.muse_project_plans
   add constraint muse_project_plans_revision_bounds check (current_revision between 1 and 25);
 
+
+-- Enforce that a plan's project is owned by its author, not merely that the
+-- caller owns the plan row. This also covers privileged plan creation.
+create or replace function private.enforce_muse_plan_project_owner()
+returns trigger language plpgsql security definer set search_path = '' as $
+begin
+  if new.created_by is null or new.project_id is null
+     or not exists (
+       select 1 from public.projects p
+       where p.id = new.project_id and p.created_by = new.created_by
+     ) then
+    raise exception 'Muse project must belong to the plan owner.' using errcode = '42501';
+  end if;
+  return new;
+end;
+$;
+revoke all on function private.enforce_muse_plan_project_owner() from public, anon, authenticated;
+drop trigger if exists enforce_muse_plan_project_owner on public.muse_project_plans;
+create trigger enforce_muse_plan_project_owner
+  before insert or update of project_id, created_by on public.muse_project_plans
+  for each row execute function private.enforce_muse_plan_project_owner();
+
 -- Validate independently of the TypeScript parser. RPC callers and table
 -- inserts cannot bypass these limits by sending hand-crafted JSON.
 create or replace function private.validate_muse_plan_task(item jsonb, is_parent boolean)
@@ -200,6 +222,11 @@ begin
   if not found or old_row.expires_at <= now() then
     raise exception 'Muse draft is unavailable or expired.';
   end if;
+  if not exists (select 1 from public.projects project_owner
+                 where project_owner.id = old_row.project_id
+                   and project_owner.created_by = (select auth.uid())) then
+    raise exception 'Muse project owner mismatch.' using errcode = '42501';
+  end if;
   if old_row.current_revision <> expected_revision then
     raise exception 'Revision conflict. Reload the saved plan.';
   end if;
@@ -270,6 +297,11 @@ begin
   end if;
   if saved.project_id is distinct from target_project_id then
     raise exception 'Project does not match approved plan.';
+  end if;
+  if not exists (select 1 from public.projects project_owner
+                 where project_owner.id = saved.project_id
+                   and project_owner.created_by = (select auth.uid())) then
+    raise exception 'Muse project owner mismatch.' using errcode = '42501';
   end if;
   if expected_revision is null or saved.current_revision <> expected_revision then
     raise exception 'Revision conflict. Reload the saved plan.';
