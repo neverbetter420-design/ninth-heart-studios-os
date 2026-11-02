@@ -210,6 +210,16 @@ begin
   ) then
     raise exception 'Revision ledger does not match current plan.';
   end if;
+  -- One matching latest snapshot is not sufficient. Every earlier revision
+  -- must exist and belong to the owner, with no orphaned future rows.
+  -- PK(plan_id, revision) plus both counts prove exactly 1..current_revision.
+  if (select count(*) from public.muse_project_plan_revisions r
+      where r.plan_id = old_row.id and r.created_by = old_row.created_by
+        and r.revision <= old_row.current_revision) <> old_row.current_revision
+     or (select count(*) from public.muse_project_plan_revisions r
+         where r.plan_id = old_row.id) <> old_row.current_revision then
+    raise exception 'Revision history incomplete; saving is blocked.';
+  end if;
   perform private.validate_muse_project_plan(updated_plan);
   if updated_plan = old_row.plan then
     raise exception 'Muse plan is unchanged.';
@@ -283,6 +293,15 @@ begin
       and r.plan = saved.plan and r.created_by = saved.created_by
   ) then
     raise exception 'Plan ledger mismatch. Approval is blocked.';
+  end if;
+  -- Do not approve an apparently valid final snapshot with missing earlier
+  -- history. Ownership and the complete contiguous chain must both hold.
+  if (select count(*) from public.muse_project_plan_revisions r
+      where r.plan_id = saved.id and r.created_by = saved.created_by
+        and r.revision <= saved.current_revision) <> saved.current_revision
+     or (select count(*) from public.muse_project_plan_revisions r
+         where r.plan_id = saved.id) <> saved.current_revision then
+    raise exception 'Revision history incomplete; approval is blocked.';
   end if;
   if private.validate_muse_project_plan(saved.plan) <> expected_count then
     raise exception 'Plan task count changed. Review again.';
