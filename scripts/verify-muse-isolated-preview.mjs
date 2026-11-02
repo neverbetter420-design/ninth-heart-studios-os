@@ -34,6 +34,8 @@ const inertVars = {
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_ci_placeholder",
   NHS_APP_URL: "https://example.invalid",
+  MUSE_AI_ENABLED: "false",
+  MUSE_PROJECT_GUIDE_ENABLED: "false",
 };
 // A separate Worker deployed with wrangler deploy uses top-level vars,
 // whereas wrangler preview uses previews.vars. Never assume inheritance.
