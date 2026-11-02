@@ -56,7 +56,15 @@ export function reviewMuseChanges(original: MuseProjectPlan, candidate: MuseProj
     const prior = before.tasks[i], proposed = after.tasks[i];
     compareTask(prior, proposed, "Task " + (i + 1));
     if (!prior || !proposed) {
-      if (proposed) for (const child of proposed.subtasks) if (child.client_visible) newlyClientVisible++;
+      // A whole parent can contain up to eight steps. Every added or removed
+      // nested step must appear in the human review, not just the parent
+      // title, and new client-visible steps must raise a warning.
+      const originalSteps = prior?.subtasks ?? [];
+      const proposedSteps = proposed?.subtasks ?? [];
+      for (let j = 0; j < Math.max(originalSteps.length, proposedSteps.length); j++) {
+        compareTask(originalSteps[j], proposedSteps[j],
+          "Task " + (i + 1) + " · step " + (j + 1));
+      }
       continue;
     }
     for (let j = 0; j < Math.max(prior.subtasks.length, proposed.subtasks.length); j++) {
