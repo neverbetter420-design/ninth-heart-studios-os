@@ -9,6 +9,8 @@ import {
   isApprovedSource,
   isOpportunityStatus,
   totalFitScore,
+  estimateGigFit,
+  validSourceListingUrl,
   type FitBreakdown,
   type FitDimensionKey,
 } from "@/lib/radar";
@@ -38,6 +40,14 @@ export async function addOpportunity(formData: FormData) {
 
   const externalId = clean(formData.get("external_id"));
   const url = clean(formData.get("url"));
+  if (url && !validSourceListingUrl(source, url)) {
+    redirect("/opportunities?error=" + encodeURIComponent("Use a valid secure listing link from the selected platform."));
+  }
+  const brief = (clean(formData.get("brief")) ?? "").slice(0, 4000);
+  const budgetRaw = clean(formData.get("budget_usd"));
+  const budgetUsd = budgetRaw !== null && Number.isFinite(Number(budgetRaw)) && Number(budgetRaw) > 0 && Number(budgetRaw) < 10000000
+    ? Number(budgetRaw) : null;
+  const preview = brief ? estimateGigFit(title, brief, budgetUsd) : null;
 
   // Exact-duplicate guard: same source + external id.
   if (externalId) {
@@ -56,6 +66,7 @@ export async function addOpportunity(formData: FormData) {
   const { data: similar } = await supabase
     .from("opportunities")
     .select("id, title")
+    .eq("source", source)
     .ilike("title", `%${title.slice(0, 40).replace(/[%_]/g, "")}%`)
     .limit(3);
   if (similar && similar.length > 0) {
@@ -73,7 +84,12 @@ export async function addOpportunity(formData: FormData) {
       external_id: externalId,
       url,
       status: "new",
-      metadata: { origin: "manual" },
+      metadata: {
+        origin: "manual",
+        ...(brief ? { brief } : {}),
+        ...(budgetUsd !== null ? { budget_usd: budgetUsd, budget_currency: "USD" } : {}),
+        ...(preview ? { fit_preview: preview } : {}),
+      },
     })
     .select("id")
     .single();

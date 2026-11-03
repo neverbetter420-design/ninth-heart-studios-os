@@ -13,6 +13,8 @@ import { deleteOpportunity, updateOpportunityStatus } from "../actions";
 import {
   OPPORTUNITY_STATUSES,
   fitVerdict,
+  estimateGigFit,
+  isFreelanceMarketplace,
   opportunityStatusLabel,
   type FitBreakdown,
 } from "@/lib/radar";
@@ -64,6 +66,12 @@ export default async function OpportunityDetailPage({
   const breakdown = (opportunity.metadata?.fit_breakdown ??
     {}) as Partial<FitBreakdown>;
   const url = listingUrl(opportunity.url);
+  const storedBrief = opportunity.metadata?.brief;
+  const brief = typeof storedBrief === "string" ? storedBrief : "";
+  const storedBudget = opportunity.metadata?.budget_usd;
+  const budgetUsd = typeof storedBudget === "number" && Number.isFinite(storedBudget) && storedBudget > 0 ? storedBudget : null;
+  const freelancePreview = isFreelanceMarketplace(opportunity.source) && brief
+    ? estimateGigFit(opportunity.title, brief, budgetUsd) : null;
   return (
     <div className="content-wrap management-page paperwork-page studio-page radar-page">
       <Link href="/opportunities" className="management-back-link">
@@ -98,10 +106,38 @@ export default async function OpportunityDetailPage({
         className="management-destinations"
         aria-label="Opportunity destinations"
       >
+        {freelancePreview ? <a href="#radar-brief">Brief &amp; preliminary fit</a> : null}
         <a href="#radar-fit">Review the fit</a>
         <a href="#radar-proposals">Proposal drafts</a>
         <a href="#radar-record">Bid record</a>
       </nav>
+      {freelancePreview && (
+        <section id="radar-brief" className="radar-section" aria-label="Saved gig brief and initial fit preview">
+          <DocumentSectionHeading
+            eyebrow="Opportunity AI · Initial review"
+            title="What the brief tells us."
+            detail="Evidence-based, rule-driven preview. Confirm details in the original platform before bidding."
+          />
+          <div className="radar-gig-preview">
+            <div>
+              <p className="eyebrow">Preliminary fit, not an official score</p>
+              <h4>{freelancePreview.score === null ? "Needs details" : `${freelancePreview.score}/100`}</h4>
+              {budgetUsd !== null && <p className="management-help">Listed budget: ${budgetUsd.toLocaleString("en-US", { style: "currency", currency: "USD" })}</p>}
+              <p className="management-help">No proposal or application has been sent. You decide the final fit rating.</p>
+            </div>
+            <div>
+              {freelancePreview.strengths.length > 0 && <p className="eyebrow">Signals in favor</p>}
+              {freelancePreview.strengths.map((item) => <p key={item} className="management-help">✓ {item}</p>)}
+              {freelancePreview.questions.length > 0 && <p className="eyebrow">Check before pursuing</p>}
+              {freelancePreview.questions.map((item) => <p key={item} className="management-help">• {item}</p>)}
+            </div>
+          </div>
+          <details className="draft-details">
+            <summary>Original saved project brief</summary>
+            <p className="management-help" style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{brief}</p>
+          </details>
+        </section>
+      )}
       <section
         id="radar-fit"
         aria-label="Review the fit"
