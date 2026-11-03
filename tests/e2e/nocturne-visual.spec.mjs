@@ -1011,4 +1011,17 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
   const projectsMetric = page.locator(".nocturne-command-center .living-status__metric--cyan");
   await expect(projectsMetric.locator("dd strong")).toHaveText("—");
   await expect(projectsMetric).toContainText("Data unavailable");
+  for (const tone of ["violet", "pink"]) {
+    const leadMetric = page.locator(`.nocturne-command-center .living-status__metric--${tone}`);
+    await expect(leadMetric.locator("dd strong")).toHaveText("—");
+    await expect(leadMetric).toContainText("Data unavailable");
+  }
+  await expect(page.locator(".nocturne-command-center .action-panel")).toContainText("Lead data unavailable.");
+  await expect(page.locator(".nocturne-command-center .project-panel")).toContainText("Project data unavailable.");
+  const studio = page.locator(".nocturne-command-center .living-studio");
+  await expect(studio.getByRole("progressbar")).toHaveCount(0);
+  await expect(studio).toContainText("Project progress unavailable.");
+  await expect(page.locator(".nocturne-command-center .muse-panel")).toContainText("Lead recommendations are unavailable.");
+  await expect(page.locator(".nocturne-command-center")).not.toContainText("No lead actions yet.");
+  await expect(page.locator(".nocturne-command-center")).not.toContainText("No recent projects.");
 });

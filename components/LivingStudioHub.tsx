@@ -20,15 +20,17 @@ export function LivingStudioHub({
   passages,
   metrics,
   projects,
+  projectsUnavailable,
 }: {
   passages: readonly StudioPassage[];
   metrics: readonly StudioMetric[];
   projects: readonly StudioProject[];
+  projectsUnavailable: boolean;
 }) {
   const validProgress = projects
     .map((project) => project.progress)
     .filter((progress) => Number.isFinite(progress));
-  const recentProgress = validProgress.length
+  const recentProgress = !projectsUnavailable && validProgress.length
     ? Math.round(
         validProgress.reduce(
           (sum, progress) => sum + Math.max(0, Math.min(100, progress)),
@@ -91,7 +93,9 @@ export function LivingStudioHub({
             <span>Recent project progress</span>
             <strong>{recentProgress === null ? "—" : `${recentProgress}%`}</strong>
           </div>
-          {recentProgress === null ? (
+          {projectsUnavailable ? (
+            <p role="status">Project progress unavailable. Refresh to retry.</p>
+          ) : recentProgress === null ? (
             <p>No recent projects. <Link href="/projects">Open pipeline</Link></p>
           ) : (
             <>

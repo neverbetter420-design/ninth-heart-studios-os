@@ -35,7 +35,7 @@ function dueLabel(dueDate: string | null): string {
 
 export async function Dashboard() {
   const supabase = await createClient();
-  const [{ data: rawLeads }, { count: projectCount, error: projectCountError }, { data: rawProjects }, { data: rawOpportunities }, { data: rawActivities }] =
+  const [{ data: rawLeads, error: leadsError }, { count: projectCount, error: projectCountError }, { data: rawProjects, error: projectsError }, { data: rawOpportunities }, { data: rawActivities }] =
     await Promise.all([
       supabase
         .from("leads")
@@ -60,6 +60,10 @@ export async function Dashboard() {
         .limit(4),
     ]);
 
+  // A failed read is not an empty studio. Keep the existing queries, but
+  // distinguish unavailable data from genuine zero/empty results.
+  const leadsUnavailable = Boolean(leadsError) || rawLeads === null;
+  const projectsUnavailable = Boolean(projectsError) || rawProjects === null;
   const rankedLeads = rankLeads((rawLeads ?? []) as FlowkeepLead[]);
   const nextActions = rankedLeads.slice(0, 3);
   const recommendation = recommendNextAction({
@@ -71,8 +75,8 @@ export async function Dashboard() {
   const inboundRisk = rankedLeads.filter((lead) => lead.sla.status === "overdue" || lead.sla.status === "due_soon").length;
 
   const metrics = [
-    { label: "Active Leads", value: String(rankedLeads.length), detail: `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
-    { label: "Waiting on Me", value: String(waitingOnMe), detail: `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
+    { label: "Active Leads", value: leadsUnavailable ? "—" : String(rankedLeads.length), detail: leadsUnavailable ? "Data unavailable" : `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
+    { label: "Waiting on Me", value: leadsUnavailable ? "—" : String(waitingOnMe), detail: leadsUnavailable ? "Data unavailable" : `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
     { label: "Total Projects", value: projectCountError || projectCount === null ? "—" : String(projectCount), detail: projectCountError || projectCount === null ? "Data unavailable" : "Across your studio", tone: "cyan" as const },
   ];
 
@@ -105,7 +109,7 @@ export async function Dashboard() {
       </header>
 
       <div className="nhs-command-surface">
-      <LivingStudioHub passages={passages} metrics={metrics} projects={projects} />
+      <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
 
       <section className="dashboard-grid" aria-label="Studio priorities and projects">
         <section className="panel action-panel" aria-labelledby="nocturne-actions-title">
@@ -114,11 +118,11 @@ export async function Dashboard() {
               <p className="eyebrow electric">01 · Your attention</p>
               <h3 id="nocturne-actions-title">Next 3 actions</h3>
             </div>
-            <span className="live-pill"><i /> Ranked for you</span>
+            <span className="live-pill"><i /> {leadsUnavailable ? "Unavailable" : "Ranked for you"}</span>
           </div>
 
           <div className="action-list">
-            {nextActions.length ? (
+            {!leadsUnavailable && nextActions.length ? (
               <PriorityHalo
                 actions={nextActions.map((item): HaloAction => ({
                   id: item.id,
@@ -139,10 +143,10 @@ export async function Dashboard() {
                   <span className="velvet-orbit-point velvet-orbit-point--spark"><AtelierSymbol name="spark" size={18} /></span>
                 </div>
                 <div className="velvet-open-empty__copy">
-                  <span className="velvet-open-empty__kicker">A quiet studio, for now</span>
-                  <strong>No lead actions yet.</strong>
-                  <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>
-                  <Link href="/leads#quick-capture" className="nocturne-empty-link">Capture a lead <span aria-hidden="true">↗</span></Link>
+                  <span className="velvet-open-empty__kicker">{leadsUnavailable ? "Signal interrupted" : "A quiet studio, for now"}</span>
+                  <strong>{leadsUnavailable ? "Lead data unavailable." : "No lead actions yet."}</strong>
+                  <span role={leadsUnavailable ? "status" : undefined}>{leadsUnavailable ? "Priorities could not load. Refresh to retry." : "Your next move starts with a conversation. Capture a lead to bring it into focus."}</span>
+                  <Link href={leadsUnavailable ? "/leads" : "/leads#quick-capture"} className="nocturne-empty-link">{leadsUnavailable ? "Open Leads" : "Capture a lead"} <span aria-hidden="true">↗</span></Link>
                 </div>
               </div>
             )}
@@ -158,7 +162,12 @@ export async function Dashboard() {
             <Link className="text-button" href="/projects">View pipeline →</Link>
           </div>
           <div className="project-list">
-            {projects.length ? projects.map((project) => (
+            {projectsUnavailable ? (
+              <div className="velvet-project-empty" role="status">
+                <span aria-hidden="true"><AtelierSymbol name="key" size={19} /></span>
+                <p className="pipeline-empty">Project data unavailable. Refresh to retry.</p>
+              </div>
+            ) : projects.length ? projects.map((project) => (
               <div className="project-row" key={project.id}>
                 <div className="project-copy">
                   <strong><Link href={"/projects/" + project.id}>{project.name}</Link></strong>
@@ -210,12 +219,18 @@ export async function Dashboard() {
               <h3>Studio intelligence</h3>
             </div>
           </div>
-          <p className="muse-copy">{recommendation.detail}</p>
-          <div className="muse-suggestion">
-            <span>The one thing</span>
-            <strong>{recommendation.title}</strong>
-            <small>{recommendation.why}</small>
-          </div>
+          {leadsUnavailable ? (
+            <p className="muse-copy" role="status">Lead recommendations are unavailable. Refresh to retry.</p>
+          ) : (
+            <>
+              <p className="muse-copy">{recommendation.detail}</p>
+              <div className="muse-suggestion">
+                <span>The one thing</span>
+                <strong>{recommendation.title}</strong>
+                <small>{recommendation.why}</small>
+              </div>
+            </>
+          )}
           <Link className="secondary-button wide muse-link" href="/muse">
             Open Muse
           </Link>
