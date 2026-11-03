@@ -479,7 +479,7 @@ test("Command Center progress and disclosure fit at desktop and narrow widths", 
     await summary.press("Enter");
     await expect(page.locator(".nocturne-insights")).not.toHaveAttribute("open", "");
   }
-  expect(await contrast(page.locator(".metric-card > span").first(), ".nhs-command-surface")).toBeGreaterThanOrEqual(4.5);
+  expect(await contrast(page.locator(".living-status__metric dt").first(), ".main-shell")).toBeGreaterThanOrEqual(4.5);
 });
 
 test("Atelier long titles, empty and error states fit at 320px", async ({ page }) => {
@@ -839,11 +839,23 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   expect(cinematicArtwork.includes("data:image/webp;base64") || cinematicArtwork.includes("nhs-dark-rose-photographic.webp")).toBe(true);
   await expect(hero).toHaveCSS("border-top-width", "0px");
   await expect(work).toHaveCSS("border-top-width", "0px");
-  const instruments = work.locator(".metric-card");
+  // The approved Living Dashboard replaces three framed cards with unboxed,
+  // real-data readouts and an accessible circular navigation hub.
+  const studio = work.locator(".living-studio");
+  const instruments = studio.locator(".living-status__metric");
+  const hub = studio.getByRole("navigation", { name: "Studio command hub" });
+  await expect(studio).toBeVisible();
   await expect(instruments).toHaveCount(3);
-  expect(await instruments.first().evaluate(el=>parseFloat(getComputedStyle(el).borderTopLeftRadius))).toBeGreaterThanOrEqual(16);
-  expect(await instruments.first().evaluate(el=>getComputedStyle(el).backgroundImage)).toContain("gradient");
-  await expect(work.locator(".metric-grid")).toContainText("Active Leads");
+  await expect(instruments.first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(studio).toContainText("Active Leads");
+  await expect(hub.getByRole("link")).toHaveCount(4);
+  for (const [label, href] of [["Leads", "/leads"], ["Projects", "/projects"], ["Clients", "/clients"], ["Opportunities", "/opportunities"]]) {
+    await expect(hub.getByRole("link", { name: label })).toHaveAttribute("href", href);
+  }
+  const mark = studio.locator(".living-orbit__core img");
+  await expect(mark).toHaveAttribute("alt", "Ninth Heart Studios");
+  expect(await mark.evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
+  await expect(studio.getByRole("progressbar", { name: "Average progress of up to four recent projects" })).toHaveAttribute("aria-valuenow", "45");
   await expect(work.locator(".dashboard-grid")).toContainText("Next 3 actions");
   await expect(work.locator(".dashboard-grid")).toContainText("Project pulse");
   for (const width of [1440, 1024, 768, 390, 320]) {
@@ -939,4 +951,38 @@ test("Every NHS room has its own etched visual motif, with working responsive pa
     await testInfo.attach("NHS " + room + " room", { path: capture, contentType: "image/png" });
   }
   expect(distinctIllustrations.size, "Rooms must not repeat the same illustration").toBe(identities.length);
+});
+
+
+test("Living Dashboard remains usable in empty, populated, narrow and reduced-motion states", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const scenario of ["empty", "populated"]) {
+    await show(page, "admin", scenario, "home");
+    const studio = page.locator(".nocturne-command-center .living-studio");
+    const hub = studio.getByRole("navigation", { name: "Studio command hub" });
+    const links = hub.getByRole("link");
+    await expect(links).toHaveCount(4);
+    await expect(hub.locator(".living-orbit__ring--inner")).toHaveCSS("animation-name", "none");
+    if (scenario === "empty") {
+      await expect(studio.getByRole("progressbar")).toHaveCount(0);
+      await expect(studio).toContainText("No recent projects");
+      await expect(studio.getByRole("link", { name: "Open pipeline" })).toHaveAttribute("href", "/projects");
+    } else {
+      await expect(studio.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "45");
+    }
+    for (const width of [1440, 1024, 760, 430, 390, 375, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth), `Living Dashboard ${scenario} overflows at ${width}px`).toBeLessThanOrEqual(width);
+      for (const link of await links.all()) {
+        const box = await link.boundingBox();
+        expect(box, `Missing command link at ${width}px`).not.toBeNull();
+        expect(box.width, `Command link too small at ${width}px`).toBeGreaterThanOrEqual(44);
+        expect(box.height, `Command link too small at ${width}px`).toBeGreaterThanOrEqual(44);
+        expect(box.x, `Command link outside viewport at ${width}px`).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width, `Command link outside viewport at ${width}px`).toBeLessThanOrEqual(width + 1);
+      }
+    }
+    await links.first().focus();
+    expect(await links.first().evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
+  }
 });
