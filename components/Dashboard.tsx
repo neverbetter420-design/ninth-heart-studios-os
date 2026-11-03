@@ -147,11 +147,21 @@ export async function Dashboard() {
                 }))}
               />
             ) : (
-              <div className="empty-dashboard-actions">
-                <span className="velvet-empty-charm" aria-hidden="true"><AtelierSymbol name="skull" size={28} /></span>
-                <strong>No lead actions yet.</strong>
-                <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>
-                <Link href="/leads#quick-capture" className="nocturne-empty-link">Capture a lead <span aria-hidden="true">↗</span></Link>
+              <div className="empty-dashboard-actions velvet-open-empty">
+                <div className="velvet-priority-orbit" aria-hidden="true">
+                  <span className="velvet-orbit-line velvet-orbit-line--outer" />
+                  <span className="velvet-orbit-line velvet-orbit-line--inner" />
+                  <span className="velvet-orbit-center"><AtelierSymbol name="skull" size={36} /></span>
+                  <span className="velvet-orbit-point velvet-orbit-point--rose"><AtelierSymbol name="rose" size={20} /></span>
+                  <span className="velvet-orbit-point velvet-orbit-point--key"><AtelierSymbol name="key" size={19} /></span>
+                  <span className="velvet-orbit-point velvet-orbit-point--spark"><AtelierSymbol name="spark" size={18} /></span>
+                </div>
+                <div className="velvet-open-empty__copy">
+                  <span className="velvet-open-empty__kicker">A quiet studio, for now</span>
+                  <strong>No lead actions yet.</strong>
+                  <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>
+                  <Link href="/leads#quick-capture" className="nocturne-empty-link">Capture a lead <span aria-hidden="true">↗</span></Link>
+                </div>
               </div>
             )}
           </div>
@@ -178,7 +188,10 @@ export async function Dashboard() {
                 <b>{project.progress}%</b>
               </div>
             )) : (
-              <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>
+              <div className="velvet-project-empty">
+                <span aria-hidden="true"><AtelierSymbol name="key" size={19} /></span>
+                <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>
+              </div>
             )}
           </div>
         </section>
