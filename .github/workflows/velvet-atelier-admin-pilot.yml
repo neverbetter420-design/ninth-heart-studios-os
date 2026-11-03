@@ -1,0 +1,53 @@
+name: NHS Velvet Atelier Admin pilot QA
+
+# Safe, source-only validation: no deploy tokens, preview publishing,
+# production database access, hosted migrations, or paid integrations.
+on:
+  pull_request:
+    paths:
+      - 'components/Dashboard.tsx'
+      - 'components/AtelierSymbol.tsx'
+      - 'app/layout.tsx'
+      - 'app/velvet-atelier-admin-pilot.css'
+      - 'scripts/verify-velvet-atelier-pilot.mjs'
+      - 'docs/design/velvet-atelier-admin-pilot.md'
+      - '.github/workflows/velvet-atelier-admin-pilot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual-contract:
+    name: Admin visual source, TypeScript and Next build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NHS_APP_URL: https://example.invalid
+      MUSE_AI_ENABLED: 'false'
+      MUSE_PROJECT_GUIDE_ENABLED: 'false'
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Check approved Admin pilot contracts
+        run: node scripts/verify-velvet-atelier-pilot.mjs
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build Next.js safely with placeholders
+        run: npm run build
+      - name: Record non-deploying QA result
+        run: |
+          echo "Checked scoped Admin design, accessible routes and TypeScript; built only, no deployment." >> "$GITHUB_STEP_SUMMARY"
+          echo "Production and staging deployments are unchanged. Visual owner approval remains required." >> "$GITHUB_STEP_SUMMARY"
