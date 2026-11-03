@@ -76,7 +76,9 @@ console.log("PASS: Living Dashboard circular hub, data-based progress and access
 const liveConfig = JSON.parse(source("wrangler.jsonc"));
 const stagingConfig = JSON.parse(source("wrangler.nocturne-staging-preview.jsonc"));
 const previewConfig = JSON.parse(source("wrangler.velvet-atelier-admin-preview.jsonc"));
-const expectedUrl = "https://design-velvet-atelier-admin-pilot-202611-ninth-heart-studios-os.neverbetter420.workers.dev";
+// Deliberately inert until a dedicated version/branch preview URL exists.
+// Never reuse the existing production Worker’s preview hostname for this worker.
+const expectedUrl = "https://example.invalid";
 const allowedVars = [
   "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "NHS_APP_URL", "MUSE_AI_ENABLED", "MUSE_PROJECT_GUIDE_ENABLED"
