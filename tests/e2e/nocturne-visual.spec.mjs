@@ -994,6 +994,14 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
         expect(metrics.height, `The Opportunities label wraps at ${width}px`).toBeLessThanOrEqual(metrics.lineHeight + 1);
       }
     }
+    // The full-page screenshot shows the viewport-fixed mobile dock over
+    // the hub's *capture position*. Verify actual touch targets instead:
+    // Playwright must be able to scroll every real link clear of the dock.
+    await page.setViewportSize({ width: 320, height: 640 });
+    await expect(page.getByRole("navigation", { name: "Mobile quick navigation" })).toBeVisible();
+    for (const link of await links.all()) {
+      await link.click({ trial: true });
+    }
     await links.first().focus();
     expect(await links.first().evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
   }
