@@ -961,6 +961,7 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
     const studio = page.locator(".nocturne-command-center .living-studio");
     // Hiding the desktop <br> on tablet/phone must not fuse the two words.
     await expect(studio.locator("#living-studio-title")).toHaveText(/A living\s+studio\./);
+    await expect(studio.locator(".living-status__metric--cyan dt")).toHaveText("Total Projects");
     const hub = studio.getByRole("navigation", { name: "Studio command hub" });
     const links = hub.getByRole("link");
     await expect(links).toHaveCount(4);
@@ -1005,4 +1006,9 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
     await links.first().focus();
     expect(await links.first().evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
   }
+  // A failed project-count read must never appear as a misleading zero.
+  await show(page, "admin", "error", "home");
+  const projectsMetric = page.locator(".nocturne-command-center .living-status__metric--cyan");
+  await expect(projectsMetric.locator("dd strong")).toHaveText("—");
+  await expect(projectsMetric).toContainText("Data unavailable");
 });

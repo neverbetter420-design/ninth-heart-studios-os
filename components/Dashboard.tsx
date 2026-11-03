@@ -35,7 +35,7 @@ function dueLabel(dueDate: string | null): string {
 
 export async function Dashboard() {
   const supabase = await createClient();
-  const [{ data: rawLeads }, { count: projectCount }, { data: rawProjects }, { data: rawOpportunities }, { data: rawActivities }] =
+  const [{ data: rawLeads }, { count: projectCount, error: projectCountError }, { data: rawProjects }, { data: rawOpportunities }, { data: rawActivities }] =
     await Promise.all([
       supabase
         .from("leads")
@@ -73,7 +73,7 @@ export async function Dashboard() {
   const metrics = [
     { label: "Active Leads", value: String(rankedLeads.length), detail: `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
     { label: "Waiting on Me", value: String(waitingOnMe), detail: `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
-    { label: "Open Projects", value: String(projectCount ?? 0), detail: "Across your studio", tone: "cyan" as const },
+    { label: "Total Projects", value: projectCountError || projectCount === null ? "—" : String(projectCount), detail: projectCountError || projectCount === null ? "Data unavailable" : "Across your studio", tone: "cyan" as const },
   ];
 
   const passages: readonly { href: string; label: string; symbol: AtelierSymbolName; tone: string }[] = [
