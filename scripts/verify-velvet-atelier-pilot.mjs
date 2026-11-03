@@ -18,7 +18,7 @@ assert.match(dashboard, /<PriorityHalo\s/);
 assert.match(dashboard, /rankLeads\(/);
 assert.match(dashboard, /<LivingStudioHub\s/);
 assert.match(living, /metrics\.map\(/);
-assert.match(living, /projects\.map\(/);
+assert.match(living, /projects\s*\.map\(/);
 assert.match(dashboard, /<details className="nocturne-insights">/);
 assert.match(originalCss, /nhs-dark-rose-photographic\.webp/);
 
