@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { AtelierSymbol, type AtelierSymbolName } from "./AtelierSymbol";
 
@@ -55,12 +54,11 @@ export function LivingStudioHub({
         <span className="living-orbit__ring living-orbit__ring--outer" aria-hidden="true" />
         <span className="living-orbit__ring living-orbit__ring--inner" aria-hidden="true" />
         <div className="living-orbit__core">
-          <Image
+          <img
             src="/brand/nhs-original-logo.webp"
             alt="Ninth Heart Studios"
             width={104}
             height={104}
-            unoptimized
           />
           <span>STUDIO OS</span>
         </div>
