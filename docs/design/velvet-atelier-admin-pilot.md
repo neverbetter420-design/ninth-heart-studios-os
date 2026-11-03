@@ -53,3 +53,9 @@
 - The center displays the existing original `nhs-original-logo.webp`; ring and flourishes are decorative. Four real links remain keyboard-accessible and labelled. The functional Priority Halo, project rows, activity, and native Insights disclosure are unchanged.
 - The new CSS is appended to the existing late-loaded, opt-in Admin pilot stylesheet. Old shortcut/metric rules can be removed **after** acceptance rather than risking unrelated pages now.
 - Source-only CI checks new component and existing privacy guards. A protected authenticated 1440px, 1024px, 430px, 375px visual/keyboard review is still required; no preview refresh, merge, or release without separate authorization.
+
+### Preview isolation preparation, source-only
+- Added `wrangler.velvet-atelier-admin-preview.jsonc` for an independent pilot Worker name (`nhs-os-velvet-atelier-preview`), intentionally **not** the production Worker or original staging Worker.
+- The only configuration difference from the existing staging preview's runtime variables is `NHS_APP_URL`, now set to `https://design-velvet-atelier-admin-pilot-202611-ninth-heart-studios-os.neverbetter420.workers.dev`. The staging Supabase *publishable* connection is retained without introducing privileged credentials. Both Muse flags remain `false`.
+- The config has `workers_dev=false`, `routes=[]`, `preview_urls=true`, `keep_vars=false` and no AI, database-admin, queue, paid integration or deployment authorization bindings. The existing production and prior staging Wrangler configs are unchanged.
+- `scripts/verify-velvet-atelier-pilot.mjs` checks these restrictions in CI. This commit does **not** publish the new design, change Cloudflare Access, test password-reset callbacks, deploy anything or enable automatic builds. Before an eventual authorized manual preview, confirm this worker-name strategy and Cloudflare Access setup match the protected pilot host; do not assume a checked-in config alone makes it secure.

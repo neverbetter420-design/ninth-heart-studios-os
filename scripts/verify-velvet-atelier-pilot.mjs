@@ -70,3 +70,39 @@ assert.match(css, /\.living-orbit__link:focus-visible/);
 assert.match(living, /role="progressbar"/);
 assert.match(living, /recentProgress === null/);
 console.log("PASS: Living Dashboard circular hub, data-based progress and accessible focus");
+
+// Preview preparation is source-only. A future publish requires a separate
+// owner authorization, protected Access policy and exact-head verification.
+const liveConfig = JSON.parse(source("wrangler.jsonc"));
+const stagingConfig = JSON.parse(source("wrangler.nocturne-staging-preview.jsonc"));
+const previewConfig = JSON.parse(source("wrangler.velvet-atelier-admin-preview.jsonc"));
+const expectedUrl = "https://design-velvet-atelier-admin-pilot-202611-ninth-heart-studios-os.neverbetter420.workers.dev";
+const allowedVars = [
+  "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  "NHS_APP_URL", "MUSE_AI_ENABLED", "MUSE_PROJECT_GUIDE_ENABLED"
+];
+assert.equal(liveConfig.name, "ninth-heart-studios-os");
+assert.equal(previewConfig.name, "nhs-os-velvet-atelier-preview");
+assert.notEqual(previewConfig.name, stagingConfig.name);
+assert.notEqual(previewConfig.name, liveConfig.name);
+assert.equal(previewConfig.main, stagingConfig.main);
+assert.deepEqual(previewConfig.assets, stagingConfig.assets);
+assert.equal(previewConfig.compatibility_date, stagingConfig.compatibility_date);
+assert.deepEqual(previewConfig.compatibility_flags, stagingConfig.compatibility_flags);
+assert.equal(previewConfig.workers_dev, false);
+assert.equal(previewConfig.preview_urls, true);
+assert.deepEqual(previewConfig.routes, []);
+assert.equal(previewConfig.keep_vars, false);
+assert.deepEqual(Object.keys(previewConfig).sort(), Object.keys(stagingConfig).sort());
+assert.deepEqual(Object.keys(previewConfig.vars).sort(), allowedVars.sort());
+assert.deepEqual(previewConfig.vars, previewConfig.previews.vars);
+assert.equal(previewConfig.vars.NHS_APP_URL, expectedUrl);
+assert.equal(previewConfig.vars.MUSE_AI_ENABLED, "false");
+assert.equal(previewConfig.vars.MUSE_PROJECT_GUIDE_ENABLED, "false");
+assert.deepEqual(
+  {...previewConfig.vars, NHS_APP_URL: stagingConfig.vars.NHS_APP_URL},
+  stagingConfig.vars,
+  "The pilot may differ from the existing staging config only by its app callback URL"
+);
+console.log("PASS: independent, route-free, credential-limited pilot preview config; Muse flags OFF");
+

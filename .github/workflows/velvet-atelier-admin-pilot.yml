@@ -10,6 +10,7 @@ on:
       - 'components/AtelierSymbol.tsx'
       - 'app/layout.tsx'
       - 'app/velvet-atelier-admin-pilot.css'
+      - 'wrangler.velvet-atelier-admin-preview.jsonc'
       - 'scripts/verify-velvet-atelier-pilot.mjs'
       - 'docs/design/velvet-atelier-admin-pilot.md'
       - '.github/workflows/velvet-atelier-admin-pilot.yml'
