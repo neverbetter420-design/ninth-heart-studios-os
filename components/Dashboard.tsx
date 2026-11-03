@@ -3,7 +3,7 @@ import { AtelierSymbol, type AtelierSymbolName } from "./AtelierSymbol";
 import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
-import { MetricCard } from "./MetricCard";
+import { LivingStudioHub } from "./LivingStudioHub";
 import { NocturneStudioArt } from "./NocturneStudioArt";
 import { PriorityHalo, type HaloAction } from "./PriorityHalo";
 
@@ -105,25 +105,7 @@ export async function Dashboard() {
       </header>
 
       <div className="nhs-command-surface">
-      <section className="metric-grid" aria-label="Studio metrics">
-        {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-      </section>
-
-      <nav className="velvet-passages" aria-label="Quick studio navigation">
-        <div className="velvet-passages__intro">
-          <span className="velvet-passages__eyebrow">Studio passages</span>
-          <span className="velvet-passages__caption">Every room, one key away.</span>
-        </div>
-        <div className="velvet-passages__links">
-          {passages.map((passage) => (
-            <Link key={passage.href} href={passage.href} className={`velvet-passage velvet-passage--${passage.tone}`}>
-              <span className="velvet-passage__symbol" aria-hidden="true"><AtelierSymbol name={passage.symbol} /></span>
-              <span className="velvet-passage__label">{passage.label}</span>
-              <span className="velvet-passage__arrow" aria-hidden="true">↗</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+      <LivingStudioHub passages={passages} metrics={metrics} projects={projects} />
 
       <section className="dashboard-grid" aria-label="Studio priorities and projects">
         <section className="panel action-panel" aria-labelledby="nocturne-actions-title">

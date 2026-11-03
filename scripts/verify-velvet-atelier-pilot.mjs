@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const source = (path) => readFileSync(path, "utf8");
 const dashboard = source("components/Dashboard.tsx");
+const living = source("components/LivingStudioHub.tsx");
 const glyphs = source("components/AtelierSymbol.tsx");
 const css = source("app/velvet-atelier-admin-pilot.css");
 const layout = source("app/layout.tsx");
@@ -15,13 +16,17 @@ assert.match(dashboard, /className="content-wrap nocturne-command-center velvet-
 assert.match(dashboard, /<NocturneStudioArt \/>/);
 assert.match(dashboard, /<PriorityHalo\s/);
 assert.match(dashboard, /rankLeads\(/);
-assert.match(dashboard, /<MetricCard\s/);
+assert.match(dashboard, /<LivingStudioHub\s/);
+assert.match(living, /metrics\.map\(/);
+assert.match(living, /projects\.map\(/);
 assert.match(dashboard, /<details className="nocturne-insights">/);
 assert.match(originalCss, /nhs-dark-rose-photographic\.webp/);
 
 // New navigation is real and accessible; decorative glyphs are inert.
-assert.match(dashboard, /<nav className="velvet-passages" aria-label="Quick studio navigation">/);
-assert.match(dashboard, /<Link key=\{passage.href\} href=\{passage.href\}/);
+assert.match(living, /<nav className="living-orbit" aria-label="Studio command hub">/);
+assert.match(living, /key=\{passage.href\}/);
+assert.match(living, /href=\{passage.href\}/);
+assert.match(living, /\/brand\/nhs-original-logo\.webp/);
 assert.match(dashboard, /aria-hidden="true">\s*<span><AtelierSymbol name="skull"/);
 for (const route of ["/leads", "/projects", "/clients", "/opportunities"]) {
   assert.ok(dashboard.includes('href: "' + route + '"'), "Missing functional shortcut " + route);
@@ -43,7 +48,7 @@ assert.match(css, /prefers-reduced-motion/);
 assert.match(css, /prefers-contrast: more/);
 assert.match(css, /focus-visible/);
 assert.match(css, /max-width: 680px/);
-assert.match(css, /\.velvet-passages__links/);
+assert.match(css, /\.living-orbit__link/);
 assert.match(css, /\.project-panel[\s\S]*?background: transparent;/);
 assert.match(dashboard, /className="empty-dashboard-actions velvet-open-empty"/);
 assert.match(dashboard, /className="velvet-priority-orbit" aria-hidden="true"/);
@@ -51,7 +56,7 @@ assert.match(dashboard, /velvet-orbit-point--rose/);
 assert.match(dashboard, /velvet-orbit-point--key/);
 assert.match(dashboard, /className="velvet-project-empty"/);
 assert.match(css, /\.nocturne-command-center\.velvet-atelier-pilot :is\(\.action-panel,\.project-panel\)/);
-assert.match(css, /\.nocturne-command-center\.velvet-atelier-pilot \.metric-card:first-child/);
+assert.match(css, /\.living-status__metric/);
 assert.match(css, /\.nav-link\.active/);
 assert.match(css, /:has\(\.nocturne-command-center\.velvet-atelier-pilot\)/);
 assert.match(css, /prefers-contrast: more/);
@@ -59,3 +64,9 @@ assert.match(css, /prefers-contrast: more/);
 console.log("PASS: original NHS logo, floral artwork, data and interactive Priority Halo preserved");
 console.log("PASS: four accessible icon-first routes and skull/rose/key motifs");
 console.log("PASS: unframed Admin panels, floating orbit, unobtrusive sidebar, responsive and keyboard guards");
+
+assert.match(css, /living-orbit-breathe/);
+assert.match(css, /\.living-orbit__link:focus-visible/);
+assert.match(living, /role="progressbar"/);
+assert.match(living, /recentProgress === null/);
+console.log("PASS: Living Dashboard circular hub, data-based progress and accessible focus");

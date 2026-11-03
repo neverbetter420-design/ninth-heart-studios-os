@@ -46,3 +46,10 @@
 ### Later milestones, not authorized by this pilot
 - After owner approval of the Command Center pilot: reusable design tokens, per-room visual guidelines, then independent reviews of Clients, Leads, Projects, Workspace, Automations and dark-accessible Client Portal.
 - Staging Client A/B identity fixtures and isolation tests are separate functional acceptance work.
+
+### Approved direction · Living Dashboard draft implementation (revision 3)
+- Owner approved the **direction** of a circular, icon-first command hub with concise copy, floating data/status readouts, project progress, original NHS identity, and dark unframed atmosphere. This is approval to implement and test on the **draft branch only**, not final screenshot acceptance.
+- `components/LivingStudioHub.tsx` is a presentation component. All route labels and metrics come from the unchanged authenticated `Dashboard` server component. The average progress is computed from up to four already-fetched recent projects, and is explicitly labeled a recent-project average. No fake live counters or new data reads.
+- The center displays the existing original `nhs-original-logo.webp`; ring and flourishes are decorative. Four real links remain keyboard-accessible and labelled. The functional Priority Halo, project rows, activity, and native Insights disclosure are unchanged.
+- The new CSS is appended to the existing late-loaded, opt-in Admin pilot stylesheet. Old shortcut/metric rules can be removed **after** acceptance rather than risking unrelated pages now.
+- Source-only CI checks new component and existing privacy guards. A protected authenticated 1440px, 1024px, 430px, 375px visual/keyboard review is still required; no preview refresh, merge, or release without separate authorization.

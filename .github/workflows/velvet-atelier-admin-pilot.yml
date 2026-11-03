@@ -6,6 +6,7 @@ on:
   pull_request:
     paths:
       - 'components/Dashboard.tsx'
+      - 'components/LivingStudioHub.tsx'
       - 'components/AtelierSymbol.tsx'
       - 'app/layout.tsx'
       - 'app/velvet-atelier-admin-pilot.css'
