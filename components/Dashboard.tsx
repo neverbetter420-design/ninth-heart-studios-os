@@ -73,11 +73,11 @@ export async function Dashboard() {
     staleCount: findStaleLeads(rankedLeads).length,
   });
   const waitingOnMe = rankedLeads.filter((lead) => lead.momentum_state === "Waiting on Me" || lead.momentum_state === "New Inbound").length;
-  const replies = rankedLeads.filter((lead) => lead.next_action_kind === "reply").length;
+  const repliesNeeded = rankedLeads.filter((lead) => lead.next_action_kind === "reply").length;
   const inboundRisk = rankedLeads.filter((lead) => lead.sla.status === "overdue" || lead.sla.status === "due_soon").length;
 
   const metrics = [
-    { label: "Active Leads", value: leadsUnavailable ? "—" : String(rankedLeads.length), detail: leadsUnavailable ? "Data unavailable" : `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
+    { label: "Active Leads", value: leadsUnavailable ? "—" : String(rankedLeads.length), detail: leadsUnavailable ? "Data unavailable" : `${repliesNeeded} ${repliesNeeded === 1 ? "reply" : "replies"} needed`, tone: "violet" as const },
     { label: "Waiting on Me", value: leadsUnavailable ? "—" : String(waitingOnMe), detail: leadsUnavailable ? "Data unavailable" : `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
     { label: "Total Projects", value: projectCountError || projectCount === null ? "—" : String(projectCount), detail: projectCountError || projectCount === null ? "Data unavailable" : "Across your studio", tone: "cyan" as const },
   ];

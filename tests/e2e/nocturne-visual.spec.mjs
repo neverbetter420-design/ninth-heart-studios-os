@@ -966,6 +966,9 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
     const links = hub.getByRole("link");
     await expect(links).toHaveCount(4);
     await expect(hub.locator(".living-orbit__ring--inner")).toHaveCSS("animation-name", "none");
+    if (scenario === "populated") {
+      await expect(studio.locator(".living-status__metric--violet")).toContainText("3 replies needed");
+    }
     if (scenario === "empty") {
       await expect(studio.getByRole("progressbar")).toHaveCount(0);
       await expect(studio).toContainText("No recent projects");

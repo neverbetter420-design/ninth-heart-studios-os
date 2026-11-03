@@ -66,3 +66,6 @@
 ### Data fidelity, source-only QA
 - Lead and recent-project Supabase read errors now display **Data unavailable** rather than treating failed reads as empty pipelines. This covers the Active Leads / Waiting on Me metrics, the Next 3 Actions empty state, recent-project average/progress, Project Pulse, and lead-derived Muse suggestions.
 - Genuine empty results still show the original welcoming empty states. The same five existing read queries remain, with no new requests, mutations, backend changes, feature activation, or production impact. Synthetic Playwright explicitly tests failed-read states, including independent Opportunity Radar and activity-feed read failures.
+
+### Metric language precision
+- The Active Leads detail counts lead records whose **next action** is `reply`, so it is labeled **replies needed**, not **human replies** (which incorrectly suggests received inbound messages). The count, ranking, permissions and backing query are unchanged; synthetic browser QA checks the populated example.
