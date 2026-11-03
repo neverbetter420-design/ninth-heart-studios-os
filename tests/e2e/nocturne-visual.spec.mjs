@@ -959,6 +959,8 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
   for (const scenario of ["empty", "populated"]) {
     await show(page, "admin", scenario, "home");
     const studio = page.locator(".nocturne-command-center .living-studio");
+    // Hiding the desktop <br> on tablet/phone must not fuse the two words.
+    await expect(studio.locator("#living-studio-title")).toHaveText(/A living\s+studio\./);
     const hub = studio.getByRole("navigation", { name: "Studio command hub" });
     const links = hub.getByRole("link");
     await expect(links).toHaveCount(4);
