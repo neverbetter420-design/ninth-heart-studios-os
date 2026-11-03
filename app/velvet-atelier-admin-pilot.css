@@ -943,7 +943,7 @@
   .velvet-atelier-pilot .living-studio__intro p { max-width: 34ch; margin-inline: auto; }
   .velvet-atelier-pilot .living-orbit { width: min(100%, 350px); margin-block: 19px 25px; }
   .velvet-atelier-pilot .living-orbit__core { width: clamp(128px, 42%, 148px); }
-  .velvet-atelier-pilot .living-orbit__link { width: 74px; min-height: 74px; gap: 5px; }
+  .velvet-atelier-pilot .living-orbit__link { width: 92px; min-height: 74px; gap: 5px; }
   .velvet-atelier-pilot .living-orbit__symbol { width: 44px; height: 44px; }
   .velvet-atelier-pilot .living-orbit__label { font-size: 10px; }
   .velvet-atelier-pilot .living-status__metrics {
@@ -964,7 +964,7 @@
   .velvet-atelier-pilot .living-orbit { width: min(100%, 315px); }
   .velvet-atelier-pilot .living-orbit__core { width: 130px; }
   .velvet-atelier-pilot .living-orbit__symbol { width: 40px; height: 40px; }
-  .velvet-atelier-pilot .living-orbit__link { width: 70px; }
+  .velvet-atelier-pilot .living-orbit__link { width: 88px; }
 }
 @media (prefers-contrast: more), (forced-colors: active) {
   .velvet-atelier-pilot .living-orbit__ring,

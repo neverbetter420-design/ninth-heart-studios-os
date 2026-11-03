@@ -981,6 +981,16 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
         expect(box.x, `Command link outside viewport at ${width}px`).toBeGreaterThanOrEqual(0);
         expect(box.x + box.width, `Command link outside viewport at ${width}px`).toBeLessThanOrEqual(width + 1);
       }
+      // Opportunities is the longest hub label. It must stay one line
+      // rather than breaking its last character at 320/390px.
+      if (width <= 760) {
+        const label = hub.getByRole("link", { name: "Opportunities" }).locator(".living-orbit__label");
+        const metrics = await label.evaluate(el => ({
+          height: el.getBoundingClientRect().height,
+          lineHeight: parseFloat(getComputedStyle(el).lineHeight),
+        }));
+        expect(metrics.height, `The Opportunities label wraps at ${width}px`).toBeLessThanOrEqual(metrics.lineHeight + 1);
+      }
     }
     await links.first().focus();
     expect(await links.first().evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
