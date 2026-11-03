@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AtelierSymbol, type AtelierSymbolName } from "./AtelierSymbol";
 import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
@@ -75,12 +76,19 @@ export async function Dashboard() {
     { label: "Open Projects", value: String(projectCount ?? 0), detail: "Across your studio", tone: "cyan" as const },
   ];
 
+  const passages: readonly { href: string; label: string; symbol: AtelierSymbolName; tone: string }[] = [
+    { href: "/leads", label: "Leads", symbol: "rose", tone: "rose" },
+    { href: "/projects", label: "Projects", symbol: "key", tone: "cobalt" },
+    { href: "/clients", label: "Clients", symbol: "skull", tone: "silver" },
+    { href: "/opportunities", label: "Opportunities", symbol: "spark", tone: "violet" },
+  ];
+
   const projects = (rawProjects ?? []) as { id: string; name: string; status: string; progress: number; due_date: string | null }[];
   const opportunities = (rawOpportunities ?? []) as { id: string; source: string; title: string; score: number | null }[];
   const activities = (rawActivities ?? []) as { id: string; summary: string; created_at: string }[];
 
   return (
-    <div className="content-wrap nocturne-command-center">
+    <div className="content-wrap nocturne-command-center velvet-atelier-pilot">
       <header className="nocturne-overview">
         <div className="nocturne-welcome-copy">
           <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
@@ -89,12 +97,33 @@ export async function Dashboard() {
           <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
         </div>
         <NocturneStudioArt />
+        <div className="velvet-hero-amulets" aria-hidden="true">
+          <span><AtelierSymbol name="skull" size={18} /></span>
+          <span><AtelierSymbol name="rose" size={18} /></span>
+          <span><AtelierSymbol name="key" size={18} /></span>
+        </div>
       </header>
 
       <div className="nhs-command-surface">
       <section className="metric-grid" aria-label="Studio metrics">
         {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
       </section>
+
+      <nav className="velvet-passages" aria-label="Quick studio navigation">
+        <div className="velvet-passages__intro">
+          <span className="velvet-passages__eyebrow">Studio passages</span>
+          <span className="velvet-passages__caption">Every room, one key away.</span>
+        </div>
+        <div className="velvet-passages__links">
+          {passages.map((passage) => (
+            <Link key={passage.href} href={passage.href} className={`velvet-passage velvet-passage--${passage.tone}`}>
+              <span className="velvet-passage__symbol" aria-hidden="true"><AtelierSymbol name={passage.symbol} /></span>
+              <span className="velvet-passage__label">{passage.label}</span>
+              <span className="velvet-passage__arrow" aria-hidden="true">↗</span>
+            </Link>
+          ))}
+        </div>
+      </nav>
 
       <section className="dashboard-grid" aria-label="Studio priorities and projects">
         <section className="panel action-panel" aria-labelledby="nocturne-actions-title">
@@ -119,6 +148,7 @@ export async function Dashboard() {
               />
             ) : (
               <div className="empty-dashboard-actions">
+                <span className="velvet-empty-charm" aria-hidden="true"><AtelierSymbol name="skull" size={28} /></span>
                 <strong>No lead actions yet.</strong>
                 <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>
                 <Link href="/leads#quick-capture" className="nocturne-empty-link">Capture a lead <span aria-hidden="true">↗</span></Link>
