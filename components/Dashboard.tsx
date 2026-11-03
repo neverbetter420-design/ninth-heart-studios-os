@@ -35,7 +35,7 @@ function dueLabel(dueDate: string | null): string {
 
 export async function Dashboard() {
   const supabase = await createClient();
-  const [{ data: rawLeads, error: leadsError }, { count: projectCount, error: projectCountError }, { data: rawProjects, error: projectsError }, { data: rawOpportunities }, { data: rawActivities }] =
+  const [{ data: rawLeads, error: leadsError }, { count: projectCount, error: projectCountError }, { data: rawProjects, error: projectsError }, { data: rawOpportunities, error: opportunitiesError }, { data: rawActivities, error: activitiesError }] =
     await Promise.all([
       supabase
         .from("leads")
@@ -64,6 +64,8 @@ export async function Dashboard() {
   // distinguish unavailable data from genuine zero/empty results.
   const leadsUnavailable = Boolean(leadsError) || rawLeads === null;
   const projectsUnavailable = Boolean(projectsError) || rawProjects === null;
+  const opportunitiesUnavailable = Boolean(opportunitiesError) || rawOpportunities === null;
+  const activitiesUnavailable = Boolean(activitiesError) || rawActivities === null;
   const rankedLeads = rankLeads((rawLeads ?? []) as FlowkeepLead[]);
   const nextActions = rankedLeads.slice(0, 3);
   const recommendation = recommendNextAction({
@@ -195,7 +197,9 @@ export async function Dashboard() {
           <h3 id="nocturne-activity-title">Around the studio</h3>
         </div>
         <div className="activity-list">
-          {activities.length ? activities.map((item) => (
+          {activitiesUnavailable ? (
+          <p className="nocturne-activity-empty" role="status">Studio activity unavailable. Refresh to retry.</p>
+        ) : activities.length ? activities.map((item) => (
             <div className="activity-row" key={item.id}>
               <span className="activity-dot" aria-hidden="true" />
               <p>{item.summary}</p>
@@ -245,7 +249,9 @@ export async function Dashboard() {
             <span className="beta-pill">Preview</span>
           </div>
           <div className="radar-list">
-            {opportunities.length ? opportunities.map((item) => (
+            {opportunitiesUnavailable ? (
+              <p className="pipeline-empty" role="status">Opportunity data unavailable. Refresh to retry.</p>
+            ) : opportunities.length ? opportunities.map((item) => (
               <div className="radar-row" key={item.id}>
                 <div>
                   <small>{item.source}</small>

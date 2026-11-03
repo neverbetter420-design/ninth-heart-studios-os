@@ -1024,4 +1024,15 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
   await expect(page.locator(".nocturne-command-center .muse-panel")).toContainText("Lead recommendations are unavailable.");
   await expect(page.locator(".nocturne-command-center")).not.toContainText("No lead actions yet.");
   await expect(page.locator(".nocturne-command-center")).not.toContainText("No recent projects.");
+
+  // The other two dashboard reads must also distinguish errors from empty lists.
+  await show(page, "admin", "radar-error", "home");
+  const radar = page.locator(".nocturne-command-center .radar-panel");
+  await expect(radar).toContainText("Opportunity data unavailable. Refresh to retry.");
+  await expect(radar).not.toContainText("No open opportunities.");
+
+  await show(page, "admin", "activity-error", "home");
+  const activity = page.locator(".nocturne-command-center .nocturne-activity");
+  await expect(activity).toContainText("Studio activity unavailable. Refresh to retry.");
+  await expect(activity).not.toContainText("A quiet moment.");
 });
