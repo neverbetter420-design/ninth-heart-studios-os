@@ -91,3 +91,9 @@
 - Uses list/listitem semantics, a restrained violet connecting rule, circular markers, fine separators and clear inline desktop timestamps that move beneath the summary on phone. The activity view remains read-only and uses the same existing Supabase query, no invented events or new requests.
 - Existing quiet-studio and unavailable-data messages remain different states. An isolated Playwright regression asserts the three synthetic events, timestamp count, list semantics, error/empty behavior and horizontal bounds at 1440, 1024, 760, 430, 390 and 320px.
 - Only the draft Admin Command Center is affected. Hosting and owner design acceptance still require separate authorization for a protected preview, not a source-only CI pass.
+
+### Studio Chronicle · quiet/error illustration and legibility (draft revision 7)
+- For a genuinely empty activities read, the same quiet-studio message now sits beside an original decorative rose glyph in an open circular motif, with a short editorial heading. No fake activity, content records, or navigational promises.
+- For a failed activities read, a visually distinct cobalt/violet spark motif accompanies the existing explicit retry message (role=status), rather than misrepresenting an unavailable feed as a new studio.
+- Enlarged real-event summary and timestamp type for reading comfort without adding cards or changing chronological data. The existing activity query, list/listitem semantics, dateTime values and all other routes remain unchanged.
+- Extended isolated Chromium QA to require the corresponding quiet/error motifs, exact read-error announcement and absence of horizontal scrolling at 1024, 430 and 320px. Still a **draft-only source change** and not published or approved for production.
