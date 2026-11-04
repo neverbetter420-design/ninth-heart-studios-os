@@ -393,7 +393,8 @@
 .nocturne-command-center.velvet-atelier-pilot .action-list { padding: 0; }
 .app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="observatory"])
 .nocturne-command-center.velvet-atelier-pilot .project-list {
-  padding: 0;
+  /* The progress percentage needs an optical gutter, including at 320px. */
+  padding: 0 12px 0 0;
   border-top: 1px solid var(--velvet-line);
 }
 .app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="observatory"])

@@ -81,3 +81,7 @@
 - Progress is display-normalized with the existing `displayProgress` helper. Date labels and Pacific-time due status reuse the existing `formatProjectDate` and `projectDueState` helpers; no stored values change.
 - The design remains dark and deliberately low-chrome, preserving all original project navigation links and Client Portal styling. Browser QA adds three synthetic project values, numbered journey rows and named ARIA progressbar assertions.
 - Local Chromium proof used actual static review markup with this CSS at 1440, 1024, 390 and 320px, with no horizontal overflow. Hosted visual and authenticated owner approval remain separate, explicitly unapproved gates.
+
+### Project Pulse right-edge regression repair
+- Exact-head Playwright on `7bf27758` passed 88 browser cases but rejected the flush-right Project Pulse percentage at 1440px in both desktop/mobile projects. The existing check requires the percentage's right edge to sit at least 10px inside the panel.
+- Apply a 12px inline-end visual gutter to the scoped `.project-list` (the same list that owns the new numbered rows); preserve its unframed border/hairline design. This is a layout correction, not a loosened assertion. Existing desktop and narrow-width Playwright tests remain unchanged and must pass against the new SHA.
