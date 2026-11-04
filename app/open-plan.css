@@ -14,7 +14,8 @@
 .nhs-open-plan :is(.nhs-context-name,.nhs-sign-out,.workspace-breadcrumbs a,.workspace-breadcrumbs span) { color: #d4cde5; }
 .nhs-open-plan .nhs-context-symbol { display: none; }
 .app-shell.nhs-open-plan .nhs-context-bar :is(.nhs-breadcrumbs a,.nhs-breadcrumbs span) { color: #c6bfd8; }
-.app-shell.nhs-open-plan .nhs-context-bar .nhs-sign-out { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #bba8e745; background: transparent; color: #d4cde5; }
+.app-shell.nhs-open-plan .nhs-context-bar .nhs-sign-out { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #bba8e745; background: #141522; color: #d4cde5; }
+.app-shell.nhs-open-plan .nhs-context-bar .nhs-sign-out:hover { background: #252239; color: #f1edf8; }
 .nhs-open-plan .nhs-room-identity { color: #c4b7f0; border-color: #af9fde45; background: #a590e310; }
 .nhs-open-plan .content-wrap { max-width: 1560px; margin-inline: auto; }
 .nhs-room-launcher { display: flex; align-items: center; gap: clamp(16px, 3vw, 40px); }

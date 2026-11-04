@@ -781,14 +781,14 @@ test("The shared atmosphere carries across every admin and client destination", 
   for (const [role, views] of Object.entries(screens)) {
     for (const view of views) {
       await show(page, role, "populated", view);
-      await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", role === "client" ? "light" : "dark");
+      await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", "dark");
       const stageBackground = await page.locator(".main-shell").evaluate(el => getComputedStyle(el).backgroundImage);
       if (role === "admin") {
         expect(stageBackground, `${view} should inherit the photographic NHS Dark Rose studio`).toMatch(/webp|gradient/);
         expect(stageBackground, `${view} should share the photographic skull-and-rose identity`).toContain("webp");
         await expect(page.locator(".main-shell")).toHaveCSS("background-color", "rgb(3, 3, 9)");
       } else {
-        expect(stageBackground, `${view} should preserve the warm client Atelier`).toContain("gradient");
+        expect(stageBackground, `${view} should preserve the dark client Atelier`).toContain("gradient");
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} ${view} at ${width}px`).toBeLessThanOrEqual(width);
       const capture = testInfo.outputPath(`${role}-${view}-${width}.png`);

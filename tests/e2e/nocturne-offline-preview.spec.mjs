@@ -118,12 +118,15 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
     const scanner = preview.querySelector(".scanner-controls");
     const nav = preview.querySelector(".scanner-glass-nav");
     return {
-      columns: getComputedStyle(shell).gridTemplateColumns.trim().split(/\s+/).length,
+      layout: getComputedStyle(shell).display,
+      workspaceWidth: shell.querySelector('.main-shell').getBoundingClientRect().width,
+      shellWidth: shell.getBoundingClientRect().width,
       controlsWidth: scanner.getBoundingClientRect().width,
       navColumns: getComputedStyle(nav).gridTemplateColumns.trim().split(/\s+/).length,
     };
   });
-  expect(responsive.columns).toBe(1);
+  expect(responsive.layout).toBe("block");
+  expect(responsive.workspaceWidth).toBeCloseTo(responsive.shellWidth, 0);
   expect(responsive.controlsWidth).toBeGreaterThan(280);
   expect(responsive.navColumns).toBe(2);
   expect(errors).toEqual([]);
