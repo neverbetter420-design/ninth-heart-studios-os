@@ -91,7 +91,7 @@ assert.ok(appShell.includes('action="/auth/sign-out"'), "visible desktop sign ou
 assert.ok(read("app/open-plan.css").includes(".nhs-context-account"), "account controls must remain responsive");
 assert.ok(directory.includes('className="nhs-directory-grid"'), "all permitted rooms must be available in the directory");
 
-assert.match(portalHome, /className="atelier-hero(?:\\s|")/, "Atelier client welcome required");
+assert.ok(portalHome.includes('className="atelier-hero nhs-color-hero"'), "Atelier client welcome required");
 const compass = read("components/portal/AtelierCompass.tsx");
 assert.ok(portalHome.includes("<AtelierCompass"), "client next-action widget must be mounted");
 assert.ok(portalHome.includes('className="nhs-portal-progress-dial"'), "visual project dial required");
