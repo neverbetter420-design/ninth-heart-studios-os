@@ -133,7 +133,7 @@ test("Color Studio keeps original identity, actual project progress, and four fu
     const dest = page.locator(".atelier-destination-grid .atelier-destination");
     await expect(dest).toHaveCount(4);
     for (const href of ["/portal/messages", "/portal/files", "/portal/documents", "/portal/approvals"]) {
-      await expect(dest.locator(`a[href="${href}"]`)).toHaveCount(1);
+      await expect(page.locator(`.atelier-destination-grid a.atelier-destination[href="${href}"]`)).toHaveCount(1);
     }
     await expect(dest.locator("svg")).toHaveCount(4);
     await expect(page.locator(".nhs-room-directory")).toBeHidden();

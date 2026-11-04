@@ -251,7 +251,7 @@
 .nhs-feature-project-layout .atelier-progress-track { background:#6680b43d; height:5px; }
 .nhs-feature-project-layout .atelier-progress-track > span { background:linear-gradient(90deg,#388bff,#9455ec,#f43f97); }
 .nhs-portal-progress-dial { width:150px; height:150px; padding:11px; display:grid; place-items:center;
-  border-radius:50%; background:conic-gradient(from -90deg,#388bff 0%,#9455ec calc(var(--nhs-progress)*.66),#f43f97 var(--nhs-progress),#4a526b70 var(--nhs-progress));
+  border-radius:50%; background:conic-gradient(from -90deg,#388bff 0%,#f43f97 var(--nhs-progress),#4a526b70 var(--nhs-progress));
   box-shadow:0 0 40px #6d57b834; }
 .nhs-portal-progress-dial__center { width:100%; height:100%; display:grid; align-content:center; justify-items:center; gap:7px;
   border-radius:50%; background:radial-gradient(circle at 40% 25%,#242c4b,#101524 78%); color:#f9f4ff; }
@@ -281,7 +281,7 @@
 .nhs-color-studio .nhs-atelier-compass__copy { color:#c9c8dc; }
 .nhs-color-studio .nhs-atelier-compass .atelier-text-link { color:#a5c8ff; border-bottom-color:#6795ff8c; }
 .nhs-color-studio .nhs-atelier-compass .atelier-text-link:hover { color:#e3edff; }
-.nhs-color-studio .nhs-atelier-compass__progress { background:conic-gradient(from -90deg,#388bff 0%,#9455ec 55%,#f43f97 var(--compass-progress),#4a526b70 var(--compass-progress)); }
+.nhs-color-studio .nhs-atelier-compass__progress { background:conic-gradient(from -90deg,#388bff 0%,#f43f97 var(--compass-progress),#4a526b70 var(--compass-progress)); }
 .nhs-color-studio .nhs-atelier-compass__progress-inner { background:radial-gradient(circle at 25% 15%,#2b2b51,#141628 75%); }
 .nhs-color-studio .nhs-atelier-compass__progress strong { color:#f8f2ff; }
 .nhs-color-studio .nhs-atelier-compass__progress span { color:#b9c3e7; }
