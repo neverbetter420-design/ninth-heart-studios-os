@@ -75,3 +75,9 @@
 - The hero photography, NHS original logo, real routes, interactive Priority Halo, project rows, dark visual palette and client isolation stay unchanged. No new page-wide color wash, artificial metrics, fake navigation or feature activation.
 - Offline headless Chromium screenshots checked 1440, 1320, 1024, 960, 760, 430, 390, 375 and 320px without horizontal overflow. Source browser QA adds a desktop geometry assertion so a return to the old layout cannot pass unnoticed.
 - **This is a draft-only visual change, not a live app update**. Live/published review still requires separately authorized protected preview publication and owner's authenticated visual approval.
+
+### Project Pulse editorial journey · draft revision 5
+- Converted the Command Center's simple project list into a responsive **numbered, unframed project journey** with clearer project-title links, real pipeline phase, due-date labels, due-soon/overdue emphasis and accessible, named progress bars. No fake records or new reads.
+- Progress is display-normalized with the existing `displayProgress` helper. Date labels and Pacific-time due status reuse the existing `formatProjectDate` and `projectDueState` helpers; no stored values change.
+- The design remains dark and deliberately low-chrome, preserving all original project navigation links and Client Portal styling. Browser QA adds three synthetic project values, numbered journey rows and named ARIA progressbar assertions.
+- Local Chromium proof used actual static review markup with this CSS at 1440, 1024, 390 and 320px, with no horizontal overflow. Hosted visual and authenticated owner approval remain separate, explicitly unapproved gates.

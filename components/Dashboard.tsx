@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AtelierSymbol, type AtelierSymbolName } from "./AtelierSymbol";
 import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
+import { displayProgress, formatProjectDate, projectDueState } from "@/lib/project-display";
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import { LivingStudioHub } from "./LivingStudioHub";
@@ -26,11 +27,6 @@ function stageLabel(status: string): string {
     .split("_")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
-}
-
-function dueLabel(dueDate: string | null): string {
-  if (!dueDate) return "Ongoing";
-  return new Date(dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export async function Dashboard() {
@@ -169,18 +165,37 @@ export async function Dashboard() {
                 <span aria-hidden="true"><AtelierSymbol name="key" size={19} /></span>
                 <p className="pipeline-empty">Project data unavailable. Refresh to retry.</p>
               </div>
-            ) : projects.length ? projects.map((project) => (
-              <div className="project-row" key={project.id}>
-                <div className="project-copy">
-                  <strong><Link href={"/projects/" + project.id}>{project.name}</Link></strong>
-                  <span>{stageLabel(project.status)} · {dueLabel(project.due_date)}</span>
-                </div>
-                <div className="progress-track" aria-label={`${project.progress}% complete`}>
-                  <span style={{ width: `${project.progress}%` }} />
-                </div>
-                <b>{project.progress}%</b>
-              </div>
-            )) : (
+            ) : projects.length ? projects.map((project, index) => {
+              const progress = displayProgress(project.progress);
+              const due = project.status === "on_hold" ? null : projectDueState(project.due_date);
+              return (
+                <article className="project-row velvet-project-journey" key={project.id}>
+                  <span className="velvet-project-journey__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                  <div className="velvet-project-journey__content">
+                    <div className="project-copy">
+                      <strong>
+                        <Link href={"/projects/" + project.id}>
+                          {project.name}<span className="velvet-project-journey__link-mark" aria-hidden="true">↗</span>
+                        </Link>
+                      </strong>
+                      <span className="velvet-project-journey__meta">
+                        <span className="velvet-project-journey__phase">{stageLabel(project.status)}</span>
+                        <span aria-hidden="true">·</span>
+                        <span className={"velvet-project-journey__due" + (due ? " velvet-project-journey__due--" + due : "")}>
+                          {due === "overdue" ? "Overdue · " : due === "soon" ? "Due soon · " : ""}{formatProjectDate(project.due_date)}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="velvet-project-journey__measure">
+                      <div className="progress-track" role="progressbar" aria-label={"Recorded progress for " + project.name} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                        <span style={{ width: progress + "%" }} />
+                      </div>
+                      <b>{progress}%</b>
+                    </div>
+                  </div>
+                </article>
+              );
+            }) : (
               <div className="velvet-project-empty">
                 <span aria-hidden="true"><AtelierSymbol name="key" size={19} /></span>
                 <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>

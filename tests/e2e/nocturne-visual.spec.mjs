@@ -463,6 +463,13 @@ for (const role of ["client", "admin"]) {
 }
 
 test("Command Center progress and disclosure fit at desktop and narrow widths", async ({ page }) => {
+  await show(page, "admin", "populated");
+  const rows = page.locator(".nocturne-command-center .velvet-project-journey");
+  await expect(rows).toHaveCount(3);
+  await expect(rows.locator(".velvet-project-journey__number")).toHaveText(["01", "02", "03"]);
+  await expect(page.getByRole("progressbar", { name: "Recorded progress for Cedar & Stone Website" })).toHaveAttribute("aria-valuenow", "72");
+  await expect(page.getByRole("progressbar", { name: "Recorded progress for Mira Studio" })).toHaveAttribute("aria-valuenow", "46");
+  await expect(page.getByRole("progressbar", { name: "Recorded progress for Northline Editions" })).toHaveAttribute("aria-valuenow", "18");
   await show(page, "admin", "long");
   for (const width of [1440, 1280, 1024, 900, 860, 620, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
