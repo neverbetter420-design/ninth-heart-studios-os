@@ -432,3 +432,11 @@
   overflow-x:clip;
   overflow-y:visible;
 }
+
+/* Smaller breakpoints can inherit a few pixels of overflow from nested
+   ornamental shadows or SVG strokes. Clip only the client homepage's
+   horizontal visual overhang, not the working area or its vertical flow. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio {
+  overflow-x:clip;
+  overflow-y:visible;
+}
