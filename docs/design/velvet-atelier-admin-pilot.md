@@ -85,3 +85,9 @@
 ### Project Pulse right-edge regression repair
 - Exact-head Playwright on `7bf27758` passed 88 browser cases but rejected the flush-right Project Pulse percentage at 1440px in both desktop/mobile projects. The existing check requires the percentage's right edge to sit at least 10px inside the panel.
 - Apply a 12px inline-end visual gutter to the scoped `.project-list` (the same list that owns the new numbered rows); preserve its unframed border/hairline design. This is a layout correction, not a loosened assertion. Existing desktop and narrow-width Playwright tests remain unchanged and must pass against the new SHA.
+
+### Studio Chronicle · draft visual revision 6
+- Replaces the Admin Command Center's two-column recent-activity grid with a single vertical, editorial event timeline. Each of the up to four existing events retains its original summary and relative timestamp; the reading order and `datetime` values are preserved.
+- Uses list/listitem semantics, a restrained violet connecting rule, circular markers, fine separators and clear inline desktop timestamps that move beneath the summary on phone. The activity view remains read-only and uses the same existing Supabase query, no invented events or new requests.
+- Existing quiet-studio and unavailable-data messages remain different states. An isolated Playwright regression asserts the three synthetic events, timestamp count, list semantics, error/empty behavior and horizontal bounds at 1440, 1024, 760, 430, 390 and 320px.
+- Only the draft Admin Command Center is affected. Hosting and owner design acceptance still require separate authorization for a protected preview, not a source-only CI pass.

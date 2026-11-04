@@ -961,6 +961,32 @@ test("Every NHS room has its own etched visual motif, with working responsive pa
 });
 
 
+test("Studio Chronicle preserves chronological activity, accessible timestamps and responsive reading order", async ({ page }) => {
+  await show(page, "admin", "populated", "home");
+  const timeline = page.getByRole("list", { name: "Recent studio activity" });
+  const entries = timeline.getByRole("listitem");
+  await expect(entries).toHaveCount(3);
+  await expect(entries.first()).toContainText("Homepage concept shared with Cedar & Stone");
+  await expect(entries.nth(1)).toContainText("Mira Studio moved into development");
+  await expect(entries.last()).toContainText("Northline Editions discovery notes updated");
+  await expect(timeline.locator("time[datetime]")).toHaveCount(3);
+
+  for (const width of [1440, 1024, 760, 430, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const rowBox = await entries.first().boundingBox();
+    const listBox = await timeline.boundingBox();
+    expect(rowBox.x, `Timeline starts inside its list at ${width}px`).toBeGreaterThanOrEqual(listBox.x);
+    expect(rowBox.x + rowBox.width, `Timeline stays inside its list at ${width}px`).toBeLessThanOrEqual(listBox.x + listBox.width + 1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `Timeline must not overflow at ${width}px`).toBeLessThanOrEqual(width);
+  }
+  await show(page, "admin", "empty", "home");
+  await expect(page.getByRole("list", { name: "Recent studio activity" }).getByRole("listitem")).toHaveCount(0);
+  await expect(page.locator(".nocturne-activity")).toContainText("A quiet moment.");
+  await show(page, "admin", "activity-error", "home");
+  await expect(page.getByRole("list", { name: "Recent studio activity" }).getByRole("listitem")).toHaveCount(0);
+  await expect(page.locator(".nocturne-activity")).toContainText("Studio activity unavailable.");
+});
+
 test("Living Dashboard remains usable in empty, populated, narrow and reduced-motion states", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const scenario of ["empty", "populated"]) {

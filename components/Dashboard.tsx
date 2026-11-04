@@ -211,16 +211,18 @@ export async function Dashboard() {
           <p className="eyebrow">03 · The latest</p>
           <h3 id="nocturne-activity-title">Around the studio</h3>
         </div>
-        <div className="activity-list">
+        <div className="activity-list velvet-activity-timeline" role="list" aria-label="Recent studio activity">
           {activitiesUnavailable ? (
-          <p className="nocturne-activity-empty" role="status">Studio activity unavailable. Refresh to retry.</p>
-        ) : activities.length ? activities.map((item) => (
-            <div className="activity-row" key={item.id}>
+            <p className="nocturne-activity-empty" role="status">Studio activity unavailable. Refresh to retry.</p>
+          ) : activities.length ? activities.map((item) => (
+            <article className="activity-row velvet-activity-event" role="listitem" key={item.id}>
               <span className="activity-dot" aria-hidden="true" />
               <p>{item.summary}</p>
               <time dateTime={item.created_at}>{relativeTime(item.created_at)}</time>
-            </div>
-          )) : <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>}
+            </article>
+          )) : (
+            <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>
+          )}
         </div>
       </section>
 
