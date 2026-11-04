@@ -423,3 +423,12 @@
 @media(forced-colors:active) {
   .nhs-client-room-relics,.nhs-color-studio .nhs-hero-relic,.nhs-dial-relic,.nhs-compass-relic-rose,.nhs-relic-divider { filter:none; }
 }
+
+
+/* Contain large etched relics horizontally at tablet widths. Keep vertical
+   flourishes visible and prevent a tiny off-screen art stroke from creating
+   horizontal page scroll under the Rooms popover. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  overflow-x:clip;
+  overflow-y:visible;
+}
