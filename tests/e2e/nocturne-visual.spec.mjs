@@ -669,8 +669,8 @@ test("Shared navigation keeps workspace names, nested paperwork and return paths
     const crumbs = page.getByRole("navigation", { name: "Breadcrumb", exact: true });
     await expect(crumbs.locator('[aria-current="page"]')).toHaveText(current);
     expect(await crumbs.locator("a").evaluateAll(links => links.map(a => a.getAttribute("href")))).toEqual(returns);
-    await expect(page.locator('.nav-stack a[aria-current="page"]')).toHaveAttribute("href", active);
-    if (role === "client") await expect(page.locator('.nav-stack a[href="/leads"]')).toHaveCount(0);
+    await expect(page.locator('.nhs-directory-grid a[aria-current="page"]')).toHaveAttribute("href", active);
+    if (role === "client") await expect(page.locator('.nhs-directory-grid a[href="/leads"]')).toHaveCount(0);
     for (const width of [1440, 860, 390, 320]) {
       await page.setViewportSize({ width, height: 800 });
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `${path} at ${width}px`).toBeLessThanOrEqual(width);

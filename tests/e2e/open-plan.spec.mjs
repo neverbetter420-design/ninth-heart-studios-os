@@ -24,6 +24,7 @@ test("all rooms use full-width workspaces with no permanent sidebar or dock", as
       await show(page, role, view);
       await expect(page.locator(".nhs-sidebar,.navigation-shell,.nhs-mobile-quicknav")).toHaveCount(0);
       await expect(directory(page)).toBeHidden();
+      await expect(page.getByRole("button", { name: "Sign out", exact: false })).toBeVisible();
       expect((await page.locator(".main-shell").boundingBox()).width).toBe(width);
       await bounds(page);
       if ([1440,390].includes(width) && ["home","project","portal-documents"].includes(view)) {
@@ -95,6 +96,7 @@ for (const width of [1440,390]) {
     await page.setViewportSize({ width, height: 1000 });
     for (const view of ["home","portal-projects","portal-documents","portal-messages","portal-files","portal-approvals","portal-contracts","portal-forms","project"]) {
       await show(page, "client", view);
+      if (view === "project") await page.locator("main details").evaluateAll(items => items.forEach(item => item.open = true));
       const result = await new AxeBuilder({ page }).withTags(["wcag2a","wcag2aa","wcag21aa"]).analyze();
       expect(result.violations.map(v => ({ id: v.id, targets: v.nodes.map(n => n.target) })), `${view} ${width}px`).toEqual([]);
     }

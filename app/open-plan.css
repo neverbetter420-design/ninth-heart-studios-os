@@ -9,7 +9,8 @@
   color: #f1edf8; z-index: 40;
 }
 .nhs-open-plan .nhs-context-location { flex: 1; min-width: 160px; }
-.nhs-open-plan .nhs-context-account { margin-left: auto; color: #c8c5d8; }
+.app-shell.nhs-open-plan .nhs-context-account { display: flex; margin-left: auto; color: #c8c5d8; }
+.app-shell.nhs-open-plan .nhs-context-account > form { display: block; }
 .nhs-open-plan :is(.nhs-context-name,.nhs-sign-out,.workspace-breadcrumbs a,.workspace-breadcrumbs span) { color: #d4cde5; }
 .nhs-open-plan .nhs-context-symbol { display: none; }
 .app-shell.nhs-open-plan .nhs-context-bar :is(.nhs-breadcrumbs a,.nhs-breadcrumbs span) { color: #c6bfd8; }
@@ -113,7 +114,8 @@
 .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.primary-button,.mini-button,.portal-submit-button) { background: #bba5ea; border-color: #bba5ea; color: #181322; }
 .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.message-bubble,.message-bubble.is-self,.studio-workspace-nav,.atelier-project-nav) { background: #222036; color: #f1edf8; border-color: #a99abd36; }
 .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-project-row a { background: transparent; border-color: #a99abd65; color: #cfbff7; }
-.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .studio-workspace * { --studio-ink: #f1edf8; --studio-muted: #bdb8ce; --studio-rule: #a99abd36; --studio-surface: #161725; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .studio-workspace { --studio-ink: #f1edf8; --studio-muted: #bdb8ce; --studio-rule: #a99abd36; --studio-surface: #161725; --studio-accent: #c5b6fa; --studio-focus: #c7b6ff; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .simple-row > span { color: #bdb8ce; }
 .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.studio-journey-heading > span,.studio-journey-stages li,.studio-journey-stages .studio-journey-number) { color: #bdb8ce; }
 .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .studio-journey-stages .is-current { color: #f1edf8; }
 .nhs-open-plan :is(.atelier-hero-copy,.atelier-feature-project,.atelier-destination) { animation: none; }
