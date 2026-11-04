@@ -91,9 +91,11 @@ assert.ok(appShell.includes('action="/auth/sign-out"'), "visible desktop sign ou
 assert.ok(read("app/open-plan.css").includes(".nhs-context-account"), "account controls must remain responsive");
 assert.ok(directory.includes('className="nhs-directory-grid"'), "all permitted rooms must be available in the directory");
 
-assert.ok(portalHome.includes('className="atelier-hero"'), "Atelier client welcome required");
+assert.match(portalHome, /className="atelier-hero(?:\\s|")/, "Atelier client welcome required");
 const compass = read("components/portal/AtelierCompass.tsx");
 assert.ok(portalHome.includes("<AtelierCompass"), "client next-action widget must be mounted");
+assert.ok(portalHome.includes('className="nhs-portal-progress-dial"'), "visual project dial required");
+assert.ok(portalHome.includes('href="/portal/approvals"'), "approval action must remain linked");
 assert.ok(compass.includes('className="atelier-action-panel nhs-atelier-compass"'), "client next action region required");
 assert.ok(compass.includes('href={nextApprovalTitle ? "/portal/approvals"'), "pending approvals must lead to the protected approvals route");
 assert.ok(compass.includes('href={"/portal/projects/" + projectId}'), "project journey must open the real project");
