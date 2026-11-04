@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { AtelierSymbol } from "@/components/AtelierSymbol";
+import { PortalIcon, type PortalIconName } from "@/components/portal/PortalIcon";
 import { useState, type CSSProperties } from "react";
 
 type CompassView = "now" | "journey" | "connect";
@@ -24,17 +26,17 @@ export function AtelierCompass({
 }) {
   const [view, setView] = useState<CompassView>("now");
   const safeProgress = Math.max(0, Math.min(100, Number.isFinite(progress) ? Math.round(progress) : 0));
-  const tabs: { id: CompassView; label: string; symbol: string }[] = [
-    { id: "now", label: "Next", symbol: "✧" },
-    { id: "journey", label: "Journey", symbol: "◇" },
-    { id: "connect", label: "Connect", symbol: "✉" },
+  const tabs: { id: CompassView; label: string; icon: PortalIconName }[] = [
+    { id: "now", label: "Next", icon: "next" },
+    { id: "journey", label: "Journey", icon: "journey" },
+    { id: "connect", label: "Connect", icon: "connect" },
   ];
 
   return (
     <aside className="atelier-action-panel nhs-atelier-compass" aria-labelledby="atelier-action-heading">
       <div className="nhs-atelier-compass__head">
         <span className="atelier-overline">YOUR PRIVATE ATELIER</span>
-        <span className="nhs-atelier-compass__spark" aria-hidden="true">✧</span>
+        <span className="nhs-atelier-compass__spark" aria-hidden="true"><AtelierSymbol name="rose" size={23}/></span>
       </div>
       <div className="nhs-atelier-compass__controls" role="group" aria-label="Explore your project actions">
         {tabs.map((tab) => (
@@ -44,7 +46,7 @@ export function AtelierCompass({
             aria-pressed={view === tab.id}
             onClick={() => setView(tab.id)}
           >
-            <span aria-hidden="true">{tab.symbol}</span> {tab.label}
+            <span aria-hidden="true"><PortalIcon name={tab.icon} size={19}/></span> {tab.label}
           </button>
         ))}
       </div>
@@ -54,7 +56,7 @@ export function AtelierCompass({
             <p className="nhs-atelier-compass__micro">
               {nextApprovalTitle ? "YOUR NEXT DECISION" : "YOUR STUDIO UPDATE"}
             </p>
-            <span className="nhs-atelier-compass__illustration" aria-hidden="true">✧</span>
+            <span className="nhs-atelier-compass__illustration" aria-hidden="true"><AtelierSymbol name={nextApprovalTitle ? "key" : "spark"} size={42}/></span>
             <h3 id="atelier-action-heading">
               {nextApprovalTitle
                 ? "A decision awaits you"
@@ -104,7 +106,7 @@ export function AtelierCompass({
         ) : (
           <div className="nhs-atelier-compass__view">
             <p className="nhs-atelier-compass__micro">STAY CONNECTED</p>
-            <span className="nhs-atelier-compass__illustration" aria-hidden="true">✉</span>
+            <span className="nhs-atelier-compass__illustration" aria-hidden="true"><PortalIcon name="messages" size={43}/></span>
             <h3 id="atelier-action-heading">A beautiful conversation.</h3>
             <p className="nhs-atelier-compass__copy">
               Your messages live in one private place, connected to your projects.

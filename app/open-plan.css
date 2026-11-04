@@ -147,3 +147,194 @@
   .nhs-room-directory[popover], .nhs-room-link[aria-current="page"], .nhs-rooms-trigger { background: Canvas; color: CanvasText; border: 1px solid CanvasText; }
   .nhs-room-link[aria-current="page"] { outline: 2px solid Highlight; }
 }
+
+
+/* NHS Color Studio: the Command Center's original logo + rose/key/spark motif
+   language, translated into a warmer, living client welcome. Does not change
+   permissions, room routes, data queries, actions or the production theme. */
+.app-shell.nhs-open-plan .nhs-context-bar::before {
+  content:""; position:absolute; inset:0 0 auto; height:2px; pointer-events:none;
+  background:linear-gradient(90deg,#388bff,transparent 24%,#f43f97 55%,#9455ec 80%,transparent);
+}
+.nhs-open-plan .nhs-rooms-trigger { border-color:#5589de6b; background:linear-gradient(110deg,#21457c65,#682c7e37); box-shadow:0 0 22px #2979ff12; }
+.nhs-open-plan .nhs-rooms-trigger:hover { background:linear-gradient(110deg,#28508d86,#91338b55); }
+.nhs-directory-grid > section:nth-child(4n+1) { --nhs-directory-accent:#85b6ff; --nhs-directory-glow:#388bff2f; }
+.nhs-directory-grid > section:nth-child(4n+2) { --nhs-directory-accent:#ff86bd; --nhs-directory-glow:#f43f9729; }
+.nhs-directory-grid > section:nth-child(4n+3) { --nhs-directory-accent:#c3a2ff; --nhs-directory-glow:#9455ec31; }
+.nhs-directory-grid > section:nth-child(4n+4) { --nhs-directory-accent:#ffb8b0; --nhs-directory-glow:#c426502b; }
+.nhs-room-directory .nhs-directory-grid h3 { color:var(--nhs-directory-accent); }
+.nhs-room-directory .nhs-room-link { border-bottom-color:#ffffff1d; }
+.nhs-room-directory .nhs-room-link > span:first-child {
+  width:34px; height:34px; display:grid; place-items:center; border-radius:50%;
+  color:var(--nhs-directory-accent); background:var(--nhs-directory-glow);
+  font-size:19px; box-shadow:inset 0 0 0 1px #e9d7ff13;
+}
+.nhs-room-directory .nhs-room-link { grid-template-columns:34px minmax(0,1fr) 16px; gap:13px; }
+.nhs-room-directory .nhs-room-link[aria-current="page"] { box-shadow:inset 3px 0 var(--nhs-directory-accent); background:var(--nhs-directory-glow); }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio {
+  --nhs-cobalt:#82b5ff; --nhs-rose:#ff72b4; --nhs-crimson:#ff7f91; --nhs-violet:#c7a6ff;
+  --nhs-silver:#d4d8e6; gap:clamp(36px,5vw,68px);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background:radial-gradient(ellipse at 92% 7%,#263b6f6b,transparent 42%),
+    radial-gradient(ellipse at 5% 41%,#56214e6b,transparent 42%),
+    radial-gradient(ellipse at 79% 90%,#23285e38,transparent 46%),#0b0e19;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  position:relative; display:grid; grid-template-columns:minmax(0,1.22fr) minmax(290px,.78fr);
+  align-items:center; min-height:380px; gap:clamp(20px,4vw,50px);
+  padding:clamp(20px,3vw,42px) 0 clamp(35px,4vw,54px);
+  border:0; border-bottom:1px solid #b2b5d134; background:transparent; overflow:visible;
+}
+.nhs-color-hero::before { content:""; position:absolute; pointer-events:none; inset:0 auto 0 -4vw; width:65%;
+  background:radial-gradient(ellipse at 19% 47%,#315bb027,transparent 66%); }
+.nhs-color-eyebrow { display:inline-flex; align-items:center; gap:10px; letter-spacing:.15em; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-eyebrow { color:#ffb3d8; }
+.nhs-color-eyebrow svg { flex:none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero-copy { position:relative; max-width:none; z-index:1; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero h2 {
+  max-width:700px; margin:24px 0 20px; font:400 clamp(40px,4.8vw,70px)/1.1 var(--font-cinzel),Georgia,serif;
+  letter-spacing:-.045em; color:#f9f5ff;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero h2 em {
+  color:#ff95c6; text-shadow:0 0 32px #e43b9844;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero-copy > p:not(.atelier-overline) {
+  max-width:500px; color:#ccd2e6; font-size:14px; line-height:1.8;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-welcome-cta {
+  display:inline-flex; align-items:center; justify-content:space-between; gap:22px;
+  margin-top:26px; border:1px solid #558fff9c; border-radius:999px; padding:12px 21px;
+  background:linear-gradient(105deg,#234b9da6,#572e7775); color:#f9f4ff;
+  box-shadow:0 9px 36px #3173d52e; font-size:12px;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-welcome-cta:hover {
+  background:linear-gradient(105deg,#3166bcaa,#95356b80); border-color:#9bbfff; color:#fff;
+}
+.nhs-portal-glance { display:flex; flex-wrap:wrap; gap:clamp(14px,3vw,34px); margin-top:29px; }
+.nhs-portal-glance > span { display:inline-flex; align-items:center; gap:7px; font-size:11px; color:#c4cce7; }
+.nhs-portal-glance > span:first-child svg { color:#8bb9ff; }
+.nhs-portal-glance > span:last-child svg { color:#ff91c9; }
+.nhs-portal-glance strong { color:#fbf7ff; font-size:19px; font-weight:600; font-variant-numeric:tabular-nums; }
+.nhs-color-hero-art { position:relative; justify-self:center; width:min(100%,350px); aspect-ratio:1;
+  display:grid; place-items:center; isolation:isolate; pointer-events:none;
+  background:radial-gradient(circle at center,#24396975 0%,#3b245045 34%,transparent 64%);
+}
+.nhs-color-hero-art::before { content:""; position:absolute; inset:0; z-index:-1;
+  background:url("/visuals/nhs-room-private-atelier.svg") center/cover no-repeat; opacity:.22; filter:saturate(1.4);
+}
+.nhs-color-hero-ring { position:absolute; border-radius:50%; border:1px solid #8faaff64; transform:rotate(-21deg); }
+.nhs-color-hero-ring--outer { width:94%; height:78%; border-style:dashed; border-color:#a4a7de70; }
+.nhs-color-hero-ring--inner { width:73%; height:73%; border-color:#ff7cb04d; box-shadow:0 0 35px #9944c32f; }
+.nhs-color-hero-core { position:relative; z-index:1; width:54%; aspect-ratio:1; border-radius:50%;
+  display:grid; place-content:center; justify-items:center; gap:7px;
+  background:radial-gradient(circle at 30% 25%,#2b3157,#101522 78%);
+  box-shadow:0 0 48px #388bff2a,inset 0 0 0 1px #f2d5ff52; }
+.nhs-color-hero-core img { width:clamp(75px,10vw,118px); height:auto; object-fit:contain; }
+.nhs-color-hero-core small { color:#d9dcf2; font-size:8px; letter-spacing:.12em; text-align:center; }
+.nhs-color-amulet { position:absolute; z-index:2; width:56px; height:56px; border-radius:50%;
+  display:grid; place-items:center; border:1px solid currentColor;
+  background:#13172be9; box-shadow:0 0 26px #0006; }
+.nhs-color-amulet--rose { top:9%; right:11%; color:#ff8bbb; box-shadow:0 0 27px #f43f9730; }
+.nhs-color-amulet--key { bottom:13%; left:4%; color:#8bb9ff; box-shadow:0 0 27px #388bff38; }
+.nhs-color-amulet--spark { bottom:3%; right:15%; color:#c7a6ff; box-shadow:0 0 27px #9455ec30; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-home-body {
+  grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr); align-items:start; gap:clamp(26px,4.8vw,66px);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-feature-project {
+  padding:22px 0; border:0; border-block:1px solid #8da3d64a; background:transparent; box-shadow:none;
+}
+.nhs-feature-project-layout { display:grid; grid-template-columns:minmax(0,1fr) 156px; gap:clamp(20px,3vw,38px); align-items:center; }
+.nhs-feature-project-copy { min-width:0; }
+.nhs-feature-project-copy > p { color:#ccd2e6; font-size:12px; line-height:1.65; margin:0 0 24px; }
+.nhs-feature-project-layout .atelier-progress-info strong { color:#93bfff; }
+.nhs-feature-project-layout .atelier-progress-track { background:#6680b43d; height:5px; }
+.nhs-feature-project-layout .atelier-progress-track > span { background:linear-gradient(90deg,#388bff,#9455ec,#f43f97); }
+.nhs-portal-progress-dial { width:150px; height:150px; padding:11px; display:grid; place-items:center;
+  border-radius:50%; background:conic-gradient(from -90deg,#388bff 0%,#9455ec calc(var(--nhs-progress)*.66),#f43f97 var(--nhs-progress),#4a526b70 var(--nhs-progress));
+  box-shadow:0 0 40px #6d57b834; }
+.nhs-portal-progress-dial__center { width:100%; height:100%; display:grid; align-content:center; justify-items:center; gap:7px;
+  border-radius:50%; background:radial-gradient(circle at 40% 25%,#242c4b,#101524 78%); color:#f9f4ff; }
+.nhs-portal-progress-dial__center strong { color:#f9f4ff; font:500 33px/1 Georgia,serif; }
+.nhs-portal-progress-dial__center small { color:#b8caea; font-size:9px; letter-spacing:.13em; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-atelier-compass {
+  padding:27px clamp(20px,2.5vw,31px) 30px; min-height:375px; margin:0;
+  border:1px solid #9d82cd60; border-radius:32px 7px 32px 7px;
+  background:radial-gradient(ellipse at 90% 7%,#7731a337,transparent 50%),
+    radial-gradient(ellipse at 11% 95%,#295bb13a,transparent 42%),#161727;
+  box-shadow:0 22px 70px #0002,inset 0 1px 0 #cbb1ff24;
+}
+.nhs-color-studio .nhs-atelier-compass__spark { color:#ff89c2; }
+.nhs-color-studio .nhs-atelier-compass__controls { border-radius:22px; padding:4px; background:#0c1328; border:1px solid #798acc40; }
+.nhs-color-studio .nhs-atelier-compass__controls button { border-radius:16px; color:#c4d1ee; }
+.nhs-color-studio .nhs-atelier-compass__controls button:nth-child(1) { --compass-tone:#ff93c5; }
+.nhs-color-studio .nhs-atelier-compass__controls button:nth-child(2) { --compass-tone:#8bb9ff; }
+.nhs-color-studio .nhs-atelier-compass__controls button:nth-child(3) { --compass-tone:#c7a6ff; }
+.nhs-color-studio .nhs-atelier-compass__controls button[aria-pressed="true"] {
+  color:var(--compass-tone); border:1px solid #b3a5ed70; background:#2a2845; box-shadow:0 5px 20px #0003;
+}
+.nhs-color-studio .nhs-atelier-compass__controls button:hover { color:#fff; }
+.nhs-color-studio .nhs-atelier-compass__illustration { width:90px; height:90px;
+  color:#ff97ca; border:1px solid #d758b572;
+  background:radial-gradient(circle at center,#5a28646b,#211c39 72%); box-shadow:0 0 36px #dc4eae33; }
+.nhs-color-studio .nhs-atelier-compass__micro { color:#a9bde9; }
+.nhs-color-studio .nhs-atelier-compass__copy { color:#c9c8dc; }
+.nhs-color-studio .nhs-atelier-compass .atelier-text-link { color:#a5c8ff; border-bottom-color:#6795ff8c; }
+.nhs-color-studio .nhs-atelier-compass .atelier-text-link:hover { color:#e3edff; }
+.nhs-color-studio .nhs-atelier-compass__progress { background:conic-gradient(from -90deg,#388bff 0%,#9455ec 55%,#f43f97 var(--compass-progress),#4a526b70 var(--compass-progress)); }
+.nhs-color-studio .nhs-atelier-compass__progress-inner { background:radial-gradient(circle at 25% 15%,#2b2b51,#141628 75%); }
+.nhs-color-studio .nhs-atelier-compass__progress strong { color:#f8f2ff; }
+.nhs-color-studio .nhs-atelier-compass__progress span { color:#b9c3e7; }
+.nhs-color-studio .atelier-section-heading a { color:#9bc2ff; }
+.nhs-color-studio .atelier-section-heading a:hover { color:#d9e9ff; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-destination-grid {
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(10px,3vw,38px);
+  border:0; border-top:1px solid #99a8d944; padding:18px 0 0;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-destination {
+  min-width:0; padding:18px 8px 12px; display:flex; gap:8px; align-items:center; text-align:center;
+  background:transparent; border:0; border-radius:0; box-shadow:none; text-decoration:none; transition:transform .2s ease;
+}
+.nhs-color-studio .atelier-destination:nth-child(1) { --dest-color:#8ebaff; --dest-glow:#388bff49; }
+.nhs-color-studio .atelier-destination:nth-child(2) { --dest-color:#ff95c6; --dest-glow:#f43f9741; }
+.nhs-color-studio .atelier-destination:nth-child(3) { --dest-color:#c2a6ff; --dest-glow:#9455ec4d; }
+.nhs-color-studio .atelier-destination:nth-child(4) { --dest-color:#ff9b9f; --dest-glow:#c4265050; }
+.nhs-color-studio .atelier-destination .atelier-destination-icon {
+  width:72px; height:72px; display:grid; place-items:center; flex:none;
+  border-radius:50%; margin:0 0 12px; color:var(--dest-color); background:radial-gradient(circle,#273651,var(--dest-glow));
+  border:1px solid var(--dest-color); box-shadow:0 0 25px var(--dest-glow); transition:transform .2s ease,box-shadow .2s ease;
+}
+.nhs-color-studio .atelier-destination:hover .atelier-destination-icon { transform:translateY(-4px) scale(1.04); box-shadow:0 0 38px var(--dest-glow); }
+.nhs-color-studio .atelier-destination strong { color:#f3efff; font-size:15px; }
+.nhs-color-studio .atelier-destination small { color:#c1c4d8; font-size:11px; }
+.nhs-color-studio .atelier-destination .atelier-arrow { position:static; color:var(--dest-color); margin-top:4px; }
+.nhs-color-studio .atelier-destination:hover { transform:translateY(-3px); }
+@media(max-width:1000px) {
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero { grid-template-columns:minmax(0,1fr) minmax(220px,.65fr); }
+  .nhs-color-hero-art { width:min(100%,290px); }
+  .nhs-feature-project-layout { grid-template-columns:minmax(0,1fr) 135px; }
+  .nhs-portal-progress-dial { width:130px; height:130px; }
+}
+@media(max-width:740px) {
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero { display:flex; flex-direction:column; align-items:stretch; min-height:0; gap:16px; }
+  .nhs-color-hero-art { width:210px; margin:auto; }
+  .nhs-color-hero-core img { width:74px; }
+  .nhs-color-amulet { width:42px; height:42px; }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-home-body { grid-template-columns:minmax(0,1fr); }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-destination-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+}
+@media(max-width:390px) {
+  .nhs-color-hero-art { width:170px; }
+  .nhs-color-hero-core small { font-size:6px; }
+  .nhs-feature-project-layout { grid-template-columns:minmax(0,1fr); }
+  .nhs-portal-progress-dial { width:126px; height:126px; justify-self:center; }
+  .nhs-portal-glance { gap:12px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .nhs-color-studio .atelier-destination,.nhs-color-studio .atelier-destination-icon { transition:none; }
+}
+@media (forced-colors:active) {
+  .nhs-color-hero-art::before { background:none; }
+  .nhs-color-studio .atelier-destination .atelier-destination-icon { border:2px solid CanvasText; background:Canvas; color:CanvasText; box-shadow:none; }
+  .nhs-color-studio .nhs-portal-progress-dial { border:4px solid Highlight; background:Canvas; }
+}

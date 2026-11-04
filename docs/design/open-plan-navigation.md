@@ -51,3 +51,15 @@ Draft only. No merge, production deployment, hosted preview publication,
 Cloudflare configuration change, hosted database write, Muse activation,
 paid service, lead scan or outreach. Existing CI uses temporary synthetic
 databases and build/dry-run checks. Production and previews remain untouched.
+
+## Color Studio revision (owner-approved visual direction, still draft)
+
+- Reuses the original NHS logo and Command Center's custom rose/key/spark glyphs, now in a colorful illustrated portal orbit. The existing private atelier illustration stays decorative and local.
+- Replaces bare type-led portal arrival with a warm personalized welcome, cobalt-to-magenta call to action, and actual project/approval summaries. Unavailable approval data uses a dash, never a fabricated zero.
+- Adds a circular progress widget tied to the current project record while retaining the existing accessible linear progressbar and destination.
+- Gives the existing interactive Atelier Compass tabs distinct visual icons and colorful states without changing their behavior or project data.
+- Makes Messages, Files, Documents and Approvals icon-first actionable destinations. The Rooms popover receives section colors and larger glyph targets without restoring a sidebar.
+- Dark navy ink, magenta, cobalt, crimson, violet and silver accents are contrasted against spacious open surfaces; mobile layouts and reduced-motion/forced-colors protections remain.
+- Owner approval covers this visual direction only. No hosted preview, merge, deployment, release credentials, hosted data writes, Muse activation, paid services, scans or outreach.
+
+This change requires fresh exact-head CI, particularly source-rendered responsive screenshots, accessibility and authenticated A/B isolation; passing a previous draft's suite does not validate this revision.

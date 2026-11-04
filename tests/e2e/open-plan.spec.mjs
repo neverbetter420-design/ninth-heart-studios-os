@@ -120,3 +120,26 @@ test("reduced-motion and forced-color navigation remain usable", async ({ page }
   await expect(launcher(page)).toBeFocused();
   expect(await launcher(page).evaluate(el => getComputedStyle(el).outlineStyle)).toBe("solid");
 });
+
+// The enhanced studio stays data-driven: no fabricated percentages, badges or
+// decorative-only routes. Its illustrated symbols do not replace accessible links.
+test("Color Studio keeps original identity, actual project progress, and four functional icon routes", async ({ page }) => {
+  for (const width of [1440,390,320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await show(page, "client", "home", "populated");
+    await expect(page.locator(".nhs-color-hero-core img")).toHaveAttribute("src", /data:image\/webp;base64,/);
+    await expect(page.locator(".nhs-portal-progress-dial")).toContainText("72%");
+    await expect(page.getByRole("progressbar", { name:"Project progress" })).toHaveAttribute("aria-valuenow","72");
+    const dest = page.locator(".atelier-destination-grid .atelier-destination");
+    await expect(dest).toHaveCount(4);
+    for (const href of ["/portal/messages", "/portal/files", "/portal/documents", "/portal/approvals"]) {
+      await expect(dest.locator(`a[href="${href}"]`)).toHaveCount(1);
+    }
+    await expect(dest.locator("svg")).toHaveCount(4);
+    await expect(page.locator(".nhs-room-directory")).toBeHidden();
+    await bounds(page);
+  }
+  await show(page, "client", "home", "error");
+  await expect(page.getByRole("alert")).toContainText("Projects are temporarily unavailable");
+  await expect(page.locator(".nhs-portal-progress-dial")).toHaveCount(0);
+});
