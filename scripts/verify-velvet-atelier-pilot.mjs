@@ -95,8 +95,19 @@ assert.equal(previewConfig.workers_dev, false);
 assert.equal(previewConfig.preview_urls, true);
 assert.deepEqual(previewConfig.routes, []);
 assert.equal(previewConfig.keep_vars, false);
-assert.deepEqual(Object.keys(previewConfig).sort(), Object.keys(stagingConfig).sort());
+// Stage parity alone is insufficient: two configs could acquire the same
+// dangerous binding or publish trigger and still compare equal. Lock the
+// pilot's entire top-level surface to this reviewed source-only shape.
+const previewKeys = [
+  "$schema", "name", "main", "compatibility_date", "compatibility_flags",
+  "workers_dev", "preview_urls", "routes", "keep_vars", "assets",
+  "vars", "previews",
+];
+assert.deepEqual(Object.keys(previewConfig).sort(), previewKeys.sort(),
+  "Unexpected preview setting or binding requires independent release review");
 assert.deepEqual(Object.keys(previewConfig.vars).sort(), allowedVars.sort());
+assert.deepEqual(Object.keys(previewConfig.previews), ["vars"],
+  "Preview-specific bindings must contain only the reviewed vars object");
 assert.deepEqual(previewConfig.vars, previewConfig.previews.vars);
 assert.equal(previewConfig.vars.NHS_APP_URL, expectedUrl);
 assert.equal(previewConfig.vars.MUSE_AI_ENABLED, "false");
@@ -107,4 +118,16 @@ assert.deepEqual(
   "The pilot may differ from the existing staging config only by its app callback URL"
 );
 console.log("PASS: independent, route-free, credential-limited pilot preview config; Muse flags OFF");
+// The dedicated Admin QA may validate source, but must never publish it.
+const pilotWorkflow = source(".github/workflows/velvet-atelier-admin-pilot.yml");
+assert.match(pilotWorkflow, /permissions:\s*\n\s*contents:\s*read\b/);
+assert.match(pilotWorkflow, /persist-credentials:\s*false/);
+assert.match(pilotWorkflow, /NEXT_PUBLIC_SUPABASE_URL:\s*https:\/\/example\.supabase\.co/);
+assert.match(pilotWorkflow, /NHS_APP_URL:\s*https:\/\/example\.invalid/);
+assert.match(pilotWorkflow, /MUSE_AI_ENABLED:\s*'false'/);
+assert.match(pilotWorkflow, /MUSE_PROJECT_GUIDE_ENABLED:\s*'false'/);
+assert.doesNotMatch(pilotWorkflow, /CLOUDFLARE_API_TOKEN|wrangler-action|\bwrangler\s+(?:deploy|versions upload)|\bcf:deploy\b|\bsecrets\.|environment:\s*production/i,
+  "Pilot QA must remain non-deploying and credential-free");
+console.log("PASS: Admin pilot workflow cannot publish, use release credentials or enable Muse");
+
 
