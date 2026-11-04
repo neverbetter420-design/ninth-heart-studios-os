@@ -981,10 +981,19 @@ test("Studio Chronicle preserves chronological activity, accessible timestamps a
   }
   await show(page, "admin", "empty", "home");
   await expect(page.getByRole("list", { name: "Recent studio activity" }).getByRole("listitem")).toHaveCount(0);
+  await expect(page.locator(".velvet-chronicle-state--quiet")).toBeVisible();
+  await expect(page.locator(".velvet-chronicle-state--quiet .velvet-chronicle-state__mark svg")).toHaveCount(1);
   await expect(page.locator(".nocturne-activity")).toContainText("A quiet moment.");
+  for (const width of [1024, 430, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `Chronicle empty state at ${width}px`).toBeLessThanOrEqual(width);
+  }
   await show(page, "admin", "activity-error", "home");
   await expect(page.getByRole("list", { name: "Recent studio activity" }).getByRole("listitem")).toHaveCount(0);
+  await expect(page.locator(".velvet-chronicle-state--unavailable")).toBeVisible();
+  await expect(page.locator(".velvet-chronicle-state--unavailable [role=status]")).toHaveText("Studio activity unavailable. Refresh to retry.");
   await expect(page.locator(".nocturne-activity")).toContainText("Studio activity unavailable.");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth), "Chronicle unavailable state at 320px").toBeLessThanOrEqual(320);
 });
 
 test("Living Dashboard remains usable in empty, populated, narrow and reduced-motion states", async ({ page }) => {
