@@ -5,6 +5,7 @@ import type { AppRole } from "@/lib/supabase/types";
 import { RoomNavigation } from "./RoomNavigation";
 import { WorkspaceBreadcrumbs } from "./WorkspaceBreadcrumbs";
 import { ActionNotifications } from "./ActionNotifications";
+import { ClientRoomRelics } from "./AtelierRelic";
 
 export function AppShell({
   children,
@@ -34,7 +35,10 @@ export function AppShell({
             </form>
           </div>
         </header>
-        <main id="workspace-content" tabIndex={-1}>{children}</main>
+        <main id="workspace-content" tabIndex={-1}>
+          {role === "client" && <ClientRoomRelics />}
+          {children}
+        </main>
       </div>
       <ActionNotifications />
     </div>

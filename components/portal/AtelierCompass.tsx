@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AtelierSymbol } from "@/components/AtelierSymbol";
+import { AtelierRelic } from "@/components/AtelierRelic";
 import { PortalIcon, type PortalIconName } from "@/components/portal/PortalIcon";
 import { useState, type CSSProperties } from "react";
 
@@ -36,7 +37,7 @@ export function AtelierCompass({
     <aside className="atelier-action-panel nhs-atelier-compass" aria-labelledby="atelier-action-heading">
       <div className="nhs-atelier-compass__head">
         <span className="atelier-overline">YOUR PRIVATE ATELIER</span>
-        <span className="nhs-atelier-compass__spark" aria-hidden="true"><AtelierSymbol name="rose" size={23}/></span>
+        <span className="nhs-atelier-compass__spark nhs-compass-relic-skull" aria-hidden="true"><AtelierRelic name="skull" size={65}/></span>
       </div>
       <div className="nhs-atelier-compass__controls" role="group" aria-label="Explore your project actions">
         {tabs.map((tab) => (
@@ -50,6 +51,7 @@ export function AtelierCompass({
           </button>
         ))}
       </div>
+      <span className="nhs-compass-relic-rose" aria-hidden="true"><AtelierRelic name="rose" size={79}/></span>
       <div className="nhs-atelier-compass__scene" aria-live="polite" aria-atomic="true">
         {view === "now" ? (
           <div className="nhs-atelier-compass__view">

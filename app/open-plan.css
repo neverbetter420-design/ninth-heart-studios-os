@@ -338,3 +338,88 @@
   .nhs-color-studio .atelier-destination .atelier-destination-icon { border:2px solid CanvasText; background:Canvas; color:CanvasText; box-shadow:none; }
   .nhs-color-studio .nhs-portal-progress-dial { border:4px solid Highlight; background:Canvas; }
 }
+
+
+/* NHS Relic Atelier | November decorative-identity refinement.
+   Three distinct, visibly drawn rose/skull/skeleton-key illustrations;
+   neither tiny icon placeholders nor a substitute for the original NHS logo. */
+.nhs-open-plan #workspace-content { position:relative; isolation:isolate; }
+.nhs-open-plan #workspace-content > :not(.nhs-client-room-relics) { position:relative; z-index:1; }
+.nhs-client-room-relics { position:absolute; z-index:0; top:20px; right:clamp(15px,4vw,78px);
+  width:min(260px,27vw); height:195px; pointer-events:none; user-select:none; opacity:.48; }
+.nhs-client-room-relic { position:absolute; filter:drop-shadow(0 0 17px currentColor); }
+.nhs-client-room-relic--rose { color:#e27dab; right:12%; top:0; transform:rotate(14deg); }
+.nhs-client-room-relic--skull { color:#bdc9e7; right:47%; top:26px; transform:rotate(-13deg); }
+.nhs-client-room-relic--key { color:#8bb5ff; right:-6%; top:71px; transform:rotate(13deg); }
+.nhs-theme-client.nhs-open-plan #workspace-content:has(.nhs-color-studio) > .nhs-client-room-relics { display:none; }
+.nhs-relic-art { display:block; max-width:100%; height:auto; overflow:visible; }
+.nhs-color-studio .nhs-color-hero-art { width:min(100%,410px); overflow:visible; }
+.nhs-color-studio .nhs-color-hero-core { width:48%; z-index:5; box-shadow:0 0 62px #388bff39,inset 0 0 0 1px #f2d5ff52; }
+.nhs-color-studio .nhs-hero-relic {
+  position:absolute; z-index:6; display:block; width:auto; height:auto;
+  border:0; border-radius:0; background:transparent; box-shadow:none;
+  filter:drop-shadow(0 0 12px #e2a1ff45); pointer-events:none;
+}
+.nhs-color-studio .nhs-hero-relic--unused { display:none; }
+.nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic { top:-12%; left:-14%; right:auto; bottom:auto; color:#ff8fbe; transform:rotate(-18deg); filter:drop-shadow(0 0 17px #fc5aa05e); }
+.nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic { top:-7%; right:-8%; left:auto; bottom:auto; color:#d5dbec; transform:rotate(10deg); filter:drop-shadow(0 0 18px #a6b5ea58); }
+.nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic { bottom:-13%; right:-7%; top:auto; left:auto; color:#94bbff; transform:rotate(18deg); filter:drop-shadow(0 0 15px #388bff70); }
+.nhs-color-studio .nhs-color-hero-art::after {
+  content:""; position:absolute; inset:-6%; pointer-events:none; opacity:.7; z-index:0;
+  border:1px solid #8ea7e24d; border-radius:45% 55% 49% 51%; transform:rotate(26deg);
+  box-shadow:0 0 36px #f43f9721,inset 0 0 37px #388bff19;
+}
+.nhs-relic-divider { display:flex; width:100%; align-items:center; justify-content:center;
+  gap:12px; color:#d5a2cf; height:44px; pointer-events:none; opacity:.86; }
+.nhs-relic-divider > span { height:1px; width:min(100px,15%); background:linear-gradient(90deg,transparent,#bca3d090); }
+.nhs-relic-divider > span:last-child { transform:rotate(180deg); }
+.nhs-relic-divider .nhs-relic-art--key { color:#91b6fa; transform:rotate(13deg); }
+.nhs-relic-divider .nhs-relic-art--skull { color:#d0d7e8; }
+.nhs-relic-divider--arrival { margin:-22px auto -12px; }
+.nhs-relic-divider--essentials { margin:10px auto -19px; }
+.nhs-color-studio .nhs-relic-empty { position:relative; min-height:190px; padding:35px clamp(18px,5vw,60px);
+  background:radial-gradient(ellipse at 89% 48%,#bd267c26,transparent 48%),transparent; }
+.nhs-relic-empty-art { display:flex; position:absolute; top:22px; right:30px; align-items:center; gap:6px; pointer-events:none; color:#e7a4cb; opacity:.72; }
+.nhs-relic-empty-art .nhs-relic-art--key { color:#9ab9f3; transform:rotate(-24deg); }
+.nhs-color-studio .nhs-portal-progress-dial { position:relative; isolation:isolate; overflow:visible; }
+.nhs-dial-relic { position:absolute; z-index:1; pointer-events:none; color:#f58cb8; filter:drop-shadow(0 0 8px #fa4b9c4d); }
+.nhs-dial-relic--rose { top:-35px; right:-25px; transform:rotate(16deg); }
+.nhs-dial-relic--key { bottom:-34px; left:-23px; color:#8ebaff; transform:rotate(-13deg); }
+.nhs-color-studio .nhs-atelier-compass { isolation:isolate; }
+.nhs-color-studio .nhs-compass-relic-skull { display:block; color:#d0d9ea; transform:rotate(9deg); opacity:.9; }
+.nhs-color-studio .nhs-compass-relic-rose { position:absolute; right:-13px; bottom:-20px; z-index:0; pointer-events:none;
+  color:#ec80b4; transform:rotate(21deg); opacity:.64; filter:drop-shadow(0 0 14px #f43f9749); }
+.nhs-color-studio .nhs-atelier-compass__controls,
+.nhs-color-studio .nhs-atelier-compass__scene { position:relative; z-index:1; }
+.nhs-color-studio .nhs-atelier-compass__head { min-height:70px; align-items:center; position:relative; z-index:1; }
+@media(max-width:1000px) {
+  .nhs-color-studio .nhs-color-hero-art { width:min(100%,310px); }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic svg { width:105px; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic svg { width:92px; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic svg { width:100px; }
+}
+@media(max-width:740px) {
+  .nhs-color-studio .nhs-color-hero-art { width:min(215px,68vw); margin:30px auto 26px; }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic svg { width:76px; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic svg { width:70px; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic svg { width:82px; }
+  .nhs-client-room-relics { width:145px; opacity:.32; }
+  .nhs-client-room-relic--rose svg { width:68px; }
+  .nhs-client-room-relic--skull svg { width:55px; }
+  .nhs-client-room-relic--key svg { width:62px; }
+  .nhs-relic-empty-art { opacity:.32; right:10px; }
+}
+@media(max-width:390px) {
+  .nhs-color-studio .nhs-color-hero-art { width:170px; margin:22px auto; }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic svg { width:66px; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic svg { width:61px; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic svg { width:69px; }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic { left:-9%; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic { right:-4%; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic { right:-3%; }
+  .nhs-relic-divider { gap:7px; }
+  .nhs-relic-empty-art { right:0; top:0; }
+}
+@media(forced-colors:active) {
+  .nhs-client-room-relics,.nhs-color-studio .nhs-hero-relic,.nhs-dial-relic,.nhs-compass-relic-rose,.nhs-relic-divider { filter:none; }
+}

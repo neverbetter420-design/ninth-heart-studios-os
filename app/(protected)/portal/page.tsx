@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { AtelierSymbol } from "@/components/AtelierSymbol";
+import { AtelierRelic } from "@/components/AtelierRelic";
 import { PortalIcon } from "@/components/portal/PortalIcon";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -63,11 +64,14 @@ export default async function ClientPortalPage() {
           <span className="nhs-color-hero-ring nhs-color-hero-ring--outer"/>
           <span className="nhs-color-hero-ring nhs-color-hero-ring--inner"/>
           <span className="nhs-color-hero-core"><img src="/brand/nhs-original-logo.webp" alt="" width={118} height={118}/><small>YOUR CREATIVE WORLD</small></span>
-          <span className="nhs-color-amulet nhs-color-amulet--rose"><AtelierSymbol name="rose" size={27}/></span>
-          <span className="nhs-color-amulet nhs-color-amulet--key"><AtelierSymbol name="key" size={27}/></span>
-          <span className="nhs-color-amulet nhs-color-amulet--spark"><AtelierSymbol name="spark" size={28}/></span>
+          <span className="nhs-color-amulet nhs-color-amulet--rose nhs-hero-relic" data-relic="rose"><AtelierRelic name="rose" size={133}/></span>
+          <span className="nhs-color-amulet nhs-color-amulet--skull nhs-hero-relic" data-relic="skull"><AtelierRelic name="skull" size={113}/></span>
+          <span className="nhs-color-amulet nhs-color-amulet--key nhs-hero-relic" data-relic="key"><AtelierRelic name="key" size={128}/></span>
         </div>
       </section>
+      <div className="nhs-relic-divider nhs-relic-divider--arrival" aria-hidden="true">
+        <span/><AtelierRelic name="rose" size={36}/><AtelierRelic name="key" size={31}/><span/>
+      </div>
 
       {error ? (
         <section className="atelier-notice" role="alert">
@@ -75,8 +79,8 @@ export default async function ClientPortalPage() {
           <p>We couldn't load your projects. Refresh or contact the studio if this keeps happening.</p>
         </section>
       ) : visibleProjects.length === 0 ? (
-        <section className="atelier-empty" aria-labelledby="atelier-empty-heading">
-          <span aria-hidden="true">◇</span>
+        <section className="atelier-empty nhs-relic-empty" aria-labelledby="atelier-empty-heading">
+          <div className="nhs-relic-empty-art" aria-hidden="true"><AtelierRelic name="rose" size={86}/><AtelierRelic name="key" size={70}/></div>
           <h3 id="atelier-empty-heading">Your story begins here.</h3>
           <p>Your account is ready. Your projects will appear as soon as the studio shares them with you.</p>
         </section>
@@ -105,6 +109,8 @@ export default async function ClientPortalPage() {
                 </div>
                 <div className="nhs-portal-progress-dial" style={{ "--nhs-progress": `${progress}%` } as CSSProperties} aria-hidden="true">
                   <span className="nhs-portal-progress-dial__center"><strong>{progress}%</strong><small>IN MOTION</small></span>
+                  <span className="nhs-dial-relic nhs-dial-relic--rose"><AtelierRelic name="rose" size={53}/></span>
+                  <span className="nhs-dial-relic nhs-dial-relic--key"><AtelierRelic name="key" size={44}/></span>
                 </div>
               </div>
               <div className="atelier-project-footer">
@@ -126,6 +132,9 @@ export default async function ClientPortalPage() {
         </div>
       )}
 
+      <div className="nhs-relic-divider nhs-relic-divider--essentials" aria-hidden="true">
+        <span/><AtelierRelic name="skull" size={39}/><AtelierRelic name="rose" size={37}/><AtelierRelic name="key" size={35}/><span/>
+      </div>
       <section className="atelier-destinations" aria-label="Quick links">
         <div className="atelier-section-heading">
           <div>

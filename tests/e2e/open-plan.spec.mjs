@@ -143,3 +143,27 @@ test("Color Studio keeps original identity, actual project progress, and four fu
   await expect(page.getByRole("alert")).toContainText("Projects are temporarily unavailable");
   await expect(page.locator(".nhs-portal-progress-dial")).toHaveCount(0);
 });
+
+test("distinct decorative rose, skull and skeleton key are visible without covering client actions", async ({ page }) => {
+  for (const width of [1440,390,320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await show(page,"client","home","populated");
+    for (const name of ["rose","skull","key"]) {
+      const relic = page.locator(`.nhs-hero-relic[data-relic="${name}"] .nhs-relic-art--${name}`);
+      await expect(relic).toBeVisible();
+      expect((await relic.boundingBox()).width).toBeGreaterThan(50);
+    }
+    await expect(page.locator(".nhs-dial-relic--rose .nhs-relic-art--rose")).toBeVisible();
+    await expect(page.locator(".nhs-dial-relic--key .nhs-relic-art--key")).toBeVisible();
+    await expect(page.locator(".nhs-compass-relic-skull .nhs-relic-art--skull")).toBeVisible();
+    await expect(page.getByRole("link",{name:/Open workspace/})).toBeVisible();
+    await bounds(page);
+  }
+  await show(page,"client","portal-messages","populated");
+  for (const name of ["rose","skull","key"]) {
+    await expect(page.locator(`.nhs-client-room-relic--${name} .nhs-relic-art--${name}`)).toBeVisible();
+  }
+  await show(page,"client","home","empty");
+  await expect(page.locator(".nhs-relic-empty-art .nhs-relic-art--rose")).toBeVisible();
+  await expect(page.locator(".nhs-relic-empty-art .nhs-relic-art--key")).toBeVisible();
+});

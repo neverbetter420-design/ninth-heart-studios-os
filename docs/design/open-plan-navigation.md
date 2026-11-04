@@ -63,3 +63,16 @@ databases and build/dry-run checks. Production and previews remain untouched.
 - Owner approval covers this visual direction only. No hosted preview, merge, deployment, release credentials, hosted data writes, Muse activation, paid services, scans or outreach.
 
 This change requires fresh exact-head CI, particularly source-rendered responsive screenshots, accessibility and authenticated A/B isolation; passing a previous draft's suite does not validate this revision.
+
+
+## Visible relics revision (approved November 4, source-only)
+
+The owner observed that the earlier color treatment still lacked unmistakable roses, skulls and skeleton keys. This revision adds a dedicated etched-relief SVG component with distinct rose bloom/stem/leaves, silver skull cameo, and ornamented skeleton key. These are **not** replacements for the original logo.
+
+- Hero: three full illustrated relics visibly flank the original logo orbit (large rose upper left, silver skull upper right, blue skeleton key lower right).
+- Widgets: rose/key charms decorate the real-data project progress dial; silver skull heads the interactive Atelier Compass, with a rose flourish at its edge. Do not cover actual controls.
+- Section rhythm: open floral/relic separators replace otherwise empty breaks, without turning the page into a grid of cards.
+- Empty project state: rose/key decorative illustration; no fake project data.
+- Every client subroom: a small shared, noninteractive rose/skull/key corner composition. The home hides that shared composition to avoid duplicating its larger hero.
+- Decoration is aria-hidden, pointer-events none, responsive down to 320px, no separate branding/logo invention, and no external image sources or paid assets. Test source-rendered SVG presence and bounds, screenshots and accessible routes.
+- Do not merge, deploy, publish Cloudflare preview, write to hosted Supabase, enable Muse or paid services, or run outreach/scans. Owner approved this **design amendment** only.
