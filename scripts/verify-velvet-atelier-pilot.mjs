@@ -7,7 +7,7 @@ const living = source("components/LivingStudioHub.tsx");
 const glyphs = source("components/AtelierSymbol.tsx");
 const css = source("app/velvet-atelier-admin-pilot.css");
 const layout = source("app/layout.tsx");
-const sidebar = source("components/Sidebar.tsx");
+const sidebar = source("components/RoomNavigation.tsx");
 const originalCss = source("app/nocturne-dark-rose-cinematic.css");
 
 // Protect the approved identity and original live, data-driven widgets.
@@ -39,7 +39,8 @@ assert.match(glyphs, /focusable="false"/);
 
 // A late imported, opt-in layer, not another global site repaint.
 const cssImports = layout.match(/import "\.\/[^"]+\.css";/g) || [];
-assert.equal(cssImports.at(-1), 'import "./velvet-atelier-admin-pilot.css";');
+assert.equal(cssImports.at(-1), 'import "./open-plan.css";');
+assert.ok(cssImports.indexOf('import "./velvet-atelier-admin-pilot.css";') < cssImports.length - 1);
 assert.match(css, /\.nocturne-command-center\.velvet-atelier-pilot/);
 assert.doesNotMatch(css, /\.nhs-theme-client\b/);
 assert.doesNotMatch(css, /!important/);

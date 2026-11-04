@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireUser } from "@/lib/auth";
 import type { ClientProject } from "@/lib/supabase/types";
-import { AtelierStudioArt } from "@/components/AtelierStudioArt";
 import { AtelierCompass } from "@/components/portal/AtelierCompass";
 import { stageLabel } from "@/lib/delivery";
 
@@ -42,9 +41,9 @@ export default async function ClientPortalPage() {
     <div className="content-wrap atelier-home">
       <section className="atelier-hero" aria-labelledby="atelier-greeting">
         <div className="atelier-hero-copy">
-          <p className="atelier-overline">Ninth Heart Studios · Your private Atelier</p>
+          <p className="atelier-overline">Ninth Heart Studios · Private client atelier</p>
           <h2 id="atelier-greeting">Welcome back, <em>{firstName}.</em></h2>
-          <p>Your ideas. Our craft.<br />A little space for your next chapter.</p>
+          <p>A space for the work we're making together.<br />Your projects, conversations, and next decisions.</p>
           {featured && !error ? (
             <Link className="atelier-welcome-cta" href={nextApproval ? "/portal/approvals" : "/portal/projects/" + featured.id}>
               {nextApproval ? "Review your next decision" : "Enter your project"} <span aria-hidden="true">↗</span>
@@ -53,7 +52,7 @@ export default async function ClientPortalPage() {
             <Link className="atelier-welcome-cta" href="/portal/projects">Explore my projects <span aria-hidden="true">↗</span></Link>
           )}
         </div>
-        <AtelierStudioArt />
+        <div className="nhs-portal-signature" aria-hidden="true"><span>✧</span><p>Considered.<br /><em>Created together.</em></p><small>NINTH HEART STUDIOS</small></div>
       </section>
 
       {error ? (

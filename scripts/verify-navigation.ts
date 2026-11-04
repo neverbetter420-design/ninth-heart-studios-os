@@ -37,24 +37,29 @@ for (const item of navEntries) {
   assert.ok(exists(route), "missing page for nav href " + item.href);
 }
 
-const sidebar = read("components/Sidebar.tsx");
+const directory = read("components/RoomNavigation.tsx");
 for (const item of [
-  'aria-label={open ? "Close navigation" : "Open navigation"}',
-  'aria-expanded={open}',
-  'aria-controls="nhs-sidebar"',
-  'className="navigation-backdrop"',
-  'event.key === "Escape"',
-  'onClick={() => setOpen(false)}',
-  'aria-current={active ? "page" : undefined}',
-  'action="/auth/sign-out"',
+  'popover="auto"',
+  'popoverTarget="nhs-room-directory"',
+  'popoverTargetAction="hide"',
+  'aria-label="Open navigation"',
+  'aria-label="Close navigation"',
+  'onClick={close}',
+  'useEffect(close, [pathname])',
+  'item.roles.includes(role)',
+  'aria-current={item.href === activeHref ? "page" : undefined}',
 ]) {
-  assert.ok(sidebar.includes(item), "missing navigation behavior " + item);
+  assert.ok(directory.includes(item), "missing navigation behavior " + item);
 }
+const shell = read("components/AppShell.tsx");
+assert.ok(!shell.includes("Sidebar"), "persistent sidebar must not be mounted");
+assert.ok(shell.includes('action="/auth/sign-out"'), "keep existing sign-out endpoint");
+assert.ok(shell.includes('href="#workspace-content"'), "skip navigation link required");
 
 const styles = read("app/navigation.css");
 assert.ok(styles.includes("@media (max-width: 860px)"), "missing mobile navigation breakpoint");
-assert.ok(styles.includes(".nhs-sidebar.is-open"), "missing open drawer state");
-assert.ok(styles.includes("overflow-y: auto"), "desktop sidebar must scroll");
+assert.ok(read("app/open-plan.css").includes(".nhs-room-directory[popover]"), "responsive room directory required");
+assert.ok(read("app/open-plan.css").includes("overflow-y: auto"), "directory must scroll");
 assert.ok(styles.includes(".action-row .ghost-button { display: inline-flex"), "mobile lead action missing");
 assert.ok(read("app/layout.tsx").includes('import "./navigation.css";'), "navigation styles must load");
 
@@ -83,10 +88,8 @@ const portalHome = read("app/(protected)/portal/page.tsx");
 assert.ok(read("app/layout.tsx").includes('import "./nocturne.css";'), "Nocturne theme must load last");
 assert.ok(appShell.includes('nhs-theme-client') && appShell.includes('nhs-theme-admin'), "role-scoped themes required");
 assert.ok(appShell.includes('action="/auth/sign-out"'), "visible desktop sign out required");
-assert.ok(sidebar.includes('className="nhs-mobile-sign-out"'), "visible mobile sign out required");
-assert.ok(sidebar.includes('className="nav-section-heading nav-section-toggle"'), "admin sidebar groups must be expandable");
-assert.ok(sidebar.includes('aria-expanded={expanded}'), "sidebar group toggle must expose expanded state");
-assert.ok(nocturneStyles.includes(".nav-section-links[hidden]"), "collapsed links must not remain visible");
+assert.ok(read("app/open-plan.css").includes(".nhs-context-account"), "account controls must remain responsive");
+assert.ok(directory.includes('className="nhs-directory-grid"'), "all permitted rooms must be available in the directory");
 
 assert.ok(portalHome.includes('className="atelier-hero"'), "Atelier client welcome required");
 const compass = read("components/portal/AtelierCompass.tsx");

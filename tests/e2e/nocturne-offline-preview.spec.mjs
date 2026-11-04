@@ -7,7 +7,7 @@ test.beforeAll(() => {
   execFileSync(process.execPath, ["scripts/build-nocturne-static.mjs"], { cwd: process.cwd(), timeout: 120_000 });
 });
 
-test("extracted offline preview always renders Admin and switches to warm Client without frames", async ({page,browser}) => {
+test("extracted offline preview always renders Admin and switches to dark Client without frames", async ({page,browser}) => {
   test.setTimeout(90_000);
   const errors=[], external=[];
   page.on("pageerror",error=>errors.push(error.message));

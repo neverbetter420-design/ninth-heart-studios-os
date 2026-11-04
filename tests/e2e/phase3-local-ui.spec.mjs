@@ -38,11 +38,8 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       if (await menu.isVisible()) await menu.click();
       const nav = p.getByRole("navigation", { name: "Primary navigation", exact: true });
       await expect(nav).toBeVisible();
-      const destination = 'a.nav-link[href="' + pathname + '"]';
+      const destination = 'a.nhs-room-link[href="' + pathname + '"]';
       const link = nav.locator(destination);
-      // CSS retains collapsed links; the relative inner selector starts at
-      // each group, rather than asking that group to contain the whole nav.
-      if (!await link.isVisible()) await nav.locator(".nav-section").filter({ has: p.locator(destination) }).locator(".nav-section-toggle").click();
       await expect(link).toBeVisible();
       await expect(link).toHaveAccessibleName(label);
       await link.click();
@@ -111,8 +108,8 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       await p.locator('input[name="email"]').fill(email);
       await p.locator('input[name="password"]').fill(pass);
       await p.getByRole("button", { name: "Sign in", exact: true }).click();
-      await expect(p.locator(".navigation-shell")).toBeVisible({ timeout: 30000 });
-      await expect(p.locator(".brand-mark img")).toHaveJSProperty("naturalWidth", 160);
+      await expect(p.locator(".nhs-room-launcher")).toBeVisible({ timeout: 30000 });
+      await expect(p.locator(".nhs-room-brand img")).toHaveJSProperty("naturalWidth", 160);
     }
     await signIn(page, emailA);
     for (const [label, route] of [["Home", "/portal"], ["My Projects", "/portal/projects"], ["Messages", "/portal/messages"], ["Files", "/portal/files"], ["Approvals", "/portal/approvals"], ["Documents", "/portal/documents"]]) await visitPrimary(page, label, route);
@@ -128,7 +125,7 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
       const primary = page.getByRole("navigation", { name: "Primary navigation", exact: true });
       await expect(primary.locator('a[aria-current="page"]')).toHaveAttribute("href", "/portal/documents");
       await expect(primary.getByRole("link", { name: "Lead Intelligence", exact: true })).toHaveCount(0);
-      if (await page.locator(".navigation-close").isVisible()) await page.locator(".navigation-close").click();
+      await page.getByRole("button", { name: "Close navigation", exact: true }).click();
       await crumbs.getByRole("link", { name: "Documents", exact: true }).click();
       await expect(page.getByRole("heading", { name: "Everything in writing.", exact: true })).toBeVisible();
     }
