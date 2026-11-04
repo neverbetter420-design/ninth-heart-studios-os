@@ -69,3 +69,9 @@
 
 ### Metric language precision
 - The Active Leads detail counts lead records whose **next action** is `reply`, so it is labeled **replies needed**, not **human replies** (which incorrectly suggests received inbound messages). The count, ranking, permissions and backing query are unchanged; synthetic browser QA checks the populated example.
+
+### Living Dashboard design revision 4 · Velvet Observatory stage
+- In response to the concern that no actual design changed, the Command Center **layout itself** now changes on the draft branch: the previously tight three-column command map becomes a spacious asymmetric stage. At desktop/narrow-laptop widths, a significantly larger original-logo orbital navigation sits left, while the oversized editorial headline and floating real-data status rail sit on the right, separated by substantial breathing room. At phone widths, the stage becomes a deliberately spaced single-column composition with delicate metric dividers.
+- The hero photography, NHS original logo, real routes, interactive Priority Halo, project rows, dark visual palette and client isolation stay unchanged. No new page-wide color wash, artificial metrics, fake navigation or feature activation.
+- Offline headless Chromium screenshots checked 1440, 1320, 1024, 960, 760, 430, 390, 375 and 320px without horizontal overflow. Source browser QA adds a desktop geometry assertion so a return to the old layout cannot pass unnoticed.
+- **This is a draft-only visual change, not a live app update**. Live/published review still requires separately authorized protected preview publication and owner's authenticated visual approval.

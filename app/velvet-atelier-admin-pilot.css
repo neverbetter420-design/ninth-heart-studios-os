@@ -976,3 +976,151 @@
   .velvet-atelier-pilot .living-orbit__symbol { transition: none; }
   .velvet-atelier-pilot .living-orbit__link:hover .living-orbit__symbol { scale: 1; }
 }
+
+
+/* Velvet Observatory: asymmetric, unframed Command Center stage.
+   Admin pilot only; keeps original NHS logo and live interactive elements. */
+@media (min-width: 961px) {
+  .nocturne-command-center.velvet-atelier-pilot .living-studio {
+    grid-template-columns: minmax(0, 1.3fr) minmax(245px, .7fr);
+    grid-template-rows: auto 1fr;
+    gap: 15px clamp(40px, 5vw, 100px);
+    min-height: 620px;
+    padding: clamp(56px, 6vw, 88px) clamp(8px, 1.4vw, 22px);
+    margin: 22px 0 74px;
+    align-items: start;
+    background: radial-gradient(ellipse 65% 73% at 30% 50%, rgba(80, 35, 126, .15), transparent 80%);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    justify-self: center;
+    align-self: center;
+    width: min(100%, 520px);
+    max-width: 100%;
+    background: radial-gradient(circle, rgba(113, 56, 149, .12), transparent 65%);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: end;
+    max-width: 350px;
+    padding: 4px 0 20px;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro h3 {
+    margin: 21px 0 19px;
+    font-size: clamp(40px, 4vw, 61px);
+    line-height: 1.08;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro h3 br { display: initial; }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro p {
+    max-width: 32ch;
+    font-size: 13px;
+    line-height: 1.85;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__flourish {
+    display: inline-flex;
+    margin-top: 17px;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-status {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    width: 100%;
+    max-width: 370px;
+    padding-top: clamp(12px, 2vw, 26px);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-status__metrics { margin-top: 12px; }
+  .nocturne-command-center.velvet-atelier-pilot .living-status__metric {
+    padding: 12px 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__core {
+    width: clamp(158px, 15.5vw, 212px);
+    background: radial-gradient(circle at 35% 24%, rgba(111, 56, 146, .30), rgba(7, 6, 14, .97) 74%);
+    border-color: rgba(208, 155, 208, .32);
+    box-shadow: 0 0 90px rgba(68, 24, 128, .14), inset 0 0 36px rgba(11, 7, 21, .75);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__core img {
+    width: min(64%, 125px);
+    max-height: 125px;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__link {
+    width: 108px;
+    min-height: 99px;
+    gap: 8px;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__symbol {
+    width: 61px;
+    height: 61px;
+    border-color: color-mix(in srgb, var(--orbit-light) 50%, transparent);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__label {
+    font-size: 12px;
+    letter-spacing: .025em;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__ring--outer {
+    inset: 7%;
+    border-color: rgba(158, 144, 208, .28);
+    box-shadow: 0 0 65px rgba(73, 36, 136, .10);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__ring--inner { inset: 23%; }
+}
+@media (min-width: 961px) and (max-width: 1320px) {
+  .nocturne-command-center.velvet-atelier-pilot .living-studio {
+    grid-template-columns: minmax(0, 1.12fr) minmax(235px, .88fr);
+    gap: 12px clamp(25px, 4vw, 45px);
+    min-height: 525px;
+    padding-block: 55px;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro h3 {
+    margin: 14px 0;
+    font-size: clamp(37px, 4vw, 49px);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: min(100%, 420px);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit__core { width: 156px; }
+  .nocturne-command-center.velvet-atelier-pilot .living-status {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+@media (min-width: 761px) and (max-width: 960px) {
+  .nocturne-command-center.velvet-atelier-pilot .living-studio {
+    grid-template-columns: minmax(0, 1fr) minmax(205px, .9fr);
+    gap: 14px 25px;
+    align-items: center;
+    padding: 40px 0;
+    background: radial-gradient(ellipse at 35% 50%, rgba(80, 35, 126, .12), transparent 70%);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit { grid-column: 1; grid-row: 1 / span 2; width: min(100%, 350px); }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro { grid-column: 2; grid-row: 1; align-self: end; }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro h3 br { display: initial; }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro h3 { font-size: 36px; }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro p { max-width: 30ch; }
+  .nocturne-command-center.velvet-atelier-pilot .living-status { grid-column: 2; grid-row: 2; align-self: start; }
+}
+@media (max-width: 760px) {
+  .nocturne-command-center.velvet-atelier-pilot .living-studio {
+    padding: 34px 0 45px;
+    margin-bottom: 60px;
+    background: radial-gradient(ellipse 88% 36% at 50% 42%, rgba(82, 36, 122, .11), transparent 85%);
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro h3 {
+    font-size: clamp(33px, 8vw, 45px);
+    line-height: 1.12;
+  }
+  .nocturne-command-center.velvet-atelier-pilot .living-studio__intro p { line-height: 1.75; }
+  .nocturne-command-center.velvet-atelier-pilot .living-orbit { margin-block: 32px 35px; }
+  .nocturne-command-center.velvet-atelier-pilot .living-status__metrics {
+    border-top: 1px solid var(--velvet-line);
+    padding-top: 15px;
+  }
+}

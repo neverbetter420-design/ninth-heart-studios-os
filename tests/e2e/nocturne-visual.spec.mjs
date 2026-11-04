@@ -978,6 +978,17 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
     }
     for (const width of [1440, 1024, 760, 430, 390, 375, 320]) {
       await page.setViewportSize({ width, height: 900 });
+      // A real layout change: the orbital navigation is the large left-hand
+      // centerpiece, with the editorial introduction and data to its right.
+      if (width >= 1024) {
+        const orbitBox = await studio.locator(".living-orbit").boundingBox();
+        const introBox = await studio.locator(".living-studio__intro").boundingBox();
+        const statusBox = await studio.locator(".living-status").boundingBox();
+        expect(orbitBox.x + orbitBox.width).toBeLessThan(introBox.x);
+        expect(statusBox.x).toBeGreaterThan(orbitBox.x + orbitBox.width);
+        expect(statusBox.y).toBeGreaterThan(introBox.y);
+        expect(orbitBox.width).toBeGreaterThan(350);
+      }
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `Living Dashboard ${scenario} overflows at ${width}px`).toBeLessThanOrEqual(width);
       for (const link of await links.all()) {
         const box = await link.boundingBox();
