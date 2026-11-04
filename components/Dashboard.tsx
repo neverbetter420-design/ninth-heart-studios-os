@@ -213,7 +213,13 @@ export async function Dashboard() {
         </div>
         <div className="activity-list velvet-activity-timeline" role="list" aria-label="Recent studio activity">
           {activitiesUnavailable ? (
-            <p className="nocturne-activity-empty" role="status">Studio activity unavailable. Refresh to retry.</p>
+            <div className="velvet-chronicle-state velvet-chronicle-state--unavailable">
+              <span className="velvet-chronicle-state__mark" aria-hidden="true"><AtelierSymbol name="spark" size={27} /></span>
+              <div className="velvet-chronicle-state__copy">
+                <strong>Studio signal interrupted.</strong>
+                <p className="nocturne-activity-empty" role="status">Studio activity unavailable. Refresh to retry.</p>
+              </div>
+            </div>
           ) : activities.length ? activities.map((item) => (
             <article className="activity-row velvet-activity-event" role="listitem" key={item.id}>
               <span className="activity-dot" aria-hidden="true" />
@@ -221,7 +227,13 @@ export async function Dashboard() {
               <time dateTime={item.created_at}>{relativeTime(item.created_at)}</time>
             </article>
           )) : (
-            <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>
+            <div className="velvet-chronicle-state velvet-chronicle-state--quiet">
+              <span className="velvet-chronicle-state__mark" aria-hidden="true"><AtelierSymbol name="rose" size={27} /></span>
+              <div className="velvet-chronicle-state__copy">
+                <strong>A little room for what comes next.</strong>
+                <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>
+              </div>
+            </div>
           )}
         </div>
       </section>
