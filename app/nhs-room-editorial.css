@@ -440,7 +440,8 @@
      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
      .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
      .radar-page > .management-heading,.management-client-workspace .management-heading),
- .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-hero {
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])
+ :is(.nhs-color-studio .nhs-color-hero,.atelier-home .atelier-hero) {
   background-image:none !important;
  }
 }

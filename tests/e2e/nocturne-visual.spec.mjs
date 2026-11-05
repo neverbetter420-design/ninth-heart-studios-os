@@ -783,13 +783,22 @@ test("The shared atmosphere carries across every admin and client destination", 
     for (const view of views) {
       await show(page, role, "populated", view);
       await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", "dark");
-      const stageBackground = await page.locator(".main-shell").evaluate((el,isObservatory) => isObservatory ? getComputedStyle(el).backgroundImage : getComputedStyle(el,"::before").backgroundImage,role==="admin" && view==="home");
+      const room = await page.locator(".nhs-room-identity").getAttribute("data-room");
+      const stageBackground = await page.locator(".main-shell").evaluate((el,currentRoom) =>
+        currentRoom === "observatory"
+          ? getComputedStyle(el).backgroundImage
+          : getComputedStyle(el,"::before").backgroundImage,room);
+      // Observatory contains both the photographic Command Center homepage and
+      // subordinate Settings/Automations views with an intentionally quiet ink stage.
+      if (room === "observatory" && view === "home") {
+        expect(stageBackground,"Command Center must retain its original photograph").toContain("webp");
+      } else if (room !== "observatory") {
+        expect(stageBackground,`${view} must use a fixed cinematic room photograph`).toContain("data:image/webp;base64");
+        await expect(page.locator(".main-shell")).toHaveCSS("position","relative");
+        expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position)).toBe("fixed");
+      }
       if (role === "admin") {
-        expect(stageBackground, `${view} should inherit the photographic NHS Dark Rose studio`).toMatch(/webp|gradient/);
-        expect(stageBackground, `${view} should share the photographic skull-and-rose identity`).toContain("webp");
         expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundColor.match(/\d+/g).slice(0,3).map(Number).every(v=>v<32))).toBe(true);
-      } else {
-        expect(stageBackground, `${view} should preserve the dark client Atelier`).toContain("gradient");
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `${role} ${view} at ${width}px`).toBeLessThanOrEqual(width);
       const capture = testInfo.outputPath(`${role}-${view}-${width}.png`);
@@ -874,7 +883,8 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
 
 test("client portal uses dark open space while retaining the admin project palette", async ({ page }) => {
   await show(page, "client", "populated", "home");
-  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgb(7, 9, 21)");
+  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage)).toContain("data:image/webp;base64");
   await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await show(page, "admin", "populated", "project");
   await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(13, 14, 23)");
