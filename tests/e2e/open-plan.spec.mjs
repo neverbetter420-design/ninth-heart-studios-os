@@ -258,3 +258,23 @@ test("legacy ivory project, relationship and archive surfaces are replaced by Co
     }
   }
 });
+
+
+test("real studio metrics have quiet icon instruments, without fake actions or mobile overflow", async ({page}) => {
+  const cases=[["leads",4],["clients",3],["pipeline",3],["contracts",3]];
+  for(const width of [1440,390,320]) {
+    await page.setViewportSize({width,height:1000});
+    for(const [room,count] of cases) {
+      await show(page,"admin",room,"populated");
+      const metrics=page.locator(".metric-grid .metric-card");
+      await expect(metrics).toHaveCount(count);
+      await expect(metrics.locator(".metric-symbol[aria-hidden='true'] svg")).toHaveCount(count);
+      await expect(metrics.locator(".metric-symbol :is(a,button)")).toHaveCount(0);
+      for(const metric of await metrics.all()) {
+        await expect(metric.locator("p")).not.toBeEmpty();
+        await expect(metric.locator("strong")).not.toBeEmpty();
+      }
+      await bounds(page);
+    }
+  }
+});
