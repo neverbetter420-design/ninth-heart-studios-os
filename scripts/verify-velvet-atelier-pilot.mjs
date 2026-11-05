@@ -39,7 +39,9 @@ assert.match(glyphs, /focusable="false"/);
 
 // A late imported, opt-in layer, not another global site repaint.
 const cssImports = layout.match(/import "\.\/[^"]+\.css";/g) || [];
-assert.equal(cssImports.at(-1), 'import "./open-plan.css";');
+assert.equal(cssImports.at(-2), 'import "./open-plan.css";');
+assert.equal(cssImports.at(-1), 'import "./nhs-room-editorial.css";');
+assert.match(source("app/nhs-room-editorial.css"), /nhs-theme-admin/);
 assert.ok(cssImports.indexOf('import "./velvet-atelier-admin-pilot.css";') < cssImports.length - 1);
 assert.match(css, /\.nocturne-command-center\.velvet-atelier-pilot/);
 assert.doesNotMatch(css, /\.nhs-theme-client\b/);
