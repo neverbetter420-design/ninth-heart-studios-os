@@ -695,7 +695,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(hero).toBeVisible();
       const heroImage = await hero.evaluate(el => getComputedStyle(el).backgroundImage);
       if (role === "admin") expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/webp;base64");
-      else expect(heroImage, "Client arrival uses open dark space").toBe("none");
+      else expect(heroImage, "Client arrival keeps photographic atmosphere").toContain("data:image/webp;base64");
       // The percent-encoded SVG includes literal parentheses from gradient functions.
       // Capture the complete quoted CSS URL; ending at the first ")" corrupts the image.
       const decoded = await hero.evaluate(async el => {
@@ -706,7 +706,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
         await artwork.decode();
         return artwork.naturalWidth > 0 && artwork.naturalHeight > 0;
       });
-      expect(decoded, role + " entrance artwork").toBe(role === "admin");
+      expect(decoded, role + " entrance artwork").toBe(true);
       await expect(page.locator(".nhs-room-brand img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
@@ -728,7 +728,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".studio-workspace")).toBeVisible();
       await expect(page.locator(".nhs-room-brand img")).toHaveJSProperty("naturalWidth", 160);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-      if (role === "admin") await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(244, 238, 235)");
+      if (role === "admin") await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(13, 14, 23)");
     }
   }
   for (const preference of [{ contrast: "more" }, { contrast: "no-preference", forcedColors: "active" }]) {
@@ -786,7 +786,7 @@ test("The shared atmosphere carries across every admin and client destination", 
       if (role === "admin") {
         expect(stageBackground, `${view} should inherit the photographic NHS Dark Rose studio`).toMatch(/webp|gradient/);
         expect(stageBackground, `${view} should share the photographic skull-and-rose identity`).toContain("webp");
-        await expect(page.locator(".main-shell")).toHaveCSS("background-color", "rgb(3, 3, 9)");
+        expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundColor.match(/\d+/g).slice(0,3).map(Number).every(v=>v<32))).toBe(true);
       } else {
         expect(stageBackground, `${view} should preserve the dark client Atelier`).toContain("gradient");
       }
@@ -799,7 +799,7 @@ test("The shared atmosphere carries across every admin and client destination", 
 });
 
 // The Admin Client Workspace must visibly differ from the former all-black workspace.
-test("Client Management inherits the skull-and-rose hero without losing ivory directory contrast", async ({ page }) => {
+test("Client Management retains the photographic hero and an ink directory", async ({ page }) => {
   await show(page, "admin", "populated", "clients");
   const header = page.locator(".management-clients > .management-heading");
   await expect(header).toBeVisible();
@@ -815,7 +815,7 @@ test("Client Management inherits the skull-and-rose hero without losing ivory di
   }
 });
 
-test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", async ({ page }) => {
+test("NHS relationship Atelier shares the dark editorial work canvas", async ({ page }) => {
   await show(page, "admin", "populated", "client-detail");
   const layout = page.locator(".management-client-workspace");
   await expect(layout).toBeVisible();
@@ -823,10 +823,10 @@ test("NHS relationship Atelier has dark hero and visibly warm ivory workspace", 
   const canvas = layout.locator(".management-client-grid");
   await expect(hero).toBeVisible();
   await expect(canvas).toBeVisible();
-  expect(await canvas.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(249, 244, 238)");
-  expect(await hero.evaluate(el => getComputedStyle(el).backgroundColor)).toBe("rgb(11, 11, 18)");
+  expect(await canvas.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+  expect(await hero.evaluate(el=>getComputedStyle(el).backgroundColor.match(/\d+/g).slice(0,3).map(Number).every(v=>v<32))).toBe(true);
   expect(await hero.evaluate(el => getComputedStyle(el).backgroundImage), "Client detail should carry a photographic NHS entrance").toContain("webp");
-  expect(await canvas.evaluate(el => getComputedStyle(el).color)).toBe("rgb(64, 42, 57)");
+  expect(await canvas.evaluate(el=>getComputedStyle(el).color)).toBe("rgb(241, 237, 245)");
   for (const width of [1440, 1024, 620, 390, 320]) {
     await page.setViewportSize({ width, height: 850 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth), `Relationship Atelier overflow at ${width}px`).toBeLessThanOrEqual(width);
@@ -873,10 +873,10 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
 
 test("client portal uses dark open space while retaining the admin project palette", async ({ page }) => {
   await show(page, "client", "populated", "home");
-  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgb(7, 9, 21)");
   await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await show(page, "admin", "populated", "project");
-  await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(244, 238, 235)");
+  await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(13, 14, 23)");
 });
 
 

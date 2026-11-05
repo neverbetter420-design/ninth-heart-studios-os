@@ -234,3 +234,27 @@ test("eye-comfort room lighting dims photography but not working controls", asyn
     await bounds(page);
   }
 });
+
+test("legacy ivory project, relationship and archive surfaces are replaced by Command Center ink",async ({page})=>{
+  const samples=[
+    ["admin","clients",".management-clients .management-directory"],
+    ["admin","pipeline",".management-pipeline"],
+    ["admin","project",".studio-workspace-admin"],
+    ["admin","contracts",".paperwork-page"],
+    ["admin","client-detail",".management-client-grid"],
+  ];
+  for(const width of [1440,390,320]){
+    await page.setViewportSize({width,height:1000});
+    for(const [role,room,selector] of samples){
+      await show(page,role,room,"populated");
+      const surface=page.locator(selector).first();
+      await expect(surface).toBeVisible();
+      const bg=await surface.evaluate(el=>getComputedStyle(el).backgroundColor);
+      const vals=bg.match(/[\d.]+/g).map(Number);
+      const transparent=vals.length===4&&vals[3]===0;
+      expect(transparent||(vals[0]<55&&vals[1]<55&&vals[2]<65),
+        selector+" should not use a bright canvas").toBe(true);
+      await bounds(page);
+    }
+  }
+});
