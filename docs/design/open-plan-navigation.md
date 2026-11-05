@@ -123,3 +123,8 @@ The owner rejected the earlier same-skull photography crops, recycled collage an
 - All imagery is *review-only pending user visual acceptance*. Details are softly feathered and partially upscaled from approved-direction concept hero art, not newly independently photographed source shots. Do not claim the owner approved the final art.
 - Offline visual previews embed all six local WebPs and explicitly test distinct image bytes, no repeated photo, no SVG background in the actual stage, dark contrast and no horizontal overflow.
 - Draft branch only; no merge, production deploy, paid service, live scan, outreach, Supabase writes or Muse activation.
+
+
+## Stationary cinematic wallpaper while the UI scrolls (November 5)
+
+At the owner's request, all six new room photographs are now painted on a **fixed, viewport-anchored, non-interactive pseudo-layer** behind `main-shell`. Scrolling content, links, and widgets move normally; the photo does not translate, scroll, parallax, animate, or respond to the pointer. Hero sections use transparent dark readability gradients instead of second scrolling copies of the image. The original Command Center composition is unchanged. Mobile uses the same position:fixed method instead of relying on Safari's inconsistent background-attachment:fixed support; forced-color/high-contrast preferences suppress imagery. The source-rendered desktop/mobile suite verifies the fixed pseudo-element, distinct room photos, scrolling and no overflow. Draft only, with zero production deployment.
