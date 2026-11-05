@@ -693,19 +693,20 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(shell).toHaveCount(1);
       const hero = page.locator(heroSelector);
       await expect(hero).toBeVisible();
-      const heroImage = await hero.evaluate(el => getComputedStyle(el).backgroundImage);
+      const heroImage = await hero.evaluate((el,isClient)=>isClient ? getComputedStyle(document.querySelector(".main-shell"),"::before").backgroundImage : getComputedStyle(el).backgroundImage,role==="client");
       if (role === "admin") expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/webp;base64");
       else expect(heroImage, "Client arrival keeps photographic atmosphere").toContain("data:image/webp;base64");
       // The percent-encoded SVG includes literal parentheses from gradient functions.
       // Capture the complete quoted CSS URL; ending at the first ")" corrupts the image.
-      const decoded = await hero.evaluate(async el => {
-        const match = getComputedStyle(el).backgroundImage.match(/url\(["'](data:image\/(?:svg\+xml|webp)[^"']+)["']\)/);
+      const decoded = await hero.evaluate(async (el,isClient) => {
+        const source = isClient ? getComputedStyle(document.querySelector(".main-shell"),"::before").backgroundImage : getComputedStyle(el).backgroundImage;
+        const match = source.match(/url\(["'](data:image\/(?:svg\+xml|webp)[^"']+)["']\)/);
         if (!match) return false;
         const artwork = new Image();
         artwork.src = match[1];
         await artwork.decode();
         return artwork.naturalWidth > 0 && artwork.naturalHeight > 0;
-      });
+      },role==="client");
       expect(decoded, role + " entrance artwork").toBe(true);
       await expect(page.locator(".nhs-room-brand img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
@@ -782,7 +783,7 @@ test("The shared atmosphere carries across every admin and client destination", 
     for (const view of views) {
       await show(page, role, "populated", view);
       await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", "dark");
-      const stageBackground = await page.locator(".main-shell").evaluate(el => getComputedStyle(el).backgroundImage);
+      const stageBackground = await page.locator(".main-shell").evaluate((el,isObservatory) => isObservatory ? getComputedStyle(el).backgroundImage : getComputedStyle(el,"::before").backgroundImage,role==="admin" && view==="home");
       if (role === "admin") {
         expect(stageBackground, `${view} should inherit the photographic NHS Dark Rose studio`).toMatch(/webp|gradient/);
         expect(stageBackground, `${view} should share the photographic skull-and-rose identity`).toContain("webp");
@@ -803,7 +804,7 @@ test("Client Management retains the photographic hero and an ink directory", asy
   await show(page, "admin", "populated", "clients");
   const header = page.locator(".management-clients > .management-heading");
   await expect(header).toBeVisible();
-  const photo = await header.evaluate(el => getComputedStyle(el).backgroundImage);
+  const photo = await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
   expect(photo, "Client Management should display the shared Dark Rose photo").toContain("webp");
   expect(await header.locator("h2").evaluate(el=>getComputedStyle(el).color.match(/[0-9]+/g).slice(0,3).map(Number).every(v=>v>200))).toBe(true);
   const directory = page.locator(".management-clients .management-directory");
@@ -825,7 +826,7 @@ test("NHS relationship Atelier shares the dark editorial work canvas", async ({ 
   await expect(canvas).toBeVisible();
   expect(await canvas.evaluate(el=>getComputedStyle(el).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
   expect(await hero.evaluate(el=>getComputedStyle(el).backgroundColor.match(/\d+/g).slice(0,3).map(Number).every(v=>v<32))).toBe(true);
-  expect(await hero.evaluate(el => getComputedStyle(el).backgroundImage), "Client detail should carry a photographic NHS entrance").toContain("webp");
+  expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage), "Client detail must retain its fixed NHS photo").toContain("webp");
   expect(await canvas.evaluate(el=>getComputedStyle(el).color)).toBe("rgb(241, 237, 245)");
   for (const width of [1440, 1024, 620, 390, 320]) {
     await page.setViewportSize({ width, height: 850 });
@@ -900,7 +901,7 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       await expect(roomIdentity).toHaveAttribute("data-room",room);
       if (width > 430) await expect(roomIdentity).toBeVisible();
       expect(await page.locator(".app-shell").evaluate(el=>getComputedStyle(el).getPropertyValue("--room-accent").trim())).toBe(accent);
-      const back=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundImage);
+      const back=await page.locator(".main-shell").evaluate((el,isObservatory)=>isObservatory?getComputedStyle(el).backgroundImage:getComputedStyle(el,"::before").backgroundImage,room==="observatory");
       expect(back,room+" "+size+" background").toContain("gradient");
       if (role === "admin") expect(back, room+" should keep the same photographic Dark Rose brand").toContain("webp");
       if(size==="desktop")roomAccents.add(accent);
@@ -943,7 +944,7 @@ test("Every NHS room has its own etched visual motif, with working responsive pa
     expect(asset).toContain("<svg");
     distinctIllustrations.add(asset);
     const main = page.locator(".main-shell");
-    const background = await main.evaluate(el => getComputedStyle(el).backgroundImage);
+    const background = await main.evaluate(el => getComputedStyle(el,"::before").backgroundImage);
     expect(background, room + " must display its own cinematic self-hosted photo").toContain("data:image/webp;base64");
     // All six rooms now use distinct photography; historical SVG motif variables remain available only for small decorative marks.
     if (role === "admin") {
@@ -1099,7 +1100,7 @@ test("Each non-Observatory room has a different self-hosted photographic backdro
    const artworks=new Set();
    for(const [role,view,name] of rooms){
      await show(page,role,"populated",view);
-     const stage=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundImage);
+     const stage=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
      const matches=[...stage.matchAll(new RegExp("data:image/webp;base64,([A-Za-z0-9+/=]+)", "g"))];
      expect(matches.length,name+" must have one photographic source").toBe(1);
      artworks.add(matches[0][1]);
