@@ -19,15 +19,15 @@
 :is(.management-page,.management-client-workspace),
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
 :is(.management-pipeline,.studio-workspace-admin),
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])) .paperwork-page {
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {
  background:transparent;background-color:transparent;color:var(--editorial-ink);
  border:0;border-radius:0;box-shadow:none;
 }
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])) .management-pipeline,
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])) .paperwork-page {
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .management-pipeline,
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {
  max-width:1440px;width:100%;margin:0 auto;padding:clamp(20px,3.5vw,55px);box-sizing:border-box;min-width:0;
 }
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])) .management-client-grid {
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .management-client-grid {
  background:transparent;color:var(--editorial-ink);border-color:var(--editorial-line);
 }
 /* The shared large photographic entrance, with room-specific art and space
@@ -86,54 +86,54 @@
 :is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
 :is(a,button,input,textarea,select,summary):focus-visible {outline:2px solid #a4c2ff;outline-offset:3px;}
 /* Rose: transparent directory with a fine vertical botanical ribbon. */
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
 .management-clients :is(.management-directory,.nocturne-create-panel) {
  background:rgba(13,12,24,.55);color:var(--editorial-ink);
  border:0;border-block:1px solid var(--editorial-line);border-radius:0;
  box-shadow:none;padding:clamp(15px,2vw,28px);backdrop-filter:blur(12px);
 }
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
 .management-clients .management-client-row {background:transparent;border-color:var(--editorial-line);border-left:2px solid transparent;padding-left:16px;}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
 .management-clients .management-client-row:hover {background:linear-gradient(90deg,rgba(133,50,100,.18),transparent);border-left-color:var(--editorial-accent);}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
 .management-client-workspace .management-heading {background-color:#090b15;color:var(--editorial-ink);}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
 .management-client-grid {background-color:transparent;color:var(--editorial-ink);}
 /* Artist: staggered creative phases, not a cream page wrapper. */
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
 .management-pipeline .pipeline-phase {
  background:linear-gradient(140deg,rgba(23,17,35,.87),rgba(10,11,22,.86));
  color:var(--editorial-ink);border:1px solid var(--editorial-line);border-left:3px solid var(--editorial-accent);
  border-radius:20px 6px 20px 6px;box-shadow:none;
 }
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
 .management-pipeline .pipeline-phase:nth-child(even) {border-radius:6px 20px 6px 20px;}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
 .studio-workspace-admin {
  background:#0d0e17;background-image:none;color:var(--editorial-ink);
  border:1px solid var(--editorial-line);box-shadow:none;
 }
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
 .studio-workspace-admin :is(.studio-journey,.studio-gallery) {
  background:rgba(17,16,29,.79);color:var(--editorial-ink);border:1px solid var(--editorial-line);
 }
 /* Archive: dark folio with bronze rules, not parchment-colored surfaces. */
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
 .paperwork-page :is(.paperwork-row,.paperwork-form,.paperwork-workspace,.paperwork-filters,.paperwork-nav) {
  background:rgba(13,12,21,.55);color:var(--editorial-ink);
  border-color:var(--editorial-line);box-shadow:none;
 }
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
 .paperwork-page :is(.paperwork-row,.paperwork-filters,.paperwork-nav) {background:transparent;border-radius:0;}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
 .paperwork-page .paperwork-form {border-radius:12px;padding:clamp(15px,2vw,28px);}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]))
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
 .paperwork-page .paperwork-row {border-bottom:1px solid var(--editorial-line);}
 /* Character and different layout rhythms without changing functional DOM. */
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"])) .management-heading {border-radius:0;}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"])) .muse-workroom .management-heading {border-bottom-color:rgba(206,166,240,.3);}
-.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])) .nhs-color-studio .nhs-color-hero {border-radius:0;box-shadow:none;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) .management-heading {border-radius:0;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom .management-heading {border-bottom-color:rgba(206,166,240,.3);}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {border-radius:0;box-shadow:none;}
 @media(max-width:740px) {
  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
@@ -143,15 +143,15 @@
  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
  .paperwork-page > .management-heading,.muse-workroom > .management-heading,
  .nocturne-leads > .lead-editorial-heading) > div:first-child {max-width:100%;}
- .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])) .management-pipeline,
- .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])) .paperwork-page {padding:clamp(17px,4vw,28px);margin:0;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .management-pipeline,
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {padding:clamp(17px,4vw,28px);margin:0;}
 }
 @media(prefers-reduced-motion:reduce) {
  .app-shell.nhs-open-plan:has(.nhs-room-identity) :is(.management-client-row,.pipeline-phase,.paperwork-row) {transition:none;}
 }
 @media(forced-colors:active),(prefers-contrast:more) {
- .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])) .management-pipeline .pipeline-phase,
- .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])) .paperwork-page .paperwork-form {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .pipeline-phase,
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .paperwork-form {
   background:Canvas;border-color:CanvasText;color:CanvasText;
  }
 }
