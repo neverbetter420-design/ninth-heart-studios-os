@@ -944,8 +944,8 @@ test("Every NHS room has its own etched visual motif, with working responsive pa
     distinctIllustrations.add(asset);
     const main = page.locator(".main-shell");
     const background = await main.evaluate(el => getComputedStyle(el).backgroundImage);
-    if (role === "admin") expect(background, room + " artwork must be visible in its environment").toContain("data:image/svg+xml");
-    else expect(background, "Client uses a quiet dark environment").toContain("gradient");
+    expect(background, room + " must display its own cinematic self-hosted photo").toContain("data:image/webp;base64");
+    // All six rooms now use distinct photography; historical SVG motif variables remain available only for small decorative marks.
     if (role === "admin") {
       expect(background).toContain("data:image/webp;base64");
       expect(await shell.evaluate(el => getComputedStyle(el).getPropertyValue("--nhs-room-accent").trim())).toBe(accent);
@@ -1088,4 +1088,24 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
   const activity = page.locator(".nocturne-command-center .nocturne-activity");
   await expect(activity).toContainText("Studio activity unavailable. Refresh to retry.");
   await expect(activity).not.toContainText("A quiet moment.");
+});
+
+
+test("Each non-Observatory room has a different self-hosted photographic backdrop",async ({page})=>{
+ const rooms=[["admin","scanner","electric"],["admin","clients","rose"],["admin","pipeline","artist"],
+  ["admin","contracts","archive"],["admin","muse","velvet"],["client","home","private"]];
+ for(const width of [1440,390]){
+   await page.setViewportSize({width,height:900});
+   const artworks=new Set();
+   for(const [role,view,name] of rooms){
+     await show(page,role,"populated",view);
+     const stage=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundImage);
+     const matches=[...stage.matchAll(/data:image\\/webp;base64,([A-Za-z0-9+/=]+)/g)];
+     expect(matches.length,name+" must have one photographic source").toBe(1);
+     artworks.add(matches[0][1]);
+     expect(stage).not.toContain("data:image/svg+xml");
+     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+   }
+   expect(artworks.size,"Each room has its own scene, not a repeated crop").toBe(6);
+ }
 });

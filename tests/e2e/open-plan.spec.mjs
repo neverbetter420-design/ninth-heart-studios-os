@@ -207,8 +207,8 @@ test("room entrances layer local photographic texture beneath their distinct sce
     for(const [role,view,selector] of cases){
       await show(page,role,view,"populated");
       const background=await page.locator(selector).first().evaluate(el=>getComputedStyle(el).backgroundImage);
-      expect(background).toContain("data:image/svg+xml");
       expect(background).toContain("data:image/webp");
+      expect(background).not.toContain("data:image/svg+xml");
       await bounds(page);
     }
   }

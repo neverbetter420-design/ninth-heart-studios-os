@@ -113,3 +113,13 @@ The owner asked for darkened room backgrounds to reduce visual fatigue. The new 
 ## All rooms inherit the Command Center's dark editorial style (Nov 5)
 
 The final `nhs-room-editorial.css` stylesheet retires the historical cream and ivory Client Management, project pipeline, artist project workspace, and document archive treatments. Each room gets open dark working surfaces, generous atmospheric entrance spacing, consistent silver/plum/navy typographic hierarchy and its own accent and composition. Existing real-data widgets, routes, roles, forms and original NHS mark remain untouched. This change concerns UX presentation, not the rejected SVG wallpaper's visual approval. Source-only: do not merge, deploy, enable disabled features, run scans or outreach.
+
+## Six distinct photographic backdrop assets installed in draft (November 5)
+
+The owner rejected the earlier same-skull photography crops, recycled collage and vector-forward backgrounds. This revision replaces all six room stages with **different, individually composed self-hosted WebP photographs** extracted from the photographic parts of earlier NHS concept art, stripped of the UI. From the 1600×900 images: Electric shows glass conservatory/butterfly, Rose shows a gilt mirror, Artist shows skull/brushes/canvas, Archive shows skull/books/sealed parchment, Velvet shows drapery/orb/lounge, Private Client shows glowing butterfly/rose/skull/key/lantern. Every asset has a darker left area to preserve typography.
+
+- `public/visuals/nhs-scene-{electric,rose,artist,archive,velvet,private}.webp`; approximately 31–68 KB each, 1600×900, no external runtime/CDN fetches.
+- `nhs-room-editorial.css` is imported last and uses the room-specific image for its `main-shell` and entrance hero, with only one unique photo per room, not the previous SVG + repeated Dark Rose photo. Command Center stays untouched.
+- All imagery is *review-only pending user visual acceptance*. Details are softly feathered and partially upscaled from approved-direction concept hero art, not newly independently photographed source shots. Do not claim the owner approved the final art.
+- Offline visual previews embed all six local WebPs and explicitly test distinct image bytes, no repeated photo, no SVG background in the actual stage, dark contrast and no horizontal overflow.
+- Draft branch only; no merge, production deploy, paid service, live scan, outreach, Supabase writes or Muse activation.
