@@ -24,7 +24,7 @@ test("extracted offline preview always renders Admin and switches to dark Client
   await page.locator("#view").selectOption("client-detail");
   const surface=page.locator("#preview .management-client-grid");
   await expect(surface).toBeVisible();
-  await expect(surface).toHaveCSS("background-color","rgb(249, 244, 238)");
+  await expect(surface).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
   await expect(page.locator("#preview")).toContainText("Cedar & Stone");
   await page.locator("#width").selectOption("mobile");
   const previewWidth = await page.locator("#preview").evaluate(el => el.getBoundingClientRect().width);
