@@ -66,9 +66,9 @@ export default async function ProjectsPage({
       </header>
 
       <section className="metric-grid" aria-label="Pipeline metrics">
-        <MetricCard label="Active Projects" value={error ? "—" : String(active)} detail={error ? "Data unavailable" : `${onHold} on hold`} tone="violet" />
-        <MetricCard label="In Review" value={error ? "—" : String(inReview)} detail="Projects in review" tone="pink" />
-        <MetricCard label="Launching" value={error ? "—" : String(inLaunch)} detail="Projects in launch" tone="cyan" />
+        <MetricCard label="Active Projects" value={error ? "—" : String(active)} detail={error ? "Data unavailable" : `${onHold} on hold`} tone="violet" symbol="key" />
+        <MetricCard label="In Review" value={error ? "—" : String(inReview)} detail="Projects in review" tone="pink" symbol="rose" />
+        <MetricCard label="Launching" value={error ? "—" : String(inLaunch)} detail="Projects in launch" tone="cyan" symbol="spark" />
       </section>
       {formError && <div className="management-notice" role="alert">{formError}</div>}
       {error && <div className="management-notice" role="alert"><strong>Project data could not load.</strong><span>Refresh to try again.</span></div>}
