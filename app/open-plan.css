@@ -440,3 +440,126 @@
   overflow-x:clip;
   overflow-y:visible;
 }
+
+
+/*
+ * NHS cinematic rooms | same dramatic photographic flow as Command Center,
+ * but a DIFFERENT pictorial composition for every room. The approved
+ * Observatory photography/hero stays untouched.
+ *
+ * Artwork is local, independent of application data or interactions.
+ * It never substitutes for the official NHS logo and forms no click layer.
+ */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) {
+  --nhs-scene-size:min(1260px,104vw) auto;
+  --nhs-scene-position:right -75px top 30px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-electric.svg");
+  --nhs-scene-glow:#407cc4;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-rose.svg");
+  --nhs-scene-glow:#a52d68;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-artist.svg");
+  --nhs-scene-glow:#784da0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-archive.svg");
+  --nhs-scene-glow:#a27653;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-velvet.svg");
+  --nhs-scene-glow:#8655b3;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-private.svg");
+  --nhs-scene-glow:#3f75bc;
+}
+/* Full-page room wallpaper: art remains on the right, text stays on an
+   opaque midnight veil. No repeated identical photographic skull. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell {
+  background-color:#070711;
+  background-image:
+    linear-gradient(102deg,rgba(3,4,11,.985) 0%,rgba(3,4,11,.94) 30%,rgba(3,4,11,.52) 74%,rgba(3,4,11,.69) 100%),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 11%,color-mix(in srgb,var(--nhs-scene-glow) 30%,transparent),transparent 62%),
+    linear-gradient(140deg,#030309,#19101f 62%,#030309);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,center;
+  background-repeat:no-repeat;
+}
+/* The entrance artwork flows out of the room instead of appearing in an
+   unrelated box. Retain dark-left/bright-right composition. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  background-color:#090910;
+  background-image:
+    linear-gradient(99deg,rgba(3,4,11,.98),rgba(3,4,11,.8) 51%,rgba(3,4,11,.36)),
+    var(--nhs-scene);
+  background-size:100% 100%,min(900px,84vw) auto;
+  background-position:center,right -45px center;
+  background-repeat:no-repeat;
+  border-color:color-mix(in srgb,var(--nhs-scene-glow) 43%,transparent);
+}
+/* High-specificity Rose Salon hero previously used a pale override. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-color:#090910;
+  background-image:
+    linear-gradient(99deg,rgba(3,4,11,.98),rgba(3,4,11,.8) 51%,rgba(3,4,11,.36)),
+    url("/visuals/nhs-wallpaper-rose.svg");
+  background-size:100% 100%,min(900px,84vw) auto;
+  background-position:center,right -45px center;
+}
+/* Private client space: same atmospheric family, separate butterfly/rose
+   garden artwork; never cream or a duplicate of the Observatory. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-color:#090b1a;
+  background-image:
+    linear-gradient(104deg,rgba(5,7,18,.98),rgba(5,7,18,.90) 32%,rgba(5,7,18,.49) 76%,rgba(5,7,18,.68)),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 14%,rgba(55,106,187,.28),transparent 60%),
+    linear-gradient(143deg,#090b1a,#161020 65%,#090b1a);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,center;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  background-image:
+    linear-gradient(103deg,rgba(5,7,18,.88),rgba(5,7,18,.48) 70%,rgba(5,7,18,.27)),
+    url("/visuals/nhs-wallpaper-private.svg");
+  background-size:100% 100%,min(900px,83vw) auto;
+  background-position:center,right -80px center;
+  background-repeat:no-repeat;
+}
+@media(max-width:850px) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-scene-size:890px auto;
+    --nhs-scene-position:right -275px top 40px;
+  }
+}
+@media(max-width:620px) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-scene-size:650px auto;
+    --nhs-scene-position:right -300px top 54px;
+  }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-size:100% 100%,590px auto;
+    background-position:center,right -260px center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-image:none;
+    background-color:Canvas;
+    color:CanvasText;
+  }
+}
