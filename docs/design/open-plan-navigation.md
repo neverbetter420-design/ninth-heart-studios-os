@@ -109,3 +109,7 @@ lead scanning or outreach. PR #69 remains draft and source-only.
 ## Eye-comfort lighting (owner request, draft only)
 
 The owner asked for darkened room backgrounds to reduce visual fatigue. The new last-in-order CSS darkens the photographic and illustrated ambient layers (including the Observatory hero), reduces large-area cobalt/magenta glow and strengthens the dark veil behind copy. It intentionally **does not** apply `filter:brightness` or lower opacity on parent containers, because that would also dim form labels, actionable icons, project progress and accessibility contrast. No project data, navigation, artwork files, auth, logo or routes are changed. Fresh desktop/mobile screenshot and contrast review is required before any release.
+
+## All rooms inherit the Command Center's dark editorial style (Nov 5)
+
+The final `nhs-room-editorial.css` stylesheet retires the historical cream and ivory Client Management, project pipeline, artist project workspace, and document archive treatments. Each room gets open dark working surfaces, generous atmospheric entrance spacing, consistent silver/plum/navy typographic hierarchy and its own accent and composition. Existing real-data widgets, routes, roles, forms and original NHS mark remain untouched. This change concerns UX presentation, not the rejected SVG wallpaper's visual approval. Source-only: do not merge, deploy, enable disabled features, run scans or outreach.
