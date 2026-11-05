@@ -105,3 +105,7 @@ the seven rooms and saves desktop/mobile screenshots for inspection.
 Visual-design approval does not authorize merge, hosted preview, Cloudflare config,
 production deployment, live Supabase writes, Muse activation, paid services,
 lead scanning or outreach. PR #69 remains draft and source-only.
+
+## Eye-comfort lighting (owner request, draft only)
+
+The owner asked for darkened room backgrounds to reduce visual fatigue. The new last-in-order CSS darkens the photographic and illustrated ambient layers (including the Observatory hero), reduces large-area cobalt/magenta glow and strengthens the dark veil behind copy. It intentionally **does not** apply `filter:brightness` or lower opacity on parent containers, because that would also dim form labels, actionable icons, project progress and accessibility contrast. No project data, navigation, artwork files, auth, logo or routes are changed. Fresh desktop/mobile screenshot and contrast review is required before any release.

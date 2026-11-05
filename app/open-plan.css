@@ -680,3 +680,89 @@
     background-image:none;background-color:Canvas;color:CanvasText;
   }
 }
+
+/* Eye-comfort lighting pass (owner request, source-only).
+ * Darken the image layers themselves, NEVER a parent opacity/filter:
+ * project labels, progress, controls and rose/key/silver details keep
+ * their intended contrast and their actual data values. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell {
+  background-color:#04050c;
+  background-image:
+    linear-gradient(103deg,rgba(3,4,11,.995) 0%,rgba(3,4,11,.975) 34%,rgba(3,4,11,.74) 74%,rgba(3,4,11,.84) 100%),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 11%,color-mix(in srgb,var(--nhs-scene-glow) 17%,transparent),transparent 62%),
+    var(--nhs-dark-rose-photo),
+    linear-gradient(135deg,#030309,#0c0a14 62%,#030309);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-color:#050713;
+  background-image:
+    linear-gradient(103deg,rgba(5,7,18,.995),rgba(5,7,18,.965) 34%,rgba(5,7,18,.73) 77%,rgba(5,7,18,.84)),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 14%,rgba(55,106,187,.13),transparent 60%),
+    url("/visuals/nhs-dark-rose-photographic.webp"),
+    linear-gradient(143deg,#050713,#0e0b19 65%,#050713);
+}
+/* Every non-observatory entrance keeps its room photo/scene, with stronger
+   black on the copy side and quieter highlights around imagery. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  background-color:#05060e;
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.995),rgba(3,4,11,.95) 44%,rgba(3,4,11,.69) 79%,rgba(3,4,11,.80)),
+    var(--nhs-scene),
+    var(--nhs-dark-rose-photo);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-color:#05060e;
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.995),rgba(3,4,11,.95) 44%,rgba(3,4,11,.69) 79%,rgba(3,4,11,.80)),
+    url("/visuals/nhs-wallpaper-rose.svg"),
+    var(--nhs-dark-rose-photo);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  background-color:#070915;
+  background-image:
+    linear-gradient(104deg,rgba(5,7,18,.995),rgba(5,7,18,.94) 40%,rgba(5,7,18,.67) 84%,rgba(5,7,18,.75)),
+    url("/visuals/nhs-wallpaper-private.svg"),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+}
+/* Observatory uses its original approved photographic hero, now in lower
+   ambient light. Avoid brightness filters, which would also dim copy. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+  background-image:
+    linear-gradient(90deg,rgba(3,3,9,.995),rgba(3,3,9,.82) 53%,rgba(3,3,9,.47) 93%),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center.velvet-atelier-pilot::before {
+  opacity:.24;
+}
+/* Dim decorative bloom and halos without lowering clickable-icon contrast. */
+.nhs-color-studio .nhs-color-hero-art {
+  background:radial-gradient(circle at center,#2439693c 0%,#3b245026 34%,transparent 64%);
+}
+.nhs-color-studio .nhs-color-hero-art::after {
+  box-shadow:0 0 22px #f43f970d,inset 0 0 22px #388bff12;
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+      .radar-page > .management-heading),
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+  .management-page.management-clients > .page-header.management-heading,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+    background-image:none;background-color:Canvas;color:CanvasText;
+  }
+}

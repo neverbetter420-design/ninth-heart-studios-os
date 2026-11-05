@@ -213,3 +213,24 @@ test("room entrances layer local photographic texture beneath their distinct sce
     }
   }
 });
+
+test("eye-comfort room lighting dims photography but not working controls", async ({page}) => {
+  for (const width of [1440,390]) {
+    await page.setViewportSize({width,height:1000});
+    for (const [role,view] of [["admin","leads"],["client","home"]]) {
+      await show(page,role,view,"populated");
+      const ambient = await page.locator(".main-shell").evaluate(el => ({
+        background:getComputedStyle(el).backgroundImage,
+        filter:getComputedStyle(el).filter,
+      }));
+      expect(ambient.background).toContain("linear-gradient");
+      expect(ambient.background).toContain("data:image/");
+      expect(ambient.filter).toBe("none");
+      await bounds(page);
+    }
+    await show(page,"admin","home","populated");
+    const hero=await page.locator(".nocturne-overview").first().evaluate(el=>getComputedStyle(el).backgroundImage);
+    expect(hero).toContain("linear-gradient");
+    await bounds(page);
+  }
+});
