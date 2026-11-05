@@ -76,3 +76,32 @@ The owner observed that the earlier color treatment still lacked unmistakable ro
 - Every client subroom: a small shared, noninteractive rose/skull/key corner composition. The home hides that shared composition to avoid duplicating its larger hero.
 - Decoration is aria-hidden, pointer-events none, responsive down to 320px, no separate branding/logo invention, and no external image sources or paid assets. Test source-rendered SVG presence and bounds, screenshots and accessible routes.
 - Do not merge, deploy, publish Cloudflare preview, write to hosted Supabase, enable Muse or paid services, or run outreach/scans. Owner approved this **design amendment** only.
+
+
+## Distinct background pictures across all seven rooms (Nov 4 design approval)
+
+The owner's Command Center screenshot is the reference for atmospheric continuity,
+not for an identical background image copied room to room. The existing Midnight
+Observatory hero and original NHS logo are preserved. Six new local standalone
+scene illustrations ship under `public/visuals/nhs-wallpaper-*.svg`:
+
+- Electric Conservatory: glowing blue celestial glass globe, rose, skull and key.
+- Rose Salon: antique mirror, silver skull cameo, velvet roses and skeleton key.
+- Artist's Atelier: richly framed artist's canvas, gallery roses and metal key.
+- Private Archive: open manuscript/folio, metallic skull, candlelit rose and key.
+- Velvet Room: amethyst crystal sphere, silver skull, roses and ornate key.
+- Client Private Atelier: cobalt butterfly, silver skull, lush roses and key.
+
+All seven share dark dramatic room lighting, romantic metallic ornament, generous
+visual negative space and a readable black-to-sheer text veil. No added panels,
+new UI state, fake data or changes to auth/RLS. Working widgets remain functional.
+The client's room remains dark, not cream. New art is background-only and cannot
+intercept pointer or keyboard interactions. Standalone SVG illustrations use no
+external CDN, font or paid image service. This is a pictorial SVG treatment,
+rather than six newly photographed assets; it requires the owner's visual review
+before release. The CI visual test asserts separate computed backgrounds across
+the seven rooms and saves desktop/mobile screenshots for inspection.
+
+Visual-design approval does not authorize merge, hosted preview, Cloudflare config,
+production deployment, live Supabase writes, Muse activation, paid services,
+lead scanning or outreach. PR #69 remains draft and source-only.
