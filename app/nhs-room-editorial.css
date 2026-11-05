@@ -219,14 +219,14 @@
   font-size:11px;line-height:1.55;color:var(--editorial-muted);
 }
 /* Different room choreography, not repeated cards with new paint. */
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])) .metric-grid {grid-template-columns:1.35fr 1fr 1fr;}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])) .metric-card:first-child .metric-symbol {border-color:rgba(227,148,187,.5);}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])) .metric-card .metric-symbol {border-radius:12px 3px 12px 3px;transform:rotate(-4deg);}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])) .metric-card .metric-symbol {border-radius:3px;border-color:rgba(213,188,159,.45);}
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"])) .metric-card .metric-symbol {border-color:rgba(126,183,238,.48);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .metric-grid {grid-template-columns:1.35fr 1fr 1fr;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .metric-card:first-child .metric-symbol {border-color:rgba(227,148,187,.5);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .metric-card .metric-symbol {border-radius:12px 3px 12px 3px;transform:rotate(-4deg);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .metric-card .metric-symbol {border-radius:3px;border-color:rgba(213,188,159,.45);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) .metric-card .metric-symbol {border-color:rgba(126,183,238,.48);}
 @media(max-width:850px) {
  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid,
- .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])) .metric-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .metric-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid .metric-card {
   min-height:106px;padding:13px;grid-template-columns:39px minmax(0,1fr);border-bottom:1px solid var(--editorial-line);
  }
