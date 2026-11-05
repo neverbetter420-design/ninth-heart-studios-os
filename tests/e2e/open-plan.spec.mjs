@@ -184,7 +184,7 @@ test("seven NHS rooms display distinct local background scenes without replacing
     const backgrounds = new Set();
     for (const [role,view,room] of cases) {
       await show(page,role,view,"populated");
-      const image = await page.locator(".main-shell").evaluate(el => getComputedStyle(el).backgroundImage);
+      const image = await page.locator(".main-shell").evaluate((el,isObservatory) => isObservatory ? getComputedStyle(el).backgroundImage : getComputedStyle(el,"::before").backgroundImage,room === "observatory");
       expect(image, room + " must have a local image background").toMatch(/data:image\/(?:svg\+xml|webp)/);
       backgrounds.add(image);
       await expect(page.locator(".nhs-sidebar,.navigation-shell,.nhs-mobile-quicknav")).toHaveCount(0);
@@ -207,8 +207,11 @@ test("room entrances layer local photographic texture beneath their distinct sce
     for(const [role,view,selector] of cases){
       await show(page,role,view,"populated");
       const background=await page.locator(selector).first().evaluate(el=>getComputedStyle(el).backgroundImage);
-      expect(background).toContain("data:image/webp");
-      expect(background).not.toContain("data:image/svg+xml");
+      expect(background).toContain("linear-gradient");
+      expect(background).not.toContain("data:image/webp");
+      const fixed = await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
+      expect(fixed).toContain("data:image/webp");
+      expect(fixed).not.toContain("data:image/svg+xml");
       await bounds(page);
     }
   }
@@ -220,7 +223,7 @@ test("eye-comfort room lighting dims photography but not working controls", asyn
     for (const [role,view] of [["admin","leads"],["client","home"]]) {
       await show(page,role,view,"populated");
       const ambient = await page.locator(".main-shell").evaluate(el => ({
-        background:getComputedStyle(el).backgroundImage,
+        background:getComputedStyle(el,"::before").backgroundImage,
         filter:getComputedStyle(el).filter,
       }));
       expect(ambient.background).toContain("linear-gradient");
@@ -274,6 +277,48 @@ test("real studio metrics have quiet icon instruments, without fake actions or m
         await expect(metric.locator("p")).not.toBeEmpty();
         await expect(metric.locator("strong")).not.toBeEmpty();
       }
+      await bounds(page);
+    }
+  }
+});
+
+test("cinematic room photos remain locked to the viewport while content scrolls",async ({page})=>{
+  const cases=[
+    ["admin","leads","electric"],["admin","clients","rose"],["admin","pipeline","artist"],
+    ["admin","contracts","archive"],["admin","muse","velvet"],["client","home","private"]
+  ];
+  for(const width of [1440,390]) {
+    await page.setViewportSize({width,height:520});
+    for(const [role,view,room] of cases) {
+      await show(page,role,view,"populated");
+      const scene=page.locator(".main-shell");
+      const before=await scene.evaluate(el=>{
+        const layer=getComputedStyle(el,"::before");
+        return {position:layer.position,backgroundImage:layer.backgroundImage,
+          positionImage:layer.backgroundPosition,animation:layer.animationName,
+          transform:layer.transform,pointerEvents:layer.pointerEvents};
+      });
+      expect(before.position,room+" photo should be fixed").toBe("fixed");
+      expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
+      expect(before.animation).toBe("none");
+      expect(before.transform).toBe("none");
+      expect(before.pointerEvents).toBe("none");
+      await page.evaluate(()=>{
+        document.documentElement.style.minHeight="2300px";
+        window.scrollTo(0,400);
+      });
+      await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBeGreaterThan(0);
+      const after=await scene.evaluate(el=>{
+        const layer=getComputedStyle(el,"::before");
+        return {position:layer.position,backgroundImage:layer.backgroundImage,
+          positionImage:layer.backgroundPosition,animation:layer.animationName,
+          transform:layer.transform,pointerEvents:layer.pointerEvents};
+      });
+      expect(after,room+" wallpaper must stay fixed after page scroll").toEqual(before);
+      await page.evaluate(()=>{
+        window.scrollTo(0,0);
+        document.documentElement.style.minHeight="";
+      });
       await bounds(page);
     }
   }
