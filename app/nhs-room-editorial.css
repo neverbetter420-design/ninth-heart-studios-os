@@ -155,3 +155,92 @@
   background:Canvas;border-color:CanvasText;color:CanvasText;
  }
 }
+
+
+/* Room instruments: real metrics with NHS decorative marks, no dummy widgets.
+   Same quiet editorial rhythm as the Observatory, distinct per-room accents. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  margin:clamp(18px,2.8vw,34px) 0 clamp(30px,4vw,53px);
+  padding:clamp(16px,2.4vw,31px) 0;
+  border-block:1px solid var(--editorial-line);
+  background:transparent;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid .metric-card {
+  position:relative;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  grid-template-rows:auto auto 1fr;
+  gap:2px clamp(9px,1vw,17px);
+  align-content:center;
+  min-height:116px;
+  padding:0 clamp(15px,2vw,29px);
+  background:transparent;
+  border:0;
+  border-right:1px solid var(--editorial-line);
+  border-radius:0;
+  box-shadow:none;
+  color:var(--editorial-ink);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:first-child {padding-left:0;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:last-child {border-right:0;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-glow {display:none;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {
+  grid-column:1;
+  grid-row:1 / span 3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  align-self:start;
+  width:43px;
+  height:43px;
+  border:1px solid var(--editorial-line);
+  border-radius:50%;
+  color:var(--editorial-accent);
+  background:radial-gradient(circle,rgba(137,91,156,.17),transparent 78%);
+  box-shadow:0 0 26px rgba(173,94,157,.06);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card p {
+  grid-column:2;grid-row:1;
+  font-size:clamp(10px,.9vw,12px);
+  margin:0;letter-spacing:.04em;
+  color:var(--editorial-muted);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card strong {
+  grid-column:2;grid-row:2;
+  display:block;margin:5px 0;
+  font:400 clamp(28px,2.9vw,43px)/1.12 Georgia,serif;
+  color:var(--editorial-ink);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card > span:last-child {
+  grid-column:2;grid-row:3;
+  font-size:11px;line-height:1.55;color:var(--editorial-muted);
+}
+/* Different room choreography, not repeated cards with new paint. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])) .metric-grid {grid-template-columns:1.35fr 1fr 1fr;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])) .metric-card:first-child .metric-symbol {border-color:rgba(227,148,187,.5);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])) .metric-card .metric-symbol {border-radius:12px 3px 12px 3px;transform:rotate(-4deg);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])) .metric-card .metric-symbol {border-radius:3px;border-color:rgba(213,188,159,.45);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"])) .metric-card .metric-symbol {border-color:rgba(126,183,238,.48);}
+@media(max-width:850px) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid,
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])) .metric-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid .metric-card {
+  min-height:106px;padding:13px;grid-template-columns:39px minmax(0,1fr);border-bottom:1px solid var(--editorial-line);
+ }
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {width:37px;height:37px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:nth-child(even) {border-right:0;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:nth-last-child(-n+2) {border-bottom:0;}
+}
+@media(max-width:410px) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid .metric-card {grid-template-columns:1fr;grid-template-rows:37px auto auto auto;padding:12px 9px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {grid-column:1;grid-row:1;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card p {grid-column:1;grid-row:2;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card strong {grid-column:1;grid-row:3;font-size:30px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card > span:last-child {grid-column:1;grid-row:4;}
+}
+@media(forced-colors:active),(prefers-contrast:more) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {border-color:CanvasText;color:CanvasText;background:none;box-shadow:none;}
+}
