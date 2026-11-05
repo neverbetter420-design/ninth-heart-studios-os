@@ -1100,7 +1100,7 @@ test("Each non-Observatory room has a different self-hosted photographic backdro
    for(const [role,view,name] of rooms){
      await show(page,role,"populated",view);
      const stage=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundImage);
-     const matches=[...stage.matchAll(/data:image\\/webp;base64,([A-Za-z0-9+/=]+)/g)];
+     const matches=[...stage.matchAll(new RegExp("data:image/webp;base64,([A-Za-z0-9+/=]+)", "g"))];
      expect(matches.length,name+" must have one photographic source").toBe(1);
      artworks.add(matches[0][1]);
      expect(stage).not.toContain("data:image/svg+xml");
