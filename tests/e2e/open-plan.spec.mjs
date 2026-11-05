@@ -167,3 +167,30 @@ test("distinct decorative rose, skull and skeleton key are visible without cover
   await expect(page.locator(".nhs-relic-empty-art .nhs-relic-art--rose")).toBeVisible();
   await expect(page.locator(".nhs-relic-empty-art .nhs-relic-art--key")).toBeVisible();
 });
+
+
+test("seven NHS rooms display distinct local background scenes without replacing the Command Center", async ({ page }) => {
+  const cases = [
+    ["admin", "home", "observatory"],
+    ["admin", "leads", "electric"],
+    ["admin", "clients", "rose"],
+    ["admin", "pipeline", "artist"],
+    ["admin", "contracts", "archive"],
+    ["admin", "muse", "velvet"],
+    ["client", "home", "private"],
+  ];
+  for (const width of [1440,390]) {
+    await page.setViewportSize({width,height:1000});
+    const backgrounds = new Set();
+    for (const [role,view,room] of cases) {
+      await show(page,role,view,"populated");
+      const image = await page.locator(".main-shell").evaluate(el => getComputedStyle(el).backgroundImage);
+      expect(image, room + " must have a local image background").toMatch(/data:image\/(?:svg\+xml|webp)/);
+      backgrounds.add(image);
+      await expect(page.locator(".nhs-sidebar,.navigation-shell,.nhs-mobile-quicknav")).toHaveCount(0);
+      await bounds(page);
+      await page.screenshot({path:`design-preview/open-plan/wallpaper-${room}-${width}.png`});
+    }
+    expect(backgrounds.size, "every one of the seven rooms must have different artwork").toBe(7);
+  }
+});
