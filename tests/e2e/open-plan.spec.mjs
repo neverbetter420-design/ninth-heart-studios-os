@@ -296,7 +296,8 @@ test("cinematic room photos remain locked to the viewport while content scrolls"
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
           positionImage:layer.backgroundPosition,animation:layer.animationName,
-          transform:layer.transform,pointerEvents:layer.pointerEvents};
+          transform:layer.transform,pointerEvents:layer.pointerEvents,
+          viewportHeight:layer.height};
       });
       expect(before.position,room+" photo should be fixed").toBe("fixed");
       expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
@@ -312,7 +313,8 @@ test("cinematic room photos remain locked to the viewport while content scrolls"
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
           positionImage:layer.backgroundPosition,animation:layer.animationName,
-          transform:layer.transform,pointerEvents:layer.pointerEvents};
+          transform:layer.transform,pointerEvents:layer.pointerEvents,
+          viewportHeight:layer.height};
       });
       expect(after,room+" wallpaper must stay fixed after page scroll").toEqual(before);
       await page.evaluate(()=>{
