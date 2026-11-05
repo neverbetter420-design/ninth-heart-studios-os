@@ -364,7 +364,10 @@
 .app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell::before {
   content:"";
   position:fixed;
-  inset:0;
+  inset:0 0 auto 0;
+  /* Large viewport units stay stable when mobile browser chrome collapses. */
+  height:100vh;
+  height:100lvh;
   z-index:0;
   pointer-events:none;
   user-select:none;
