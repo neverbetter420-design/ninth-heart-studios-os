@@ -611,3 +611,72 @@
     background-image:none;background-color:Canvas;
   }
 }
+
+
+/* Entrances inherit the same photographic depth as the Command Center,
+   with room-specific crops BEHIND their own pictorial wallpaper.
+   This is atmosphere, not a second copy of the Command Center hero. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) { --nhs-entrance-photo-pos:right -440px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) { --nhs-entrance-photo-pos:right -180px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) { --nhs-entrance-photo-pos:right -490px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) { --nhs-entrance-photo-pos:right -280px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) { --nhs-entrance-photo-pos:right -385px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) { --nhs-entrance-photo-pos:right -330px center; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.99),rgba(3,4,11,.88) 41%,rgba(3,4,11,.36) 79%,rgba(3,4,11,.48)),
+    var(--nhs-scene),
+    var(--nhs-dark-rose-photo);
+  background-size:100% 100%,min(900px,84vw) auto,min(870px,80vw) auto;
+  background-position:center,right -45px center,var(--nhs-entrance-photo-pos);
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.99),rgba(3,4,11,.88) 41%,rgba(3,4,11,.36) 79%,rgba(3,4,11,.48)),
+    url("/visuals/nhs-wallpaper-rose.svg"),
+    var(--nhs-dark-rose-photo);
+  background-size:100% 100%,min(900px,84vw) auto,min(870px,80vw) auto;
+  background-position:center,right -45px center,var(--nhs-entrance-photo-pos);
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  background-image:
+    linear-gradient(104deg,rgba(5,7,18,.98),rgba(5,7,18,.86) 37%,rgba(5,7,18,.39) 84%,rgba(5,7,18,.46)),
+    url("/visuals/nhs-wallpaper-private.svg"),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+  background-size:100% 100%,min(900px,83vw) auto,min(850px,82vw) auto;
+  background-position:center,right -80px center,var(--nhs-entrance-photo-pos);
+  background-repeat:no-repeat;
+}
+@media(max-width:620px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+      .radar-page > .management-heading) {
+    background-size:100% 100%,570px auto,570px auto;
+    background-position:center,right -220px center,right -375px center;
+  }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-size:100% 100%,590px auto,580px auto;
+    background-position:center,right -260px center,right -365px center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+      .radar-page > .management-heading),
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+  .management-page.management-clients > .page-header.management-heading,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-image:none;background-color:Canvas;color:CanvasText;
+  }
+}

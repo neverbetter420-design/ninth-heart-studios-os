@@ -194,3 +194,22 @@ test("seven NHS rooms display distinct local background scenes without replacing
     expect(backgrounds.size, "every one of the seven rooms must have different artwork").toBe(7);
   }
 });
+
+
+test("room entrances layer local photographic texture beneath their distinct scene",async ({page})=>{
+  const cases=[
+    ["admin","clients",".management-page.management-clients > .page-header.management-heading"],
+    ["admin","scanner",".scanner-page > .management-heading"],
+    ["client","home",".nhs-color-studio .nhs-color-hero"],
+  ];
+  for (const width of [1440,390]) {
+    await page.setViewportSize({width,height:1000});
+    for(const [role,view,selector] of cases){
+      await show(page,role,view,"populated");
+      const background=await page.locator(selector).first().evaluate(el=>getComputedStyle(el).backgroundImage);
+      expect(background).toMatch(/data:image\\/svg\\+xml/);
+      expect(background).toMatch(/data:image\\/webp/);
+      await bounds(page);
+    }
+  }
+});
