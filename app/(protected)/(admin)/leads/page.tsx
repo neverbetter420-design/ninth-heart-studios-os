@@ -40,10 +40,10 @@ export default async function LeadsPage({
       </header>
 
       <section className="metric-grid" aria-label="Lead metrics">
-        <MetricCard label="Active Leads" value={error ? "—" : String(leads.length)} detail="Ranked by momentum" tone="violet" />
-        <MetricCard label="Waiting on Me" value={error ? "—" : String(waitingOnMe)} detail="Human attention required" tone="pink" />
-        <MetricCard label="Replies" value={error ? "—" : String(replies)} detail="Always priority one" tone="cyan" />
-        <MetricCard label="Inbound SLA Risk" value={error ? "—" : String(inboundAtRisk)} detail="Due soon or overdue" tone="green" />
+        <MetricCard label="Active Leads" value={error ? "—" : String(leads.length)} detail="Ranked by momentum" tone="violet" symbol="spark" />
+        <MetricCard label="Waiting on Me" value={error ? "—" : String(waitingOnMe)} detail="Human attention required" tone="pink" symbol="rose" />
+        <MetricCard label="Replies" value={error ? "—" : String(replies)} detail="Always priority one" tone="cyan" symbol="key" />
+        <MetricCard label="Inbound SLA Risk" value={error ? "—" : String(inboundAtRisk)} detail="Due soon or overdue" tone="green" symbol="skull" />
       </section>
 
       {error ? (

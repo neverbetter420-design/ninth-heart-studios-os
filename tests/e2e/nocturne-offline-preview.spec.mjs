@@ -7,7 +7,7 @@ test.beforeAll(() => {
   execFileSync(process.execPath, ["scripts/build-nocturne-static.mjs"], { cwd: process.cwd(), timeout: 120_000 });
 });
 
-test("extracted offline preview always renders Admin and switches to warm Client without frames", async ({page,browser}) => {
+test("extracted offline preview always renders Admin and switches to dark Client without frames", async ({page,browser}) => {
   test.setTimeout(90_000);
   const errors=[], external=[];
   page.on("pageerror",error=>errors.push(error.message));
@@ -24,7 +24,7 @@ test("extracted offline preview always renders Admin and switches to warm Client
   await page.locator("#view").selectOption("client-detail");
   const surface=page.locator("#preview .management-client-grid");
   await expect(surface).toBeVisible();
-  await expect(surface).toHaveCSS("background-color","rgb(249, 244, 238)");
+  await expect(surface).toHaveCSS("background-color","rgba(0, 0, 0, 0)");
   await expect(page.locator("#preview")).toContainText("Cedar & Stone");
   await page.locator("#width").selectOption("mobile");
   const previewWidth = await page.locator("#preview").evaluate(el => el.getBoundingClientRect().width);
@@ -118,12 +118,15 @@ test("scanner glass workspace separates tasks without exposing data or triggerin
     const scanner = preview.querySelector(".scanner-controls");
     const nav = preview.querySelector(".scanner-glass-nav");
     return {
-      columns: getComputedStyle(shell).gridTemplateColumns.trim().split(/\s+/).length,
+      layout: getComputedStyle(shell).display,
+      workspaceWidth: shell.querySelector('.main-shell').getBoundingClientRect().width,
+      shellWidth: shell.getBoundingClientRect().width,
       controlsWidth: scanner.getBoundingClientRect().width,
       navColumns: getComputedStyle(nav).gridTemplateColumns.trim().split(/\s+/).length,
     };
   });
-  expect(responsive.columns).toBe(1);
+  expect(responsive.layout).toBe("block");
+  expect(responsive.workspaceWidth).toBeCloseTo(responsive.shellWidth, 0);
   expect(responsive.controlsWidth).toBeGreaterThan(280);
   expect(responsive.navColumns).toBe(2);
   expect(errors).toEqual([]);

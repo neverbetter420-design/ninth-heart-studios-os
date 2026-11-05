@@ -63,7 +63,7 @@ async function signInBrowser(page, credential) {
     throw new Error("LIVE RELEASE MISMATCH: password input blocks existing authenticated QA users before form submission. Install the separately approved login fix; do not reset test accounts.");
   }
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.locator(".navigation-shell")).toBeVisible({ timeout: 25_000 });
+  await expect(page.locator(".nhs-room-launcher")).toBeVisible({ timeout: 25_000 });
 }
 
 test.describe("Phase 3 read-only client isolation", () => {

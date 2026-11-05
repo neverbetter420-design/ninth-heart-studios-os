@@ -89,6 +89,7 @@ export default async function ContractsPage({
             }
             detail={detail}
             tone="violet"
+            symbol={state === "draft" ? "key" : state === "sent" ? "spark" : "rose"}
           />
         ))}
       </section>

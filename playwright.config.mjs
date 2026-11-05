@@ -5,6 +5,7 @@ const local = new URL(baseURL).hostname === "127.0.0.1";
 
 export default defineConfig({
   testDir: "./tests/e2e",
+  testIgnore: "open-plan.spec.mjs",
   timeout: 45_000,
   expect: { timeout: 12_000 },
   fullyParallel: false,

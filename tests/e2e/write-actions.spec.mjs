@@ -31,7 +31,7 @@ async function signIn(page, user) {
   await page.locator('input[name="email"]').fill(user[0]);
   await page.locator('input[name="password"]').fill(user[1]);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.locator(".navigation-shell")).toBeVisible({ timeout: 25000 });
+  await expect(page.locator(".nhs-room-launcher")).toBeVisible({ timeout: 25000 });
 }
 
 async function guardedSetup(page, browser, baseURL) {
