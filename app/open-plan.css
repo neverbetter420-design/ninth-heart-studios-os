@@ -563,3 +563,51 @@
     color:CanvasText;
   }
 }
+
+
+/* Photographic depth pass. The hand-drawn focal picture is different in every
+ * room, but a softened, differently cropped original NHS dark-rose texture
+ * reconnects the atmosphere to the owner's approved Command Center reference.
+ * No new interactions, network image dependency or replacement of the
+ * original official NHS brand mark. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) { --nhs-photo-pos:right -305px top 330px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) { --nhs-photo-pos:right -105px top 370px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) { --nhs-photo-pos:right -385px top 320px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) { --nhs-photo-pos:right -125px top 450px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) { --nhs-photo-pos:right -335px top 390px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) { --nhs-photo-pos:right -210px top 340px; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell {
+  background-image:
+    linear-gradient(103deg,rgba(3,4,11,.99) 0%,rgba(3,4,11,.93) 30%,rgba(3,4,11,.47) 74%,rgba(3,4,11,.63) 100%),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 11%,color-mix(in srgb,var(--nhs-scene-glow) 32%,transparent),transparent 62%),
+    var(--nhs-dark-rose-photo),
+    linear-gradient(135deg,#030309,#1a1022 62%,#030309);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,min(1020px,96vw) auto,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,var(--nhs-photo-pos),center;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-image:
+    linear-gradient(103deg,rgba(5,7,18,.98),rgba(5,7,18,.88) 32%,rgba(5,7,18,.44) 77%,rgba(5,7,18,.62)),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 14%,rgba(55,106,187,.28),transparent 60%),
+    url("/visuals/nhs-dark-rose-photographic.webp"),
+    linear-gradient(143deg,#090b1a,#161020 65%,#090b1a);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,min(950px,96vw) auto,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,var(--nhs-photo-pos),center;
+  background-repeat:no-repeat;
+}
+@media(max-width:620px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+    background-size:100% 100%,var(--nhs-scene-size),100% 100%,620px auto,100% 100%;
+    background-position:center,var(--nhs-scene-position),center,right -390px top 420px,center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+    background-image:none;background-color:Canvas;
+  }
+}
