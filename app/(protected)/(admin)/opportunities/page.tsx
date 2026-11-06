@@ -53,10 +53,7 @@ export default async function OpportunitiesPage({
             <br />
             <em>Make it a considered one.</em>
           </h2>
-          <p className="page-description">
-            Review the fit, keep the bid moving, and give your best ideas to
-            work worth pursuing.
-          </p>
+          <p className="page-description">Review fit, bids and next moves.</p>
         </div>
         <a className="management-text-link" href="#radar-queue">
           Review the shortlist <span aria-hidden="true">↗</span>
