@@ -320,9 +320,13 @@ test("Scanner glass workspaces retain safety, scoring and manual Deep Scan acros
     const prospects = page.locator("article.prospect-card");
     if (["normal", "long"].includes(scenario)) {
       const studio = prospects.filter({ hasText: "Mira Studio" });
+      // Social verification is intentionally collapsed until requested.
+      // Locate the record by its disclosure content, then open it before
+      // asserting keyboard-accessible links inside the disclosure.
       const unverified = prospects.filter({
-        has: page.getByRole("link", { name: "Facebook ↗", exact: true }),
+        has: page.locator('a[href="https://www.facebook.com/cedarandstone/"]'),
       });
+      await unverified.locator(".nhs-social-disclosure summary").click();
       await expect(studio).toHaveCount(1);
       await expect(unverified).toHaveCount(1);
       await expect(page.getByRole("link", { name: "Newest scans" })).toHaveAttribute("aria-current", "page");
