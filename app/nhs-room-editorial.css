@@ -445,3 +445,217 @@
   background-image:none !important;
  }
 }
+
+
+/* NHS EDITORIAL CONTINUITY LOCK, Nov 2026.
+   One spacious, photographic room per route. Records are editorial rows;
+   glass is reserved for working instruments. Never hide functional content. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) {
+ --nhs-quiet-glass:rgba(11,13,29,.67);
+ --nhs-quiet-rule:rgba(211,196,231,.22);
+ --nhs-quiet-ink:#f5eff9;
+ --nhs-quiet-muted:#c8c0d3;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]){--nhs-quiet-rule:rgba(132,185,244,.25);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]){--nhs-quiet-rule:rgba(229,148,187,.27);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]){--nhs-quiet-rule:rgba(185,159,222,.27);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]){--nhs-quiet-rule:rgba(218,191,157,.28);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]){--nhs-quiet-rule:rgba(189,150,238,.28);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]){--nhs-quiet-rule:rgba(151,175,236,.27);}
+
+/* Consistent page canvas on both live routes and synthetic browser reviews. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > .content-wrap,
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > [data-preview-content] > .content-wrap {
+ box-sizing:border-box;
+ width:100%;
+ max-width:1480px;
+ min-width:0;
+ margin:0 auto;
+ padding:clamp(29px,4.3vw,65px) clamp(18px,4vw,63px) clamp(72px,7.5vw,116px);
+ border:0;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin,
+    .studio-workspace-client,.atelier-collection-page,.atelier-resource-page,
+    .scanner-page,.radar-page,.settings-workroom,.engine-page) {
+ color:var(--nhs-quiet-ink);
+ background-color:transparent;
+ box-shadow:none;
+}
+/* Large headlines, short visual measure, breathing space. Do not truncate
+   real descriptions, notices, field instructions or account information. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.page-description,.atelier-collection-heading > p:not(.atelier-overline)) {
+ max-width:51ch;
+ font-size:clamp(13px,1vw,15px);
+ line-height:1.67;
+ color:var(--editorial-muted,var(--nhs-quiet-muted));
+ text-wrap:pretty;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-heading,.lead-editorial-heading,.atelier-collection-heading) h2 {
+ max-width:18ch;
+ text-wrap:balance;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-section-heading,.panel-heading,.studio-row-heading,.atelier-section-heading,
+    .atelier-resource-group-heading) {
+ border-color:var(--nhs-quiet-rule);
+ margin-block:clamp(17px,2.6vw,37px) clamp(12px,1.6vw,24px);
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-section-heading h3,.panel-heading h3,.studio-row-heading h3,.atelier-section-heading h3) {
+ font-family:Georgia,serif;font-weight:400;letter-spacing:-.025em;text-wrap:balance;
+}
+/* Unboxed statistics across Leads, Projects, Clients, Radar and Automations. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-grid {
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));
+ gap:0;
+ margin-block:clamp(27px,3.7vw,52px);
+ padding-block:clamp(14px,2vw,30px);
+ border-block:1px solid var(--nhs-quiet-rule);
+ background:transparent;
+ box-shadow:none;
+ border-radius:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card {
+ min-width:0;
+ background:transparent;
+ border:0;
+ border-right:1px solid var(--nhs-quiet-rule);
+ border-radius:0;
+ box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card:last-child {border-right:0;}
+/* Working instruments get a little real glass, not a stack of opaque boxes. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.lead-capture-card,.nocturne-create-panel[open],.paperwork-form,
+    .studio-project-settings,.management-client-context,.studio-account,
+    .scanner-controls,.scanner-glass-discovery,.studio-compose,.studio-saved,
+    .studio-focus,.studio-controls) {
+ background:var(--nhs-quiet-glass);
+ border:1px solid var(--nhs-quiet-rule);
+ border-radius:clamp(12px,1.3vw,19px);
+ box-shadow:none;
+ -webkit-backdrop-filter:blur(16px);
+ backdrop-filter:blur(16px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-directory,.lead-inbox-panel,.paperwork-workspace,.scanner-glass-surface,
+    .studio-workspace-nav,.management-client-work,.engine-section,.paperwork-list,
+    .pipeline-board,.studio-services,.radar-page .panel) {
+ background:transparent;
+ border-color:var(--nhs-quiet-rule);
+ box-shadow:none;
+}
+/* Real records as spacious lists with thin separators. All links, metadata,
+   statuses, buttons, and form fields remain present and operable. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-row,.management-member-row,.paperwork-row,.lead-inbox-row,
+    .scanner-deep-job,.scanner-challenger-row,.scanner-territory-row,
+    .scanner-outcome-row,.engine-notification,.studio-service,
+    .paperwork-nav a,.management-destinations a) {
+ background:transparent;
+ background-image:none;
+ border:0;
+ border-bottom:1px solid var(--nhs-quiet-rule);
+ border-radius:0;
+ box-shadow:none;
+ min-width:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-row,.paperwork-row,.lead-inbox-row,.scanner-deep-job,
+    .scanner-challenger-row,.studio-service) {padding-block:clamp(19px,2.3vw,34px);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-row,.paperwork-row,.lead-inbox-row,.scanner-challenger-row):hover {
+ background:linear-gradient(90deg,color-mix(in srgb,var(--editorial-accent,#bdacd8) 10%,transparent),transparent 80%);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-grid,.studio-settings-grid,.studio-control-grid,.lead-page-grid,.workspace-grid) {
+ gap:clamp(23px,3.7vw,52px);
+}
+/* The Artist room is a journey, not a full-page work card. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) #workspace-content
+:is(.management-pipeline,.studio-workspace-admin) {
+ background:transparent;
+ background-image:none;
+ border:0;
+ box-shadow:none;
+ border-radius:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) #workspace-content
+:is(.pipeline-board,.pipeline-phase-projects,.studio-journey,.studio-gallery) {
+ background:transparent;
+ border-color:var(--nhs-quiet-rule);
+ box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) #workspace-content .pipeline-phase {
+ background:rgba(16,12,28,.46);
+ border-color:var(--nhs-quiet-rule);
+ border-left:2px solid var(--editorial-accent);
+ box-shadow:none;
+}
+/* The Velvet room keeps writing instruments, removes redundant outer frames. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content
+:is(.studio-intelligence-grid,.studio-writing-note,.studio-insight-row) {
+ background:transparent;border-color:var(--nhs-quiet-rule);box-shadow:none;
+}
+/* Client portal: dark luxury, open collections, not ivory or tiled rows. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-collection-page,.atelier-resource-page,.studio-workspace-client,
+    .atelier-documents-page,.atelier-project-collection,.atelier-resource-groups,
+    .atelier-destinations,.atelier-action-panel,.atelier-feature-project) {
+ background:transparent;box-shadow:none;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-project-row,.atelier-resource-row,.atelier-destination,
+    .atelier-resource-group,.atelier-project-collection,.atelier-resource-rows) {
+ background:transparent;background-image:none;border:0;
+ border-bottom:1px solid var(--nhs-quiet-rule);
+ border-radius:0;box-shadow:none;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-project-row,.atelier-resource-row,.atelier-destination) {
+ padding-block:clamp(19px,2.4vw,36px);
+ min-width:0;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-project-row,.atelier-resource-row,.atelier-destination):hover {
+ background:linear-gradient(90deg,rgba(137,155,236,.10),transparent 79%);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.panel,.detail-panel,.form-fill-card,.contract-card,.studio-project-settings) {
+ background:var(--nhs-quiet-glass);
+ border-color:var(--nhs-quiet-rule);
+ box-shadow:none;
+ -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+/* Keep interaction accessible on narrow screens and in contrast mode. */
+@media(max-width:850px){
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+ :is(.management-client-grid,.studio-settings-grid,.lead-page-grid,.workspace-grid){gap:clamp(18px,4vw,32px);}
+}
+@media(max-width:500px){
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > .content-wrap,
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > [data-preview-content] > .content-wrap{padding:24px 16px 70px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card{padding:12px;border-bottom:1px solid var(--nhs-quiet-rule);}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card:nth-child(2n){border-right:0;}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+ :is(.management-client-row,.paperwork-row,.lead-inbox-row,.atelier-resource-row,.atelier-project-row){transition:none;}
+}
+@media(forced-colors:active),(prefers-contrast:more){
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+ :is(.paperwork-form,.lead-capture-card,.studio-project-settings,.atelier-resource-row,
+     .management-client-row,.paperwork-row,.lead-inbox-row){
+  color:CanvasText;background:Canvas;border-color:CanvasText;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+ }
+}
