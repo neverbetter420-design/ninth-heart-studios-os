@@ -61,20 +61,20 @@ export default async function ProjectsPage({
   return (
     <div className="content-wrap management-page management-pipeline">
       <header className="page-header management-heading">
-        <div><p className="eyebrow electric">Project Pipeline</p><h2>Every project,<br /><em>in its place.</em></h2><p className="page-description">A clear view from Discovery to Care. Open the work, see what is due, and choose the next phase when it is ready.</p></div>
+        <div><p className="eyebrow electric">Project Pipeline</p><h2>Every project,<br /><em>in its place.</em></h2><p className="page-description">A visual path from discovery to launch and care.</p></div>
         <Link className="management-text-link" href="/clients">Client directory <span aria-hidden="true">↗</span></Link>
       </header>
 
       <section className="metric-grid" aria-label="Pipeline metrics">
         <MetricCard label="Active Projects" value={error ? "—" : String(active)} detail={error ? "Data unavailable" : `${onHold} on hold`} tone="violet" symbol="key" />
-        <MetricCard label="In Review" value={error ? "—" : String(inReview)} detail="Projects in review" tone="pink" symbol="rose" />
-        <MetricCard label="Launching" value={error ? "—" : String(inLaunch)} detail="Projects in launch" tone="cyan" symbol="spark" />
+        <MetricCard label="In Review" value={error ? "—" : String(inReview)} detail="Review stage" tone="pink" symbol="rose" />
+        <MetricCard label="Launching" value={error ? "—" : String(inLaunch)} detail="Launch stage" tone="cyan" symbol="spark" />
       </section>
       {formError && <div className="management-notice" role="alert">{formError}</div>}
       {error && <div className="management-notice" role="alert"><strong>Project data could not load.</strong><span>Refresh to try again.</span></div>}
 
       <details className="nocturne-create-panel" id="new-project" open={Boolean(formError) || Boolean(requestedClient)} aria-label="New project">
-        <summary className="nocturne-create-toggle"><strong>New project</strong><span>Make room for the next idea</span></summary>
+        <summary className="nocturne-create-toggle"><strong>New project</strong><span>＋</span></summary>
         <form action={createProject} className="management-create-form">
           <fieldset className="management-create-fields" disabled={!!clientsError || !clients.length}>
           <label className="field"><span>Project name</span><input type="text" name="name" placeholder="Project name" required maxLength={160} /></label>
