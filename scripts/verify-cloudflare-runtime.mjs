@@ -31,7 +31,7 @@ if (config === "wrangler.velvet-atelier-admin-preview.jsonc") {
   assert.equal(pilot.workers_dev, false);
   assert.deepEqual(pilot.routes, []);
   assert.equal(pilot.keep_vars, false);
-  assert.equal(pilot.vars.NHS_APP_URL, "https://example.invalid");
+  assert.equal(pilot.vars.NHS_APP_URL, "https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev");
   assert.equal(pilot.vars.NEXT_PUBLIC_SUPABASE_URL,
     "https://qihwmfwlhsetxwggaesd.supabase.co");
   assert.equal(pilot.vars.MUSE_AI_ENABLED, "false");
