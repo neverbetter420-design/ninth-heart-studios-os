@@ -729,7 +729,7 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(page.locator(".studio-workspace")).toBeVisible();
       await expect(page.locator(".nhs-room-brand img")).toHaveJSProperty("naturalWidth", 160);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
-      if (role === "admin") await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(13, 14, 23)");
+      if (role === "admin") await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     }
   }
   for (const preference of [{ contrast: "more" }, { contrast: "no-preference", forcedColors: "active" }]) {
@@ -887,7 +887,7 @@ test("client portal uses dark open space while retaining the admin project palet
   expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage)).toContain("data:image/webp;base64");
   await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await show(page, "admin", "populated", "project");
-  await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgb(13, 14, 23)");
+  await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 });
 
 

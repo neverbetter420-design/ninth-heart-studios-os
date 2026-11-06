@@ -366,3 +366,44 @@ test("approved NHS editorial continuity applies to actual deep pages, not only t
     await bounds(page);
   }
 });
+
+
+test("dense explanations stay optional across rooms while records and actions remain visible", async ({ page }) => {
+  for (const width of [1440,390]) {
+    await page.setViewportSize({width,height:900});
+    await show(page,"admin","scanner","populated","prospects");
+    const records=page.locator(".scanner-glass-prospects .prospect-card");
+    await expect(records.first()).toBeVisible();
+    await expect(records.first().locator(".prospect-head")).toBeVisible();
+    await expect(records.first().locator(".prospect-actions")).toBeVisible();
+    const layout=await page.locator(".scanner-glass-prospects .prospect-grid").evaluate(el=>getComputedStyle(el).gridTemplateColumns);
+    expect(layout.trim().split(/\s+/).length).toBe(1);
+    const look=await records.first().evaluate(el=>{
+      const css=getComputedStyle(el);
+      return {radius:css.borderTopLeftRadius,shadow:css.boxShadow,image:css.backgroundImage};
+    });
+    expect(look).toEqual({radius:"0px",shadow:"none",image:"none"});
+    const evidence=page.locator(".scanner-glass-prospects .nhs-social-disclosure").first();
+    await expect(evidence).toBeVisible();
+    await expect(evidence.locator(".prospect-social-check")).toBeHidden();
+    await evidence.locator("summary").click();
+    await expect(evidence.locator(".prospect-social-check")).toBeVisible();
+    await bounds(page);
+
+    await show(page,"admin","settings","populated");
+    const settingsHelp=page.locator(".studio-service .nhs-quiet-help").first();
+    await expect(settingsHelp).toBeVisible();
+    await expect(settingsHelp.locator("p")).toBeHidden();
+    await settingsHelp.locator("summary").click();
+    await expect(settingsHelp.locator("p")).toBeVisible();
+    await bounds(page);
+
+    await show(page,"admin","automations","populated");
+    const explanation=page.locator(".engine-registry-row .nhs-quiet-help").first();
+    await expect(explanation).toBeVisible();
+    await expect(explanation.locator("p")).toBeHidden();
+    await explanation.locator("summary").click();
+    await expect(explanation.locator("p")).toBeVisible();
+    await bounds(page);
+  }
+});

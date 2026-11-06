@@ -105,7 +105,10 @@ export default async function SettingsPage() {
                     {s.status}
                   </span>
                 </div>
-                <p>{s.detail}</p>
+                <details className="nhs-quiet-help">
+                  <summary>What this means</summary>
+                  <p>{s.detail}</p>
+                </details>
               </li>
             ))}
           </ul>
