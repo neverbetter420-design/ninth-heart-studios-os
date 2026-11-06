@@ -117,3 +117,57 @@
   .nhs-open-plan .nhs-visual-links a,
   .nhs-open-plan .nhs-visual-note summary { transition: none; }
 }
+
+/* Prospect cards default to key facts and actions, not six consecutive research paragraphs. */
+.nhs-open-plan .nhs-prospect-research {
+  margin: 12px 0;
+  border: 1px solid #9d99c35e;
+  border-radius: 12px;
+  background: linear-gradient(115deg, #1b28406c, #42285042);
+}
+.nhs-open-plan .nhs-prospect-research > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 14px;
+  cursor: pointer;
+  color: #ece6f8;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+.nhs-open-plan .nhs-prospect-research > summary::-webkit-details-marker { display: none; }
+.nhs-open-plan .nhs-prospect-research > summary svg {
+  color: #b3bbff;
+  flex: none;
+}
+.nhs-open-plan .nhs-prospect-research > summary span {
+  margin-left: auto;
+  color: #c9b7ee;
+  font-size: 18px;
+}
+.nhs-open-plan .nhs-prospect-research[open] > summary span { transform: rotate(45deg); }
+.nhs-open-plan .nhs-prospect-research__body {
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+.nhs-open-plan .nhs-prospect-research__body > details {
+  margin: 0;
+  min-width: 0;
+}
+.nhs-open-plan .nhs-prospect-research > summary:focus-visible {
+  outline: 3px solid #c7b6ff;
+  outline-offset: 3px;
+}
+@media (forced-colors: active) {
+  .nhs-open-plan .nhs-visual-note summary,
+  .nhs-open-plan .nhs-visual-links a,
+  .nhs-open-plan .nhs-prospect-research {
+    border: 1px solid CanvasText;
+  }
+  .nhs-open-plan .nhs-fit-composition > span {
+    border: 1px solid CanvasText;
+  }
+}
