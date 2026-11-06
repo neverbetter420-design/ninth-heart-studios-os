@@ -341,7 +341,7 @@ test("approved NHS editorial continuity applies to actual deep pages, not only t
     await page.setViewportSize({ width, height: 920 });
     for (const [role, view, selector, room] of rows) {
       await show(page, role, view, "populated");
-      await expect(page.locator(`.nhs-room-identity[data-room="\${room}"]`)).toHaveCount(1);
+      await expect(page.locator(`.nhs-room-identity[data-room="${room}"]`)).toHaveCount(1);
       const entries = page.locator(selector);
       await expect(entries.first()).toBeVisible();
       const surface = await entries.first().evaluate((element) => {
@@ -349,9 +349,9 @@ test("approved NHS editorial continuity applies to actual deep pages, not only t
         return { background:style.backgroundColor, image:style.backgroundImage,
           radius:style.borderTopLeftRadius, shadow:style.boxShadow };
       });
-      expect(surface.radius, `\${view} must read as an open row`).toBe("0px");
-      expect(surface.image, `\${view} must not use a decorative card background`).toBe("none");
-      expect(surface.shadow, `\${view} must not show a tiled shadow`).toBe("none");
+      expect(surface.radius, `${view} must read as an open row`).toBe("0px");
+      expect(surface.image, `${view} must not use a decorative card background`).toBe("none");
+      expect(surface.shadow, `${view} must not show a tiled shadow`).toBe("none");
       await bounds(page);
     }
     await show(page,"admin","project","populated");

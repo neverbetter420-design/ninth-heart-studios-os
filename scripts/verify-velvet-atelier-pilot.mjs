@@ -144,7 +144,7 @@ for (const selector of [
   ".studio-workspace-admin", ".pipeline-phase", ".atelier-project-row",
   ".atelier-resource-row", ".scanner-deep-job", ".studio-project-settings"
 ]) {
-  assert.ok(editorial.includes(selector), `The approved open/glass room system must cover \${selector}`);
+  assert.ok(editorial.includes(selector), `The approved open/glass room system must cover ${selector}`);
 }
 assert.match(editorial, /prefers-reduced-motion/);
 assert.match(editorial, /forced-colors:active/);
