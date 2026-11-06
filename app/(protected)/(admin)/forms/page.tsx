@@ -55,10 +55,7 @@ export default async function FormsPage({
             <br />
             <em>A clearer answer.</em>
           </h2>
-          <p className="page-description">
-            Build a fillable form, review its fields, and collect responses
-            through the client workspace.
-          </p>
+          <p className="page-description">Create forms and collect client responses.</p>
         </div>
       </header>
       <DocumentNav current="forms" />
