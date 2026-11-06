@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AtelierSymbol } from "@/components/AtelierSymbol";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { isEmailConfigured } from "@/lib/email";
@@ -53,22 +54,19 @@ export default async function SettingsPage() {
             <br />
             <em>Keep the reins.</em>
           </h2>
-          <p className="page-description">
-            Your studio identity, account and connection checks. This is a
-            status view; changes happen in their dedicated setup.
-          </p>
+          <p className="page-description">Your account and connections, all in one view.</p>
         </div>
         <Link href="/muse" className="management-text-link">
           Back to Muse ↗
         </Link>
       </header>
       <nav
-        className="management-destinations"
+        className="management-destinations nhs-visual-links"
         aria-label="Settings destinations"
       >
-        <a href="#studio-identity">Studio & account</a>
-        <a href="#studio-connections">Connections</a>
-        <a href="#studio-controls">Controls</a>
+        <a href="#studio-identity"><AtelierSymbol name="rose" size={20} /> Studio &amp; account</a>
+        <a href="#studio-connections"><AtelierSymbol name="key" size={20} /> Connections</a>
+        <a href="#studio-controls"><AtelierSymbol name="spark" size={20} /> Controls</a>
       </nav>
       <div className="studio-settings-grid">
         <section id="studio-identity" aria-label="Studio">
