@@ -44,7 +44,7 @@ export function LivingStudioHub({
       <div className="living-studio__intro">
         <span className="living-studio__eyebrow">01 / Your command map</span>
         <h3 id="living-studio-title">A living<br />{" "}<em>studio.</em></h3>
-        <p>Your rooms, priorities and momentum. Nothing buried in another card.</p>
+        <p>Your rooms and momentum, at a glance.</p>
         <span className="living-studio__flourish" aria-hidden="true">
           <AtelierSymbol name="rose" size={20} />
           <span />

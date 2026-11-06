@@ -95,7 +95,7 @@ export async function Dashboard() {
         <div className="nocturne-welcome-copy">
           <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
           <h2>Your studio, <em>in focus.</em></h2>
-          <p className="page-description">A little clarity. A little momentum.<br />Space for your next beautiful thing.</p>
+          <p className="page-description">The work that matters, in one view.</p>
           <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
         </div>
         <NocturneStudioArt />

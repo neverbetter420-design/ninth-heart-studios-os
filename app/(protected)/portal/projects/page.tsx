@@ -21,7 +21,7 @@ export default async function ClientProjectsPage() {
       <header className="atelier-collection-heading">
         <p className="atelier-overline">Client Atelier · Project collection</p>
         <h2>Your projects, thoughtfully organized.</h2>
-        <p>A clear place for timelines, shared work and everything the studio is making for you.</p>
+        <p>Your timelines and shared work, together.</p>
       </header>
 
       {error ? (

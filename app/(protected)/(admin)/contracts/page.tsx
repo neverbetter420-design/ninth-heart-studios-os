@@ -66,10 +66,7 @@ export default async function ContractsPage({
             <br />
             <em>in writing.</em>
           </h2>
-          <p className="page-description">
-            Draft the terms, share an agreement, and keep its signature record
-            in one place.
-          </p>
+          <p className="page-description">Draft, share, and track signatures.</p>
         </div>
       </header>
       <DocumentNav current="contracts" />
@@ -96,7 +93,7 @@ export default async function ContractsPage({
       {formError ? <DocumentNotice>{formError}</DocumentNotice> : null}
       <DocumentCreate
         title="New contract"
-        detail="Start with a blank draft or a text template"
+        detail="Blank or template"
         open={Boolean(formError)}
       >
         <form action={createContract} className="paperwork-form">

@@ -41,10 +41,7 @@ export default async function TemplatesPage({
             <br />
             <em>Made yours, every time.</em>
           </h2>
-          <p className="page-description">
-            Keep reusable contract terms and document copy ready for the next
-            project. Use Fillable forms when clients need to answer questions.
-          </p>
+          <p className="page-description">Reusable wording, ready for your next project.</p>
         </div>
       </header>
       <DocumentNav current="templates" />
