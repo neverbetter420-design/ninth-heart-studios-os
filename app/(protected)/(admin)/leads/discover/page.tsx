@@ -676,6 +676,9 @@ export default async function DiscoverPage({
                   </span>
                 </div>
 
+                <details className="nhs-prospect-research" aria-label={`Research and evidence for ${p.business_name}`}>
+                  <summary><AtelierSymbol name="spark" size={17} /> Research &amp; evidence <span aria-hidden="true">+</span></summary>
+                  <div className="nhs-prospect-research__body">
                 {p.signals?.curation && (
                   <details className="nhs-quiet-help" aria-label="Prospect selection evidence">
                     <summary>Selection evidence · Reliability {p.signals.curation.reliability}/100</summary>
@@ -804,6 +807,8 @@ export default async function DiscoverPage({
                       </li>
                     ))}
                   </ul>
+                </details>
+                  </div>
                 </details>
                 <div className="badge-row">
                   {badges.map((b, i) => (
