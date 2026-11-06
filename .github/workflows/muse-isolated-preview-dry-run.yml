@@ -62,7 +62,11 @@ jobs:
         run: node scripts/verify-velvet-atelier-pilot.mjs
       - name: Validate isolated Velvet Worker bundle without publishing
         run: npx wrangler deploy --dry-run --config wrangler.velvet-atelier-admin-preview.jsonc
+      - name: Smoke-test the compiled Velvet Worker on local loopback (no hosted deployment)
+        env:
+          NHS_WORKER_CONFIG: wrangler.velvet-atelier-admin-preview.jsonc
+        run: node scripts/verify-cloudflare-runtime.mjs
       - name: Record strictly non-deploying result
         run: |
           echo "Built the actual OpenNext Worker and dry-ran Nocturne inert, Nocturne staging, and Velvet Admin pilot configs (no publish)." >> "$GITHUB_STEP_SUMMARY"
-          echo "No Cloudflare deployment, route or variable change; no hosted Supabase, client data, paid AI, or Muse feature activation." >> "$GITHUB_STEP_SUMMARY"
+          echo "Local workerd public-route runtime smoke, no hosted Worker deployment, route or variable change; no logins, client-data writes, paid AI, or Muse feature activation." >> "$GITHUB_STEP_SUMMARY"
