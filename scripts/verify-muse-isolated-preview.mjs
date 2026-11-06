@@ -58,6 +58,14 @@ assert.match(workflow, /^\s*run:\s*npm run cf:build\s*$/m,
 assert.match(workflow,
   /^\s*run:\s*npx wrangler deploy --dry-run --config wrangler\.nocturne-preview\.jsonc\s*$/m,
   "Offline CI must target only the dedicated preview config using --dry-run");
+assert.match(workflow,
+  /^\s*run:\s*node scripts\/verify-velvet-atelier-pilot\.mjs\s*$/m,
+  "Velvet source isolation must be checked before its bundle dry-run");
+assert.match(workflow,
+  /^\s*run:\s*npx wrangler deploy --dry-run --config wrangler\.velvet-atelier-admin-preview\.jsonc\s*$/m,
+  "Velvet preview must be bundle-tested only with the dedicated config and --dry-run");
+assert.match(workflow, /'wrangler\.velvet-atelier-admin-preview\.jsonc'/,
+  "Changes to Velvet preview config must trigger offline preview QA");
 assert.doesNotMatch(workflow,
   /^\s*run:\s*(?:npm run cf:deploy\b|npx wrangler (?:deploy(?!\s+--dry-run)|preview\b))/m,
   "Offline preview CI must not deploy or publish a Worker");

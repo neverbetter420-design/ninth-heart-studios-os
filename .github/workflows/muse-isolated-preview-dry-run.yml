@@ -10,7 +10,9 @@ on:
       - 'wrangler.jsonc'
       - 'wrangler.nocturne-preview.jsonc'
       - 'wrangler.nocturne-staging-preview.jsonc'
+      - 'wrangler.velvet-atelier-admin-preview.jsonc'
       - 'scripts/verify-staging-preview.mjs'
+      - 'scripts/verify-velvet-atelier-pilot.mjs'
       - 'scripts/verify-muse-isolated-preview.mjs'
       - 'app/**'
       - 'components/**'
@@ -56,7 +58,11 @@ jobs:
         run: npx wrangler deploy --dry-run --config wrangler.nocturne-preview.jsonc
       - name: Validate staging-auth Worker bundle without publishing
         run: npx wrangler deploy --dry-run --config wrangler.nocturne-staging-preview.jsonc
+      - name: Recheck Velvet pilot isolation before bundle testing
+        run: node scripts/verify-velvet-atelier-pilot.mjs
+      - name: Validate isolated Velvet Worker bundle without publishing
+        run: npx wrangler deploy --dry-run --config wrangler.velvet-atelier-admin-preview.jsonc
       - name: Record strictly non-deploying result
         run: |
-          echo "Built OpenNext Worker, validated isolated Nocturne preview config, and ran Wrangler --dry-run only." >> "$GITHUB_STEP_SUMMARY"
+          echo "Built the actual OpenNext Worker and dry-ran Nocturne inert, Nocturne staging, and Velvet Admin pilot configs (no publish)." >> "$GITHUB_STEP_SUMMARY"
           echo "No Cloudflare deployment, route or variable change; no hosted Supabase, client data, paid AI, or Muse feature activation." >> "$GITHUB_STEP_SUMMARY"
