@@ -34,7 +34,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
         <div>
           <p className="eyebrow electric">Client Management</p>
           <h2>The people behind<br /><em>the projects.</em></h2>
-          <p className="page-description">Your client relationships, their projects, and the people with portal access. A clear place for every connection.</p>
+          <p className="page-description">Clients, projects and portal access at a glance.</p>
         </div>
         <Link className="management-text-link" href="/projects">Project Pipeline <span aria-hidden="true">↗</span></Link>
       </header>
@@ -47,7 +47,7 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
       </section>
 
       <details className="nocturne-create-panel" open={Boolean(formError)} aria-label="New client">
-        <summary className="nocturne-create-toggle"><strong>New client</strong><span>Start a new relationship</span></summary>
+        <summary className="nocturne-create-toggle"><strong>New client</strong><span>＋</span></summary>
         <form action={createClientAction} className="management-create-form">
           <label className="field"><span>Client / business name</span><input type="text" name="name" placeholder="Business name" required maxLength={160} /></label>
           <label className="field"><span>Website (optional)</span><input type="text" name="website" placeholder="https://…" maxLength={280} /></label>
