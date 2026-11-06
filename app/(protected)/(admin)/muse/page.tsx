@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AtelierSymbol } from "@/components/AtelierSymbol";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -285,19 +286,16 @@ export default async function MusePage({
             <br />
             <em>A sharper next move.</em>
           </h2>
-          <p className="page-description">
-            Find the work that needs you, understand why, and put the first
-            words on the page.
-          </p>
+          <p className="page-description">Priorities, reasoning and drafts, in one place.</p>
         </div>
         <Link href="/settings" className="management-text-link">
           Studio settings ↗
         </Link>
       </header>
-      <nav className="management-destinations" aria-label="Muse destinations">
-        <a href="#muse-focus">Studio focus</a>
-        <a href="#muse-compose">Write a draft</a>
-        <a href="#muse-saved">Saved drafts</a>
+      <nav className="management-destinations nhs-visual-links" aria-label="Muse destinations">
+        <a href="#muse-focus"><AtelierSymbol name="spark" size={20} /> Studio focus</a>
+        <a href="#muse-compose"><AtelierSymbol name="rose" size={20} /> Write a draft</a>
+        <a href="#muse-saved"><AtelierSymbol name="key" size={20} /> Saved drafts</a>
       </nav>
       <section
         id="muse-focus"
