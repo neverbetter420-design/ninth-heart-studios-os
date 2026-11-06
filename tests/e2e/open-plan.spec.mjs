@@ -325,3 +325,44 @@ test("cinematic room photos remain locked to the viewport while content scrolls"
     }
   }
 });
+
+
+test("approved NHS editorial continuity applies to actual deep pages, not only the seven backgrounds", async ({ page }) => {
+  // Synthetic-only source rendering. This fails when old opaque tiled layouts
+  // silently return to Client, Leads, Archive, or the Client Portal.
+  const rows = [
+    ["admin", "clients", ".management-client-row", "rose"],
+    ["admin", "leads", ".lead-inbox-row", "electric"],
+    ["admin", "contracts", ".paperwork-row", "archive"],
+    ["client", "portal-projects", ".atelier-project-row", "private"],
+    ["client", "portal-files", ".atelier-resource-row", "private"],
+  ];
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 920 });
+    for (const [role, view, selector, room] of rows) {
+      await show(page, role, view, "populated");
+      await expect(page.locator(`.nhs-room-identity[data-room="\${room}"]`)).toHaveCount(1);
+      const entries = page.locator(selector);
+      await expect(entries.first()).toBeVisible();
+      const surface = await entries.first().evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { background:style.backgroundColor, image:style.backgroundImage,
+          radius:style.borderTopLeftRadius, shadow:style.boxShadow };
+      });
+      expect(surface.radius, `\${view} must read as an open row`).toBe("0px");
+      expect(surface.image, `\${view} must not use a decorative card background`).toBe("none");
+      expect(surface.shadow, `\${view} must not show a tiled shadow`).toBe("none");
+      await bounds(page);
+    }
+    await show(page,"admin","project","populated");
+    const root = page.locator(".studio-workspace-admin");
+    await expect(root).toBeVisible();
+    const workspace = await root.evaluate(el => {
+      const css=getComputedStyle(el);
+      return {image:css.backgroundImage, color:css.backgroundColor, shadow:css.boxShadow};
+    });
+    expect(workspace.image).toBe("none");
+    expect(workspace.shadow).toBe("none");
+    await bounds(page);
+  }
+});

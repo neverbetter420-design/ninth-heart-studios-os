@@ -134,3 +134,18 @@ assert.doesNotMatch(pilotWorkflow, /CLOUDFLARE_API_TOKEN|wrangler-action|\bwrang
 console.log("PASS: Admin pilot workflow cannot publish, use release credentials or enable Muse");
 
 
+
+
+// Seven-room design continuity is a release contract, not a one-page mockup.
+const editorial = source("app/nhs-room-editorial.css");
+assert.match(editorial, /NHS EDITORIAL CONTINUITY LOCK/);
+for (const selector of [
+  ".management-client-row", ".paperwork-row", ".lead-inbox-row",
+  ".studio-workspace-admin", ".pipeline-phase", ".atelier-project-row",
+  ".atelier-resource-row", ".scanner-deep-job", ".studio-project-settings"
+]) {
+  assert.ok(editorial.includes(selector), `The approved open/glass room system must cover \${selector}`);
+}
+assert.match(editorial, /prefers-reduced-motion/);
+assert.match(editorial, /forced-colors:active/);
+console.log("PASS: shared editorial continuity guard covers deep Admin and Client Portal screens");
