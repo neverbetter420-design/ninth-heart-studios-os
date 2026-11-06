@@ -71,12 +71,11 @@ function itemTitle(kind: PortalResourceKind, item: ResourceRow): string {
   return item.title ?? "Project item";
 }
 
-function detail(kind: PortalResourceKind, item: ResourceRow): string {
-  if (kind === "messages") return item.body ?? "";
-  if (kind === "files") return "Open the project to download or upload files.";
-  if (kind === "forms") return "Open the project to review or complete the form.";
-  return "Status: " + (item.status ?? "unknown").replaceAll("_", " ");
-}
+// Long messages remain readable via disclosure; repeating open/status text
+// underneath every item is unnecessary because the button and badge say it.
+const resourceSymbol: Record<PortalResourceKind, string> = {
+  messages: "✉", files: "◇", approvals: "✓", contracts: "▤", forms: "✧",
+};
 
 export async function PortalResourcePage({ kind }: { kind: PortalResourceKind }) {
   const { profile } = await requireUser();
@@ -154,11 +153,22 @@ export async function PortalResourcePage({ kind }: { kind: PortalResourceKind })
                 {group.items.map((item) => (
                   <li key={item.id} className="atelier-resource-row">
                     <div className="atelier-resource-row-content">
+                      <span className="nhs-resource-icon" aria-hidden="true">{resourceSymbol[kind]}</span>
                       <span className="atelier-resource-row-kicker">
                         {kind === "messages" ? "Conversation" : kind === "approvals" ? "Decision" : kind === "files" ? "File" : "Project record"}
                       </span>
                       <h4>{itemTitle(kind, item)}</h4>
-                      <p>{detail(kind, item)}</p>
+                      {kind === "messages" && item.body ? (
+                        item.body.length > 160 ? (
+                          <>
+                            <p className="nhs-message-excerpt">{item.body.slice(0, 160).trimEnd()}…</p>
+                            <details className="nhs-quiet-help">
+                              <summary>Read full message</summary>
+                              <p className="nhs-message-full">{item.body}</p>
+                            </details>
+                          </>
+                        ) : <p className="nhs-message-full">{item.body}</p>
+                      ) : null}
                     </div>
                     <div className="atelier-resource-row-end">
                       {item.status && <span className="atelier-resource-status">{item.status.replaceAll("_", " ")}</span>}

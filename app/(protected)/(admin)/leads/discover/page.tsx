@@ -613,10 +613,10 @@ export default async function DiscoverPage({
           </a>
         </div>
 
-        <p className="management-help">
-          Showing up to 60 saved prospects. {sortByPriority ? "Highest opportunity first." : "Newest scans first."}
-          Scanned businesses are saved here as prospects. Use “→ Lead” to add one to Lead Intelligence.
-        </p>
+        <details className="nhs-quiet-help">
+          <summary>How saved prospects work</summary>
+          <p>Up to 60 saved businesses appear here, {sortByPriority ? "highest opportunity first" : "newest scans first"}. Choose “→ Lead” to add one to Lead Intelligence. Nothing is contacted automatically.</p>
+        </details>
         <div className="row" aria-label="Sort scanned prospects">
           <a className="mini-button" aria-current={!sortByPriority ? "page" : undefined} href={viewPath({ sort: "recent" })}>Newest scans</a>
           <a className="mini-button" aria-current={sortByPriority ? "page" : undefined} href={viewPath({ sort: "priority" })}>Highest opportunity</a>
@@ -663,12 +663,10 @@ export default async function DiscoverPage({
                 </div>
 
                 {p.signals?.curation && (
-                  <p className="management-help" aria-label="Prospect selection evidence">
-                    Selected · Reliability {p.signals.curation.reliability}/100 ·
-                    Opportunity {p.signals.curation.opportunity}/100 ·
-                    Compared with {p.signals.curation.compared_to} in this business category.
-                    Review contact details before outreach.
-                  </p>
+                  <details className="nhs-quiet-help" aria-label="Prospect selection evidence">
+                    <summary>Selection evidence · Reliability {p.signals.curation.reliability}/100</summary>
+                    <p>Opportunity {p.signals.curation.opportunity}/100 · Compared with {p.signals.curation.compared_to} in this business category. Review contact details before outreach.</p>
+                  </details>
                 )}
                 {p.signals?.verification && (
                   <details className="draft-details" aria-label={`Business verification for ${p.business_name}`}>
@@ -814,10 +812,9 @@ export default async function DiscoverPage({
                   {p.outreach_status === "sent" && <span> · ✉ Sent</span>}
                 </div>
 
-                <section
-                  className="prospect-social-check"
-                  aria-label={`Social verification for ${p.business_name}`}
-                >
+                <details className="nhs-quiet-help nhs-social-disclosure">
+                  <summary>Social profiles &amp; verification</summary>
+                  <section className="prospect-social-check" aria-label={`Social verification for ${p.business_name}`}>
                   {(p.signals?.social_profiles ?? [])
                     .filter((profile) =>
                       normalizeSocialProfile(profile.url, profile.platform),
@@ -873,7 +870,8 @@ export default async function DiscoverPage({
                       </a>
                     </div>
                   )}
-                </section>
+                  </section>
+                </details>
 
                 <div className="prospect-actions">
                   <form action={analyzeProspect.bind(null, p.id)}>

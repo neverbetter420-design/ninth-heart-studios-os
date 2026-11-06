@@ -24,11 +24,11 @@ async function signIn(page, user) {
   }
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).not.toHaveURL(/\/auth\/(?:sign-in|unauthorized)/, { timeout: 25_000 });
-  await expect(page.locator(".navigation-shell")).toBeVisible();
+  await expect(page.locator(".nhs-room-launcher")).toBeVisible();
 }
 
 async function openNavigation(page, isMobile) {
-  if (isMobile) {
+  {
     const open = page.getByRole("button", { name: "Open navigation" });
     await expect(open).toBeVisible();
     await open.click();
@@ -41,16 +41,8 @@ async function openNavigation(page, isMobile) {
 
 async function visitNav(page, isMobile, label, pathname) {
   const nav = await openNavigation(page, isMobile);
-  // Admin nav groups may be collapsed in Nocturne. Expand the group
-  // containing the requested destination before testing the link itself.
-  const item = nav.locator(`a.nav-link[href="${pathname}"]`);
+  const item = nav.locator(`a.nhs-room-link[href="${pathname}"]`);
   await expect(item).toHaveAttribute("href", pathname);
-  if (!(await item.isVisible())) {
-    const group = nav.locator(".nav-section").filter({ has: page.locator(`a.nav-link[href="${pathname}"]`) });
-    const toggle = group.locator(".nav-section-toggle");
-    await expect(toggle).toBeVisible();
-    await toggle.click();
-  }
   await expect(item).toBeVisible();
   await item.click();
   await expect(page).toHaveURL(new RegExp(pathname === "/" ? "/$" : pathname.replaceAll("/", "\\/") + "$"));

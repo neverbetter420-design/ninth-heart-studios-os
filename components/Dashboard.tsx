@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { AtelierSymbol, type AtelierSymbolName } from "./AtelierSymbol";
 import { rankLeads, type FlowkeepLead } from "@/lib/flowkeep";
+import { displayProgress, formatProjectDate, projectDueState } from "@/lib/project-display";
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
-import { MetricCard } from "./MetricCard";
+import { LivingStudioHub } from "./LivingStudioHub";
 import { NocturneStudioArt } from "./NocturneStudioArt";
 import { PriorityHalo, type HaloAction } from "./PriorityHalo";
 
@@ -27,14 +29,9 @@ function stageLabel(status: string): string {
     .join(" ");
 }
 
-function dueLabel(dueDate: string | null): string {
-  if (!dueDate) return "Ongoing";
-  return new Date(dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 export async function Dashboard() {
   const supabase = await createClient();
-  const [{ data: rawLeads }, { count: projectCount }, { data: rawProjects }, { data: rawOpportunities }, { data: rawActivities }] =
+  const [{ data: rawLeads, error: leadsError }, { count: projectCount, error: projectCountError }, { data: rawProjects, error: projectsError }, { data: rawOpportunities, error: opportunitiesError }, { data: rawActivities, error: activitiesError }] =
     await Promise.all([
       supabase
         .from("leads")
@@ -59,6 +56,12 @@ export async function Dashboard() {
         .limit(4),
     ]);
 
+  // A failed read is not an empty studio. Keep the existing queries, but
+  // distinguish unavailable data from genuine zero/empty results.
+  const leadsUnavailable = Boolean(leadsError) || rawLeads === null;
+  const projectsUnavailable = Boolean(projectsError) || rawProjects === null;
+  const opportunitiesUnavailable = Boolean(opportunitiesError) || rawOpportunities === null;
+  const activitiesUnavailable = Boolean(activitiesError) || rawActivities === null;
   const rankedLeads = rankLeads((rawLeads ?? []) as FlowkeepLead[]);
   const nextActions = rankedLeads.slice(0, 3);
   const recommendation = recommendNextAction({
@@ -66,13 +69,20 @@ export async function Dashboard() {
     staleCount: findStaleLeads(rankedLeads).length,
   });
   const waitingOnMe = rankedLeads.filter((lead) => lead.momentum_state === "Waiting on Me" || lead.momentum_state === "New Inbound").length;
-  const replies = rankedLeads.filter((lead) => lead.next_action_kind === "reply").length;
+  const repliesNeeded = rankedLeads.filter((lead) => lead.next_action_kind === "reply").length;
   const inboundRisk = rankedLeads.filter((lead) => lead.sla.status === "overdue" || lead.sla.status === "due_soon").length;
 
   const metrics = [
-    { label: "Active Leads", value: String(rankedLeads.length), detail: `${replies} human repl${replies === 1 ? "y" : "ies"}`, tone: "violet" as const },
-    { label: "Waiting on Me", value: String(waitingOnMe), detail: `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
-    { label: "Open Projects", value: String(projectCount ?? 0), detail: "Across your studio", tone: "cyan" as const },
+    { label: "Active Leads", value: leadsUnavailable ? "—" : String(rankedLeads.length), detail: leadsUnavailable ? "Data unavailable" : `${repliesNeeded} ${repliesNeeded === 1 ? "reply" : "replies"} needed`, tone: "violet" as const },
+    { label: "Waiting on Me", value: leadsUnavailable ? "—" : String(waitingOnMe), detail: leadsUnavailable ? "Data unavailable" : `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
+    { label: "Total Projects", value: projectCountError || projectCount === null ? "—" : String(projectCount), detail: projectCountError || projectCount === null ? "Data unavailable" : "Across your studio", tone: "cyan" as const },
+  ];
+
+  const passages: readonly { href: string; label: string; symbol: AtelierSymbolName; tone: string }[] = [
+    { href: "/leads", label: "Leads", symbol: "rose", tone: "rose" },
+    { href: "/projects", label: "Projects", symbol: "key", tone: "cobalt" },
+    { href: "/clients", label: "Clients", symbol: "skull", tone: "silver" },
+    { href: "/opportunities", label: "Opportunities", symbol: "spark", tone: "violet" },
   ];
 
   const projects = (rawProjects ?? []) as { id: string; name: string; status: string; progress: number; due_date: string | null }[];
@@ -80,7 +90,7 @@ export async function Dashboard() {
   const activities = (rawActivities ?? []) as { id: string; summary: string; created_at: string }[];
 
   return (
-    <div className="content-wrap nocturne-command-center">
+    <div className="content-wrap nocturne-command-center velvet-atelier-pilot">
       <header className="nocturne-overview">
         <div className="nocturne-welcome-copy">
           <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
@@ -89,12 +99,15 @@ export async function Dashboard() {
           <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
         </div>
         <NocturneStudioArt />
+        <div className="velvet-hero-amulets" aria-hidden="true">
+          <span><AtelierSymbol name="skull" size={18} /></span>
+          <span><AtelierSymbol name="rose" size={18} /></span>
+          <span><AtelierSymbol name="key" size={18} /></span>
+        </div>
       </header>
 
       <div className="nhs-command-surface">
-      <section className="metric-grid" aria-label="Studio metrics">
-        {metrics.map((metric) => <MetricCard key={metric.label} {...metric} />)}
-      </section>
+      <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
 
       <section className="dashboard-grid" aria-label="Studio priorities and projects">
         <section className="panel action-panel" aria-labelledby="nocturne-actions-title">
@@ -103,11 +116,11 @@ export async function Dashboard() {
               <p className="eyebrow electric">01 · Your attention</p>
               <h3 id="nocturne-actions-title">Next 3 actions</h3>
             </div>
-            <span className="live-pill"><i /> Ranked for you</span>
+            <span className="live-pill"><i /> {leadsUnavailable ? "Unavailable" : "Ranked for you"}</span>
           </div>
 
           <div className="action-list">
-            {nextActions.length ? (
+            {!leadsUnavailable && nextActions.length ? (
               <PriorityHalo
                 actions={nextActions.map((item): HaloAction => ({
                   id: item.id,
@@ -118,10 +131,21 @@ export async function Dashboard() {
                 }))}
               />
             ) : (
-              <div className="empty-dashboard-actions">
-                <strong>No lead actions yet.</strong>
-                <span>Your next move starts with a conversation. Capture a lead to bring it into focus.</span>
-                <Link href="/leads#quick-capture" className="nocturne-empty-link">Capture a lead <span aria-hidden="true">↗</span></Link>
+              <div className="empty-dashboard-actions velvet-open-empty">
+                <div className="velvet-priority-orbit" aria-hidden="true">
+                  <span className="velvet-orbit-line velvet-orbit-line--outer" />
+                  <span className="velvet-orbit-line velvet-orbit-line--inner" />
+                  <span className="velvet-orbit-center"><AtelierSymbol name="skull" size={36} /></span>
+                  <span className="velvet-orbit-point velvet-orbit-point--rose"><AtelierSymbol name="rose" size={20} /></span>
+                  <span className="velvet-orbit-point velvet-orbit-point--key"><AtelierSymbol name="key" size={19} /></span>
+                  <span className="velvet-orbit-point velvet-orbit-point--spark"><AtelierSymbol name="spark" size={18} /></span>
+                </div>
+                <div className="velvet-open-empty__copy">
+                  <span className="velvet-open-empty__kicker">{leadsUnavailable ? "Signal interrupted" : "A quiet studio, for now"}</span>
+                  <strong>{leadsUnavailable ? "Lead data unavailable." : "No lead actions yet."}</strong>
+                  <span role={leadsUnavailable ? "status" : undefined}>{leadsUnavailable ? "Priorities could not load. Refresh to retry." : "Your next move starts with a conversation. Capture a lead to bring it into focus."}</span>
+                  <Link href={leadsUnavailable ? "/leads" : "/leads#quick-capture"} className="nocturne-empty-link">{leadsUnavailable ? "Open Leads" : "Capture a lead"} <span aria-hidden="true">↗</span></Link>
+                </div>
               </div>
             )}
           </div>
@@ -136,19 +160,46 @@ export async function Dashboard() {
             <Link className="text-button" href="/projects">View pipeline →</Link>
           </div>
           <div className="project-list">
-            {projects.length ? projects.map((project) => (
-              <div className="project-row" key={project.id}>
-                <div className="project-copy">
-                  <strong><Link href={"/projects/" + project.id}>{project.name}</Link></strong>
-                  <span>{stageLabel(project.status)} · {dueLabel(project.due_date)}</span>
-                </div>
-                <div className="progress-track" aria-label={`${project.progress}% complete`}>
-                  <span style={{ width: `${project.progress}%` }} />
-                </div>
-                <b>{project.progress}%</b>
+            {projectsUnavailable ? (
+              <div className="velvet-project-empty" role="status">
+                <span aria-hidden="true"><AtelierSymbol name="key" size={19} /></span>
+                <p className="pipeline-empty">Project data unavailable. Refresh to retry.</p>
               </div>
-            )) : (
-              <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>
+            ) : projects.length ? projects.map((project, index) => {
+              const progress = displayProgress(project.progress);
+              const due = project.status === "on_hold" ? null : projectDueState(project.due_date);
+              return (
+                <article className="project-row velvet-project-journey" key={project.id}>
+                  <span className="velvet-project-journey__number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                  <div className="velvet-project-journey__content">
+                    <div className="project-copy">
+                      <strong>
+                        <Link href={"/projects/" + project.id}>
+                          {project.name}<span className="velvet-project-journey__link-mark" aria-hidden="true">↗</span>
+                        </Link>
+                      </strong>
+                      <span className="velvet-project-journey__meta">
+                        <span className="velvet-project-journey__phase">{stageLabel(project.status)}</span>
+                        <span aria-hidden="true">·</span>
+                        <span className={"velvet-project-journey__due" + (due ? " velvet-project-journey__due--" + due : "")}>
+                          {due === "overdue" ? "Overdue · " : due === "soon" ? "Due soon · " : ""}{formatProjectDate(project.due_date)}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="velvet-project-journey__measure">
+                      <div className="progress-track" role="progressbar" aria-label={"Recorded progress for " + project.name} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+                        <span style={{ width: progress + "%" }} />
+                      </div>
+                      <b>{progress}%</b>
+                    </div>
+                  </div>
+                </article>
+              );
+            }) : (
+              <div className="velvet-project-empty">
+                <span aria-hidden="true"><AtelierSymbol name="key" size={19} /></span>
+                <p className="pipeline-empty">No projects yet. Create one from a lead or from the pipeline.</p>
+              </div>
             )}
           </div>
         </section>
@@ -160,14 +211,30 @@ export async function Dashboard() {
           <p className="eyebrow">03 · The latest</p>
           <h3 id="nocturne-activity-title">Around the studio</h3>
         </div>
-        <div className="activity-list">
-          {activities.length ? activities.map((item) => (
-            <div className="activity-row" key={item.id}>
+        <div className="activity-list velvet-activity-timeline" role="list" aria-label="Recent studio activity">
+          {activitiesUnavailable ? (
+            <div className="velvet-chronicle-state velvet-chronicle-state--unavailable">
+              <span className="velvet-chronicle-state__mark" aria-hidden="true"><AtelierSymbol name="spark" size={27} /></span>
+              <div className="velvet-chronicle-state__copy">
+                <strong>Studio signal interrupted.</strong>
+                <p className="nocturne-activity-empty" role="status">Studio activity unavailable. Refresh to retry.</p>
+              </div>
+            </div>
+          ) : activities.length ? activities.map((item) => (
+            <article className="activity-row velvet-activity-event" role="listitem" key={item.id}>
               <span className="activity-dot" aria-hidden="true" />
               <p>{item.summary}</p>
               <time dateTime={item.created_at}>{relativeTime(item.created_at)}</time>
+            </article>
+          )) : (
+            <div className="velvet-chronicle-state velvet-chronicle-state--quiet">
+              <span className="velvet-chronicle-state__mark" aria-hidden="true"><AtelierSymbol name="rose" size={27} /></span>
+              <div className="velvet-chronicle-state__copy">
+                <strong>A little room for what comes next.</strong>
+                <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>
+              </div>
             </div>
-          )) : <p className="nocturne-activity-empty">A quiet moment. Your studio activity will appear here.</p>}
+          )}
         </div>
       </section>
 
@@ -185,12 +252,18 @@ export async function Dashboard() {
               <h3>Studio intelligence</h3>
             </div>
           </div>
-          <p className="muse-copy">{recommendation.detail}</p>
-          <div className="muse-suggestion">
-            <span>The one thing</span>
-            <strong>{recommendation.title}</strong>
-            <small>{recommendation.why}</small>
-          </div>
+          {leadsUnavailable ? (
+            <p className="muse-copy" role="status">Lead recommendations are unavailable. Refresh to retry.</p>
+          ) : (
+            <>
+              <p className="muse-copy">{recommendation.detail}</p>
+              <div className="muse-suggestion">
+                <span>The one thing</span>
+                <strong>{recommendation.title}</strong>
+                <small>{recommendation.why}</small>
+              </div>
+            </>
+          )}
           <Link className="secondary-button wide muse-link" href="/muse">
             Open Muse
           </Link>
@@ -205,7 +278,9 @@ export async function Dashboard() {
             <span className="beta-pill">Preview</span>
           </div>
           <div className="radar-list">
-            {opportunities.length ? opportunities.map((item) => (
+            {opportunitiesUnavailable ? (
+              <p className="pipeline-empty" role="status">Opportunity data unavailable. Refresh to retry.</p>
+            ) : opportunities.length ? opportunities.map((item) => (
               <div className="radar-row" key={item.id}>
                 <div>
                   <small>{item.source}</small>

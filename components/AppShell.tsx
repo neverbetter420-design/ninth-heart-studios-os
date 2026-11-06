@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 import { MuseConcierge } from "./MuseConcierge";
 import { RoomIdentity } from "./RoomIdentity";
 import type { AppRole } from "@/lib/supabase/types";
-import { Sidebar } from "./Sidebar";
+import { RoomNavigation } from "./RoomNavigation";
 import { WorkspaceBreadcrumbs } from "./WorkspaceBreadcrumbs";
 import { ActionNotifications } from "./ActionNotifications";
+import { ClientRoomRelics } from "./AtelierRelic";
 
 export function AppShell({
   children,
@@ -16,10 +17,11 @@ export function AppShell({
   user: { name: string; email: string };
 }) {
   return (
-    <div className={`app-shell ${role === "client" ? "nhs-theme-client" : "nhs-theme-admin"}`}>
-      <Sidebar role={role} user={user} />
-      <main className="main-shell">
+    <div className={`app-shell nhs-open-plan ${role === "client" ? "nhs-theme-client" : "nhs-theme-admin"}`}>
+      <a className="nhs-skip-link" href="#workspace-content">Skip to workspace</a>
+      <div className="main-shell">
         <header className="nhs-context-bar" aria-label="Workspace account">
+          <RoomNavigation role={role} />
           <div className="nhs-context-location">
             <span className="nhs-context-symbol" aria-hidden="true">✧</span>
             <WorkspaceBreadcrumbs role={role} />
@@ -33,8 +35,11 @@ export function AppShell({
             </form>
           </div>
         </header>
-        {children}
-      </main>
+        <main id="workspace-content" tabIndex={-1}>
+          {role === "client" && <ClientRoomRelics />}
+          {children}
+        </main>
+      </div>
       <ActionNotifications />
     </div>
   );

@@ -1,0 +1,768 @@
+/* Shared architecture, loaded after the historical room themes. The directory
+   lives in the browser top layer; no sidebar, reserved column or mobile dock. */
+.app-shell.nhs-open-plan { display: block; min-height: 100dvh; }
+.nhs-open-plan > .main-shell { margin: 0; width: 100%; min-width: 0; }
+.nhs-open-plan .nhs-context-bar {
+  position: relative; top: auto; display: flex; flex-wrap: wrap; align-items: center;
+  gap: 14px 28px; min-height: 92px; padding: 18px clamp(20px, 4vw, 64px);
+  background: #0d0e19e8; border: 0; border-bottom: 1px solid #b2a9d12b;
+  color: #f1edf8; z-index: 40;
+}
+.nhs-open-plan .nhs-context-location { flex: 1; min-width: 160px; }
+.app-shell.nhs-open-plan .nhs-context-account { display: flex; margin-left: auto; color: #c8c5d8; }
+.app-shell.nhs-open-plan .nhs-context-account > form { display: block; }
+.nhs-open-plan :is(.nhs-context-name,.nhs-sign-out,.workspace-breadcrumbs a,.workspace-breadcrumbs span) { color: #d4cde5; }
+.nhs-open-plan .nhs-context-symbol { display: none; }
+.app-shell.nhs-open-plan .nhs-context-bar :is(.nhs-breadcrumbs a,.nhs-breadcrumbs span) { color: #c6bfd8; }
+.app-shell.nhs-open-plan .nhs-context-bar .nhs-sign-out { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #bba8e745; background: #141522; color: #d4cde5; }
+.app-shell.nhs-open-plan .nhs-context-bar .nhs-sign-out:hover { background: #252239; color: #f1edf8; }
+.nhs-open-plan .nhs-room-identity { color: #c4b7f0; border-color: #af9fde45; background: #a590e310; }
+.nhs-open-plan .content-wrap { max-width: 1560px; margin-inline: auto; }
+.nhs-room-launcher { display: flex; align-items: center; gap: clamp(16px, 3vw, 40px); }
+.nhs-room-brand { display: flex; align-items: center; gap: 12px; color: #f2eafa; text-decoration: none; }
+.nhs-room-brand > span { font-family: var(--font-cinzel), Georgia, serif; font-size: 14px; letter-spacing: .08em; }
+.nhs-room-brand > span > span { display: block; font: 10px/1.7 var(--font-dm-sans), sans-serif; text-transform: uppercase; letter-spacing: .2em; color: #b9b3cc; }
+.nhs-room-brand .nhs-brand-logo { width: 44px; height: 44px; object-fit: contain; filter: none; }
+.nhs-rooms-trigger { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 10px 16px; border: 1px solid #bba8e757; border-radius: 99px; color: #f1e8ff; background: #a388d512; font: 500 13px var(--font-dm-sans), sans-serif; cursor: pointer; }
+.nhs-rooms-trigger:hover { background: #a388d52b; }
+.nhs-room-directory[popover] { position: fixed; inset: 106px 24px auto; margin: 0 auto; width: min(1120px, calc(100% - 48px)); max-height: calc(100dvh - 130px); overflow-y: auto; overscroll-behavior: contain; padding: clamp(22px, 4vw, 48px); border: 1px solid #bba8e757; border-radius: 18px; background: #141522; color: #f3edf9; box-shadow: 0 30px 100px #0009; }
+.nhs-room-directory::backdrop { background: #07081099; backdrop-filter: blur(8px); }
+.nhs-directory-heading { display: flex; justify-content: space-between; align-items: start; gap: 20px; margin-bottom: 32px; }
+.nhs-directory-heading .eyebrow { margin: 0; color: #c7b8e9; font-size: 10px; }
+.nhs-directory-heading h2 { margin: 10px 0 0; font: 400 clamp(28px, 4vw, 44px)/1.2 Georgia, serif; color: #f3edf9; }
+.nhs-directory-heading button { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 12px; border: 1px solid #9d92bc65; border-radius: 8px; background: transparent; color: #e5dcef; cursor: pointer; }
+.nhs-directory-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 32px; }
+.nhs-directory-grid section { min-width: 0; }
+.nhs-directory-grid h3 { margin: 0 0 10px; color: #b9accf; font: 500 11px/1.5 var(--font-dm-sans), sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.nhs-room-link { display: grid; grid-template-columns: 20px minmax(0,1fr) 16px; gap: 10px; align-items: center; padding: 12px 8px; min-height: 48px; border-block-end: 1px solid #b4a1d72b; color: #f0e9f6; text-decoration: none; font: 400 14px/1.5 var(--font-dm-sans), sans-serif; overflow-wrap: anywhere; }
+.nhs-room-link > span:first-child { color: #beadf0; }
+.nhs-room-link > span:last-child { color: #ac9bcf; }
+.nhs-room-link[aria-current="page"] { background: #a288db1f; border-radius: 6px; box-shadow: inset 3px 0 #baa3ed; }
+.nhs-room-link:hover { background: #a288db2b; }
+.nhs-directory-studio { display: inline-flex; align-items: center; gap: 32px; min-height: 44px; margin-top: 32px; color: #c3b5dd; font-size: 12px; text-underline-offset: 5px; }
+.nhs-open-plan :is(a,button,input,textarea,select,summary):focus-visible { outline: 3px solid #c7b6ff; outline-offset: 4px; }
+.nhs-skip-link { position: fixed; top: 8px; left: 20px; transform: translateY(-200%); padding: 14px 20px; background: #e7dcff; color: #131222; border-radius: 8px; z-index: 100; }
+.nhs-skip-link:focus { transform: none; }
+#workspace-content { min-width: 0; scroll-margin-top: 24px; }
+
+/* One client palette across home, collections, project work and dialogs. This
+   explicit scope wins over the historic ivory themes, without touching assets,
+   data, artwork in uploads, authentication or role policies. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) {
+  color-scheme: dark;
+  --text: #f1edf8; --muted: #bdb8ce; --cyan: #c5b6fa;
+  --line: #a99abd36; --line-hot: #c0a6ea80; --panel: #151624; --panel-soft: #1a1b2c;
+  --nhs-welcome-ivory: #141523; --nhs-welcome-champagne: #1e2035;
+  --nhs-welcome-dark-plum: #c4b0f0; --nhs-welcome-ink: #f1edf8;
+  --nhs-dark-rose-client-ink: #f1edf8;
+  --studio-ink: #f1edf8; --studio-muted: #bdb8ce; --studio-rule: #a99abd36;
+  --studio-surface: #161725; --studio-accent: #c5b6fa; --studio-focus: #c7b6ff;
+  background: #0c0d17; color: #f1edf8;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background: radial-gradient(ellipse at 87% 7%, #37385c50, transparent 40%), radial-gradient(ellipse at 8% 35%, #3b234140, transparent 38%), #0c0d17;
+  color: #f1edf8;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .content-wrap {
+  max-width: 1440px; padding: clamp(28px, 4vw, 64px) clamp(20px, 5vw, 80px) 80px;
+  color: #f1edf8; background: transparent;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-home { gap: clamp(40px, 5vw, 72px); }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-hero {
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 40px;
+  min-height: 330px; padding: 22px 0 48px; border: 0; border-bottom: 1px solid #a99abd36;
+  border-radius: 0; background: none; box-shadow: none; color: #f1edf8;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-hero-copy { max-width: 100%; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-hero h2 {
+  font: 400 clamp(40px, 5vw, 72px)/1.12 Georgia, serif; letter-spacing: -.04em;
+  margin: 22px 0; color: #f1edf8;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-hero h2 em { color: #c2b2ed; font-weight: 400; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(h2,h3,h4,strong,.atelier-project-row h3,.atelier-resource-row-title,.atelier-resource-group-heading h3) { color: #f1edf8; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(p,small,.atelier-overline,.atelier-project-stage,.atelier-progress-info,.atelier-project-footer,.atelier-project-meta,.atelier-resource-meta,.atelier-resource-empty,.atelier-action-note,.nhs-atelier-compass__micro,.nhs-atelier-compass__copy) { color: #bdb8ce; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(a:not(.nhs-room-brand):not(.nhs-room-link),.atelier-arrow,.atelier-destination-icon,.nhs-atelier-compass__illustration,.nhs-atelier-compass__spark) { color: #cfbff7; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-welcome-cta {
+  min-height: 48px; padding: 12px 0; margin-top: 24px; border: 0; border-bottom: 1px solid #bba8e77a;
+  border-radius: 0; background: transparent; color: #dfd4fa; box-shadow: none;
+}
+.nhs-portal-signature { justify-self: center; padding: 30px; text-align: center; transform: rotate(-7deg); }
+.nhs-portal-signature > span { display: block; font: 70px Georgia,serif; color: #b9a5df; }
+.nhs-portal-signature p { font: 400 clamp(24px, 3vw, 38px)/1.3 Georgia, serif; margin: 18px 0 28px; }
+.nhs-portal-signature em { color: #d3c4eb; }
+.nhs-portal-signature small { font-size: 9px; letter-spacing: .25em; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-home-body { grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: clamp(28px, 5vw, 72px); }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-feature-project { padding: 28px 0; background: transparent; border: 0; border-block: 1px solid #a99abd36; border-radius: 0; box-shadow: none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-feature-project h3 { font-size: clamp(28px, 3vw, 42px); margin: 24px 0 16px; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-project-tag { background: #aea0d71c; color: #d1bdf5; border-color: #a99abd36; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-progress-track { background: #7d729740; height: 4px; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.atelier-progress-track,.progress-track) > span { background: linear-gradient(90deg, #bda0e4, #94a6f4); }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass {
+  padding: 28px; margin: 0; border: 1px solid #b6a0d538; border-radius: 4px 28px 4px 4px;
+  background: radial-gradient(ellipse at 100% 0, #65568f24, transparent 65%), #151624; box-shadow: none;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass__controls { border-radius: 6px; background: #0d0e19; padding: 4px; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass__controls button { color: #beb5d0; border-radius: 4px; min-height: 44px; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass__controls button[aria-pressed="true"] { color: #f2eafa; background: #73608c55; border-color: #a995d05c; box-shadow: none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass__progress-inner { background: #151624; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-atelier-compass__illustration { background: radial-gradient(circle, #67518330, transparent 65%); border: 1px solid #af99d640; box-shadow: none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-destinations { background: transparent; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.atelier-destination-grid,.atelier-destination,.atelier-project-row,.atelier-resource-group,.atelier-resource-row,.atelier-documents-route,.atelier-resource-rows) { background: transparent; border-color: #a99abd36; box-shadow: none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.atelier-destination,.atelier-project-row,.atelier-resource-row):hover { background: #b6a0d509; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.studio-workspace-client,.atelier-collection,.atelier-documents-page,.atelier-resource-page) { background: transparent; color: #f1edf8; --studio-ink: #f1edf8; --studio-muted: #bdb8ce; --studio-rule: #a99abd36; --studio-surface: #161725; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.panel,.detail-panel,.studio-journey,.atelier-notice,.atelier-empty,.nhs-gallery-dialog,.nhs-gallery-canvas,.form-fill-card,.invoice-preview,.portal-shortcut,.contract-card) { background: #151624; color: #f1edf8; border-color: #a99abd36; box-shadow: none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select,.nhs-gallery-close,.nhs-gallery-dialog-actions button,.nhs-gallery-dialog-actions a) { color: #f1edf8; background: #0e101c; border-color: #a99abd65; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.primary-button,.mini-button,.portal-submit-button) { background: #bba5ea; border-color: #bba5ea; color: #181322; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.message-bubble,.message-bubble.is-self,.studio-workspace-nav,.atelier-project-nav) { background: #222036; color: #f1edf8; border-color: #a99abd36; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-project-row a { background: transparent; border-color: #a99abd65; color: #cfbff7; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .studio-workspace { --studio-ink: #f1edf8; --studio-muted: #bdb8ce; --studio-rule: #a99abd36; --studio-surface: #161725; --studio-accent: #c5b6fa; --studio-focus: #c7b6ff; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .simple-row > span { color: #bdb8ce; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) :is(.studio-journey-heading > span,.studio-journey-stages li,.studio-journey-stages .studio-journey-number) { color: #bdb8ce; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .studio-journey-stages .is-current { color: #f1edf8; }
+.nhs-open-plan :is(.atelier-hero-copy,.atelier-feature-project,.atelier-destination) { animation: none; }
+@media (max-width: 1000px) {
+  .nhs-open-plan .nhs-context-location { order: 3; flex-basis: 100%; }
+  .nhs-directory-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 700px) {
+  .nhs-open-plan .nhs-context-bar { padding: 14px 20px; gap: 14px; }
+  .nhs-room-brand > span { display: none; }
+  .nhs-room-launcher { gap: 14px; }
+  .nhs-open-plan .nhs-context-name { display: none; }
+  .nhs-open-plan .nhs-context-location { gap: 8px; }
+  .nhs-room-directory[popover] { inset: 84px 12px auto; width: calc(100% - 24px); max-height: calc(100dvh - 100px); padding: 24px 20px; }
+  .nhs-directory-grid { gap: 24px; }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-hero { display: block; padding-bottom: 32px; min-height: 0; }
+  .nhs-portal-signature { display: none; }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-home-body { grid-template-columns: minmax(0,1fr); gap: 36px; }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .atelier-project-footer { flex-wrap: wrap; }
+}
+@media (max-width: 430px) {
+  .nhs-directory-grid { grid-template-columns: minmax(0,1fr); }
+  .nhs-open-plan .nhs-room-identity { display: none; }
+  .nhs-directory-heading h2 { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { .nhs-open-plan *, .nhs-room-directory * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (forced-colors: active) {
+  .nhs-room-directory[popover], .nhs-room-link[aria-current="page"], .nhs-rooms-trigger { background: Canvas; color: CanvasText; border: 1px solid CanvasText; }
+  .nhs-room-link[aria-current="page"] { outline: 2px solid Highlight; }
+}
+
+
+/* NHS Color Studio: the Command Center's original logo + rose/key/spark motif
+   language, translated into a warmer, living client welcome. Does not change
+   permissions, room routes, data queries, actions or the production theme. */
+.app-shell.nhs-open-plan .nhs-context-bar::before {
+  content:""; position:absolute; inset:0 0 auto; height:2px; pointer-events:none;
+  background:linear-gradient(90deg,#388bff,transparent 24%,#f43f97 55%,#9455ec 80%,transparent);
+}
+.nhs-open-plan .nhs-rooms-trigger { border-color:#5589de6b; background:linear-gradient(110deg,#21457c65,#682c7e37); box-shadow:0 0 22px #2979ff12; }
+.nhs-open-plan .nhs-rooms-trigger:hover { background:linear-gradient(110deg,#28508d86,#91338b55); }
+.nhs-directory-grid > section:nth-child(4n+1) { --nhs-directory-accent:#85b6ff; --nhs-directory-glow:#388bff2f; }
+.nhs-directory-grid > section:nth-child(4n+2) { --nhs-directory-accent:#ff86bd; --nhs-directory-glow:#f43f9729; }
+.nhs-directory-grid > section:nth-child(4n+3) { --nhs-directory-accent:#c3a2ff; --nhs-directory-glow:#9455ec31; }
+.nhs-directory-grid > section:nth-child(4n+4) { --nhs-directory-accent:#ffb8b0; --nhs-directory-glow:#c426502b; }
+.nhs-room-directory .nhs-directory-grid h3 { color:var(--nhs-directory-accent); }
+.nhs-room-directory .nhs-room-link { border-bottom-color:#ffffff1d; }
+.nhs-room-directory .nhs-room-link > span:first-child {
+  width:34px; height:34px; display:grid; place-items:center; border-radius:50%;
+  color:var(--nhs-directory-accent); background:var(--nhs-directory-glow);
+  font-size:19px; box-shadow:inset 0 0 0 1px #e9d7ff13;
+}
+.nhs-room-directory .nhs-room-link { grid-template-columns:34px minmax(0,1fr) 16px; gap:13px; }
+.nhs-room-directory .nhs-room-link[aria-current="page"] { box-shadow:inset 3px 0 var(--nhs-directory-accent); background:var(--nhs-directory-glow); }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio {
+  --nhs-cobalt:#82b5ff; --nhs-rose:#ff72b4; --nhs-crimson:#ff7f91; --nhs-violet:#c7a6ff;
+  --nhs-silver:#d4d8e6; gap:clamp(36px,5vw,68px);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background:radial-gradient(ellipse at 92% 7%,#263b6f6b,transparent 42%),
+    radial-gradient(ellipse at 5% 41%,#56214e6b,transparent 42%),
+    radial-gradient(ellipse at 79% 90%,#23285e38,transparent 46%),#0b0e19;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  position:relative; display:grid; grid-template-columns:minmax(0,1.22fr) minmax(290px,.78fr);
+  align-items:center; min-height:380px; gap:clamp(20px,4vw,50px);
+  padding:clamp(20px,3vw,42px) 0 clamp(35px,4vw,54px);
+  border:0; border-bottom:1px solid #b2b5d134; background:transparent; overflow:visible;
+}
+.nhs-color-hero::before { content:""; position:absolute; pointer-events:none; inset:0 auto 0 -4vw; width:65%;
+  background:radial-gradient(ellipse at 19% 47%,#315bb027,transparent 66%); }
+.nhs-color-eyebrow { display:inline-flex; align-items:center; gap:10px; letter-spacing:.15em; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-eyebrow { color:#ffb3d8; }
+.nhs-color-eyebrow svg { flex:none; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero-copy { position:relative; max-width:none; z-index:1; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero h2 {
+  max-width:700px; margin:24px 0 20px; font:400 clamp(40px,4.8vw,70px)/1.1 var(--font-cinzel),Georgia,serif;
+  letter-spacing:-.045em; color:#f9f5ff;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero h2 em {
+  color:#ff95c6; text-shadow:0 0 32px #e43b9844;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-hero-copy > p:not(.atelier-overline) {
+  max-width:500px; color:#ccd2e6; font-size:14px; line-height:1.8;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-welcome-cta {
+  display:inline-flex; align-items:center; justify-content:space-between; gap:22px;
+  margin-top:26px; border:1px solid #558fff9c; border-radius:999px; padding:12px 21px;
+  background:linear-gradient(105deg,#234b9da6,#572e7775); color:#f9f4ff;
+  box-shadow:0 9px 36px #3173d52e; font-size:12px;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-welcome-cta:hover {
+  background:linear-gradient(105deg,#3166bcaa,#95356b80); border-color:#9bbfff; color:#fff;
+}
+.nhs-portal-glance { display:flex; flex-wrap:wrap; gap:clamp(14px,3vw,34px); margin-top:29px; }
+.nhs-portal-glance > span { display:inline-flex; align-items:center; gap:7px; font-size:11px; color:#c4cce7; }
+.nhs-portal-glance > span:first-child svg { color:#8bb9ff; }
+.nhs-portal-glance > span:last-child svg { color:#ff91c9; }
+.nhs-portal-glance strong { color:#fbf7ff; font-size:19px; font-weight:600; font-variant-numeric:tabular-nums; }
+.nhs-color-hero-art { position:relative; justify-self:center; width:min(100%,350px); aspect-ratio:1;
+  display:grid; place-items:center; isolation:isolate; pointer-events:none;
+  background:radial-gradient(circle at center,#24396975 0%,#3b245045 34%,transparent 64%);
+}
+.nhs-color-hero-art::before { content:""; position:absolute; inset:0; z-index:-1;
+  background:url("/visuals/nhs-room-private-atelier.svg") center/cover no-repeat; opacity:.22; filter:saturate(1.4);
+}
+.nhs-color-hero-ring { position:absolute; border-radius:50%; border:1px solid #8faaff64; transform:rotate(-21deg); }
+.nhs-color-hero-ring--outer { width:94%; height:78%; border-style:dashed; border-color:#a4a7de70; }
+.nhs-color-hero-ring--inner { width:73%; height:73%; border-color:#ff7cb04d; box-shadow:0 0 35px #9944c32f; }
+.nhs-color-hero-core { position:relative; z-index:1; width:54%; aspect-ratio:1; border-radius:50%;
+  display:grid; place-content:center; justify-items:center; gap:7px;
+  background:radial-gradient(circle at 30% 25%,#2b3157,#101522 78%);
+  box-shadow:0 0 48px #388bff2a,inset 0 0 0 1px #f2d5ff52; }
+.nhs-color-hero-core img { width:clamp(75px,10vw,118px); height:auto; object-fit:contain; }
+.nhs-color-hero-core small { color:#d9dcf2; font-size:8px; letter-spacing:.12em; text-align:center; }
+.nhs-color-amulet { position:absolute; z-index:2; width:56px; height:56px; border-radius:50%;
+  display:grid; place-items:center; border:1px solid currentColor;
+  background:#13172be9; box-shadow:0 0 26px #0006; }
+.nhs-color-amulet--rose { top:9%; right:11%; color:#ff8bbb; box-shadow:0 0 27px #f43f9730; }
+.nhs-color-amulet--key { bottom:13%; left:4%; color:#8bb9ff; box-shadow:0 0 27px #388bff38; }
+.nhs-color-amulet--spark { bottom:3%; right:15%; color:#c7a6ff; box-shadow:0 0 27px #9455ec30; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-home-body {
+  grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr); align-items:start; gap:clamp(26px,4.8vw,66px);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-feature-project {
+  padding:22px 0; border:0; border-block:1px solid #8da3d64a; background:transparent; box-shadow:none;
+}
+.nhs-feature-project-layout { display:grid; grid-template-columns:minmax(0,1fr) 156px; gap:clamp(20px,3vw,38px); align-items:center; }
+.nhs-feature-project-copy { min-width:0; }
+.nhs-feature-project-copy > p { color:#ccd2e6; font-size:12px; line-height:1.65; margin:0 0 24px; }
+.nhs-feature-project-layout .atelier-progress-info strong { color:#93bfff; }
+.nhs-feature-project-layout .atelier-progress-track { background:#6680b43d; height:5px; }
+.nhs-feature-project-layout .atelier-progress-track > span { background:linear-gradient(90deg,#388bff,#9455ec,#f43f97); }
+.nhs-portal-progress-dial { width:150px; height:150px; padding:11px; display:grid; place-items:center;
+  border-radius:50%; background:conic-gradient(from -90deg,#388bff 0%,#f43f97 var(--nhs-progress),#4a526b70 var(--nhs-progress));
+  box-shadow:0 0 40px #6d57b834; }
+.nhs-portal-progress-dial__center { width:100%; height:100%; display:grid; align-content:center; justify-items:center; gap:7px;
+  border-radius:50%; background:radial-gradient(circle at 40% 25%,#242c4b,#101524 78%); color:#f9f4ff; }
+.nhs-portal-progress-dial__center strong { color:#f9f4ff; font:500 33px/1 Georgia,serif; }
+.nhs-portal-progress-dial__center small { color:#b8caea; font-size:9px; letter-spacing:.13em; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-atelier-compass {
+  padding:27px clamp(20px,2.5vw,31px) 30px; min-height:375px; margin:0;
+  border:1px solid #9d82cd60; border-radius:32px 7px 32px 7px;
+  background:radial-gradient(ellipse at 90% 7%,#7731a337,transparent 50%),
+    radial-gradient(ellipse at 11% 95%,#295bb13a,transparent 42%),#161727;
+  box-shadow:0 22px 70px #0002,inset 0 1px 0 #cbb1ff24;
+}
+.nhs-color-studio .nhs-atelier-compass__spark { color:#ff89c2; }
+.nhs-color-studio .nhs-atelier-compass__controls { border-radius:22px; padding:4px; background:#0c1328; border:1px solid #798acc40; }
+.nhs-color-studio .nhs-atelier-compass__controls button { border-radius:16px; color:#c4d1ee; }
+.nhs-color-studio .nhs-atelier-compass__controls button:nth-child(1) { --compass-tone:#ff93c5; }
+.nhs-color-studio .nhs-atelier-compass__controls button:nth-child(2) { --compass-tone:#8bb9ff; }
+.nhs-color-studio .nhs-atelier-compass__controls button:nth-child(3) { --compass-tone:#c7a6ff; }
+.nhs-color-studio .nhs-atelier-compass__controls button[aria-pressed="true"] {
+  color:var(--compass-tone); border:1px solid #b3a5ed70; background:#2a2845; box-shadow:0 5px 20px #0003;
+}
+.nhs-color-studio .nhs-atelier-compass__controls button:hover { color:#fff; }
+.nhs-color-studio .nhs-atelier-compass__illustration { width:90px; height:90px;
+  color:#ff97ca; border:1px solid #d758b572;
+  background:radial-gradient(circle at center,#5a28646b,#211c39 72%); box-shadow:0 0 36px #dc4eae33; }
+.nhs-color-studio .nhs-atelier-compass__micro { color:#a9bde9; }
+.nhs-color-studio .nhs-atelier-compass__copy { color:#c9c8dc; }
+.nhs-color-studio .nhs-atelier-compass .atelier-text-link { color:#a5c8ff; border-bottom-color:#6795ff8c; }
+.nhs-color-studio .nhs-atelier-compass .atelier-text-link:hover { color:#e3edff; }
+.nhs-color-studio .nhs-atelier-compass__progress { background:conic-gradient(from -90deg,#388bff 0%,#f43f97 var(--compass-progress),#4a526b70 var(--compass-progress)); }
+.nhs-color-studio .nhs-atelier-compass__progress-inner { background:radial-gradient(circle at 25% 15%,#2b2b51,#141628 75%); }
+.nhs-color-studio .nhs-atelier-compass__progress strong { color:#f8f2ff; }
+.nhs-color-studio .nhs-atelier-compass__progress span { color:#b9c3e7; }
+.nhs-color-studio .atelier-section-heading a { color:#9bc2ff; }
+.nhs-color-studio .atelier-section-heading a:hover { color:#d9e9ff; }
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-destination-grid {
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:clamp(10px,3vw,38px);
+  border:0; border-top:1px solid #99a8d944; padding:18px 0 0;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-destination {
+  min-width:0; padding:18px 8px 12px; display:flex; gap:8px; align-items:center; text-align:center;
+  background:transparent; border:0; border-radius:0; box-shadow:none; text-decoration:none; transition:transform .2s ease;
+}
+.nhs-color-studio .atelier-destination:nth-child(1) { --dest-color:#8ebaff; --dest-glow:#388bff49; }
+.nhs-color-studio .atelier-destination:nth-child(2) { --dest-color:#ff95c6; --dest-glow:#f43f9741; }
+.nhs-color-studio .atelier-destination:nth-child(3) { --dest-color:#c2a6ff; --dest-glow:#9455ec4d; }
+.nhs-color-studio .atelier-destination:nth-child(4) { --dest-color:#ff9b9f; --dest-glow:#c4265050; }
+.nhs-color-studio .atelier-destination .atelier-destination-icon {
+  width:72px; height:72px; display:grid; place-items:center; flex:none;
+  border-radius:50%; margin:0 0 12px; color:var(--dest-color); background:radial-gradient(circle,#273651,var(--dest-glow));
+  border:1px solid var(--dest-color); box-shadow:0 0 25px var(--dest-glow); transition:transform .2s ease,box-shadow .2s ease;
+}
+.nhs-color-studio .atelier-destination:hover .atelier-destination-icon { transform:translateY(-4px) scale(1.04); box-shadow:0 0 38px var(--dest-glow); }
+.nhs-color-studio .atelier-destination strong { color:#f3efff; font-size:15px; }
+.nhs-color-studio .atelier-destination small { color:#c1c4d8; font-size:11px; }
+.nhs-color-studio .atelier-destination .atelier-arrow { position:static; color:var(--dest-color); margin-top:4px; }
+.nhs-color-studio .atelier-destination:hover { transform:translateY(-3px); }
+@media(max-width:1000px) {
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero { grid-template-columns:minmax(0,1fr) minmax(220px,.65fr); }
+  .nhs-color-hero-art { width:min(100%,290px); }
+  .nhs-feature-project-layout { grid-template-columns:minmax(0,1fr) 135px; }
+  .nhs-portal-progress-dial { width:130px; height:130px; }
+}
+@media(max-width:740px) {
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero { display:flex; flex-direction:column; align-items:stretch; min-height:0; gap:16px; }
+  .nhs-color-hero-art { width:210px; margin:auto; }
+  .nhs-color-hero-core img { width:74px; }
+  .nhs-color-amulet { width:42px; height:42px; }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-home-body { grid-template-columns:minmax(0,1fr); }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .atelier-destination-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+}
+@media(max-width:390px) {
+  .nhs-color-hero-art { width:170px; }
+  .nhs-color-hero-core small { font-size:6px; }
+  .nhs-feature-project-layout { grid-template-columns:minmax(0,1fr); }
+  .nhs-portal-progress-dial { width:126px; height:126px; justify-self:center; }
+  .nhs-portal-glance { gap:12px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .nhs-color-studio .atelier-destination,.nhs-color-studio .atelier-destination-icon { transition:none; }
+}
+@media (forced-colors:active) {
+  .nhs-color-hero-art::before { background:none; }
+  .nhs-color-studio .atelier-destination .atelier-destination-icon { border:2px solid CanvasText; background:Canvas; color:CanvasText; box-shadow:none; }
+  .nhs-color-studio .nhs-portal-progress-dial { border:4px solid Highlight; background:Canvas; }
+}
+
+
+/* NHS Relic Atelier | November decorative-identity refinement.
+   Three distinct, visibly drawn rose/skull/skeleton-key illustrations;
+   neither tiny icon placeholders nor a substitute for the original NHS logo. */
+.nhs-open-plan #workspace-content { position:relative; isolation:isolate; }
+.nhs-open-plan #workspace-content > :not(.nhs-client-room-relics) { position:relative; z-index:1; }
+.nhs-client-room-relics { position:absolute; z-index:0; top:20px; right:clamp(15px,4vw,78px);
+  width:min(260px,27vw); height:195px; pointer-events:none; user-select:none; opacity:.48; }
+.nhs-client-room-relic { position:absolute; filter:drop-shadow(0 0 17px currentColor); }
+.nhs-client-room-relic--rose { color:#e27dab; right:12%; top:0; transform:rotate(14deg); }
+.nhs-client-room-relic--skull { color:#bdc9e7; right:47%; top:26px; transform:rotate(-13deg); }
+.nhs-client-room-relic--key { color:#8bb5ff; right:-6%; top:71px; transform:rotate(13deg); }
+.nhs-theme-client.nhs-open-plan #workspace-content:has(.nhs-color-studio) > .nhs-client-room-relics { display:none; }
+.nhs-relic-art { display:block; max-width:100%; height:auto; overflow:visible; }
+.nhs-color-studio .nhs-color-hero-art { width:min(100%,410px); overflow:visible; }
+.nhs-color-studio .nhs-color-hero-core { width:48%; z-index:5; box-shadow:0 0 62px #388bff39,inset 0 0 0 1px #f2d5ff52; }
+.nhs-color-studio .nhs-hero-relic {
+  position:absolute; z-index:6; display:block; width:auto; height:auto;
+  border:0; border-radius:0; background:transparent; box-shadow:none;
+  filter:drop-shadow(0 0 12px #e2a1ff45); pointer-events:none;
+}
+.nhs-color-studio .nhs-hero-relic--unused { display:none; }
+.nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic { top:-12%; left:-14%; right:auto; bottom:auto; color:#ff8fbe; transform:rotate(-18deg); filter:drop-shadow(0 0 17px #fc5aa05e); }
+.nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic { top:-7%; right:-8%; left:auto; bottom:auto; color:#d5dbec; transform:rotate(10deg); filter:drop-shadow(0 0 18px #a6b5ea58); }
+.nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic { bottom:-13%; right:-7%; top:auto; left:auto; color:#94bbff; transform:rotate(18deg); filter:drop-shadow(0 0 15px #388bff70); }
+.nhs-color-studio .nhs-color-hero-art::after {
+  content:""; position:absolute; inset:-6%; pointer-events:none; opacity:.7; z-index:0;
+  border:1px solid #8ea7e24d; border-radius:45% 55% 49% 51%; transform:rotate(26deg);
+  box-shadow:0 0 36px #f43f9721,inset 0 0 37px #388bff19;
+}
+.nhs-relic-divider { display:flex; width:100%; align-items:center; justify-content:center;
+  gap:12px; color:#d5a2cf; height:44px; pointer-events:none; opacity:.86; }
+.nhs-relic-divider > span { height:1px; width:min(100px,15%); background:linear-gradient(90deg,transparent,#bca3d090); }
+.nhs-relic-divider > span:last-child { transform:rotate(180deg); }
+.nhs-relic-divider .nhs-relic-art--key { color:#91b6fa; transform:rotate(13deg); }
+.nhs-relic-divider .nhs-relic-art--skull { color:#d0d7e8; }
+.nhs-relic-divider--arrival { margin:-22px auto -12px; }
+.nhs-relic-divider--essentials { margin:10px auto -19px; }
+.nhs-color-studio .nhs-relic-empty { position:relative; min-height:190px; padding:35px clamp(18px,5vw,60px);
+  background:radial-gradient(ellipse at 89% 48%,#bd267c26,transparent 48%),transparent; }
+.nhs-relic-empty-art { display:flex; position:absolute; top:22px; right:30px; align-items:center; gap:6px; pointer-events:none; color:#e7a4cb; opacity:.72; }
+.nhs-relic-empty-art .nhs-relic-art--key { color:#9ab9f3; transform:rotate(-24deg); }
+.nhs-color-studio .nhs-portal-progress-dial { position:relative; isolation:isolate; overflow:visible; }
+.nhs-dial-relic { position:absolute; z-index:1; pointer-events:none; color:#f58cb8; filter:drop-shadow(0 0 8px #fa4b9c4d); }
+.nhs-dial-relic--rose { top:-35px; right:-25px; transform:rotate(16deg); }
+.nhs-dial-relic--key { bottom:-34px; left:-23px; color:#8ebaff; transform:rotate(-13deg); }
+.nhs-color-studio .nhs-atelier-compass { isolation:isolate; }
+.nhs-color-studio .nhs-compass-relic-skull { display:block; color:#d0d9ea; transform:rotate(9deg); opacity:.9; }
+.nhs-color-studio .nhs-compass-relic-rose { position:absolute; right:-13px; bottom:-20px; z-index:0; pointer-events:none;
+  color:#ec80b4; transform:rotate(21deg); opacity:.64; filter:drop-shadow(0 0 14px #f43f9749); }
+.nhs-color-studio .nhs-atelier-compass__controls,
+.nhs-color-studio .nhs-atelier-compass__scene { position:relative; z-index:1; }
+.nhs-color-studio .nhs-atelier-compass__head { min-height:70px; align-items:center; position:relative; z-index:1; }
+@media(max-width:1000px) {
+  .nhs-color-studio .nhs-color-hero-art { width:min(100%,310px); }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic svg { width:105px; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic svg { width:92px; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic svg { width:100px; }
+}
+@media(max-width:740px) {
+  .nhs-color-studio .nhs-color-hero-art { width:min(215px,68vw); margin:30px auto 26px; }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic svg { width:76px; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic svg { width:70px; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic svg { width:82px; }
+  .nhs-client-room-relics { width:145px; opacity:.32; }
+  .nhs-client-room-relic--rose svg { width:68px; }
+  .nhs-client-room-relic--skull svg { width:55px; }
+  .nhs-client-room-relic--key svg { width:62px; }
+  .nhs-relic-empty-art { opacity:.32; right:10px; }
+}
+@media(max-width:390px) {
+  .nhs-color-studio .nhs-color-hero-art { width:170px; margin:22px auto; }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic svg { width:66px; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic svg { width:61px; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic svg { width:69px; }
+  .nhs-color-studio .nhs-color-amulet--rose.nhs-hero-relic { left:-9%; }
+  .nhs-color-studio .nhs-color-amulet--skull.nhs-hero-relic { right:-4%; }
+  .nhs-color-studio .nhs-color-amulet--key.nhs-hero-relic { right:-3%; }
+  .nhs-relic-divider { gap:7px; }
+  .nhs-relic-empty-art { right:0; top:0; }
+}
+@media(forced-colors:active) {
+  .nhs-client-room-relics,.nhs-color-studio .nhs-hero-relic,.nhs-dial-relic,.nhs-compass-relic-rose,.nhs-relic-divider { filter:none; }
+}
+
+
+/* Contain large etched relics horizontally at tablet widths. Keep vertical
+   flourishes visible and prevent a tiny off-screen art stroke from creating
+   horizontal page scroll under the Rooms popover. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  overflow-x:clip;
+  overflow-y:visible;
+}
+
+/* Smaller breakpoints can inherit a few pixels of overflow from nested
+   ornamental shadows or SVG strokes. Clip only the client homepage's
+   horizontal visual overhang, not the working area or its vertical flow. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio {
+  overflow-x:clip;
+  overflow-y:visible;
+}
+
+
+/*
+ * NHS cinematic rooms | same dramatic photographic flow as Command Center,
+ * but a DIFFERENT pictorial composition for every room. The approved
+ * Observatory photography/hero stays untouched.
+ *
+ * Artwork is local, independent of application data or interactions.
+ * It never substitutes for the official NHS logo and forms no click layer.
+ */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) {
+  --nhs-scene-size:min(1260px,104vw) auto;
+  --nhs-scene-position:right -75px top 30px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-electric.svg");
+  --nhs-scene-glow:#407cc4;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-rose.svg");
+  --nhs-scene-glow:#a52d68;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-artist.svg");
+  --nhs-scene-glow:#784da0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-archive.svg");
+  --nhs-scene-glow:#a27653;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-velvet.svg");
+  --nhs-scene-glow:#8655b3;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) {
+  --nhs-scene:url("/visuals/nhs-wallpaper-private.svg");
+  --nhs-scene-glow:#3f75bc;
+}
+/* Full-page room wallpaper: art remains on the right, text stays on an
+   opaque midnight veil. No repeated identical photographic skull. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell {
+  background-color:#070711;
+  background-image:
+    linear-gradient(102deg,rgba(3,4,11,.985) 0%,rgba(3,4,11,.94) 30%,rgba(3,4,11,.52) 74%,rgba(3,4,11,.69) 100%),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 11%,color-mix(in srgb,var(--nhs-scene-glow) 30%,transparent),transparent 62%),
+    linear-gradient(140deg,#030309,#19101f 62%,#030309);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,center;
+  background-repeat:no-repeat;
+}
+/* The entrance artwork flows out of the room instead of appearing in an
+   unrelated box. Retain dark-left/bright-right composition. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  background-color:#090910;
+  background-image:
+    linear-gradient(99deg,rgba(3,4,11,.98),rgba(3,4,11,.8) 51%,rgba(3,4,11,.36)),
+    var(--nhs-scene);
+  background-size:100% 100%,min(900px,84vw) auto;
+  background-position:center,right -45px center;
+  background-repeat:no-repeat;
+  border-color:color-mix(in srgb,var(--nhs-scene-glow) 43%,transparent);
+}
+/* High-specificity Rose Salon hero previously used a pale override. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-color:#090910;
+  background-image:
+    linear-gradient(99deg,rgba(3,4,11,.98),rgba(3,4,11,.8) 51%,rgba(3,4,11,.36)),
+    url("/visuals/nhs-wallpaper-rose.svg");
+  background-size:100% 100%,min(900px,84vw) auto;
+  background-position:center,right -45px center;
+}
+/* Private client space: same atmospheric family, separate butterfly/rose
+   garden artwork; never cream or a duplicate of the Observatory. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-color:#090b1a;
+  background-image:
+    linear-gradient(104deg,rgba(5,7,18,.98),rgba(5,7,18,.90) 32%,rgba(5,7,18,.49) 76%,rgba(5,7,18,.68)),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 14%,rgba(55,106,187,.28),transparent 60%),
+    linear-gradient(143deg,#090b1a,#161020 65%,#090b1a);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,center;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  background-image:
+    linear-gradient(103deg,rgba(5,7,18,.88),rgba(5,7,18,.48) 70%,rgba(5,7,18,.27)),
+    url("/visuals/nhs-wallpaper-private.svg");
+  background-size:100% 100%,min(900px,83vw) auto;
+  background-position:center,right -80px center;
+  background-repeat:no-repeat;
+}
+@media(max-width:850px) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-scene-size:890px auto;
+    --nhs-scene-position:right -275px top 40px;
+  }
+}
+@media(max-width:620px) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-scene-size:650px auto;
+    --nhs-scene-position:right -300px top 54px;
+  }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-size:100% 100%,590px auto;
+    background-position:center,right -260px center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-image:none;
+    background-color:Canvas;
+    color:CanvasText;
+  }
+}
+
+
+/* Photographic depth pass. The hand-drawn focal picture is different in every
+ * room, but a softened, differently cropped original NHS dark-rose texture
+ * reconnects the atmosphere to the owner's approved Command Center reference.
+ * No new interactions, network image dependency or replacement of the
+ * original official NHS brand mark. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) { --nhs-photo-pos:right -305px top 330px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) { --nhs-photo-pos:right -105px top 370px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) { --nhs-photo-pos:right -385px top 320px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) { --nhs-photo-pos:right -125px top 450px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) { --nhs-photo-pos:right -335px top 390px; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) { --nhs-photo-pos:right -210px top 340px; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell {
+  background-image:
+    linear-gradient(103deg,rgba(3,4,11,.99) 0%,rgba(3,4,11,.93) 30%,rgba(3,4,11,.47) 74%,rgba(3,4,11,.63) 100%),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 11%,color-mix(in srgb,var(--nhs-scene-glow) 32%,transparent),transparent 62%),
+    var(--nhs-dark-rose-photo),
+    linear-gradient(135deg,#030309,#1a1022 62%,#030309);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,min(1020px,96vw) auto,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,var(--nhs-photo-pos),center;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-image:
+    linear-gradient(103deg,rgba(5,7,18,.98),rgba(5,7,18,.88) 32%,rgba(5,7,18,.44) 77%,rgba(5,7,18,.62)),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 14%,rgba(55,106,187,.28),transparent 60%),
+    url("/visuals/nhs-dark-rose-photographic.webp"),
+    linear-gradient(143deg,#090b1a,#161020 65%,#090b1a);
+  background-size:100% 100%,var(--nhs-scene-size),100% 100%,min(950px,96vw) auto,100% 100%;
+  background-position:center,var(--nhs-scene-position),center,var(--nhs-photo-pos),center;
+  background-repeat:no-repeat;
+}
+@media(max-width:620px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+    background-size:100% 100%,var(--nhs-scene-size),100% 100%,620px auto,100% 100%;
+    background-position:center,var(--nhs-scene-position),center,right -390px top 420px,center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+    background-image:none;background-color:Canvas;
+  }
+}
+
+
+/* Entrances inherit the same photographic depth as the Command Center,
+   with room-specific crops BEHIND their own pictorial wallpaper.
+   This is atmosphere, not a second copy of the Command Center hero. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) { --nhs-entrance-photo-pos:right -440px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) { --nhs-entrance-photo-pos:right -180px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) { --nhs-entrance-photo-pos:right -490px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) { --nhs-entrance-photo-pos:right -280px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) { --nhs-entrance-photo-pos:right -385px center; }
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) { --nhs-entrance-photo-pos:right -330px center; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.99),rgba(3,4,11,.88) 41%,rgba(3,4,11,.36) 79%,rgba(3,4,11,.48)),
+    var(--nhs-scene),
+    var(--nhs-dark-rose-photo);
+  background-size:100% 100%,min(900px,84vw) auto,min(870px,80vw) auto;
+  background-position:center,right -45px center,var(--nhs-entrance-photo-pos);
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.99),rgba(3,4,11,.88) 41%,rgba(3,4,11,.36) 79%,rgba(3,4,11,.48)),
+    url("/visuals/nhs-wallpaper-rose.svg"),
+    var(--nhs-dark-rose-photo);
+  background-size:100% 100%,min(900px,84vw) auto,min(870px,80vw) auto;
+  background-position:center,right -45px center,var(--nhs-entrance-photo-pos);
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  background-image:
+    linear-gradient(104deg,rgba(5,7,18,.98),rgba(5,7,18,.86) 37%,rgba(5,7,18,.39) 84%,rgba(5,7,18,.46)),
+    url("/visuals/nhs-wallpaper-private.svg"),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+  background-size:100% 100%,min(900px,83vw) auto,min(850px,82vw) auto;
+  background-position:center,right -80px center,var(--nhs-entrance-photo-pos);
+  background-repeat:no-repeat;
+}
+@media(max-width:620px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+      .radar-page > .management-heading) {
+    background-size:100% 100%,570px auto,570px auto;
+    background-position:center,right -220px center,right -375px center;
+  }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-size:100% 100%,590px auto,580px auto;
+    background-position:center,right -260px center,right -365px center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+      .radar-page > .management-heading),
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+  .management-page.management-clients > .page-header.management-heading,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+    background-image:none;background-color:Canvas;color:CanvasText;
+  }
+}
+
+/* Eye-comfort lighting pass (owner request, source-only).
+ * Darken the image layers themselves, NEVER a parent opacity/filter:
+ * project labels, progress, controls and rose/key/silver details keep
+ * their intended contrast and their actual data values. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell {
+  background-color:#04050c;
+  background-image:
+    linear-gradient(103deg,rgba(3,4,11,.995) 0%,rgba(3,4,11,.975) 34%,rgba(3,4,11,.74) 74%,rgba(3,4,11,.84) 100%),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 11%,color-mix(in srgb,var(--nhs-scene-glow) 17%,transparent),transparent 62%),
+    var(--nhs-dark-rose-photo),
+    linear-gradient(135deg,#030309,#0c0a14 62%,#030309);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-color:#050713;
+  background-image:
+    linear-gradient(103deg,rgba(5,7,18,.995),rgba(5,7,18,.965) 34%,rgba(5,7,18,.73) 77%,rgba(5,7,18,.84)),
+    var(--nhs-scene),
+    radial-gradient(ellipse at 88% 14%,rgba(55,106,187,.13),transparent 60%),
+    url("/visuals/nhs-dark-rose-photographic.webp"),
+    linear-gradient(143deg,#050713,#0e0b19 65%,#050713);
+}
+/* Every non-observatory entrance keeps its room photo/scene, with stronger
+   black on the copy side and quieter highlights around imagery. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  background-color:#05060e;
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.995),rgba(3,4,11,.95) 44%,rgba(3,4,11,.69) 79%,rgba(3,4,11,.80)),
+    var(--nhs-scene),
+    var(--nhs-dark-rose-photo);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-color:#05060e;
+  background-image:
+    linear-gradient(101deg,rgba(3,4,11,.995),rgba(3,4,11,.95) 44%,rgba(3,4,11,.69) 79%,rgba(3,4,11,.80)),
+    url("/visuals/nhs-wallpaper-rose.svg"),
+    var(--nhs-dark-rose-photo);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+  background-color:#070915;
+  background-image:
+    linear-gradient(104deg,rgba(5,7,18,.995),rgba(5,7,18,.94) 40%,rgba(5,7,18,.67) 84%,rgba(5,7,18,.75)),
+    url("/visuals/nhs-wallpaper-private.svg"),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+}
+/* Observatory uses its original approved photographic hero, now in lower
+   ambient light. Avoid brightness filters, which would also dim copy. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+  background-image:
+    linear-gradient(90deg,rgba(3,3,9,.995),rgba(3,3,9,.82) 53%,rgba(3,3,9,.47) 93%),
+    url("/visuals/nhs-dark-rose-photographic.webp");
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+.nocturne-command-center.velvet-atelier-pilot::before {
+  opacity:.24;
+}
+/* Dim decorative bloom and halos without lowering clickable-icon contrast. */
+.nhs-color-studio .nhs-color-hero-art {
+  background:radial-gradient(circle at center,#2439693c 0%,#3b245026 34%,transparent 64%);
+}
+.nhs-color-studio .nhs-color-hero-art::after {
+  box-shadow:0 0 22px #f43f970d,inset 0 0 22px #388bff12;
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+  :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+      .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+      .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+      .radar-page > .management-heading),
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+  .management-page.management-clients > .page-header.management-heading,
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+    background-image:none;background-color:Canvas;color:CanvasText;
+  }
+}

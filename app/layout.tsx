@@ -31,6 +31,9 @@ import "./nocturne-room-environments.css";
 import "./nocturne-scanner.css";
 import "./nocturne-muse-ai.css";
 import "./nocturne-project-guide.css";
+import "./velvet-atelier-admin-pilot.css";
+import "./open-plan.css";
+import "./nhs-room-editorial.css";
 
 const headingFont = Cinzel({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-cinzel", display: "swap" });
 const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });

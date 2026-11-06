@@ -260,9 +260,10 @@ export default async function AutomationsPage() {
                       {a.enabled ? "Enabled flag on" : "Enabled flag off"}
                     </span>
                   </div>
-                  <p>
-                    {KIND_LABELS[a.kind] ?? a.kind} · {a.description}
-                  </p>
+                  <details className="nhs-quiet-help">
+                    <summary>{KIND_LABELS[a.kind] ?? a.kind} · About this automation</summary>
+                    <p>{a.description}</p>
+                  </details>
                   <small>
                     {a.last_run_at
                       ? `Last run ${documentDate(a.last_run_at, true)} · ${RUN_LABELS[a.last_status ?? ""] ?? "Status not recorded"}`

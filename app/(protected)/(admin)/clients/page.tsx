@@ -41,9 +41,9 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
 
       {formError && <div className="management-notice" role="alert">{formError}</div>}
       <section className="metric-grid" aria-label="Client metrics">
-        <MetricCard label="Clients" value={String(clients.length)} detail={`${active.length} active`} tone="violet" />
-        <MetricCard label="Portal members" value={String(clients.reduce((n, c) => n + c.client_memberships.length, 0))} detail="Client memberships" tone="cyan" />
-        <MetricCard label="Client projects" value={String(clients.reduce((n, c) => n + c.projects.length, 0))} detail="Across all clients" tone="pink" />
+        <MetricCard label="Clients" value={String(clients.length)} detail={`${active.length} active`} tone="violet" symbol="rose" />
+        <MetricCard label="Portal members" value={String(clients.reduce((n, c) => n + c.client_memberships.length, 0))} detail="Client memberships" tone="cyan" symbol="key" />
+        <MetricCard label="Client projects" value={String(clients.reduce((n, c) => n + c.projects.length, 0))} detail="Across all clients" tone="pink" symbol="spark" />
       </section>
 
       <details className="nocturne-create-panel" open={Boolean(formError)} aria-label="New client">

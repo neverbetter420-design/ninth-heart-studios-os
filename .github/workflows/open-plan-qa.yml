@@ -1,0 +1,34 @@
+name: NHS open-plan navigation and dark portal QA
+on:
+  pull_request:
+    paths: ['app/**', 'components/**', 'lib/nav.ts', 'tests/**', 'playwright.open-plan.config.mjs', '.github/workflows/open-plan-qa.yml']
+permissions:
+  contents: read
+jobs:
+  responsive-accessibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      MUSE_AI_ENABLED: 'false'
+      MUSE_PROJECT_GUIDE_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-save --package-lock=false --no-audit --no-fund @playwright/test@1.56.1 @axe-core/playwright@4.14.0
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --config playwright.open-plan.config.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nhs-open-plan-responsive-accessibility
+          path: |
+            design-preview/open-plan/
+            open-plan-report/
+          retention-days: 7

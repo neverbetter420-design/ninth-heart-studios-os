@@ -1,0 +1,801 @@
+
+/* NHS unified editorial rooms. Command Center is the design language, not a
+   layout template. Readable midnight ink, real imagery, open surfaces and
+   restrained metallic accents in every room. Last stylesheet intentionally
+   retires legacy cream/light overrides from earlier room pilots. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) {
+ --editorial-ink:#f1edf5;--editorial-muted:#c8c0d2;
+ --editorial-line:rgba(208,195,224,.23);--editorial-accent:#dfa1c5;
+ color-scheme:dark;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {--editorial-accent:#9ec4ff;--editorial-line:rgba(139,187,238,.23);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) {--editorial-accent:#ef9bbc;--editorial-line:rgba(222,151,191,.26);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {--editorial-accent:#d0b2ed;--editorial-line:rgba(174,148,218,.25);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) {--editorial-accent:#dbc2a2;--editorial-line:rgba(208,186,162,.26);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) {--editorial-accent:#caa7f0;}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) {--editorial-accent:#a4baff;}
+/* Open up the three legacy light workspaces. The backgrounds are the stage. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+:is(.management-page,.management-client-workspace),
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
+:is(.management-pipeline,.studio-workspace-admin),
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {
+ background:transparent;background-color:transparent;color:var(--editorial-ink);
+ border:0;border-radius:0;box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .management-pipeline,
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {
+ max-width:1440px;width:100%;margin:0 auto;padding:clamp(20px,3.5vw,55px);box-sizing:border-box;min-width:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .management-client-grid {
+ background:transparent;color:var(--editorial-ink);border-color:var(--editorial-line);
+}
+/* The shared large photographic entrance, with room-specific art and space
+   for the editorial headline. No new card around the scene. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+ .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+ .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+ .radar-page > .management-heading) {
+ position:relative;min-height:clamp(235px,25vw,390px);
+ padding:clamp(26px,4vw,60px);
+ margin:0 0 clamp(24px,4vw,56px);
+ align-items:center;overflow:hidden;
+ border:0;border-bottom:1px solid var(--editorial-line);border-radius:0;box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+ .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+ .nocturne-leads > .lead-editorial-heading) > div:first-child {position:relative;z-index:1;max-width:min(650px,68%);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+ .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+ .nocturne-leads > .lead-editorial-heading) h2 {
+ color:#f8f2fa;font:400 clamp(41px,5vw,73px)/1.08 Georgia,serif;letter-spacing:-.047em;
+ text-shadow:0 5px 29px rgba(0,0,0,.68);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
+:is(h2,h3,h4,.management-section-heading h3,.management-client-copy h4,
+ .management-project-copy h4 a,.paperwork-row h4,.metric-card strong,
+ .nocturne-create-toggle strong,.paperwork-nav strong) {color:var(--editorial-ink);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
+:is(.eyebrow,.management-heading em,.paperwork-number) {color:var(--editorial-accent);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
+:is(.page-description,.metric-card p,.metric-card > span,.management-help,.management-empty-copy,
+ .management-client-copy p,.management-client-copy small,.management-client-stats,
+ .management-client-status,.paperwork-row p,.paperwork-nav span,.paperwork-status,
+ .management-project-copy p,.management-contact-list dt,.management-contact-list dd,
+ .management-member-row p,.field > span) {color:var(--editorial-muted);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
+:is(a,.management-text-link,.management-back-link,.paperwork-nav a,.paperwork-filters a) {color:var(--editorial-accent);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
+:is(input[type=text],input[type=email],input[type=number],input[type=date],input[type=search],
+ input[type=tel],input[type=url],input[type=password],input:not([type]),textarea,select) {
+ background:#131521;background-image:none;border:1px solid rgba(192,174,217,.43);
+ color:#f5eff9;color-scheme:dark;box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
+:is(input,textarea)::placeholder {color:#aba5bc;opacity:1;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin)
+:is(a,button,input,textarea,select,summary):focus-visible {outline:2px solid #a4c2ff;outline-offset:3px;}
+/* Rose: transparent directory with a fine vertical botanical ribbon. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-clients :is(.management-directory,.nocturne-create-panel) {
+ background:rgba(13,12,24,.55);color:var(--editorial-ink);
+ border:0;border-block:1px solid var(--editorial-line);border-radius:0;
+ box-shadow:none;padding:clamp(15px,2vw,28px);backdrop-filter:blur(12px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-clients .management-client-row {background:transparent;border-color:var(--editorial-line);border-left:2px solid transparent;padding-left:16px;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-clients .management-client-row:hover {background:linear-gradient(90deg,rgba(133,50,100,.18),transparent);border-left-color:var(--editorial-accent);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-client-workspace .management-heading {background-color:#090b15;color:var(--editorial-ink);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-client-grid {background-color:transparent;color:var(--editorial-ink);}
+/* Artist: staggered creative phases, not a cream page wrapper. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
+.management-pipeline .pipeline-phase {
+ background:linear-gradient(140deg,rgba(23,17,35,.87),rgba(10,11,22,.86));
+ color:var(--editorial-ink);border:1px solid var(--editorial-line);border-left:3px solid var(--editorial-accent);
+ border-radius:20px 6px 20px 6px;box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
+.management-pipeline .pipeline-phase:nth-child(even) {border-radius:6px 20px 6px 20px;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
+.studio-workspace-admin {
+ background:#0d0e17;background-image:none;color:var(--editorial-ink);
+ border:1px solid var(--editorial-line);box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"])
+.studio-workspace-admin :is(.studio-journey,.studio-gallery) {
+ background:rgba(17,16,29,.79);color:var(--editorial-ink);border:1px solid var(--editorial-line);
+}
+/* Archive: dark folio with bronze rules, not parchment-colored surfaces. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
+.paperwork-page :is(.paperwork-row,.paperwork-form,.paperwork-workspace,.paperwork-filters,.paperwork-nav) {
+ background:rgba(13,12,21,.55);color:var(--editorial-ink);
+ border-color:var(--editorial-line);box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
+.paperwork-page :is(.paperwork-row,.paperwork-filters,.paperwork-nav) {background:transparent;border-radius:0;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
+.paperwork-page .paperwork-form {border-radius:12px;padding:clamp(15px,2vw,28px);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"])
+.paperwork-page .paperwork-row {border-bottom:1px solid var(--editorial-line);}
+/* Character and different layout rhythms without changing functional DOM. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) .management-heading {border-radius:0;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) .muse-workroom .management-heading {border-bottom-color:rgba(206,166,240,.3);}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {border-radius:0;box-shadow:none;}
+@media(max-width:740px) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+ :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+ .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+ .nocturne-leads > .lead-editorial-heading) {min-height:230px;padding:clamp(24px,5vw,40px) clamp(15px,3vw,25px);}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+ :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+ .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+ .nocturne-leads > .lead-editorial-heading) > div:first-child {max-width:100%;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .management-pipeline,
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page {padding:clamp(17px,4vw,28px);margin:0;}
+}
+@media(prefers-reduced-motion:reduce) {
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) :is(.management-client-row,.pipeline-phase,.paperwork-row) {transition:none;}
+}
+@media(forced-colors:active),(prefers-contrast:more) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .management-pipeline .pipeline-phase,
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .paperwork-page .paperwork-form {
+  background:Canvas;border-color:CanvasText;color:CanvasText;
+ }
+}
+
+
+/* Room instruments: real metrics with NHS decorative marks, no dummy widgets.
+   Same quiet editorial rhythm as the Observatory, distinct per-room accents. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  margin:clamp(18px,2.8vw,34px) 0 clamp(30px,4vw,53px);
+  padding:clamp(16px,2.4vw,31px) 0;
+  border-block:1px solid var(--editorial-line);
+  background:transparent;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid .metric-card {
+  position:relative;
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  grid-template-rows:auto auto 1fr;
+  gap:2px clamp(9px,1vw,17px);
+  align-content:center;
+  min-height:116px;
+  padding:0 clamp(15px,2vw,29px);
+  background:transparent;
+  border:0;
+  border-right:1px solid var(--editorial-line);
+  border-radius:0;
+  box-shadow:none;
+  color:var(--editorial-ink);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:first-child {padding-left:0;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:last-child {border-right:0;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-glow {display:none;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {
+  grid-column:1;
+  grid-row:1 / span 3;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  align-self:start;
+  width:43px;
+  height:43px;
+  border:1px solid var(--editorial-line);
+  border-radius:50%;
+  color:var(--editorial-accent);
+  background:radial-gradient(circle,rgba(137,91,156,.17),transparent 78%);
+  box-shadow:0 0 26px rgba(173,94,157,.06);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card p {
+  grid-column:2;grid-row:1;
+  font-size:clamp(10px,.9vw,12px);
+  margin:0;letter-spacing:.04em;
+  color:var(--editorial-muted);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card strong {
+  grid-column:2;grid-row:2;
+  display:block;margin:5px 0;
+  font:400 clamp(28px,2.9vw,43px)/1.12 Georgia,serif;
+  color:var(--editorial-ink);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card > span:last-child {
+  grid-column:2;grid-row:3;
+  font-size:11px;line-height:1.55;color:var(--editorial-muted);
+}
+/* Different room choreography, not repeated cards with new paint. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .metric-grid {grid-template-columns:1.35fr 1fr 1fr;}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .metric-card:first-child .metric-symbol {border-color:rgba(227,148,187,.5);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) .metric-card .metric-symbol {border-radius:12px 3px 12px 3px;transform:rotate(-4deg);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) .metric-card .metric-symbol {border-radius:3px;border-color:rgba(213,188,159,.45);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) .metric-card .metric-symbol {border-color:rgba(126,183,238,.48);}
+@media(max-width:850px) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid,
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) .metric-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid .metric-card {
+  min-height:106px;padding:13px;grid-template-columns:39px minmax(0,1fr);border-bottom:1px solid var(--editorial-line);
+ }
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {width:37px;height:37px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:nth-child(even) {border-right:0;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card:nth-last-child(-n+2) {border-bottom:0;}
+}
+@media(max-width:410px) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-grid .metric-card {grid-template-columns:1fr;grid-template-rows:37px auto auto auto;padding:12px 9px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {grid-column:1;grid-row:1;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card p {grid-column:1;grid-row:2;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card strong {grid-column:1;grid-row:3;font-size:30px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card > span:last-child {grid-column:1;grid-row:4;}
+}
+@media(forced-colors:active),(prefers-contrast:more) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .metric-card .metric-symbol {border-color:CanvasText;color:CanvasText;background:none;box-shadow:none;}
+}
+
+
+/* Six distinct, self-hosted photographic still lifes for the six rooms.
+   They replace the repeated Dark Rose photo + flat SVG collage in room stages.
+   The approved Observatory photograph and original NHS logo are untouched.
+   Scene files are low-glare and have clean dark copy zones (no baked UI). */
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {--nhs-cinematic-room-photo:url("/visuals/nhs-scene-electric.webp");}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]) {--nhs-cinematic-room-photo:url("/visuals/nhs-scene-rose.webp");}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {--nhs-cinematic-room-photo:url("/visuals/nhs-scene-artist.webp");}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]) {--nhs-cinematic-room-photo:url("/visuals/nhs-scene-archive.webp");}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) {--nhs-cinematic-room-photo:url("/visuals/nhs-scene-velvet.webp");}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) {--nhs-cinematic-room-photo:url("/visuals/nhs-scene-private.webp");}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell {
+  background-color:#060713;
+  background-image:
+    linear-gradient(102deg,rgba(3,4,12,.93) 0%,rgba(3,4,12,.84) 26%,rgba(3,4,12,.28) 70%,rgba(3,4,12,.53) 100%),
+    var(--nhs-cinematic-room-photo),
+    linear-gradient(160deg,#060713,#0d0b18 55%,#070712);
+  background-size:100% 100%,min(1600px,113vw) auto,100% 100%;
+  background-position:center,right top 4px,center;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading) {
+  background-color:#070814;
+  background-image:
+    linear-gradient(100deg,rgba(4,5,13,.97) 0%,rgba(4,5,13,.86) 34%,rgba(4,5,13,.30) 72%,rgba(4,5,13,.42) 100%),
+    var(--nhs-cinematic-room-photo);
+  background-size:100% 100%,min(1500px,102vw) auto;
+  background-position:center,right -18px top -12px;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-image:
+    linear-gradient(100deg,rgba(4,5,13,.97),rgba(4,5,13,.84) 34%,rgba(4,5,13,.30) 72%,rgba(4,5,13,.42)),
+    url("/visuals/nhs-scene-rose.webp");
+  background-size:100% 100%,min(1500px,102vw) auto;
+  background-position:center,right -18px top -12px;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-color:#050817;
+  background-image:
+    linear-gradient(101deg,rgba(4,6,16,.96),rgba(4,6,16,.82) 31%,rgba(4,6,16,.25) 74%,rgba(4,6,16,.51)),
+    url("/visuals/nhs-scene-private.webp"),
+    linear-gradient(145deg,#050817,#0b1021 63%,#050817);
+  background-size:100% 100%,min(1600px,113vw) auto,100% 100%;
+  background-position:center,right top 4px,center;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])
+.nhs-color-studio .nhs-color-hero {
+  background-color:#050817;
+  background-image:
+    linear-gradient(101deg,rgba(4,6,16,.96),rgba(4,6,16,.80) 35%,rgba(4,6,16,.26) 78%,rgba(4,6,16,.42)),
+    url("/visuals/nhs-scene-private.webp");
+  background-size:100% 100%,min(1500px,102vw) auto;
+  background-position:center,right -18px top -12px;
+  background-repeat:no-repeat;
+}
+@media(max-width:820px) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-size:100% 100%,880px auto,100% 100%;
+  background-position:center,right -300px top 10px,center;
+ }
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+ :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+     .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+     .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+     .radar-page > .management-heading),
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])
+ .nhs-color-studio .nhs-color-hero {
+  background-size:100% 100%,860px auto;
+  background-position:center,right -300px top -10px;
+ }
+}
+@media(max-width:430px) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell {
+  background-size:100% 100%,760px auto,100% 100%;
+  background-position:center,right -290px top 18px,center;
+ }
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+ :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+     .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+     .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+     .radar-page > .management-heading),
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])
+ .nhs-color-studio .nhs-color-hero {
+  background-size:100% 100%,720px auto;
+  background-position:center,right -292px top 0;
+ }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) .main-shell,
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .main-shell,
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) .nhs-color-studio .nhs-color-hero {
+   background-image:none;background-color:Canvas;color:CanvasText;
+ }
+}
+
+
+/* Locked cinematic room scenery: one fixed viewport layer behind scrolling
+   content, no JS listeners, parallax, transforms or animation. The approved
+   Command Center remains untouched. Unlike background-attachment:fixed, this
+   fixed pseudo-element also works on touch browsers. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell {
+  position:relative;
+  isolation:isolate;
+  min-height:100dvh;
+  background-color:#060713;
+  background-image:none;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell::before {
+  content:"";
+  position:fixed;
+  inset:0 0 auto 0;
+  /* Large viewport units stay stable when mobile browser chrome collapses. */
+  height:100vh;
+  height:100lvh;
+  z-index:0;
+  pointer-events:none;
+  user-select:none;
+  background-color:#060713;
+  background-image:
+    linear-gradient(101deg,rgba(3,4,12,.95),rgba(3,4,12,.82) 29%,rgba(3,4,12,.31) 74%,rgba(3,4,12,.55)),
+    var(--nhs-cinematic-room-photo),
+    linear-gradient(145deg,#060713,#0d0b18 67%,#060713);
+  background-position:center,right center,center;
+  background-size:100% 100%,cover,100% 100%;
+  background-repeat:no-repeat;
+  transform:none;
+  animation:none;
+  transition:none;
+  will-change:auto;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) > .main-shell::before {
+  background-image:
+    linear-gradient(101deg,rgba(4,6,16,.95),rgba(4,6,16,.84) 34%,rgba(4,6,16,.30) 76%,rgba(4,6,16,.55)),
+    var(--nhs-cinematic-room-photo),
+    linear-gradient(145deg,#050817,#101026 66%,#050817);
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell > .nhs-context-bar {
+  position:relative;
+  z-index:40;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell > #workspace-content {
+  position:relative;
+  z-index:1;
+}
+/* Headings get a contrast veil only. Painting a second photograph on each
+   scrollable section would make that photograph appear to travel. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+:is(.management-page > .management-heading,.management-pipeline > .management-heading,
+    .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+    .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+    .radar-page > .management-heading,.management-client-workspace .management-heading) {
+  background-color:transparent;
+  background-image:linear-gradient(96deg,rgba(4,5,13,.75),rgba(4,5,13,.27) 64%,transparent) !important;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="rose"])
+.management-page.management-clients > .page-header.management-heading {
+  background-color:transparent;
+  background-image:linear-gradient(96deg,rgba(4,5,13,.75),rgba(4,5,13,.27) 64%,transparent) !important;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])
+:is(.nhs-color-studio .nhs-color-hero,.atelier-home .atelier-hero) {
+  background-color:transparent;
+  background-image:linear-gradient(96deg,rgba(4,6,16,.72),rgba(4,6,16,.23) 66%,transparent) !important;
+}
+@media(max-width:820px) {
+ .app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell::before {
+   background-position:center,right 32% center,center;
+ }
+}
+@media(max-width:430px) {
+ .app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell::before {
+   background-position:center,right 25% center,center;
+ }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+ .app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell {
+   background:Canvas;color:CanvasText;
+ }
+ .app-shell.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"])) > .main-shell::before {
+   display:none;
+ }
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+ :is(.management-page > .management-heading,.management-pipeline > .management-heading,
+     .paperwork-page > .management-heading,.muse-workroom > .management-heading,
+     .nocturne-leads > .lead-editorial-heading,.scanner-page > .management-heading,
+     .radar-page > .management-heading,.management-client-workspace .management-heading),
+ .app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])
+ :is(.nhs-color-studio .nhs-color-hero,.atelier-home .atelier-hero) {
+  background-image:none !important;
+ }
+}
+
+
+/* NHS EDITORIAL CONTINUITY LOCK, Nov 2026.
+   One spacious, photographic room per route. Records are editorial rows;
+   glass is reserved for working instruments. Never hide functional content. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) {
+ --nhs-quiet-glass:rgba(11,13,29,.67);
+ --nhs-quiet-rule:rgba(211,196,231,.22);
+ --nhs-quiet-ink:#f5eff9;
+ --nhs-quiet-muted:#c8c0d3;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]){--nhs-quiet-rule:rgba(132,185,244,.25);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="rose"]){--nhs-quiet-rule:rgba(229,148,187,.27);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]){--nhs-quiet-rule:rgba(185,159,222,.27);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="archive"]){--nhs-quiet-rule:rgba(218,191,157,.28);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]){--nhs-quiet-rule:rgba(189,150,238,.28);}
+.app-shell.nhs-open-plan:has(.nhs-room-identity[data-room="private"]){--nhs-quiet-rule:rgba(151,175,236,.27);}
+
+/* Consistent page canvas on both live routes and synthetic browser reviews. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > .content-wrap,
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > [data-preview-content] > .content-wrap {
+ box-sizing:border-box;
+ width:100%;
+ max-width:1480px;
+ min-width:0;
+ margin:0 auto;
+ padding:clamp(29px,4.3vw,65px) clamp(18px,4vw,63px) clamp(72px,7.5vw,116px);
+ border:0;
+ border-radius:0;
+ background:transparent;
+ box-shadow:none;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-page,.management-pipeline,.paperwork-page,.studio-workspace-admin,
+    .studio-workspace-client,.atelier-collection-page,.atelier-resource-page,
+    .scanner-page,.radar-page,.settings-workroom,.engine-page) {
+ color:var(--nhs-quiet-ink);
+ background-color:transparent;
+ box-shadow:none;
+}
+/* Large headlines, short visual measure, breathing space. Do not truncate
+   real descriptions, notices, field instructions or account information. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.page-description,.atelier-collection-heading > p:not(.atelier-overline)) {
+ max-width:51ch;
+ font-size:clamp(13px,1vw,15px);
+ line-height:1.67;
+ color:var(--editorial-muted,var(--nhs-quiet-muted));
+ text-wrap:pretty;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-heading,.lead-editorial-heading,.atelier-collection-heading) h2 {
+ max-width:18ch;
+ text-wrap:balance;
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-section-heading,.panel-heading,.studio-row-heading,.atelier-section-heading,
+    .atelier-resource-group-heading) {
+ border-color:var(--nhs-quiet-rule);
+ margin-block:clamp(17px,2.6vw,37px) clamp(12px,1.6vw,24px);
+}
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-section-heading h3,.panel-heading h3,.studio-row-heading h3,.atelier-section-heading h3) {
+ font-family:Georgia,serif;font-weight:400;letter-spacing:-.025em;text-wrap:balance;
+}
+/* Unboxed statistics across Leads, Projects, Clients, Radar and Automations. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-grid {
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));
+ gap:0;
+ margin-block:clamp(27px,3.7vw,52px);
+ padding-block:clamp(14px,2vw,30px);
+ border-block:1px solid var(--nhs-quiet-rule);
+ background:transparent;
+ box-shadow:none;
+ border-radius:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card {
+ min-width:0;
+ background:transparent;
+ border:0;
+ border-right:1px solid var(--nhs-quiet-rule);
+ border-radius:0;
+ box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card:last-child {border-right:0;}
+/* Working instruments get a little real glass, not a stack of opaque boxes. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.lead-capture-card,.nocturne-create-panel[open],.paperwork-form,
+    .studio-project-settings,.management-client-context,.studio-account,
+    .scanner-controls,.scanner-glass-discovery,.studio-compose,.studio-saved,
+    .studio-focus,.studio-controls) {
+ background:var(--nhs-quiet-glass);
+ border:1px solid var(--nhs-quiet-rule);
+ border-radius:clamp(12px,1.3vw,19px);
+ box-shadow:none;
+ -webkit-backdrop-filter:blur(16px);
+ backdrop-filter:blur(16px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-directory,.lead-inbox-panel,.paperwork-workspace,.scanner-glass-surface,
+    .studio-workspace-nav,.management-client-work,.engine-section,.paperwork-list,
+    .pipeline-board,.studio-services,.radar-page .panel) {
+ background:transparent;
+ border-color:var(--nhs-quiet-rule);
+ box-shadow:none;
+}
+/* The scan form is a primary glass instrument, not a compact utility card.
+   Preserve the approved 24px silhouette after the shared editorial rule. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .scanner-workroom .scanner-glass-discovery .scanner-controls {
+ border-radius:24px;
+}
+/* Real records as spacious lists with thin separators. All links, metadata,
+   statuses, buttons, and form fields remain present and operable. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-row,.management-member-row,.paperwork-row,.lead-inbox-row,
+    .scanner-deep-job,.scanner-challenger-row,.scanner-territory-row,
+    .scanner-outcome-row,.engine-notification,.studio-service,
+    .paperwork-nav a,.management-destinations a) {
+ background:transparent;
+ background-image:none;
+ border:0;
+ border-bottom:1px solid var(--nhs-quiet-rule);
+ border-radius:0;
+ box-shadow:none;
+ min-width:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-row,.paperwork-row,.lead-inbox-row,.scanner-deep-job,
+    .scanner-challenger-row,.studio-service) {padding-block:clamp(19px,2.3vw,34px);}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-row,.paperwork-row,.lead-inbox-row,.scanner-challenger-row):hover {
+ background:linear-gradient(90deg,color-mix(in srgb,var(--editorial-accent,#bdacd8) 10%,transparent),transparent 80%);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.management-client-grid,.studio-settings-grid,.studio-control-grid,.lead-page-grid,.workspace-grid) {
+ gap:clamp(23px,3.7vw,52px);
+}
+/* The Artist room is a journey, not a full-page work card. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) #workspace-content
+:is(.management-pipeline,.studio-workspace-admin) {
+ background:transparent;
+ background-image:none;
+ border:0;
+ box-shadow:none;
+ border-radius:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) #workspace-content
+:is(.pipeline-board,.pipeline-phase-projects,.studio-journey,.studio-gallery) {
+ background:transparent;
+ border-color:var(--nhs-quiet-rule);
+ box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) #workspace-content .pipeline-phase {
+ background:rgba(16,12,28,.46);
+ border-color:var(--nhs-quiet-rule);
+ border-left:2px solid var(--editorial-accent);
+ box-shadow:none;
+}
+/* The Velvet room keeps writing instruments, removes redundant outer frames. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content
+:is(.studio-intelligence-grid,.studio-writing-note,.studio-insight-row) {
+ background:transparent;border-color:var(--nhs-quiet-rule);box-shadow:none;
+}
+/* Client portal: dark luxury, open collections, not ivory or tiled rows. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-collection-page,.atelier-resource-page,.studio-workspace-client,
+    .atelier-documents-page,.atelier-project-collection,.atelier-resource-groups,
+    .atelier-destinations,.atelier-action-panel,.atelier-feature-project) {
+ background:transparent;box-shadow:none;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-project-row,.atelier-resource-row,.atelier-destination,
+    .atelier-resource-group,.atelier-project-collection,.atelier-resource-rows) {
+ background:transparent;background-image:none;border:0;
+ border-bottom:1px solid var(--nhs-quiet-rule);
+ border-radius:0;box-shadow:none;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-project-row,.atelier-resource-row,.atelier-destination) {
+ padding-block:clamp(19px,2.4vw,36px);
+ min-width:0;
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.atelier-project-row,.atelier-resource-row,.atelier-destination):hover {
+ background:linear-gradient(90deg,rgba(137,155,236,.10),transparent 79%);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]) #workspace-content
+:is(.panel,.detail-panel,.form-fill-card,.contract-card,.studio-project-settings) {
+ background:var(--nhs-quiet-glass);
+ border-color:var(--nhs-quiet-rule);
+ box-shadow:none;
+ -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+}
+/* Keep interaction accessible on narrow screens and in contrast mode. */
+@media(max-width:850px){
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+ :is(.management-client-grid,.studio-settings-grid,.lead-page-grid,.workspace-grid){gap:clamp(18px,4vw,32px);}
+}
+@media(max-width:500px){
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > .content-wrap,
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content > [data-preview-content] > .content-wrap{padding:24px 16px 70px;}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card{padding:12px;border-bottom:1px solid var(--nhs-quiet-rule);}
+ .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .metric-card:nth-child(2n){border-right:0;}
+}
+@media(prefers-reduced-motion:reduce){
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+ :is(.management-client-row,.paperwork-row,.lead-inbox-row,.atelier-resource-row,.atelier-project-row){transition:none;}
+}
+@media(forced-colors:active),(prefers-contrast:more){
+ .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+ :is(.paperwork-form,.lead-capture-card,.studio-project-settings,.atelier-resource-row,
+     .management-client-row,.paperwork-row,.lead-inbox-row){
+  color:CanvasText;background:Canvas;border-color:CanvasText;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+ }
+}
+
+
+/* PROGRESSIVE-DISCLOSURE DESIGN STANDARD. Scan results and service details
+   show essential actions and status first; explanatory evidence stays accessible
+   via native, keyboard-operated <details>. No clipping or deleted content. */
+.app-shell.nhs-open-plan #workspace-content .nhs-quiet-help {
+  min-width:0;
+  margin:clamp(8px,1.3vw,14px) 0;
+  padding:0;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+.app-shell.nhs-open-plan #workspace-content .nhs-quiet-help > summary {
+  display:list-item;
+  cursor:pointer;
+  width:fit-content;
+  max-width:100%;
+  min-height:44px;
+  padding:12px 8px 12px 0;
+  color:var(--editorial-accent,#cbb6e9);
+  font:500 clamp(12px,.95vw,14px)/1.4 var(--font-dm-sans),Arial,sans-serif;
+  letter-spacing:.01em;
+  overflow-wrap:anywhere;
+}
+.app-shell.nhs-open-plan #workspace-content .nhs-quiet-help[open] {
+  padding-bottom:clamp(10px,1.5vw,22px);
+  border-bottom:1px solid var(--nhs-quiet-rule,rgba(210,195,235,.2));
+}
+.app-shell.nhs-open-plan #workspace-content .nhs-quiet-help > :not(summary) {
+  margin-top:clamp(8px,1.4vw,18px);
+}
+.app-shell.nhs-open-plan #workspace-content .nhs-quiet-help > summary:focus-visible {
+  outline:2px solid #a4c2ff;outline-offset:3px;
+}
+/* A prospect is an editorial record, not a card carrying a miniature page.
+   Keep a single scannable column, strong score, and actions in view. */
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:0;
+  max-width:1160px;
+  margin-top:clamp(18px,2.5vw,32px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-card {
+  position:relative;
+  min-width:0;
+  margin:0;
+  padding:clamp(25px,3.1vw,50px) 0;
+  border:0;
+  border-bottom:1px solid var(--nhs-quiet-rule,rgba(210,195,235,.2));
+  border-radius:0;
+  background:transparent;
+  background-image:none;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-head {
+  align-items:center;
+  gap:clamp(18px,3vw,55px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects
+:is(.draft-details,.nhs-social-disclosure) {
+  max-width:100%;
+  margin-block:8px;
+  background:transparent;
+  border-color:var(--nhs-quiet-rule);
+  box-shadow:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-actions {
+  display:flex;flex-wrap:wrap;align-items:center;
+  gap:clamp(8px,1.6vw,18px);
+  margin-top:clamp(18px,2.2vw,32px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .badge-row {
+  display:flex;flex-wrap:wrap;gap:8px;margin-block:clamp(10px,1.5vw,18px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-meta {
+  font-size:clamp(12px,1vw,14px);
+  line-height:1.6;
+}
+/* Keep the scan form itself comfortably rounded and genuinely glassy. */
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-discovery .scanner-controls {
+  border-radius:24px;
+}
+@media(max-width:500px){
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-card{padding:23px 0;}
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-actions{gap:10px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell.nhs-open-plan #workspace-content .nhs-quiet-help > summary {scroll-behavior:auto;}
+}
+@media(forced-colors:active),(prefers-contrast:more){
+  .app-shell.nhs-open-plan #workspace-content .nhs-quiet-help[open]{border-bottom-color:CanvasText;}
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-card{border-bottom-color:CanvasText;}
+}
+
+
+/* Private Atelier: icon-led resource rows, without repeated instructional copy.
+   Full client messages remain available by native disclosure, never truncated away. */
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .atelier-resource-row-content{
+  position:relative;
+  min-width:0;
+  padding-left:clamp(42px,4vw,58px);
+}
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .nhs-resource-icon{
+  position:absolute;
+  inset-inline-start:0;
+  inset-block-start:4px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:34px;height:34px;
+  border:1px solid var(--nhs-quiet-rule);
+  border-radius:50%;
+  background:rgba(160,179,239,.10);
+  color:#d2bcf3;
+  font-size:18px;
+}
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .nhs-message-excerpt{
+  max-width:66ch;
+  color:var(--nhs-quiet-muted);
+  line-height:1.6;
+  overflow-wrap:anywhere;
+}
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .nhs-message-full{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  max-width:78ch;
+}
+@media(max-width:520px){
+ .app-shell.nhs-theme-client.nhs-open-plan #workspace-content .atelier-resource-row-content{padding-left:42px;}
+}

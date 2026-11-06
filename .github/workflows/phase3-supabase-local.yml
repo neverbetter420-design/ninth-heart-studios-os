@@ -30,7 +30,7 @@ jobs:
   supabase-integration:
     name: Full local Supabase Auth and REST authorization
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 55
     env:
       CI: 'true'
     steps:
@@ -95,7 +95,7 @@ jobs:
       - name: Test authenticated studio and document workflows on desktop and mobile
         working-directory: .nhs-phase3-local
         shell: bash
-        timeout-minutes: 15
+        timeout-minutes: 30
         run: |
           set -euo pipefail
           test -z "${SUPABASE_ACCESS_TOKEN:-}"

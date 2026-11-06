@@ -8,10 +8,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner", "nocturne-muse-ai", "nocturne-project-guide"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner", "nocturne-muse-ai", "nocturne-project-guide", "velvet-atelier-admin-pilot", "open-plan", "nhs-room-editorial"];
 // The visual suite denies network access, so embed only these two local, vetted
 // decorative assets. This allows screenshots to show the same artwork as the app.
-const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg", "nhs-dark-rose-photographic.webp", "nhs-room-electric-oracle.svg", "nhs-room-rose-reliquary.svg", "nhs-room-artist-atelier.svg", "nhs-room-archive-seal.svg", "nhs-room-velvet-oracle.svg", "nhs-room-private-atelier.svg"]);
+const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg", "nhs-dark-rose-photographic.webp", "nhs-room-electric-oracle.svg", "nhs-room-rose-reliquary.svg", "nhs-room-artist-atelier.svg", "nhs-room-archive-seal.svg", "nhs-room-velvet-oracle.svg", "nhs-room-private-atelier.svg", "nhs-wallpaper-electric.svg", "nhs-wallpaper-rose.svg", "nhs-wallpaper-artist.svg", "nhs-wallpaper-archive.svg", "nhs-wallpaper-velvet.svg", "nhs-wallpaper-private.svg", "nhs-scene-electric.webp", "nhs-scene-rose.webp", "nhs-scene-artist.webp", "nhs-scene-archive.webp", "nhs-scene-velvet.webp", "nhs-scene-private.webp"]);
 const built = process.env.NHS_VISUAL_BUILT_CSS === "1";
 const chunks = resolve(root, ".next/static/chunks");
 function builtStyles() {
@@ -165,6 +165,10 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
   const supabase = { storage: { from: () => ({ createSignedUrl: async () => ({ data: scenario === "source-error" ? null : { signedUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=" } }) }) }, from(table) {
     if (!(table in rows)) throw new Error(`Unexpected preview table: ${table}`);
     const result = { data: rows[table], count: rows[table].length, error: (view === "scanner" && scenario === "error" && table === "prospects") || (["opportunities", "opportunity-detail"].includes(view) && scenario === "error" && table === "opportunities") || (view === "opportunity-detail" && scenario === "proposals-error" && table === "proposals") || (view === "automations" && ((scenario === "error" && table === "automations") || (scenario === "runs-error" && table === "automation_runs") || (scenario === "notifications-error" && table === "notifications"))) || (scenario === "error" && (table === "projects" || table === "leads")) || (scenario === "members-error" && table === "client_memberships") || (scenario === "client-choices-error" && table === "clients") || (scenario === "error" && view in documentViews && table === (view.startsWith("contract") ? "contracts" : view.startsWith("form") ? "form_templates" : "templates")) || (scenario === "projects-error" && table === "projects") || (scenario === "submissions-error" && table === "form_submissions") || (scenario === "template-choices-error" && table === "templates") || (view === "muse" && scenario === "error" && table === "opportunities") || (view === "muse" && scenario === "risk-error" && table === "milestones") || (view === "muse" && scenario === "drafts-error" && table === "muse_drafts") || (view === "settings" && scenario === "error" && table === "profiles") ? { message: "Synthetic read failure" } : null };
+    // Isolate failing dashboard reads without interfering with unrelated rooms.
+    if (view === "home" && ((scenario === "radar-error" && table === "opportunities") || (scenario === "activity-error" && table === "activities"))) {
+      result.error = { message: "Synthetic read failure" };
+    }
     const chain = { then: (ok, fail) => Promise.resolve(result).then(ok, fail) };
     for (const method of ["select", "eq", "neq", "not", "order", "limit", "in"]) chain[method] = () => chain;
     if (view === "muse" && ["tasks", "milestones", "approvals"].includes(table)) chain.eq = (key,value) => { result.data = rows[table].filter(row => row[key] === value); return chain; };
@@ -190,7 +194,7 @@ export async function renderNocturne(role, scenario = "normal", view = "home", s
         return { requireUser: identity, requireAdmin: identity };
       }
       if (name.endsWith("/actions") || name === "./deep-actions") return new Proxy({}, { get: () => async () => { throw new Error("Preview actions are disabled"); } });
-      if (name === "next/link") return { __esModule: true, default: ({ children, ...props }) => React.createElement("a", props, children) };
+      if (name === "next/link") return { __esModule: true, default: ({ children, prefetch, ...props }) => React.createElement("a", props, children) };
       if (name === "next/navigation") return { usePathname: () => path, useRouter: () => ({ refresh() {} }), redirect: () => { throw new Error("Unexpected preview redirect"); }, notFound: () => { throw new Error("Synthetic project not found"); } };
       if (name.startsWith("@/") || name.startsWith(".")) {
         const base = name.startsWith("@/") ? resolve(root, name.slice(2)) : resolve(dirname(file), name);

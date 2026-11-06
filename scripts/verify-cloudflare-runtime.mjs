@@ -4,7 +4,7 @@
  * The Oct 24 release built successfully but returned HTTP 500 on every live route.
  * Run inside a CI runner only, over loopback. Does not submit forms, authenticate,
  * connect to a browser profile, or deploy anything. The command uses wrangler's
- * local workerd runtime with the repository's production Worker configuration.
+ * local workerd runtime with an explicitly allowlisted Worker configuration.
  */
 import { spawn } from "node:child_process";
 import { setTimeout as delay } from "node:timers/promises";
@@ -17,8 +17,26 @@ const port = 8787;
 const origin = `http://127.0.0.1:${port}`;
 const commands = process.platform === "win32" ? "npx.cmd" : "npx";
 const config = process.env.NHS_WORKER_CONFIG || "wrangler.jsonc";
-assert.ok(["wrangler.jsonc", "wrangler.issue23-staging.jsonc"].includes(config),
-  "Worker smoke config must be an approved production or inert staging definition");
+assert.ok([
+  "wrangler.jsonc",
+  "wrangler.issue23-staging.jsonc",
+  "wrangler.velvet-atelier-admin-preview.jsonc",
+].includes(config),
+  "Worker smoke config must be an explicitly reviewed production or isolated staging definition");
+if (config === "wrangler.velvet-atelier-admin-preview.jsonc") {
+  // Fail closed if the preview accidentally inherits a live hostname or secret.
+  const { readFileSync } = await import("node:fs");
+  const pilot = JSON.parse(readFileSync(config, "utf8"));
+  assert.equal(pilot.name, "nhs-os-velvet-atelier-preview");
+  assert.equal(pilot.workers_dev, false);
+  assert.deepEqual(pilot.routes, []);
+  assert.equal(pilot.keep_vars, false);
+  assert.equal(pilot.vars.NHS_APP_URL, "https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev");
+  assert.equal(pilot.vars.NEXT_PUBLIC_SUPABASE_URL,
+    "https://qihwmfwlhsetxwggaesd.supabase.co");
+  assert.equal(pilot.vars.MUSE_AI_ENABLED, "false");
+  assert.equal(pilot.vars.MUSE_PROJECT_GUIDE_ENABLED, "false");
+}
 const args = ["--no-install", "wrangler", "dev", "--local", "--ip", "127.0.0.1", "--port", String(port), "--config", config];
 const child = spawn(commands, args, {
   cwd: process.cwd(),
@@ -74,7 +92,7 @@ try {
   assert.ok(existsSync("app/seven-rooms.css"), "Approved Seven Rooms stylesheet is missing");
   assert.ok(existsSync("lib/studio-rooms.ts"), "Approved Seven Rooms route map is missing");
   console.log("PASS the compiled Worker boots locally with the approved Seven Rooms source present");
-  console.log("No production requests, credentials, logins, writes or Worker deployments were executed.");
+  console.log("Public GET-only local runtime smoke complete; no logins, writes, Worker deployments, or production database credentials were used.");
 } catch (error) {
   console.error("FAIL compiled Worker runtime smoke:", error.message);
   // Limit output to reduce incidental exposure of environment/stack data.
