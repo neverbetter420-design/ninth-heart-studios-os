@@ -757,3 +757,40 @@
   .app-shell.nhs-open-plan #workspace-content .nhs-quiet-help[open]{border-bottom-color:CanvasText;}
   .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-prospects .prospect-card{border-bottom-color:CanvasText;}
 }
+
+
+/* Private Atelier: icon-led resource rows, without repeated instructional copy.
+   Full client messages remain available by native disclosure, never truncated away. */
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .atelier-resource-row-content{
+  position:relative;
+  min-width:0;
+  padding-left:clamp(42px,4vw,58px);
+}
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .nhs-resource-icon{
+  position:absolute;
+  inset-inline-start:0;
+  inset-block-start:4px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:34px;height:34px;
+  border:1px solid var(--nhs-quiet-rule);
+  border-radius:50%;
+  background:rgba(160,179,239,.10);
+  color:#d2bcf3;
+  font-size:18px;
+}
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .nhs-message-excerpt{
+  max-width:66ch;
+  color:var(--nhs-quiet-muted);
+  line-height:1.6;
+  overflow-wrap:anywhere;
+}
+.app-shell.nhs-theme-client.nhs-open-plan #workspace-content .nhs-message-full{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  max-width:78ch;
+}
+@media(max-width:520px){
+ .app-shell.nhs-theme-client.nhs-open-plan #workspace-content .atelier-resource-row-content{padding-left:42px;}
+}
