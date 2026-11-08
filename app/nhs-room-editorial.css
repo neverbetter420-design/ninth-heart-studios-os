@@ -743,7 +743,9 @@
   line-height:1.6;
 }
 /* Keep the scan form itself comfortably rounded and genuinely glassy. */
-.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .scanner-glass-discovery .scanner-controls {
+/* Match the specificity of the shared :is(...[open]) glass rule so the
+   actual scan form keeps its 24px corners on desktop and mobile. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity) #workspace-content .scanner-glass-discovery .scanner-controls {
   border-radius:24px;
 }
 @media(max-width:500px){
