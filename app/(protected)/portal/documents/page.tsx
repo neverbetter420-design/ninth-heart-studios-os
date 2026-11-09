@@ -43,7 +43,7 @@ export default async function ClientDocumentsPage() {
       <header className="atelier-documents-heading">
         <p className="atelier-overline">Client Atelier · Paperwork, simplified</p>
         <h2>Everything in writing.</h2>
-        <p>Your shared documents, agreements, and forms. Organized by purpose, not buried inside project pages.</p>
+        <p>Files, agreements and forms, organized for you.</p>
       </header>
 
       <nav className="atelier-document-directory" aria-label="Document categories">

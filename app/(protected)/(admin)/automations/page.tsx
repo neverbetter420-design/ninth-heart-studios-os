@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AtelierSymbol } from "@/components/AtelierSymbol";
 import { MetricCard } from "@/components/MetricCard";
 import {
   DocumentNotice,
@@ -80,10 +81,7 @@ export default async function AutomationsPage() {
             <br />
             <em>A little more control.</em>
           </h2>
-          <p className="page-description">
-            See what is enabled, review the signals, and decide when to act. The
-            built-in checks create notifications inside the studio.
-          </p>
+          <p className="page-description">Notifications, run history, and manual controls.</p>
         </div>
         <Link
           href="/settings#studio-connections"
@@ -93,13 +91,13 @@ export default async function AutomationsPage() {
         </Link>
       </header>
       <nav
-        className="management-destinations"
+        className="management-destinations nhs-visual-links"
         aria-label="Automation destinations"
       >
-        <a href="#engine-signals">Notifications</a>
-        <a href="#engine-registry">Registry</a>
-        <a href="#engine-history">Run history</a>
-        <a href="#engine-connections">Integrations</a>
+        <a href="#engine-signals"><AtelierSymbol name="rose" size={20} /> Notifications</a>
+        <a href="#engine-registry"><AtelierSymbol name="key" size={20} /> Registry</a>
+        <a href="#engine-history"><AtelierSymbol name="spark" size={20} /> Run history</a>
+        <a href="#engine-connections"><AtelierSymbol name="skull" size={20} /> Integrations</a>
       </nav>
       <section
         className="metric-grid radar-metrics"

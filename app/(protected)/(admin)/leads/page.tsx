@@ -30,7 +30,7 @@ export default async function LeadsPage({
           <p className="eyebrow electric">Lead Intelligence</p>
           <h2>Every connection,<br /><em>a next step.</em></h2>
           <p className="page-description">
-            Keep the conversation moving. Your queue brings replies and time-sensitive follow-ups into focus.
+            Replies and urgent follow-ups, right where you need them.
           </p>
         </div>
         <div className="header-actions">
@@ -40,10 +40,10 @@ export default async function LeadsPage({
       </header>
 
       <section className="metric-grid" aria-label="Lead metrics">
-        <MetricCard label="Active Leads" value={error ? "—" : String(leads.length)} detail="Ranked by momentum" tone="violet" symbol="spark" />
-        <MetricCard label="Waiting on Me" value={error ? "—" : String(waitingOnMe)} detail="Human attention required" tone="pink" symbol="rose" />
-        <MetricCard label="Replies" value={error ? "—" : String(replies)} detail="Always priority one" tone="cyan" symbol="key" />
-        <MetricCard label="Inbound SLA Risk" value={error ? "—" : String(inboundAtRisk)} detail="Due soon or overdue" tone="green" symbol="skull" />
+        <MetricCard label="Active Leads" value={error ? "—" : String(leads.length)} detail="Momentum ranked" tone="violet" symbol="spark" />
+        <MetricCard label="Waiting on Me" value={error ? "—" : String(waitingOnMe)} detail="Needs attention" tone="pink" symbol="rose" />
+        <MetricCard label="Replies" value={error ? "—" : String(replies)} detail="Reply next" tone="cyan" symbol="key" />
+        <MetricCard label="Inbound SLA Risk" value={error ? "—" : String(inboundAtRisk)} detail="Due / overdue" tone="green" symbol="skull" />
       </section>
 
       {error ? (

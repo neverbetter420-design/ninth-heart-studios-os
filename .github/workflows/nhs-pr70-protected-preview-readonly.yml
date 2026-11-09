@@ -1,0 +1,71 @@
+name: NHS PR70 protected preview read-only preflight
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - '.github/workflows/nhs-pr70-protected-preview-readonly.yml'
+      - 'wrangler.velvet-atelier-admin-preview.jsonc'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  access-preflight:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 70
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read draft files only
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Fail closed on isolated preview config
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          with open("wrangler.velvet-atelier-admin-preview.jsonc", encoding="utf-8") as f:
+              config = json.load(f)
+          hostname = "https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev"
+          assert config["name"] == "nhs-os-velvet-atelier-preview"
+          assert config["workers_dev"] is False
+          assert config["preview_urls"] is True
+          assert config["routes"] == []
+          assert config["keep_vars"] is False
+          for variables in (config["vars"], config["previews"]["vars"]):
+              assert variables["NHS_APP_URL"] == hostname
+              assert variables["MUSE_AI_ENABLED"] == "false"
+              assert variables["MUSE_PROJECT_GUIDE_ENABLED"] == "false"
+          print("PASS: isolated preview target only; Muse disabled; no production routes")
+          PY
+
+      - name: Verify anonymous visitors reach Cloudflare Access, not the app
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev'
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          trap 'rm -f "$headers" "$body"' EXIT
+          code="$(curl --silent --show-error --max-time 30 --connect-timeout 12 -D "$headers" -o "$body" -w '%{http_code}' "$url")"
+          echo "Anonymous HTTP status: $code"
+          # Do not follow redirects or print body/cookies, and never authenticate.
+          if [[ "$code" =~ ^30[1278]$ ]] && grep -Eiq 'location:.*(cloudflareaccess|/cdn-cgi/access/login)' "$headers"; then
+            echo 'PASS: anonymous caller redirected to Cloudflare Access'
+            exit 0
+          fi
+          if [[ "$code" == 403 ]] && grep -Eiq 'Cloudflare Access|login.required|access.denied' "$body"; then
+            echo 'PASS: anonymous caller denied by Cloudflare Access'
+            exit 0
+          fi
+          echo '::error::Preview Access was not proven. Do NOT publish or conduct live staging QA.'
+          exit 1
+
+      - name: Document scope
+        run: |
+          echo 'Read-only anonymous GET test of the previously deployed PR68 preview.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'This does not verify or publish PR70 exact-head app code.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No Cloudflare credentials, Supabase writes, production routes or deploy commands.' >> "$GITHUB_STEP_SUMMARY"

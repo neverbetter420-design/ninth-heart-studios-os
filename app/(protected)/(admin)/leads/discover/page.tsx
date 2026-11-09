@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AtelierSymbol } from "@/components/AtelierSymbol";
 import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { ScannerSubmitButton } from "@/components/leads/ScannerSubmitButton";
@@ -402,7 +403,7 @@ export default async function DiscoverPage({
       <section id="qualified-shortlists" className="scanner-challenger-board" aria-label="Qualified category challengers">
         <div className="section-head">
           <h3>Best-fit shortlist</h3>
-          <span className="muted">Evidence first · newest scans can challenge previous prospects</span>
+          <span className="muted">Qualified matches · no automatic outreach</span>
         </div>
         <nav className="scanner-shortlist-depth" aria-label="Best-fit shortlist length">
           <span>Show top</span>
@@ -415,14 +416,21 @@ export default async function DiscoverPage({
           ))}
           <span>per category · {shortlistDepth === 3 ? "focused view" : "expanded view"}</span>
         </nav>
-        <p className="management-help">
-          Ranked from saved, uncontacted prospects in each category using public
-          contact evidence (70%) and website opportunity (30%).
-          The selected depth changes only how many results are displayed, not
-          which businesses are saved or automatically contacted.
-          This is not a verified sales lead or a guarantee of conversion.
-          Existing contacted and promoted leads stay protected.
-        </p>
+        <div className="nhs-fit-composition" role="img" aria-label="Fit weighting: 70 percent public contact evidence and 30 percent website opportunity">
+          <span className="nhs-fit-composition__contact">Contact evidence · 70%</span>
+          <span className="nhs-fit-composition__website">Website fit · 30%</span>
+        </div>
+        <details className="nhs-visual-note">
+          <summary><AtelierSymbol name="key" size={17} /> Ranking criteria &amp; safeguards</summary>
+          <p className="management-help">
+            Ranked from saved, uncontacted prospects in each category using public
+            contact evidence (70%) and website opportunity (30%).
+            The selected depth changes only how many results are displayed, not
+            which businesses are saved or automatically contacted.
+            This is not a verified sales lead or a guarantee of conversion.
+            Existing contacted and promoted leads stay protected.
+          </p>
+        </details>
         {!shortlistReady ? (
           <p className="management-notice" role="status">
             The full saved-prospect shortlist is unavailable or exceeds the
@@ -476,12 +484,15 @@ export default async function DiscoverPage({
           <h3>Territory study</h3>
           <span className="muted">Your saved prospect sample · not market coverage</span>
         </div>
-        <p className="management-help">
-          Compare the last search area and radius recorded on each saved prospect.
-          Qualified means a contactable, uncontacted listing with enough supporting
-          evidence. A searched city is not proof of the business&apos;s exact location.
-          Repeat scans require your click and use the existing duplicate safeguards.
-        </p>
+        <details className="nhs-visual-note">
+          <summary><AtelierSymbol name="rose" size={17} /> How to read this study</summary>
+          <p className="management-help">
+            Compare the last search area and radius recorded on each saved prospect.
+            Qualified means a contactable, uncontacted listing with enough supporting
+            evidence. A searched city is not proof of the business&apos;s exact location.
+            Repeat scans require your click and use the existing duplicate safeguards.
+          </p>
+        </details>
         {!shortlistReady || !territoryComparison ? (
           <p role="status" className="management-notice">
             The complete saved prospect sample is not available. Territory comparisons are hidden rather than estimated from an incomplete page.
@@ -538,12 +549,15 @@ export default async function DiscoverPage({
           <h3>What happened next</h3>
           <span className="muted">Recorded outcomes only · no invented conversions</span>
         </div>
-        <p className="management-help">
-          From saved scanner prospects and strictly linked Lead Intelligence records.
-          Marked sent is a manual status, not verified delivery. Consultations are
-          scheduled, not necessarily attended. A created project is not recorded revenue.
-          ROI and true win/loss rates require actual commercial outcome data.
-        </p>
+        <details className="nhs-visual-note">
+          <summary><AtelierSymbol name="spark" size={17} /> What these numbers mean</summary>
+          <p className="management-help">
+            From saved scanner prospects and strictly linked Lead Intelligence records.
+            Marked sent is a manual status, not verified delivery. Consultations are
+            scheduled, not necessarily attended. A created project is not recorded revenue.
+            ROI and true win/loss rates require actual commercial outcome data.
+          </p>
+        </details>
         {!outcomeSnapshot ? (
           <p className="management-notice" role="status">
             Complete conversion records are unavailable or exceed the review limit.
@@ -662,6 +676,9 @@ export default async function DiscoverPage({
                   </span>
                 </div>
 
+                <details className="nhs-prospect-research" aria-label={`Research and evidence for ${p.business_name}`}>
+                  <summary><AtelierSymbol name="spark" size={17} /> Research &amp; evidence <span aria-hidden="true">+</span></summary>
+                  <div className="nhs-prospect-research__body">
                 {p.signals?.curation && (
                   <details className="nhs-quiet-help" aria-label="Prospect selection evidence">
                     <summary>Selection evidence · Reliability {p.signals.curation.reliability}/100</summary>
@@ -790,6 +807,8 @@ export default async function DiscoverPage({
                       </li>
                     ))}
                   </ul>
+                </details>
+                  </div>
                 </details>
                 <div className="badge-row">
                   {badges.map((b, i) => (
