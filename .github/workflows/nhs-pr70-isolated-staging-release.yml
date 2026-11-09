@@ -1,0 +1,196 @@
+name: NHS PR70 authorized isolated preview deployment
+
+# Only the reviewed PR70 source; never use wrangler deploy or update production.
+on:
+  pull_request:
+    types: [synchronize]
+    paths:
+      - '.github/workflows/nhs-pr70-isolated-staging-release.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nhs-pr70-protected-preview-deploy
+  cancel-in-progress: false
+
+jobs:
+  protected-staging:
+    if: >-
+      github.event.pull_request.number == 70 &&
+      github.actor == 'neverbetter420-design' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'design/visual-first-density-20261106'
+    environment: nhs-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: 'true'
+      CLOUDFLARE_ACCOUNT_ID: 1cab715a285ef1f9cabff977ccda18da
+      REVIEWED_SHA: 5156d8588c5f9f28f11a9c3d60c85a662b57cb18
+      PREVIEW_WORKER: nhs-os-velvet-atelier-preview
+      PREVIEW_ID: b56422037d6e4191874c08f820b2a99a
+      PREVIEW_NAME: design/velvet-atelier-admin-pilot-20261102
+      PREVIEW_URL: https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev
+      PREVIOUS_DEPLOYMENT_ID: 0bbafd13-22dd-45ab-85bd-3a0fa18ab864
+      EXPECTED_PROD_DEPLOYMENT: f5d9c4a7-0d7d-46c3-bf3c-fcfbc4521d6a
+
+    steps:
+      - name: Checkout only the exact approved source (not newer workflow change)
+        uses: actions/checkout@v4
+        with:
+          ref: 5156d8588c5f9f28f11a9c3d60c85a662b57cb18
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify source, preview-only config, Muse OFF, and build-time vars
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$REVIEWED_SHA"
+          node <<'NODE'
+          const fs=require('fs'),assert=require('assert/strict');
+          const s=JSON.parse(fs.readFileSync('wrangler.velvet-atelier-admin-preview.jsonc','utf8'));
+          const prod=JSON.parse(fs.readFileSync('wrangler.jsonc','utf8'));
+          assert.equal(prod.name,'ninth-heart-studios-os');
+          assert.equal(s.name,process.env.PREVIEW_WORKER);
+          assert.notEqual(s.name,prod.name);
+          assert.equal(s.workers_dev,false);
+          assert.equal(s.preview_urls,true);
+          assert.deepEqual(s.routes,[]);
+          assert.equal(s.keep_vars,false);
+          assert.deepEqual(Object.keys(s).sort(),
+            ['$schema','name','main','compatibility_date','compatibility_flags','workers_dev','preview_urls','routes','keep_vars','assets','vars','previews'].sort());
+          assert.deepEqual(Object.keys(s.previews),['vars']);
+          assert.deepEqual(s.previews.vars,s.vars);
+          assert.deepEqual(Object.keys(s.vars).sort(),
+            ['NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','NHS_APP_URL','MUSE_AI_ENABLED','MUSE_PROJECT_GUIDE_ENABLED'].sort());
+          assert.equal(s.vars.NHS_APP_URL,process.env.PREVIEW_URL);
+          assert.equal(s.vars.MUSE_AI_ENABLED,'false');
+          assert.equal(s.vars.MUSE_PROJECT_GUIDE_ENABLED,'false');
+          for(const [key,value] of Object.entries(s.vars)){
+            fs.appendFileSync(process.env.GITHUB_ENV,key+'='+value+'\n');
+          }
+          console.log('PASS: exact staging-only config, no production bindings, Muse flags OFF');
+          NODE
+
+      - name: Require existing staging environment credential (do not print)
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::Staging token missing; no publication.'; exit 1; }
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Build exact compiled Worker and test without publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci
+          npm run typecheck
+          node scripts/verify-velvet-atelier-pilot.mjs
+          npm run cf:build
+          test -s .open-next/worker.js
+          npx wrangler deploy --dry-run --config wrangler.velvet-atelier-admin-preview.jsonc
+          NHS_WORKER_CONFIG=wrangler.velvet-atelier-admin-preview.jsonc node scripts/verify-cloudflare-runtime.mjs
+
+      - name: Prove Access, unchanged staging preview and rollback, and unchanged production
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const base='https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID;
+          async function get(path){
+            const res=await fetch(base+path,{headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN},signal:AbortSignal.timeout(25000)});
+            assert.equal(res.status,200);
+            const json=await res.json();
+            assert.equal(json.success,true);
+            return json.result;
+          }
+          const app=await get('/access/apps/86b1f533-a23c-4368-b68a-e7c5fe2730c8');
+          assert.equal(app.type,'self_hosted');
+          assert.ok(app.destinations?.some(x=>x.type==='all_preview_workers'));
+          const policy=await get('/access/apps/86b1f533-a23c-4368-b68a-e7c5fe2730c8/policies');
+          assert.ok(policy.some(x=>x.decision==='allow'&&x.include?.some(y=>'cloudflare_account_member' in y)));
+          const prev=await get('/workers/workers/'+process.env.PREVIEW_WORKER+'/previews/'+process.env.PREVIEW_ID);
+          assert.equal(prev.id,process.env.PREVIEW_ID);
+          assert.equal(prev.name,process.env.PREVIEW_NAME);
+          assert.deepEqual(prev.urls,[process.env.PREVIEW_URL]);
+          const ds=await get('/workers/workers/'+process.env.PREVIEW_WORKER+'/previews/'+process.env.PREVIEW_ID+'/deployments');
+          assert.equal(ds[0]?.id,process.env.PREVIOUS_DEPLOYMENT_ID,'Staging changed; abort instead of overwrite');
+          const prod=await get('/workers/scripts/ninth-heart-studios-os/deployments');
+          assert.equal(prod.deployments?.[0]?.id,process.env.EXPECTED_PROD_DEPLOYMENT);
+          console.log('PASS: protected preview, original deployment and production stable');
+          NODE
+          headers="$(mktemp)"
+          trap 'rm -f "$headers"' EXIT
+          code="$(curl --silent --show-error --max-time 30 --connect-timeout 10 -D "$headers" -o /dev/null -w '%{http_code}' "$PREVIEW_URL")"
+          if [[ "$code" != '302' ]] || ! grep -Eiq 'location:.*(cloudflareaccess|/cdn-cgi/access/login)' "$headers"; then
+            echo "::error::Anonymous Access redirect not proven. No publish."
+            exit 1
+          fi
+          echo "PASS: anonymous GET HTTP 302 to Cloudflare Access"
+
+      - name: Publish ONLY the existing protected Worker Preview
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Explicit preview, never deploy; the production Worker has a different name.
+          npx wrangler preview --config wrangler.velvet-atelier-admin-preview.jsonc \
+            --worker-name "$PREVIEW_WORKER" \
+            --name "$PREVIEW_NAME" \
+            --tag "pr70-5156d85" \
+            --message "Authorized isolated staging PR70 source 5156d85"
+
+      - name: Verify that exact existing preview was updated and production was not
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const base='https://api.cloudflare.com/client/v4/accounts/'+process.env.CLOUDFLARE_ACCOUNT_ID;
+          async function get(path){
+            const res=await fetch(base+path,{headers:{Authorization:'Bearer '+process.env.CLOUDFLARE_API_TOKEN},signal:AbortSignal.timeout(25000)});
+            assert.equal(res.status,200);
+            const json=await res.json();
+            assert.equal(json.success,true);
+            return json.result;
+          }
+          const p=await get('/workers/workers/'+process.env.PREVIEW_WORKER+'/previews/'+process.env.PREVIEW_ID);
+          assert.equal(p.id,process.env.PREVIEW_ID);
+          assert.deepEqual(p.urls,[process.env.PREVIEW_URL]);
+          const ds=await get('/workers/workers/'+process.env.PREVIEW_WORKER+'/previews/'+process.env.PREVIEW_ID+'/deployments');
+          assert.ok(ds[0]?.id && ds[0].id!==process.env.PREVIOUS_DEPLOYMENT_ID,'Original preview not updated');
+          const prod=await get('/workers/scripts/ninth-heart-studios-os/deployments');
+          assert.equal(prod.deployments[0]?.id,process.env.EXPECTED_PROD_DEPLOYMENT);
+          console.log('PASS: exact existing protected preview updated; production unchanged');
+          console.log('New preview deployment ID: '+ds[0].id);
+          NODE
+          headers="$(mktemp)"
+          trap 'rm -f "$headers"' EXIT
+          code="$(curl --silent --show-error --max-time 30 -D "$headers" -o /dev/null -w '%{http_code}' "$PREVIEW_URL")"
+          if [[ "$code" != '302' ]] || ! grep -Eiq 'location:.*(cloudflareaccess|/cdn-cgi/access/login)' "$headers"; then
+            echo "::error::Staging Access no longer verified. Do NOT open hosted preview."
+            exit 1
+          fi
+          echo 'PASS: after deployment anonymous visitors still reach Cloudflare Access'
+
+      - name: Record boundaries
+        run: |
+          echo "Published only isolated staging source $REVIEWED_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Protected preview: $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "No production Worker, PR merge, hosted database write, Muse, scan or outreach." >> "$GITHUB_STEP_SUMMARY"
+          echo "Signed-in hosted visual acceptance is separate. Hosted action writes remain prohibited." >> "$GITHUB_STEP_SUMMARY"
