@@ -1,0 +1,38 @@
+name: NHS PR68 isolated preview Access probe
+on:
+  pull_request:
+    paths:
+      - 'wrangler.velvet-atelier-admin-preview.jsonc'
+      - 'scripts/verify-cloudflare-runtime.mjs'
+      - '.github/workflows/nhs-pr68-access-probe.yml'
+permissions:
+  contents: read
+jobs:
+  anonymous-access-probe:
+    if: github.event.pull_request.number == 68
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Confirm isolated preview cannot be read anonymously
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev'
+          headers="$(mktemp)"
+          body="$(mktemp)"
+          code="$(curl --silent --show-error --max-time 30 --connect-timeout 12 -D "$headers" -o "$body" -w '%{http_code}' "$url")"
+          echo "Anonymous HTTP status: $code"
+          if grep -Fq 'NHS PR68 staging access probe only' "$body"; then
+            echo "::error::The probe is publicly readable. Stop before publishing staging app."
+            exit 1
+          fi
+          if [[ "$code" =~ ^30[1278]$ ]] && grep -Eiq 'location:.*(cloudflareaccess|/cdn-cgi/access/login)' "$headers"; then
+            echo 'PASS: anonymous caller directed to Cloudflare Access'
+            exit 0
+          fi
+          if [[ "$code" == 403 ]] && grep -Eiq 'Cloudflare Access|login.required|access.denied' "$body"; then
+            echo 'PASS: anonymous caller denied by Cloudflare Access'
+            exit 0
+          fi
+          echo "::error::Expected verifiable Access protection; observed HTTP $code."
+          exit 1
