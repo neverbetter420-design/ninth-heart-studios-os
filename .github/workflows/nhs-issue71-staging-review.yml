@@ -8,6 +8,7 @@ on:
       - 'lib/staging-read-only.ts'
       - 'wrangler.velvet-atelier-admin-preview.jsonc'
       - 'scripts/verify-staging-readonly.mjs'
+      - 'scripts/verify-cloudflare-runtime.mjs'
       - '.github/workflows/nhs-issue71-staging-review.yml'
   workflow_dispatch:
 
