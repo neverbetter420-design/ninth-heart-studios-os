@@ -10,6 +10,7 @@ on:
       - 'scripts/verify-staging-readonly.mjs'
       - 'scripts/verify-staging-db-audit.mjs'
       - 'scripts/sql/issue71-staging-acl-audit.sql'
+      - 'scripts/sql/issue71-staging-readonly-acceptance.sql'
       - 'docs/security/issue71-staging-database-write-freeze.md'
       - 'scripts/verify-cloudflare-runtime.mjs'
       - '.github/workflows/nhs-issue71-staging-review.yml'

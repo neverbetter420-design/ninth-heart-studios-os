@@ -28,6 +28,25 @@ write-freeze**. The Next Proxy barrier in PR #72 covers Next.js HTTP methods,
 not direct browser Supabase REST/Storage/RPC requests. A separate grant-level
 freeze is required for a trustworthy interactive read-only acceptance mode.
 
+## Exact readiness acceptance query (observational)
+
+`scripts/sql/issue71-staging-readonly-acceptance.sql` is a separate,
+**SELECT-only** diagnostic to be run against project ID
+`qihwmfwlhsetxwggaesd`, **never production**, before and after any
+separately approved stage-only privilege freeze.
+
+**Verified baseline (Nov 11, 2026):** `app_tables=32`,
+`missing_rls=0`, `missing_admin_reads=0`,
+`writable_app_tables=32`, `exposed_public_rpcs=6`,
+`writable_storage_tables=3`, `future_public_write_grants=36`.
+Therefore `staging_read_only_ready=false` **by design** at present.
+
+The boolean is a conservative **necessary** acceptance check, not proof
+of comprehensive read-only security. It does **not** cover auth triggers,
+all Storage edge paths, privileged service-role operations, external API
+calls, side-effectful GET handlers, or accidental deployment to the
+wrong Worker. Those require separate review and authorization.
+
 ## Proposed change, requiring additional explicit permission
 
 1. **Preflight:** verify project ID/name/URL, repeat the metadata audit in
