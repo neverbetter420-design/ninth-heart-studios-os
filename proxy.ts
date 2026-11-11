@@ -9,7 +9,11 @@ export async function proxy(request: NextRequest) {
       pathname: request.nextUrl.pathname,
       hostname: request.nextUrl.hostname,
     },
-    process.env,
+    {
+      NHS_STAGING_READ_ONLY: process.env.NHS_STAGING_READ_ONLY,
+      NHS_APP_URL: process.env.NHS_APP_URL,
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    },
   );
   if (review.blocked) {
     return NextResponse.json(
