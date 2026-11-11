@@ -26,10 +26,10 @@ for (const sql of statements) {
 // The readiness query may use WITH + SELECT CTEs; ban any mutating SQL.
 const readiness = readFileSync(new URL("./sql/issue71-staging-readonly-acceptance.sql", import.meta.url), "utf8");
 assert.match(readiness, /qihwmfwlhsetxwggaesd/);
-const sanitized = readiness.replace(/\\/\\*[\\s\\S]*?\\*\\//g, " ").replace(/--[^\\n]*/g, " ").replace(/'(?:''|[^'])*'/g, "''").trim();
-assert.match(sanitized, /^WITH\\s/i);
-assert.match(sanitized, /\\bSELECT\\s+app\\.app_tables\\b/);
-assert.doesNotMatch(sanitized, /\\b(?:INSERT|UPDATE|DELETE|TRUNCATE|CREATE|DROP|ALTER|REVOKE|GRANT|CALL|DO|MERGE|COPY|SET|RESET|LOCK|VACUUM)\\b/i);
+const sanitized = readiness.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, " ").replace(/'(?:''|[^'])*'/g, "''").trim();
+assert.match(sanitized, /^WITH\s/i);
+assert.match(sanitized, /\bSELECT\s+app\.app_tables\b/);
+assert.doesNotMatch(sanitized, /\b(?:INSERT|UPDATE|DELETE|TRUNCATE|CREATE|DROP|ALTER|REVOKE|GRANT|CALL|DO|MERGE|COPY|SET|RESET|LOCK|VACUUM)\b/i);
 assert.match(readiness, /staging_read_only_ready/);
 assert.match(readiness, /future_public_write_grants/);
 assert.match(readiness, /writable_storage_tables/);
