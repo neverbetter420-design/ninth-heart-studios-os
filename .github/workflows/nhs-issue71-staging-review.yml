@@ -8,6 +8,9 @@ on:
       - 'lib/staging-read-only.ts'
       - 'wrangler.velvet-atelier-admin-preview.jsonc'
       - 'scripts/verify-staging-readonly.mjs'
+      - 'scripts/verify-staging-db-audit.mjs'
+      - 'scripts/sql/issue71-staging-acl-audit.sql'
+      - 'docs/security/issue71-staging-database-write-freeze.md'
       - 'scripts/verify-cloudflare-runtime.mjs'
       - '.github/workflows/nhs-issue71-staging-review.yml'
   workflow_dispatch:
@@ -31,6 +34,8 @@ jobs:
           cache: npm
       - name: Verify preview-only fail-closed request policy without network or databases
         run: node --experimental-strip-types scripts/verify-staging-readonly.mjs
+      - name: Prove staged database ACL audit is metadata-only and not applied
+        run: node scripts/verify-staging-db-audit.mjs
       - name: Check full application types without deployment
         run: |
           npm ci
