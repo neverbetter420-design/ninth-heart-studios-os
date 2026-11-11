@@ -40,4 +40,25 @@ const required = [
   "relrowsecurity", "authenticated", "anon", "storage", "public",
 ];
 for (const token of required) assert.ok(audit.includes(token), "Missing audit metadata: " + token);
-console.log("PASS: Issue #71 catalog audit and readiness queries are observational-only and stage-scoped; no hosted writes");
+// Preserve an exact, stage-only rollback snapshot before any separately
+// authorized ACL freeze. This artifact deliberately cannot alter grants.
+const snapshot = readFileSync(new URL("./sql/issue71-staging-acl-snapshot.sql", import.meta.url), "utf8");
+assert.match(snapshot, /qihwmfwlhsetxwggaesd/);
+assert.match(snapshot, /rquscwgdrqkzwjukiqtk/);
+for (const section of [
+  "relation_acl", "routine_acl", "schema_acl", "default_acl",
+  "api_role_membership", "rls_policy",
+]) assert.ok(snapshot.includes(section), "Missing exact rollback snapshot section: " + section);
+const cleanedSnapshot = snapshot
+  .replace(/\\/\\*[\\s\\S]*?\\*\\//g, " ")
+  .replace(/--[^\\n]*/g, " ")
+  .replace(/'(?:''|[^'])*'/g, "''");
+const snapshotStatements = cleanedSnapshot.split(";").map(x => x.trim()).filter(Boolean);
+assert.equal(snapshotStatements.length, 6, "Expected six independent catalog SELECT queries");
+for (const sql of snapshotStatements) {
+  assert.match(sql, /^SELECT\\s/i, "Rollback snapshot must remain SELECT-only");
+  assert.doesNotMatch(sql, /\\b(?:INSERT|UPDATE|DELETE|TRUNCATE|CREATE|DROP|ALTER|REVOKE|GRANT|CALL|DO|MERGE|COPY|EXECUTE|SET|RESET|LOCK|VACUUM)\\b/i,
+    "Rollback snapshot includes a potentially state-changing SQL verb");
+}
+
+console.log("PASS: Issue #71 catalog audit, readiness and exact ACL rollback snapshot queries are observational-only and stage-scoped; no hosted writes");
