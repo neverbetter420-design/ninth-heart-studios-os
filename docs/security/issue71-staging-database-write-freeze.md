@@ -47,6 +47,46 @@ all Storage edge paths, privileged service-role operations, external API
 calls, side-effectful GET handlers, or accidental deployment to the
 wrong Worker. Those require separate review and authorization.
 
+## Staging ACL snapshot / rollback readiness (source-only)
+
+The file `scripts/sql/issue71-staging-acl-snapshot.sql` captures raw ACLs,
+object names/signatures, object owners, schema ACLs, default ACLs, API-role
+memberships, and RLS policies using six catalog SELECT statements only.
+It does not generate or execute any DDL, and does not freeze the database.
+
+Before any **separately approved** staging-only permission mutation:
+
+- Confirm the target project **ID** in the connected Supabase project picker.
+  Never infer it from `current_database()` (often just `postgres`).
+- Preserve the full snapshot output privately, retaining raw NULL ACLs rather
+  than silently substituting default or empty privilege strings.
+- Re-run this snapshot immediately before changes, compare with the approved
+  baseline and stop on any drift; capture the exact object identities/owners.
+- Draft and independently review reversible statements derived from the
+  captured ACLs. Do not use broad `GRANT ALL` or place any ACL DDL in common
+  `supabase/migrations` that could reach production.
+- Verify the post-change effective privileges separately; do not treat the
+  existence of a snapshot as proof that a restore will work.
+
+## Auth POST exception remains an explicit release blocker
+
+The sign-in page currently exports a Next.js **Server Action**, while the
+review-mode HTTP gate allows any POST to `/auth/sign-in` by pathname alone.
+The gate does **not** inspect the requested action identity. The possibility
+of routing an unrelated action through this URL is not excluded by the
+existing unit tests. A green source test is not sufficient to waive this
+risk. Sign-out is a Route Handler and must be assessed independently.
+
+Before deployment, either replace the sign-in exception with a narrowly
+scoped endpoint using strict origin/CSRF controls and validated input, or
+independently prove that the existing action dispatch cannot invoke anything
+other than the intended authentication behavior. Verification must cover a
+normal login/logout, an unrelated `Next-Action` header POST against the auth
+path, ordinary blocked form/JSON writes, and explicit failure on config drift.
+Do not send mutating attack probes to the hosted preview without separate
+test-only authorization. The database grant freeze remains mandatory even if
+this application-layer gate is improved.
+
 ## Proposed change, requiring additional explicit permission
 
 1. **Preflight:** verify project ID/name/URL, repeat the metadata audit in
