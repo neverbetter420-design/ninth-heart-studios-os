@@ -1,0 +1,40 @@
+name: NHS Issue 71 staging review HTTP safety source checks
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - 'proxy.ts'
+      - 'lib/staging-read-only.ts'
+      - 'wrangler.velvet-atelier-admin-preview.jsonc'
+      - 'scripts/verify-staging-readonly.mjs'
+      - '.github/workflows/nhs-issue71-staging-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging-readonly-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code; no persistent Git credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify preview-only fail-closed request policy without network or databases
+        run: node --experimental-strip-types scripts/verify-staging-readonly.mjs
+      - name: Check full application types without deployment
+        run: |
+          npm ci
+          npm run typecheck
+      - name: Record read-only workflow boundaries
+        run: |
+          echo 'Source-only PR gate; no Worker deployment, Supabase SQL, action POST, auth provisioning or production changes.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'This HTTP barrier does not restrict direct browser-to-Supabase REST calls; RLS/restricted grants are a separate unresolved gate.' >> "$GITHUB_STEP_SUMMARY"

@@ -1,7 +1,32 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getStagingReviewDecision } from "./lib/staging-read-only";
 
 export async function proxy(request: NextRequest) {
+  const review = getStagingReviewDecision(
+    {
+      method: request.method,
+      pathname: request.nextUrl.pathname,
+      hostname: request.nextUrl.hostname,
+    },
+    process.env,
+  );
+  if (review.blocked) {
+    return NextResponse.json(
+      { error: review.status === 503
+        ? "The protected preview is not configured safely for review."
+        : "This staging preview is read-only. No changes were made." },
+      {
+        status: review.status,
+        headers: {
+          "Cache-Control": "no-store",
+          "X-NHS-Review-Mode": "read-only",
+          ...(review.status === 405 ? { Allow: "GET, HEAD, OPTIONS" } : {}),
+        },
+      },
+    );
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -27,6 +52,7 @@ export async function proxy(request: NextRequest) {
   // Server Components receive fresh cookie-backed credentials.
   await supabase.auth.getClaims();
 
+  if (review.readOnly) response.headers.set("X-NHS-Review-Mode", "read-only");
   return response;
 }
 
