@@ -51,6 +51,8 @@ assert.match(proxy,/getStagingReviewDecision/);
 assert.match(proxy,/request\.nextUrl\.hostname/);
 assert.match(proxy,/await supabase\.auth\.getClaims\(\)/);
 assert.match(proxy,/review\.blocked/);
+assert.match(proxy,/hasNextActionHeader:\s*request\.headers\.has\("next-action"\)/,
+  "Proxy must pass action-dispatch header into staging request gate");
 // Preview login is deliberately an ordinary HTML form to a stage-only Route
 // Handler. The production form still uses the pre-existing Server Action.
 const signInPage = readFileSync(new URL("../app/auth/sign-in/page.tsx", import.meta.url), "utf8");
@@ -64,6 +66,14 @@ assert.match(signInRoute, /request\.headers\.get\("origin"\) !== REVIEW_PREVIEW_
 assert.match(signInRoute, /request\.headers\.has\("next-action"\)/);
 assert.match(signInRoute, /application\/x-www-form-urlencoded/);
 assert.match(signInRoute, /!decision\.readOnly \|\| decision\.blocked/);
+const signOutRoute = readFileSync(new URL("../app/auth/sign-out/route.ts", import.meta.url), "utf8");
+assert.match(signOutRoute, /getStagingReviewDecision/);
+assert.match(signOutRoute, /hasNextActionHeader:\s*request\.headers\.has\("next-action"\)/);
+assert.match(signOutRoute, /review\.readOnly/);
+assert.match(signOutRoute, /request\.headers\.get\("origin"\) !== REVIEW_PREVIEW_ORIGIN/);
+assert.match(signOutRoute, /request\.headers\.get\("sec-fetch-site"\) !== "same-origin"/);
+assert.deepEqual(onPreview("POST","/auth/sign-out",valid,REVIEW_PREVIEW_HOST,true),
+  {readOnly:true,blocked:true,status:405}, "Cross-route action dispatch must fail closed");
 assert.deepEqual(onPreview("POST","/auth/sign-in"),{readOnly:true,blocked:true,status:405});
 
 console.log("PASS Issue #71 staging-only Route Handler auth guard, action bypass rejection, source-only HTTP barrier, stage isolation");
