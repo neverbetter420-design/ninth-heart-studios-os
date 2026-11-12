@@ -68,24 +68,29 @@ Before any **separately approved** staging-only permission mutation:
 - Verify the post-change effective privileges separately; do not treat the
   existence of a snapshot as proof that a restore will work.
 
-## Auth POST exception remains an explicit release blocker
+## Auth POST exception: source mitigation prepared, hosted test outstanding
 
-The sign-in page currently exports a Next.js **Server Action**, while the
-review-mode HTTP gate allows any POST to `/auth/sign-in` by pathname alone.
-The gate does **not** inspect the requested action identity. The possibility
-of routing an unrelated action through this URL is not excluded by the
-existing unit tests. A green source test is not sufficient to waive this
-risk. Sign-out is a Route Handler and must be assessed independently.
+The old review-mode pathname exception for the `/auth/sign-in` Server Action
+has been removed in PR #72. In review mode, the login page displays a
+**native form** posting to the new stage-only Route Handler
+`POST /auth/review-sign-in`; production still uses the pre-existing sign-in
+Server Action. The review Proxy now denies the original sign-in POST path and
+rejects any `Next-Action` header even on permitted sign-in/sign-out routes.
+The dedicated review route also requires strict same-origin and form-type
+checks, validates input lengths, and refuses operation without the exact
+preview configuration.
 
-Before deployment, either replace the sign-in exception with a narrowly
-scoped endpoint using strict origin/CSRF controls and validated input, or
-independently prove that the existing action dispatch cannot invoke anything
-other than the intended authentication behavior. Verification must cover a
-normal login/logout, an unrelated `Next-Action` header POST against the auth
-path, ordinary blocked form/JSON writes, and explicit failure on config drift.
-Do not send mutating attack probes to the hosted preview without separate
-test-only authorization. The database grant freeze remains mandatory even if
-this application-layer gate is improved.
+This is **source-only mitigation, NOT a tested deployed security guarantee**.
+The compiled Worker and hosted login flow still need separate validation:
+- Confirm the native form posts to the correct route in the protected preview.
+- Confirm valid admin sign-in, inactive-user rejection, and sign-out.
+- Confirm that action POSTs addressed to each auth path fail with 405.
+- Confirm foreign-origin/missing-origin requests and incorrect content types
+  fail with 403 on the dedicated sign-in handler.
+- Confirm missing or mismatched review flags/host/DB URL fail closed with 503.
+- Confirm no unauthorized direct Supabase Data API, RPC or Storage writes.
+Do not send hosted mutation probes, create accounts, or deploy without separate
+owner authorization. The stage-only database write-freeze remains required.
 
 ## Proposed change, requiring additional explicit permission
 
