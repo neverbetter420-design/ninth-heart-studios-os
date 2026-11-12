@@ -9,9 +9,15 @@ its Supabase database, or production.
 - The preview is allowed to render only when `NHS_STAGING_READ_ONLY=true`,
   `NHS_APP_URL` matches the protected preview URL, and
   `NEXT_PUBLIC_SUPABASE_URL` matches the existing staging Supabase project.
-- Safe `GET`, `HEAD`, `OPTIONS` pass. All ordinary mutating HTTP
-  methods, including server-action `POST` to automation/scanner pages and
-  Muse AI routes, return 405 with a no-store response.
+- Read-only `GET`, `HEAD`, `OPTIONS` are generally allowed. The
+  explicit `GET/HEAD /auth/callback` exception returns 405 in review mode:
+  this route exchanges auth codes or verifies one-time tokens and may change
+  Auth session/account state. Password sign-in uses the separate native
+  review form; emailed magic-link, invite, and recovery callbacks remain
+  unavailable in this preview. Production callbacks are unchanged.
+- Ordinary mutating HTTP methods, including server-action `POST` to
+  automation/scanner pages and Muse AI routes, return 405 with a no-store
+  response.
 - `POST /auth/sign-in` (the old Server Action path) is now **blocked**.
   Review mode instead renders a native HTML form posting to the dedicated
   `POST /auth/review-sign-in` Route Handler, guarded by exact preview
@@ -44,7 +50,8 @@ its Supabase database, or production.
 - CI `scripts/verify-staging-readonly.mjs` checks stage-only host, DB ID,
   both Wrangler var scopes, Muse OFF, allowed methods, blocked actions,
   fail-closed cases, Proxy header forwarding, action-header rejection,
-  staging-only form wiring and sign-out origin checking,
+  staging-only form wiring, the side-effectful auth callback block,
+  and sign-out origin checking,
   and production noninterference.
 - DO NOT merge this draft, update PR #70 release workflow, or publish
   the new Worker until a separate, explicit staging-only authorization
