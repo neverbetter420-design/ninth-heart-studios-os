@@ -18,8 +18,12 @@ its Supabase database, or production.
   environment, strict `Origin`, form content type, and `Sec-Fetch-Site`
   checks. This handler is disabled outside review mode.
 - The only POST exceptions are `/auth/review-sign-in` and
-  `/auth/sign-out`, and both reject the `Next-Action` dispatch header.
-  Production continues using the existing sign-in Server Action.
+  `/auth/sign-out`, and both reject the `Next-Action` dispatch header
+  at the Proxy before routing. Both Route Handlers re-check their review
+  decision and reject cross-origin requests. Review-mode sign-out requires
+  the exact preview `Origin` and a same-origin `Sec-Fetch-Site` value
+  when present; missing origins are rejected. The production sign-in and
+  sign-out flows remain unchanged.
 - The route-handler exception still requires hosted login/logout
   compatibility and adversarial testing before approval.
 - A preview with a missing/mismatched flag, URL, hostname or database
@@ -39,7 +43,8 @@ its Supabase database, or production.
 ## Test gate, rollout constraints
 - CI `scripts/verify-staging-readonly.mjs` checks stage-only host, DB ID,
   both Wrangler var scopes, Muse OFF, allowed methods, blocked actions,
-  fail-closed cases, action-header rejection, staging-only form wiring,
+  fail-closed cases, Proxy header forwarding, action-header rejection,
+  staging-only form wiring and sign-out origin checking,
   and production noninterference.
 - DO NOT merge this draft, update PR #70 release workflow, or publish
   the new Worker until a separate, explicit staging-only authorization
