@@ -12,9 +12,16 @@ its Supabase database, or production.
 - Safe `GET`, `HEAD`, `OPTIONS` pass. All ordinary mutating HTTP
   methods, including server-action `POST` to automation/scanner pages and
   Muse AI routes, return 405 with a no-store response.
-- `POST /auth/sign-in` and `POST /auth/sign-out` remain allowed to let
-  reviewers authenticate. These are explicit exceptions. Do not claim the
-  gate protects arbitrary server actions via a misrouted auth request.
+- `POST /auth/sign-in` (the old Server Action path) is now **blocked**.
+  Review mode instead renders a native HTML form posting to the dedicated
+  `POST /auth/review-sign-in` Route Handler, guarded by exact preview
+  environment, strict `Origin`, form content type, and `Sec-Fetch-Site`
+  checks. This handler is disabled outside review mode.
+- The only POST exceptions are `/auth/review-sign-in` and
+  `/auth/sign-out`, and both reject the `Next-Action` dispatch header.
+  Production continues using the existing sign-in Server Action.
+- The route-handler exception still requires hosted login/logout
+  compatibility and adversarial testing before approval.
 - A preview with a missing/mismatched flag, URL, hostname or database
   project fails closed with 503. Production routes with no preview flag
   continue unchanged.
@@ -32,7 +39,8 @@ its Supabase database, or production.
 ## Test gate, rollout constraints
 - CI `scripts/verify-staging-readonly.mjs` checks stage-only host, DB ID,
   both Wrangler var scopes, Muse OFF, allowed methods, blocked actions,
-  fail-closed cases and production noninterference.
+  fail-closed cases, action-header rejection, staging-only form wiring,
+  and production noninterference.
 - DO NOT merge this draft, update PR #70 release workflow, or publish
   the new Worker until a separate, explicit staging-only authorization
   and complete review (including impact on login).
