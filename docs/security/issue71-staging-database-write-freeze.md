@@ -20,6 +20,7 @@ reliable staging discriminator.
 | Storage | `storage.objects`, `storage.buckets` and `storage.buckets_analytics` grant writes to `authenticated` |
 | Storage policies | Six `storage.objects` policies include admin manage, client upload/delete, and read rules |
 | Default ACL | Both `postgres` and `supabase_admin` currently grant public-table writes by default |
+| Explicit column ACLs | 0 on staging public/storage relations as of the read-only audit |
 | Schemas | Neither `anon` nor `authenticated` has CREATE privilege on `public`, `storage`, or database |
 | Data | No staging clients, memberships, projects, leads or prospects; 5 automations off with no previous runs |
 
@@ -51,13 +52,15 @@ wrong Worker. Those require separate review and authorization.
 
 The file `scripts/sql/issue71-staging-acl-snapshot.sql` captures raw ACLs,
 object names/signatures, object owners, schema ACLs, default ACLs, API-role
-memberships, and RLS policies using six catalog SELECT statements only.
+memberships, explicit column-level ACLs, and RLS policies using seven catalog SELECT statements only.
 It does not generate or execute any DDL, and does not freeze the database.
 
 Before any **separately approved** staging-only permission mutation:
 
 - Confirm the target project **ID** in the connected Supabase project picker.
   Never infer it from `current_database()` (often just `postgres`).
+- Verify all seven snapshot queries ran, including explicit column-level ACLs.
+  The column ACL result currently has zero rows; halt on drift.
 - Preserve the full snapshot output privately, retaining raw NULL ACLs rather
   than silently substituting default or empty privilege strings.
 - Re-run this snapshot immediately before changes, compare with the approved
@@ -91,6 +94,13 @@ The compiled Worker and hosted login flow still need separate validation:
 - Confirm no unauthorized direct Supabase Data API, RPC or Storage writes.
 Do not send hosted mutation probes, create accounts, or deploy without separate
 owner authorization. The stage-only database write-freeze remains required.
+
+## Independent security-advisor observation
+
+The staging Supabase security advisor currently reports
+**Leaked Password Protection Disabled** (warning, not automatically remediated).
+It is separate from the read-only grant-level blocker. Do not enable or change
+Auth settings as part of this draft without separate approval.
 
 ## Proposed change, requiring additional explicit permission
 
@@ -146,8 +156,9 @@ until a separately scoped owner approval is recorded.
 ## Existing review acceptance
 
 - PR #72's fail-closed HTTP barrier is **source-only, unmerged and undeployed**.
-- All nine workflow outcomes at prior head: seven successful and two
-  intentionally skipped (when last checked). Subsequent commits must rerun.
+- At PR head `094d244`, all twelve workflow outcomes were completed:
+  ten successful and two intentionally skipped. **Any subsequent commits
+  require new CI** before accepting the source changes.
 - Cloudflare Access remains account-member protected; Muse AI and Guide OFF.
 - Live 320/390px staging visual acceptance is pending. Client A/B hosted
   account checks are **owner-deferred, not PASSED**.
