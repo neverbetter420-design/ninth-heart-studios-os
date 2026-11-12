@@ -19,6 +19,23 @@ WHERE n.nspname IN ('public', 'storage')
   AND c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S')
 ORDER BY n.nspname, c.relname;
 
+-- Explicit column-level GRANTs can survive table-level ACL changes.
+-- A zero-row result is meaningful: it means no explicit column ACLs existed.
+SELECT 'column_acl' AS snapshot_section,
+       format('%I.%I.%I', n.nspname, c.relname, a.attname) AS object_identity,
+       pg_get_userbyid(c.relowner) AS owner_role,
+       a.attnum AS attribute_number,
+       a.attacl::text AS exact_acl
+FROM pg_attribute a
+JOIN pg_class c ON c.oid = a.attrelid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname IN ('public', 'storage')
+  AND c.relkind IN ('r', 'p', 'v', 'm', 'f')
+  AND a.attnum > 0
+  AND NOT a.attisdropped
+  AND a.attacl IS NOT NULL
+ORDER BY n.nspname, c.relname, a.attnum;
+
 -- Function signatures matter: overloaded routines must be restored individually.
 SELECT 'routine_acl' AS snapshot_section,
        format('%I.%I(%s)', n.nspname, p.proname,
