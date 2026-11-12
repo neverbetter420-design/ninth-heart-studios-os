@@ -7,7 +7,7 @@ export const REVIEW_PREVIEW_HOST = "design-velvet-atelier-admin-pilot-nhs-os-vel
 export const REVIEW_PREVIEW_ORIGIN = "https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev";
 export const REVIEW_SUPABASE_ORIGIN = "https://qihwmfwlhsetxwggaesd.supabase.co";
 
-type ReviewRequest = { method: string; pathname: string; hostname: string };
+type ReviewRequest = { method: string; pathname: string; hostname: string; hasNextActionHeader?: boolean };
 type ReviewEnvironment = {
   NHS_STAGING_READ_ONLY?: string;
   NHS_APP_URL?: string;
@@ -41,11 +41,13 @@ export function getStagingReviewDecision(
     return { readOnly: true, blocked: false };
   }
 
-  // Reviewers can establish/end a session. This is an explicit auth-only
-  // exception; arbitrary actions still require a separate data-layer gate.
+  // The original Server Action sign-in path is deliberately NOT exempt.
+  // Only explicit Route Handlers may receive review-mode auth POSTs.
+  // Reject Next-Action requests even when sent to those allowed paths.
   if (
     method === "POST" &&
-    (request.pathname === "/auth/sign-in" || request.pathname === "/auth/sign-out")
+    !request.hasNextActionHeader &&
+    (request.pathname === "/auth/review-sign-in" || request.pathname === "/auth/sign-out")
   ) {
     return { readOnly: true, blocked: false };
   }
