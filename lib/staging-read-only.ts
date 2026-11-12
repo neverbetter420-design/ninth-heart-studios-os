@@ -37,6 +37,18 @@ export function getStagingReviewDecision(
   }
 
   const method = request.method.toUpperCase();
+
+  // The auth callback GET/HEAD can exchange a code or verify an OTP and
+  // therefore change Auth session/account state. Review-mode password login
+  // uses the dedicated POST handler, so block emailed auth callbacks here.
+  // The original callback remains untouched outside the exact preview.
+  if (
+    request.pathname === "/auth/callback" &&
+    (method === "GET" || method === "HEAD")
+  ) {
+    return { readOnly: true, blocked: true, status: 405 };
+  }
+
   if (method === "GET" || method === "HEAD" || method === "OPTIONS") {
     return { readOnly: true, blocked: false };
   }
