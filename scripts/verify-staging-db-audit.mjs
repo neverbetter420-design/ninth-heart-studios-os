@@ -46,7 +46,7 @@ const snapshot = readFileSync(new URL("./sql/issue71-staging-acl-snapshot.sql", 
 assert.match(snapshot, /qihwmfwlhsetxwggaesd/);
 assert.match(snapshot, /rquscwgdrqkzwjukiqtk/);
 for (const section of [
-  "relation_acl", "routine_acl", "schema_acl", "default_acl",
+  "relation_acl", "column_acl", "routine_acl", "schema_acl", "default_acl",
   "api_role_membership", "rls_policy",
 ]) assert.ok(snapshot.includes(section), "Missing exact rollback snapshot section: " + section);
 const cleanedSnapshot = snapshot
@@ -54,7 +54,7 @@ const cleanedSnapshot = snapshot
   .replace(/--[^\n]*/g, " ")
   .replace(/'(?:''|[^'])*'/g, "''");
 const snapshotStatements = cleanedSnapshot.split(";").map(x => x.trim()).filter(Boolean);
-assert.equal(snapshotStatements.length, 6, "Expected six independent catalog SELECT queries");
+assert.equal(snapshotStatements.length, 7, "Expected seven independent catalog SELECT queries");
 for (const sql of snapshotStatements) {
   assert.match(sql, /^SELECT\s/i, "Rollback snapshot must remain SELECT-only");
   assert.doesNotMatch(sql, /\b(?:INSERT|UPDATE|DELETE|TRUNCATE|CREATE|DROP|ALTER|REVOKE|GRANT|CALL|DO|MERGE|COPY|EXECUTE|SET|RESET|LOCK|VACUUM)\b/i,
