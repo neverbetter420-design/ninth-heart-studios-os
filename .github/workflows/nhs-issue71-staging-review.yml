@@ -8,6 +8,7 @@ on:
       - 'app/auth/sign-in/page.tsx'
       - 'app/auth/review-sign-in/route.ts'
       - 'app/auth/sign-out/route.ts'
+      - 'app/auth/callback/route.ts'
       - 'lib/staging-read-only.ts'
       - 'wrangler.velvet-atelier-admin-preview.jsonc'
       - 'scripts/verify-staging-readonly.mjs'
