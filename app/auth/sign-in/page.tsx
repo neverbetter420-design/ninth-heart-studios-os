@@ -18,17 +18,32 @@ export default async function SignInPage({
         {reset === "success" ? <div className="auth-success" role="status">Password updated. Sign in with your new password.</div> : null}
         {error ? <div className="auth-error" role="alert">{error}</div> : null}
 
-        <form action={signIn} className="auth-form">
-          <label>
-            <span>Email</span>
-            <input name="email" type="email" autoComplete="email" required />
-          </label>
-          <label>
-            <span>Password</span>
-            <input name="password" type="password" autoComplete="current-password" required />
-          </label>
-          <button className="primary-button wide" type="submit">Sign in</button>
-        </form>
+        {process.env.NHS_STAGING_READ_ONLY === "true" ? (
+          // Native POST to a stage-only Route Handler, NOT a Server Action.
+          <form action="/auth/review-sign-in" method="post" className="auth-form">
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" autoComplete="email" required />
+            </label>
+            <label>
+              <span>Password</span>
+              <input name="password" type="password" autoComplete="current-password" required />
+            </label>
+            <button className="primary-button wide" type="submit">Sign in</button>
+          </form>
+        ) : (
+          <form action={signIn} className="auth-form">
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" autoComplete="email" required />
+            </label>
+            <label>
+              <span>Password</span>
+              <input name="password" type="password" autoComplete="current-password" required />
+            </label>
+            <button className="primary-button wide" type="submit">Sign in</button>
+          </form>
+        )}
 
         <p className="auth-footnote"><a href="/auth/forgot-password">Forgot password?</a></p>
         <p className="auth-footnote">Public registration is disabled. Client accounts are invite-only.</p>
