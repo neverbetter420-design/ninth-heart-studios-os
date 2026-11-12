@@ -90,7 +90,8 @@ const previewConfig = JSON.parse(source("wrangler.velvet-atelier-admin-preview.j
 const expectedUrl = "https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev";
 const allowedVars = [
   "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-  "NHS_APP_URL", "MUSE_AI_ENABLED", "MUSE_PROJECT_GUIDE_ENABLED"
+  "NHS_APP_URL", "MUSE_AI_ENABLED", "MUSE_PROJECT_GUIDE_ENABLED",
+  "NHS_STAGING_READ_ONLY"
 ];
 assert.equal(liveConfig.name, "ninth-heart-studios-os");
 assert.equal(previewConfig.name, "nhs-os-velvet-atelier-preview");
@@ -121,10 +122,14 @@ assert.deepEqual(previewConfig.vars, previewConfig.previews.vars);
 assert.equal(previewConfig.vars.NHS_APP_URL, expectedUrl);
 assert.equal(previewConfig.vars.MUSE_AI_ENABLED, "false");
 assert.equal(previewConfig.vars.MUSE_PROJECT_GUIDE_ENABLED, "false");
+assert.equal(previewConfig.vars.NHS_STAGING_READ_ONLY, "true",
+  "The dedicated review Worker must fail closed to read-only mode");
+const { NHS_STAGING_READ_ONLY: reviewFlag, ...originalPilotVars } = previewConfig.vars;
+assert.equal(reviewFlag, "true");
 assert.deepEqual(
-  {...previewConfig.vars, NHS_APP_URL: stagingConfig.vars.NHS_APP_URL},
+  {...originalPilotVars, NHS_APP_URL: stagingConfig.vars.NHS_APP_URL},
   stagingConfig.vars,
-  "The pilot may differ from the existing staging config only by its app callback URL"
+  "Preview must match isolated staging config except for callback URL and the reviewed fail-closed flag"
 );
 console.log("PASS: independent, route-free, credential-limited pilot preview config; Muse flags OFF");
 // The dedicated Admin QA may validate source, but must never publish it.

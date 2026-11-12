@@ -23,6 +23,7 @@ assert.ok([
   "wrangler.velvet-atelier-admin-preview.jsonc",
 ].includes(config),
   "Worker smoke config must be an explicitly reviewed production or isolated staging definition");
+let guardedPreviewLoopback = false;
 if (config === "wrangler.velvet-atelier-admin-preview.jsonc") {
   // Fail closed if the preview accidentally inherits a live hostname or secret.
   const { readFileSync } = await import("node:fs");
@@ -36,6 +37,9 @@ if (config === "wrangler.velvet-atelier-admin-preview.jsonc") {
     "https://qihwmfwlhsetxwggaesd.supabase.co");
   assert.equal(pilot.vars.MUSE_AI_ENABLED, "false");
   assert.equal(pilot.vars.MUSE_PROJECT_GUIDE_ENABLED, "false");
+  // In Issue #71 review mode this hostname is deliberately NOT the
+  // protected workers.dev URL. Local requests must fail closed with HTTP 503.
+  guardedPreviewLoopback = pilot.vars.NHS_STAGING_READ_ONLY === "true";
 }
 const args = ["--no-install", "wrangler", "dev", "--local", "--ip", "127.0.0.1", "--port", String(port), "--config", config];
 const child = spawn(commands, args, {
@@ -64,7 +68,7 @@ async function ready() {
     try {
       const response = await get("/auth/sign-in");
       // A 500 is a decisive Worker runtime failure, not a readiness condition.
-      if (response.status >= 500) {
+      if (response.status >= 500 && !(guardedPreviewLoopback && response.status === 503)) {
         throw new Error(`Compiled Worker returned HTTP ${response.status} on /auth/sign-in`);
       }
       return response;
@@ -86,13 +90,24 @@ async function checkPublic(path, expected, initialResponse) {
 }
 try {
   const first = await ready();
-  await checkPublic("/auth/sign-in", "Enter NHS OS", first);
-  await checkPublic("/auth/forgot-password", "Reset password");
+  if (guardedPreviewLoopback) {
+    assert.equal(first.status, 503);
+    assert.match(await first.text(), /protected preview is not configured safely for review/i,
+      "Local Worker refused loopback, but not with the expected fail-closed review guard");
+    const another = await get("/automations");
+    assert.equal(another.status, 503, "Unsafe loopback GET must fail closed on all admin routes");
+    assert.match(await another.text(), /protected preview is not configured safely for review/i);
+    console.log("PASS protected staging Worker rejects local loopback HTTP GET with verified review-mode 503");
+    console.log("The compiled Worker guard was exercised. Live review-host route rendering is a separate staging gate.");
+  } else {
+    await checkPublic("/auth/sign-in", "Enter NHS OS", first);
+    await checkPublic("/auth/forgot-password", "Reset password");
+  }
   // Source of truth for the visual design; this run must not change its styles.
   assert.ok(existsSync("app/seven-rooms.css"), "Approved Seven Rooms stylesheet is missing");
   assert.ok(existsSync("lib/studio-rooms.ts"), "Approved Seven Rooms route map is missing");
   console.log("PASS the compiled Worker boots locally with the approved Seven Rooms source present");
-  console.log("Public GET-only local runtime smoke complete; no logins, writes, Worker deployments, or production database credentials were used.");
+  console.log("Public GET-only smoke / protected-loopback refusal verified; no logins, writes, Worker deployments, or production database credentials were used.");
 } catch (error) {
   console.error("FAIL compiled Worker runtime smoke:", error.message);
   // Limit output to reduce incidental exposure of environment/stack data.

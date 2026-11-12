@@ -19,7 +19,8 @@
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_afbg4GgstxVVPrDGPBco7w_nYnNzMra",
     "NHS_APP_URL": "https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev",
     "MUSE_AI_ENABLED": "false",
-    "MUSE_PROJECT_GUIDE_ENABLED": "false"
+    "MUSE_PROJECT_GUIDE_ENABLED": "false",
+    "NHS_STAGING_READ_ONLY": "true"
   },
   "previews": {
     "vars": {
@@ -27,7 +28,8 @@
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_afbg4GgstxVVPrDGPBco7w_nYnNzMra",
       "NHS_APP_URL": "https://design-velvet-atelier-admin-pilot-nhs-os-velvet-atelier-preview.neverbetter420.workers.dev",
       "MUSE_AI_ENABLED": "false",
-      "MUSE_PROJECT_GUIDE_ENABLED": "false"
+      "MUSE_PROJECT_GUIDE_ENABLED": "false",
+      "NHS_STAGING_READ_ONLY": "true"
     }
   }
 }
