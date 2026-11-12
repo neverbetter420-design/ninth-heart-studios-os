@@ -95,6 +95,23 @@ The compiled Worker and hosted login flow still need separate validation:
 Do not send hosted mutation probes, create accounts, or deploy without separate
 owner authorization. The stage-only database write-freeze remains required.
 
+## Side-effectful GET auth callback (review-only protection)
+
+`GET /auth/callback` can invoke `exchangeCodeForSession` or `verifyOtp`;
+it is **not** a general read-only GET. PR #72 now explicitly returns 405
+for `GET` and `HEAD` on this path in the exact review-mode environment.
+Both the Proxy and the callback Route Handler check the review gate before
+a token exchange; other hosts with the flag disabled retain the original
+production callback behavior. The regression checks verify both layers.
+
+Consequence: emailed recovery, invite and magic-link callbacks are
+**unavailable** on the protected read-only review preview. Existing
+username/password login uses `POST /auth/review-sign-in`. Hosted sign-in
+and sign-out still require separately authorized acceptance; do not claim
+recovery or Client A/B test coverage from these source checks. This does
+not alter direct Supabase Auth endpoints, which remain outside Next Proxy
+and require independent review.
+
 ## Independent security-advisor observation
 
 The staging Supabase security advisor currently reports
