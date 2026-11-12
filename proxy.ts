@@ -8,6 +8,7 @@ export async function proxy(request: NextRequest) {
       method: request.method,
       pathname: request.nextUrl.pathname,
       hostname: request.nextUrl.hostname,
+      hasNextActionHeader: request.headers.has("next-action"),
     },
     {
       NHS_STAGING_READ_ONLY: process.env.NHS_STAGING_READ_ONLY,
