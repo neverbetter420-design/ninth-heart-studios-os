@@ -38,6 +38,10 @@ assert.deepEqual(onPreview("GET","/auth/callback",{}, "app.ninthheartstudios.com
 const callbackSource = readFileSync(new URL("../app/auth/callback/route.ts", import.meta.url), "utf8");
 assert.match(callbackSource, /exchangeCodeForSession/);
 assert.match(callbackSource, /verifyOtp/);
+assert.match(callbackSource, /getStagingReviewDecision/);
+assert.match(callbackSource, /if \(review\.blocked\)/);
+assert.ok(callbackSource.indexOf("if (review.blocked)") < callbackSource.indexOf("exchangeCodeForSession"),
+  "Callback must reject staging review before attempting token exchange");
 
 for (const path of ["/auth/review-sign-in", "/auth/sign-out"]) {
   assert.deepEqual(onPreview("POST",path), {readOnly:true,blocked:false});
