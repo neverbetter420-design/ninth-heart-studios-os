@@ -19,19 +19,21 @@ assert.equal(preview.vars.NEXT_PUBLIC_SUPABASE_URL, REVIEW_SUPABASE_ORIGIN);
 assert.equal(production.vars?.NHS_STAGING_READ_ONLY, undefined);
 
 const valid = { ...preview.vars };
-const onPreview = (method, pathname="/", env=valid, hostname=REVIEW_PREVIEW_HOST) =>
-  getStagingReviewDecision({ method, pathname, hostname }, env);
+const onPreview = (method, pathname="/", env=valid, hostname=REVIEW_PREVIEW_HOST, hasNextActionHeader=false) =>
+  getStagingReviewDecision({ method, pathname, hostname, hasNextActionHeader }, env);
 
 for (const method of ["GET","HEAD","OPTIONS"]) {
   assert.deepEqual(onPreview(method), { readOnly: true, blocked: false });
 }
-for (const path of ["/auth/sign-in", "/auth/sign-out"]) {
+for (const path of ["/auth/review-sign-in", "/auth/sign-out"]) {
   assert.deepEqual(onPreview("POST",path), {readOnly:true,blocked:false});
+  assert.deepEqual(onPreview("POST",path,valid,REVIEW_PREVIEW_HOST,true),
+    {readOnly:true,blocked:true,status:405}, "Next-Action dispatch must never traverse auth exemptions");
 }
 for (const path of [
   "/", "/automations", "/leads/discover", "/projects", "/clients", "/forms",
   "/muse", "/api/admin/muse-ai", "/api/admin/muse-ai/project-plan",
-  "/portal", "/auth/forgot-password", "/auth/reset-password"
+  "/portal", "/auth/sign-in", "/auth/forgot-password", "/auth/reset-password"
 ]) {
   for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
     assert.deepEqual(onPreview(method,path),{readOnly:true,blocked:true,status:405},method+" "+path);
@@ -49,4 +51,19 @@ assert.match(proxy,/getStagingReviewDecision/);
 assert.match(proxy,/request\.nextUrl\.hostname/);
 assert.match(proxy,/await supabase\.auth\.getClaims\(\)/);
 assert.match(proxy,/review\.blocked/);
-console.log("PASS Issue #71 source-only HTTP review barrier, stage DB ID, safe methods, blocked writes, auth exceptions and production isolation");
+// Preview login is deliberately an ordinary HTML form to a stage-only Route
+// Handler. The production form still uses the pre-existing Server Action.
+const signInPage = readFileSync(new URL("../app/auth/sign-in/page.tsx", import.meta.url), "utf8");
+const signInRoute = readFileSync(new URL("../app/auth/review-sign-in/route.ts", import.meta.url), "utf8");
+assert.match(signInPage, /NHS_STAGING_READ_ONLY === "true"/);
+assert.match(signInPage, /action="\\/auth\\/review-sign-in" method="post"/);
+assert.match(signInPage, /action=\\{signIn\\}/);
+assert.match(signInRoute, /export async function POST/);
+assert.match(signInRoute, /getStagingReviewDecision/);
+assert.match(signInRoute, /request\\.headers\\.get\\("origin"\\) !== REVIEW_PREVIEW_ORIGIN/);
+assert.match(signInRoute, /request\\.headers\\.has\\("next-action"\\)/);
+assert.match(signInRoute, /application\\/x-www-form-urlencoded/);
+assert.match(signInRoute, /!decision\\.readOnly \\|\\| decision\\.blocked/);
+assert.deepEqual(onPreview("POST","/auth/sign-in"),{readOnly:true,blocked:true,status:405});
+
+console.log("PASS Issue #71 staging-only Route Handler auth guard, action bypass rejection, source-only HTTP barrier, stage isolation");
