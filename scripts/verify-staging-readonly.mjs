@@ -25,6 +25,20 @@ const onPreview = (method, pathname="/", env=valid, hostname=REVIEW_PREVIEW_HOST
 for (const method of ["GET","HEAD","OPTIONS"]) {
   assert.deepEqual(onPreview(method), { readOnly: true, blocked: false });
 }
+// Review-mode auth callbacks are GET handlers with token-exchange side effects.
+// They must not be included in the otherwise-safe GET/HEAD allow-list.
+for (const method of ["GET","HEAD"]) {
+  assert.deepEqual(onPreview(method, "/auth/callback"),
+    {readOnly:true,blocked:true,status:405},
+    "Review-mode auth callback must fail closed");
+}
+assert.deepEqual(onPreview("GET","/auth/callback",{}, "app.ninthheartstudios.com"),
+  {readOnly:false,blocked:false},
+  "Production callback behavior must remain untouched");
+const callbackSource = readFileSync(new URL("../app/auth/callback/route.ts", import.meta.url), "utf8");
+assert.match(callbackSource, /exchangeCodeForSession/);
+assert.match(callbackSource, /verifyOtp/);
+
 for (const path of ["/auth/review-sign-in", "/auth/sign-out"]) {
   assert.deepEqual(onPreview("POST",path), {readOnly:true,blocked:false});
   assert.deepEqual(onPreview("POST",path,valid,REVIEW_PREVIEW_HOST,true),
