@@ -83,4 +83,25 @@ for (const column of [
 assert.ok(readiness.includes("n.nspname='public' AND c.relkind='S'"),
   "Public sequence query must be present");
 
+// PostgreSQL's missing global ACL row does NOT mean no privileges:
+// built-in defaults grant EXECUTE on new functions to PUBLIC. A schema-local
+// default ACL cannot subtract those global grants.
+for (const expression of [
+  /global_defaults AS \(/,
+  /global_acl\.defaclnamespace=0/,
+  /global_acl\.defaclobjtype=kind\.catalog_kind/,
+  /acldefault\(kind\.builtin_kind, ownerrole\.oid\)/,
+  /COALESCE\(global_acl\.defaclacl, acldefault/,
+  /\('S'::"char", 's'::"char"\)/,
+  /kind\.catalog_kind='f' AND acl\.privilege_type='EXECUTE'/,
+  /ownerrole\.rolname IN \('postgres','supabase_admin'\)/,
+  /future_global_write_grants=0/,
+]) {
+  assert.match(readiness, expression, "Missing global/default EXECUTE safety gate");
+}
+assert.match(readiness, /acl\.grantee=0/,
+  "PUBLIC grants must be included, not only direct anon/auth role grants");
+assert.match(readiness, /future_public_write_grants=0/,
+  "Schema-local default ACL grants must also remain part of the gate");
+
 console.log("PASS: Issue #71 catalog audit, readiness and exact ACL rollback snapshot queries are observational-only and stage-scoped; no hosted writes");
