@@ -5,7 +5,8 @@
 -- EXPECT FALSE UNTIL a separately approved, reversible staging-only grant
 -- freeze has been applied and independently verified.
 -- This readiness gate includes column-only write grants, mutable public
--- sequences, schema CREATE and database CREATE for API roles. It does not
+-- sequences, schema/database CREATE, and global/default PUBLIC function
+-- EXECUTE for API roles. It does not
 -- prove a full read-only sandbox; direct Auth and external effects remain.
 WITH app AS (
  SELECT COUNT(*)::int AS app_tables,
@@ -56,16 +57,39 @@ WITH app AS (
  CROSS JOIN LATERAL aclexplode(d.defaclacl) acl
  WHERE n.nspname='public' AND ownerrole.rolname IN ('postgres','supabase_admin')
  AND (acl.grantee=0 OR acl.grantee=(SELECT oid FROM pg_roles WHERE rolname='anon') OR acl.grantee=(SELECT oid FROM pg_roles WHERE rolname='authenticated'))
- AND ((d.defaclobjtype='r' AND acl.privilege_type IN ('INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER')) OR (d.defaclobjtype='f' AND acl.privilege_type='EXECUTE') OR (d.defaclobjtype='S' AND acl.privilege_type IN ('USAGE','UPDATE')))
+ AND ((d.defaclobjtype='r' AND acl.privilege_type IN ('INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN')) OR (d.defaclobjtype='f' AND acl.privilege_type='EXECUTE') OR (d.defaclobjtype='S' AND acl.privilege_type IN ('USAGE','UPDATE')))
+), global_defaults AS (
+ -- Global default ACLs apply to every schema. An absent global ACL entry
+ -- means PostgreSQL hard-wired defaults apply, including PUBLIC EXECUTE on
+ -- new functions. Per-schema revocations cannot cancel that global EXECUTE.
+ SELECT COUNT(*)::int AS future_global_write_grants
+ FROM pg_roles ownerrole
+ CROSS JOIN (VALUES
+   ('r'::"char", 'r'::"char"),
+   ('f'::"char", 'f'::"char"),
+   ('S'::"char", 's'::"char")
+ ) AS kind(catalog_kind, builtin_kind)
+ LEFT JOIN pg_default_acl global_acl
+   ON global_acl.defaclrole=ownerrole.oid
+   AND global_acl.defaclnamespace=0
+   AND global_acl.defaclobjtype=kind.catalog_kind
+ CROSS JOIN LATERAL aclexplode(
+   COALESCE(global_acl.defaclacl, acldefault(kind.builtin_kind, ownerrole.oid))
+ ) acl
+ WHERE ownerrole.rolname IN ('postgres','supabase_admin')
+ AND (acl.grantee=0 OR acl.grantee=(SELECT oid FROM pg_roles WHERE rolname='anon') OR acl.grantee=(SELECT oid FROM pg_roles WHERE rolname='authenticated'))
+ AND ((kind.catalog_kind='r' AND acl.privilege_type IN ('INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN')) OR (kind.catalog_kind='f' AND acl.privilege_type='EXECUTE') OR (kind.catalog_kind='S' AND acl.privilege_type IN ('USAGE','UPDATE')))
 )
 SELECT app.app_tables, app.missing_rls, app.missing_admin_reads,
  app.writable_app_tables, sequences.writable_public_sequences,
  schemas.create_capable_schemas, db.api_database_create,
- rpc.exposed_public_rpcs, st.writable_storage_tables, defaults.future_public_write_grants,
+ rpc.exposed_public_rpcs, st.writable_storage_tables,
+ defaults.future_public_write_grants, global_defaults.future_global_write_grants,
  (app.app_tables>0 AND app.missing_rls=0 AND app.missing_admin_reads=0
   AND app.writable_app_tables=0 AND sequences.writable_public_sequences=0
   AND schemas.create_capable_schemas=0 AND db.api_database_create=0
   AND rpc.exposed_public_rpcs=0 AND st.writable_storage_tables=0
-  AND defaults.future_public_write_grants=0) AS staging_read_only_ready
+  AND defaults.future_public_write_grants=0
+  AND global_defaults.future_global_write_grants=0) AS staging_read_only_ready
 FROM app CROSS JOIN sequences CROSS JOIN schemas CROSS JOIN db
- CROSS JOIN rpc CROSS JOIN st CROSS JOIN defaults;
+ CROSS JOIN rpc CROSS JOIN st CROSS JOIN defaults CROSS JOIN global_defaults;
