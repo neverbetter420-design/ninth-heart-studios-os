@@ -129,7 +129,7 @@ const supportDraft = readFileSync(
 for (const marker of [
  "DRAFT / NOT SUBMITTED", "qihwmfwlhsetxwggaesd",
  "17.11.0.011", "supabase_storage_admin",
- "rolsuper=false", "SQLSTATE 42501", "not been observed",
+ "rolsuper=false", "SQLSTATE 42501", "no SQLSTATE 42501 error has been observed",
  "AS RESTRICTIVE", "PERMISSIVE WITH CHECK(false)",
  "service_role", "rollback", "Support",
  "No ticket has been sent and no Storage policy has been changed."
