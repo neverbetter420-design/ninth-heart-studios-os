@@ -20,6 +20,10 @@ on:
       - 'scripts/verify-staging-acl-checkpoint.mjs'
       - 'scripts/sql/issue71-staging-permission-origins.sql'
       - 'scripts/verify-staging-permission-origins.mjs'
+      - 'scripts/verify-issue71-authorized-public-freeze.mjs'
+      - 'docs/security/issue71-authorized-staging-public-acl-baseline.md'
+      - 'docs/security/issue71-authorized-staging-public-freeze.sql'
+      - 'docs/security/issue71-authorized-staging-public-rollback.sql'
       - 'docs/security/issue71-permission-origin-review.md'
       - 'docs/security/issue71-stage-freeze-approval-gates.md'
       - 'docs/security/issue71-staging-database-write-freeze.md'
@@ -52,6 +56,8 @@ jobs:
         run: node scripts/verify-staging-acl-checkpoint.mjs
       - name: Verify exact staging grantor inventory without SQL writes
         run: node scripts/verify-staging-permission-origins.mjs
+      - name: Verify exact scope and inverse of staged public ACL freeze
+        run: node scripts/verify-issue71-authorized-public-freeze.mjs
       - name: Check full application types without deployment
         run: |
           npm ci
