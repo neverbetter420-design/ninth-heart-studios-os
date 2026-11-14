@@ -121,4 +121,21 @@ for (const name of expected.map(x=>x[0]))
  assert.ok(ownerHandoff.includes(name),"Approval handoff must identify "+name);
 assert.ok(workflow.includes("docs/security/issue71-approved-storage-owner-handoff.md"),
  "Handoff changes must trigger staging source-only CI");
+// A Support escalation must not silently imply the SQL was attempted,
+// privilege ownership was altered, or a support ticket was submitted.
+const supportDraft = readFileSync(
+ new URL("issue71-supabase-storage-support-request.md",security),"utf8"
+);
+for (const marker of [
+ "DRAFT / NOT SUBMITTED", "qihwmfwlhsetxwggaesd",
+ "17.11.0.011", "supabase_storage_admin",
+ "rolsuper=false", "SQLSTATE 42501", "not been observed",
+ "AS RESTRICTIVE", "PERMISSIVE WITH CHECK(false)",
+ "service_role", "rollback", "Support",
+ "No ticket has been sent and no Storage policy has been changed."
+])assert.ok(supportDraft.includes(marker),"Missing safe vendor handoff: "+marker);
+assert.doesNotMatch(supportDraft,/sb_secret_|service_role\s*=\s*["']/i,
+ "Support request must not include credentials");
+assert.ok(workflow.includes("docs/security/issue71-supabase-storage-support-request.md"),
+ "Support escalation edits must run source-only staging CI");
 console.log("PASS: 3 operation-specific Storage RLS review gates and exact inverse, staging SELECT-only acceptance, future grants NO-GO; never applied by CI");
