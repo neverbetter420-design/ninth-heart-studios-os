@@ -55,6 +55,27 @@ for(const file of [proposals.apply,proposals.undo]){
  assert.doesNotMatch(executable,/\b(?:FOR SELECT|FOR ALL)\b/i);
  assert.doesNotMatch(executable,/\bIF EXISTS\b/i);
 }
+// Storage policies are table-owner DDL. Current staging connector is
+// postgres (not superuser, not the storage table owner). Both apply and
+// rollback must fail closed BEFORE any CREATE/DROP POLICY attempt.
+for(const file of [proposals.apply,proposals.undo]){
+ assert.ok(file.includes("SELECT current_user,(SELECT rolsuper FROM pg_roles WHERE rolname=current_user)"),
+   "Must check actual SQL executor and superuser status");
+ assert.ok(file.includes("v_executor=v_owner OR COALESCE(v_executor_superuser,false)"),
+   "Must reject non-owner/non-superuser policy executors");
+ assert.ok(file.includes("v_owner IS DISTINCT FROM 'supabase_storage_admin'"),
+   "Must confirm exact Storage owner");
+ assert.ok(file.indexOf("v_executor=v_owner OR COALESCE(v_executor_superuser,false)")<
+   file.indexOf(file===proposals.apply ? 'CREATE POLICY "' : 'DROP POLICY "'),
+   "Owner gate must precede Storage policy DDL");
+}
+for(const token of [
+ "executor.query_role=t.owner", "executor.is_superuser", "owner_policy_ddl_ready",
+ "executor.query_role AS executor_role"
+])assert.ok(diagnostic.includes(token),"Missing live owner-capability check: "+token);
+assert.match(proposals.review,/owner_policy_ddl_ready=false/);
+assert.match(proposals.review,/cannot execute/i);
+
 assert.match(proposals.apply,/v_public_writable<>0 OR v_public_rpc<>0/);
 assert.match(proposals.apply,/v_roles_ok<>3/);
 assert.match(proposals.apply,/v_storage_tables<>8 OR v_rls_tables<>8/);
