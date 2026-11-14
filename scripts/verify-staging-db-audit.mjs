@@ -80,6 +80,7 @@ for (const column of [
   assert.match(readiness, new RegExp(column + "=0"),
     "Read-only readiness must fail if " + column + " remains nonzero");
 }
-assert.match(readiness, /n\\.nspname='public' AND c\\.relkind='S'/);
+assert.ok(readiness.includes("n.nspname='public' AND c.relkind='S'"),
+  "Public sequence query must be present");
 
 console.log("PASS: Issue #71 catalog audit, readiness and exact ACL rollback snapshot queries are observational-only and stage-scoped; no hosted writes");
