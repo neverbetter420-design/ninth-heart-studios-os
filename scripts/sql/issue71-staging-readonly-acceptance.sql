@@ -16,8 +16,8 @@ WITH app AS (
    -- Detect column-only INSERT/UPDATE privileges as well as table-level grants.
    has_any_column_privilege('authenticated', c.oid, 'INSERT, UPDATE') OR
    has_any_column_privilege('anon', c.oid, 'INSERT, UPDATE') OR
-   has_table_privilege('authenticated', c.oid, 'DELETE, TRUNCATE') OR
-   has_table_privilege('anon', c.oid, 'DELETE, TRUNCATE')
+   has_table_privilege('authenticated', c.oid, 'DELETE, TRUNCATE, TRIGGER, MAINTAIN') OR
+   has_table_privilege('anon', c.oid, 'DELETE, TRUNCATE, TRIGGER, MAINTAIN')
  )::int AS writable_app_tables
  FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
  WHERE n.nspname = 'public' AND c.relkind IN ('r','p')
@@ -41,7 +41,7 @@ WITH app AS (
 ), rpc AS (
  SELECT COUNT(*) FILTER (WHERE has_function_privilege('authenticated',p.oid,'EXECUTE') OR has_function_privilege('anon',p.oid,'EXECUTE'))::int AS exposed_public_rpcs
  FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
- WHERE n.nspname='public' AND p.prokind='f'
+ WHERE n.nspname='public' AND p.prokind IN ('f','p')
 ), st AS (
  SELECT COUNT(*) FILTER (WHERE
    has_any_column_privilege('authenticated', c.oid, 'INSERT, UPDATE') OR
@@ -50,7 +50,7 @@ WITH app AS (
    has_table_privilege('anon', c.oid, 'DELETE, TRUNCATE')
  )::int AS writable_storage_tables
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
- WHERE n.nspname='storage' AND c.relkind='r' AND c.relname IN ('objects','buckets','buckets_analytics')
+ WHERE n.nspname='storage' AND c.relkind IN ('r','p')
 ), defaults AS (
  SELECT COUNT(*)::int AS future_public_write_grants
  FROM pg_default_acl d JOIN pg_namespace n ON n.oid=d.defaclnamespace JOIN pg_roles ownerrole ON ownerrole.oid=d.defaclrole
