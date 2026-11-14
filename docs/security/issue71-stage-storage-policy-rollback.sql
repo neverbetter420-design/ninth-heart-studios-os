@@ -11,7 +11,22 @@ DECLARE
  v_all integer;
  v_original_count integer;
  v_original_digest text;
+ v_executor text;
+ v_owner text;
+ v_executor_superuser boolean;
 BEGIN
+ -- Do not attempt DROP POLICY from the postgres connector role:
+ -- only a verified owner/superuser can alter storage.objects policies.
+ SELECT pg_get_userbyid(c.relowner) INTO v_owner
+ FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+ WHERE n.nspname='storage' AND c.relname='objects' AND c.relkind='r';
+ SELECT current_user,(SELECT rolsuper FROM pg_roles WHERE rolname=current_user)
+ INTO v_executor,v_executor_superuser;
+ IF v_owner IS DISTINCT FROM 'supabase_storage_admin'
+    OR NOT (v_executor=v_owner OR COALESCE(v_executor_superuser,false))
+ THEN
+   RAISE EXCEPTION 'STOP: Storage policy rollback executor is not table owner; no policy mutation';
+ END IF;
  SELECT COUNT(*)::int, COUNT(*) FILTER (WHERE
    NOT p.polpermissive AND
    p.polroles @> ARRAY[
