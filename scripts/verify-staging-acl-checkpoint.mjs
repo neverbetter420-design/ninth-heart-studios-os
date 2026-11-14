@@ -10,7 +10,7 @@ assert.match(sql, /qihwmfwlhsetxwggaesd/);
 assert.match(sql, /rquscwgdrqkzwjukiqtk/);
 assert.match(runbook, /qihwmfwlhsetxwggaesd/);
 assert.match(runbook, /rquscwgdrqkzwjukiqtk/);
-assert.match(runbook, /separate.*authorization/i);
+assert.match(runbook, /separate\s+authorization/i);
 assert.match(runbook, /rollback/i);
 assert.match(runbook, /NOT APPLIED/);
 
