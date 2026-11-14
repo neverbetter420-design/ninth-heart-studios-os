@@ -63,6 +63,32 @@ remains the last confirmed result, not a validation of this revision.
 The query is still diagnostic only: Auth, privileged operations, external
 side effects and direct browser APIs need separate controls.
 
+### Global default privileges and implicit function EXECUTE (source-only, 2026-11-13)
+
+The earlier `future_public_write_grants` counter checks the *per-schema*
+`public` default ACL, but cannot detect **global** defaults. In PostgreSQL,
+a global default applies across schemas; and when no global ACL record
+exists for newly created functions, the built-in default is EXECUTE for
+`PUBLIC`, inherited by both `anon` and `authenticated`.
+
+The revised diagnostic adds `future_global_write_grants` for the two
+previously observed object creators (`postgres` and `supabase_admin`).
+It examines future tables, functions and sequences using raw global ACLs
+when present and `acldefault()` when absent. It explicitly maps the
+sequence catalog kind `S` to the built-in kind `s`. The readiness gate
+requires **both** `future_public_write_grants=0` and
+`future_global_write_grants=0`; it also includes the PostgreSQL 17+
+`MAINTAIN` table privilege in future grant detection.
+
+This is intentionally conservative. A resulting nonzero global function
+counter is a **blocker for this strict staging review policy**, not evidence
+of an exploited vulnerability. A separately reviewed staging-only global
+default ACL change might be required, and it must be evaluated for side
+effects on internal or future functions. **No permissions were changed
+and no new staging SQL was executed.** The global counter has no verified
+live value yet.
+
+
 The boolean is a conservative **necessary** acceptance check, not proof
 of comprehensive read-only security. It does **not** cover auth triggers,
 all Storage edge paths, privileged service-role operations, external API
