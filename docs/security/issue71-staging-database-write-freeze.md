@@ -95,6 +95,46 @@ all Storage edge paths, privileged service-role operations, external API
 calls, side-effectful GET handlers, or accidental deployment to the
 wrong Worker. Those require separate review and authorization.
 
+## Reverified staging readiness (2026-11-13 PT, SELECT only)
+
+Connected Supabase project identity was confirmed as
+`nhs-os-staging-preview` (`qihwmfwlhsetxwggaesd`, PostgreSQL 17).
+The expanded readiness query was executed using **SELECT-only** SQL against
+that staging project and returned:
+
+| Check | Current result |
+| --- | ---: |
+| Public application tables | 32 |
+| Missing RLS / required app SELECT | 0 / 0 |
+| Writable application tables | 32 |
+| Executable public routines | 6 |
+| Writable Storage relations | 3 |
+| Writable public sequences | 0 |
+| API-role schema CREATE / database CREATE | 0 / 0 |
+| Future `public` schema-default write grants | 40 |
+| Future global default write grants | 2 |
+| `staging_read_only_ready` | **false** |
+
+The schema-default count is now 40 rather than 36 because the revised
+PostgreSQL 17 checker includes the `MAINTAIN` privilege. The two global
+default findings are consistent with inherited `PUBLIC EXECUTE` on
+newly created functions; they are conservative blockers, not proof of an
+active exploit.
+
+An additional source-only hardening pass now includes **functions and
+procedures**, every ordinary/partitioned Storage table (not just three
+named ones), and `TRIGGER` / `MAINTAIN` privileges on existing app and
+Storage tables. Re-running the revised SELECT-only query yielded the
+same blocker counts listed above. No SQL was executed against the
+production project, and **no GRANT/REVOKE, deployment, data write, Auth
+change, or staging permission freeze occurred**.
+
+The result remains **NOT READY**. A read-only HTTP guard on the app
+cannot guarantee denial of direct Supabase browser requests; a narrowly
+scoped, reversible stage-only permission plan still requires separate
+owner approval and product compatibility review. No hosted mutation
+tests have been performed.
+
 ## Staging ACL snapshot / rollback readiness (source-only)
 
 The file `scripts/sql/issue71-staging-acl-snapshot.sql` captures raw ACLs,
