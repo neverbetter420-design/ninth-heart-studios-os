@@ -46,9 +46,14 @@ for(const file of [proposals.apply,proposals.undo]){
  assert.equal((file.match(/^BEGIN;$/gm)??[]).length,1);
  assert.equal((file.match(/^COMMIT;$/gm)??[]).length,1);
  assert.match(file,/73b4be5cc357949344792320ffff5dc1/);
- assert.doesNotMatch(file,/\b(?:ALTER DEFAULT PRIVILEGES|REVOKE|GRANT|TRUNCATE|ALTER TABLE|UPDATE storage|INSERT INTO storage|DELETE FROM storage|CASCADE)\b/i);
- assert.doesNotMatch(file,/\b(?:FOR SELECT|FOR ALL)\b/i);
- assert.doesNotMatch(file,/\bIF EXISTS\b/i);
+ // Check executable SQL, not comments or quoted privilege names such as
+ // 'DELETE, TRUNCATE, ...' inside has_table_privilege catalog queries.
+ const executable=file.replace(/\/\*[\s\S]*?\*\//g," ")
+   .replace(/--[^\n]*/g," ")
+   .replace(/'(?:''|[^'])*'/g,"''");
+ assert.doesNotMatch(executable,/\b(?:ALTER DEFAULT PRIVILEGES|REVOKE|GRANT|TRUNCATE|ALTER TABLE|UPDATE storage|INSERT INTO storage|DELETE FROM storage|CASCADE)\b/i);
+ assert.doesNotMatch(executable,/\b(?:FOR SELECT|FOR ALL)\b/i);
+ assert.doesNotMatch(executable,/\bIF EXISTS\b/i);
 }
 assert.match(proposals.apply,/v_public_writable<>0 OR v_public_rpc<>0/);
 assert.match(proposals.apply,/v_roles_ok<>3/);
