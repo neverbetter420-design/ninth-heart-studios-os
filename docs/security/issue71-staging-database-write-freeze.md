@@ -42,6 +42,27 @@ separately approved stage-only privilege freeze.
 `writable_storage_tables=3`, `future_public_write_grants=36`.
 Therefore `staging_read_only_ready=false` **by design** at present.
 
+### Expanded readiness coverage (source-only, 2026-11-13)
+
+The acceptance query now uses PostgreSQL `has_any_column_privilege`
+for `INSERT`/`UPDATE` on `public` and relevant Storage tables. This
+includes **column-only grants**, which table-level checks can overlook.
+It also reports:
+
+- `writable_public_sequences`: whether API roles can advance/change
+  sequences with `USAGE`/`UPDATE`.
+- `create_capable_schemas`: whether API roles can create objects inside
+  `public` or `storage`.
+- `api_database_create`: whether API roles can create objects at the
+  database level.
+
+All three must equal zero before the readiness boolean can be true.
+No SQL was executed, no grants were changed, and **the new counters have
+not been measured against staging**. The old observed baseline above
+remains the last confirmed result, not a validation of this revision.
+The query is still diagnostic only: Auth, privileged operations, external
+side effects and direct browser APIs need separate controls.
+
 The boolean is a conservative **necessary** acceptance check, not proof
 of comprehensive read-only security. It does **not** cover auth triggers,
 all Storage edge paths, privileged service-role operations, external API
