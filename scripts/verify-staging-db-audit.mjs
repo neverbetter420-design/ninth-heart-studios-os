@@ -104,4 +104,19 @@ assert.match(readiness, /acl\.grantee=0/,
 assert.match(readiness, /future_public_write_grants=0/,
   "Schema-local default ACL grants must also remain part of the gate");
 
+// Include executable procedures as well as functions, and every ordinary
+// Storage relation: an allow-list of three names can miss a new writable table.
+// Even with INSERT/UPDATE revoked, TRIGGER or MAINTAIN may be stateful.
+assert.ok(readiness.includes("p.prokind IN ('f','p')"),
+  "Readiness must include executable procedures");
+assert.ok(readiness.includes("n.nspname='storage' AND c.relkind IN ('r','p')"),
+  "Readiness must cover all ordinary/partitioned Storage relations");
+assert.ok(!readiness.includes("c.relname IN ('objects','buckets','buckets_analytics')"),
+  "Storage must not be limited to a fixed list of tables");
+for (const role of ["authenticated", "anon"]) {
+  const needle = "has_table_privilege('" + role + "', c.oid, 'DELETE, TRUNCATE, TRIGGER, MAINTAIN')";
+  assert.equal(readiness.split(needle).length - 1, 2,
+    "Every app/Storage role must be checked for DELETE, TRUNCATE, TRIGGER, MAINTAIN: " + role);
+}
+
 console.log("PASS: Issue #71 catalog audit, readiness and exact ACL rollback snapshot queries are observational-only and stage-scoped; no hosted writes");
