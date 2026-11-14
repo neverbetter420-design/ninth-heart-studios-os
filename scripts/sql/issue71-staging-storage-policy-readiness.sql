@@ -13,6 +13,9 @@ WITH target AS (
  COUNT(*) FILTER (WHERE c.relrowsecurity)::int AS rls_relations
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
  WHERE n.nspname='storage' AND c.relkind IN ('r','p')
+), executor AS (
+ SELECT current_user::text AS query_role,
+ (SELECT rolsuper FROM pg_roles WHERE rolname=current_user) AS is_superuser
 ), roles AS (
  SELECT COUNT(*) FILTER (WHERE (rolname IN ('anon','authenticated')
     AND NOT rolbypassrls) OR (rolname='service_role' AND rolbypassrls))::int
@@ -57,7 +60,12 @@ WITH target AS (
  WHERE n.nspname='storage' AND c.relname<>'objects'
   AND p.polpermissive AND p.polcmd IN ('*','a','w','d')
 )
-SELECT t.owner AS storage_objects_owner,t.relrowsecurity AS rls_enabled,
+SELECT t.owner AS storage_objects_owner,
+ executor.query_role AS executor_role,
+ executor.is_superuser AS executor_superuser,
+ (executor.query_role=t.owner OR COALESCE(executor.is_superuser,false))
+  AS owner_policy_ddl_ready,
+ t.relrowsecurity AS rls_enabled,
  t.relforcerowsecurity AS rls_forced,
  st.storage_relations,st.rls_relations,
  roles.expected_role_postures,
@@ -74,5 +82,5 @@ SELECT t.owner AS storage_objects_owner,t.relrowsecurity AS rls_enabled,
   AND originals.existing_policy_digest='73b4be5cc357949344792320ffff5dc1'
   AND other_write_policies.other_relation_permissive_write_policies=0)
  AS api_role_storage_policy_guard_ready
-FROM target t CROSS JOIN storage_tables st CROSS JOIN roles
+FROM target t CROSS JOIN executor CROSS JOIN storage_tables st CROSS JOIN roles
  CROSS JOIN policies CROSS JOIN originals CROSS JOIN other_write_policies;
