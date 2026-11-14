@@ -21,6 +21,12 @@ on:
       - 'scripts/sql/issue71-staging-permission-origins.sql'
       - 'scripts/verify-staging-permission-origins.mjs'
       - 'scripts/verify-issue71-authorized-public-freeze.mjs'
+      - 'scripts/sql/issue71-staging-storage-policy-readiness.sql'
+      - 'scripts/verify-issue71-storage-policy-review.mjs'
+      - 'docs/security/issue71-stage-storage-policy-proposal.sql'
+      - 'docs/security/issue71-stage-storage-policy-rollback.sql'
+      - 'docs/security/issue71-stage-storage-policy-review.md'
+      - 'docs/security/issue71-stage-future-defaults-review.md'
       - 'docs/security/issue71-authorized-staging-public-acl-baseline.md'
       - 'docs/security/issue71-authorized-staging-public-freeze.sql'
       - 'docs/security/issue71-authorized-staging-public-rollback.sql'
@@ -58,6 +64,8 @@ jobs:
         run: node scripts/verify-staging-permission-origins.mjs
       - name: Verify exact scope and inverse of staged public ACL freeze
         run: node scripts/verify-issue71-authorized-public-freeze.mjs
+      - name: Validate unapplied Storage policy proposal and conservative future-default gate
+        run: node scripts/verify-issue71-storage-policy-review.mjs
       - name: Check full application types without deployment
         run: |
           npm ci
