@@ -46,8 +46,8 @@ WITH app AS (
  SELECT COUNT(*) FILTER (WHERE
    has_any_column_privilege('authenticated', c.oid, 'INSERT, UPDATE') OR
    has_any_column_privilege('anon', c.oid, 'INSERT, UPDATE') OR
-   has_table_privilege('authenticated', c.oid, 'DELETE, TRUNCATE') OR
-   has_table_privilege('anon', c.oid, 'DELETE, TRUNCATE')
+   has_table_privilege('authenticated', c.oid, 'DELETE, TRUNCATE, TRIGGER, MAINTAIN') OR
+   has_table_privilege('anon', c.oid, 'DELETE, TRUNCATE, TRIGGER, MAINTAIN')
  )::int AS writable_storage_tables
  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
  WHERE n.nspname='storage' AND c.relkind IN ('r','p')
