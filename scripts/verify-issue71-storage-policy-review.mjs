@@ -103,4 +103,22 @@ for(const marker of [
 ])assert.ok(diagnostic.includes(marker),"Missing SELECT-only readiness requirement: "+marker);
 assert.match(diagnostic,/reserved_policy_names=3/);
 assert.match(diagnostic,/valid_restrictive_write_policies=3/);
+const ownerHandoff = readFileSync(
+ new URL("issue71-approved-storage-owner-handoff.md",security),"utf8"
+);
+assert.match(ownerHandoff,/approved for three named policies only/i);
+assert.match(ownerHandoff,/NOT APPLIED/);
+assert.match(ownerHandoff,/qihwmfwlhsetxwggaesd/);
+assert.match(ownerHandoff,/rquscwgdrqkzwjukiqtk/);
+assert.match(ownerHandoff,/owner_policy_ddl_ready/);
+assert.match(ownerHandoff,/PERMISSIVE/);
+assert.match(ownerHandoff,/RESTRICTIVE/);
+assert.match(ownerHandoff,/not equivalent/i);
+assert.match(ownerHandoff,/STOP/);
+assert.match(ownerHandoff,/separate approval/i);
+assert.match(ownerHandoff,/73b4be5cc357949344792320ffff5dc1/);
+for (const name of expected.map(x=>x[0]))
+ assert.ok(ownerHandoff.includes(name),"Approval handoff must identify "+name);
+assert.ok(workflow.includes("docs/security/issue71-approved-storage-owner-handoff.md"),
+ "Handoff changes must trigger staging source-only CI");
 console.log("PASS: 3 operation-specific Storage RLS review gates and exact inverse, staging SELECT-only acceptance, future grants NO-GO; never applied by CI");
