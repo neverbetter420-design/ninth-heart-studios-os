@@ -103,3 +103,28 @@ activation, scans or outreach is part of this approval.**
 - [Supabase: Storage policy setup](https://supabase.com/docs/guides/storage/quickstart)
 - [Supabase: platform-managed permissions](https://supabase.com/docs/guides/platform/permissions)
 - [PostgreSQL 17 RLS](https://www.postgresql.org/docs/17/ddl-rowsecurity.html)
+
+
+## Support escalation prepared, not submitted
+
+Official Supabase Storage RLS documentation permits custom policies but
+does not establish an owner-capable `AS RESTRICTIVE` workflow for this
+specific project's current SQL connector. Public community discussions
+contain conflicting answers about whether hosted `postgres` can create
+restrictive policies and whether the Dashboard editor preserves them.
+Neither claim overrides the live staging ownership evidence.
+
+An exact, credential-free ticket draft is saved at
+`docs/security/issue71-supabase-storage-support-request.md`, including
+the approved scope and the matching rollback requirement. The official
+submission entry point is
+https://supabase.com/dashboard/support/new.
+
+**Do not claim the Support request was submitted.** Do not attempt
+`CREATE POLICY` merely to force an ownership error, use reserved-role
+membership or `SET ROLE` workarounds, or adopt a permissive
+false policy as if it overrode existing permissive grants.
+
+The team can resume this gate when the supported and authorized method
+is confirmed in a response. Keep the current stage public-ACL freeze
+active and all production/deploy operations untouched in the meantime.
