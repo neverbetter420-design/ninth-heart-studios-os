@@ -16,6 +16,12 @@ on:
       - 'scripts/sql/issue71-staging-acl-audit.sql'
       - 'scripts/sql/issue71-staging-readonly-acceptance.sql'
       - 'scripts/sql/issue71-staging-acl-snapshot.sql'
+      - 'scripts/sql/issue71-staging-acl-drift-checkpoint.sql'
+      - 'scripts/verify-staging-acl-checkpoint.mjs'
+      - 'scripts/sql/issue71-staging-permission-origins.sql'
+      - 'scripts/verify-staging-permission-origins.mjs'
+      - 'docs/security/issue71-permission-origin-review.md'
+      - 'docs/security/issue71-stage-freeze-approval-gates.md'
       - 'docs/security/issue71-staging-database-write-freeze.md'
       - 'scripts/verify-cloudflare-runtime.mjs'
       - '.github/workflows/nhs-issue71-staging-review.yml'
@@ -42,6 +48,10 @@ jobs:
         run: node --experimental-strip-types scripts/verify-staging-readonly.mjs
       - name: Prove staged database ACL audit is metadata-only and not applied
         run: node scripts/verify-staging-db-audit.mjs
+      - name: Verify nine-section read-only rollback drift checkpoint
+        run: node scripts/verify-staging-acl-checkpoint.mjs
+      - name: Verify exact staging grantor inventory without SQL writes
+        run: node scripts/verify-staging-permission-origins.mjs
       - name: Check full application types without deployment
         run: |
           npm ci
