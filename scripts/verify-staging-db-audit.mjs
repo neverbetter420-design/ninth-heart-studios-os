@@ -61,4 +61,25 @@ for (const sql of snapshotStatements) {
     "Rollback snapshot includes a potentially state-changing SQL verb");
 }
 
+// A table-level check alone misses column-specific INSERT/UPDATE grants.
+// Ensure both API roles are checked across app and Storage tables.
+for (const role of ["authenticated", "anon"]) {
+  const columnProbe = new RegExp("has_any_column_privilege\\('"+role+"', c\\.oid, 'INSERT, UPDATE'\\)", "g");
+  assert.equal((readiness.match(columnProbe) ?? []).length, 2,
+    "Must inspect column-level writes in both public and Storage: " + role);
+  assert.match(readiness, new RegExp("has_sequence_privilege\\('"+role+"', c\\.oid, 'USAGE, UPDATE'\\)"),
+    "Must inspect mutating public sequence rights: " + role);
+  assert.match(readiness, new RegExp("has_schema_privilege\\('"+role+"', n\\.oid, 'CREATE'\\)"),
+    "Must inspect CREATE on public and storage schemas: " + role);
+  assert.match(readiness, new RegExp("has_database_privilege\\('"+role+"', current_database\\(\\), 'CREATE'\\)"),
+    "Must inspect database-level CREATE: " + role);
+}
+for (const column of [
+  "writable_public_sequences", "create_capable_schemas", "api_database_create",
+]) {
+  assert.match(readiness, new RegExp(column + "=0"),
+    "Read-only readiness must fail if " + column + " remains nonzero");
+}
+assert.match(readiness, /n\\.nspname='public' AND c\\.relkind='S'/);
+
 console.log("PASS: Issue #71 catalog audit, readiness and exact ACL rollback snapshot queries are observational-only and stage-scoped; no hosted writes");
