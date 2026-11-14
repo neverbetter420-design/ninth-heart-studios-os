@@ -20,6 +20,8 @@ DECLARE
   v_roles_ok integer;
   v_public_writable integer;
   v_public_rpc integer;
+  v_executor text;
+  v_executor_superuser boolean;
 BEGIN
   SELECT pg_get_userbyid(c.relowner),c.relrowsecurity,c.relforcerowsecurity
     INTO v_owner,v_rls,v_force_rls
@@ -53,7 +55,14 @@ BEGIN
   WHERE n.nspname='public' AND p.prokind IN ('f','p')
     AND (has_function_privilege('anon',p.oid,'EXECUTE')
       OR has_function_privilege('authenticated',p.oid,'EXECUTE'));
-  IF v_owner IS DISTINCT FROM 'supabase_storage_admin' OR NOT COALESCE(v_rls,false)
+  -- Creating policies requires table ownership. The usual Supabase MCP
+  -- executor is postgres: it neither owns storage.objects nor is superuser.
+  -- Fail before the first CREATE POLICY; do not elevate or change ownership.
+  SELECT current_user,(SELECT rolsuper FROM pg_roles WHERE rolname=current_user)
+    INTO v_executor,v_executor_superuser;
+  IF v_owner IS DISTINCT FROM 'supabase_storage_admin'
+    OR NOT (v_executor=v_owner OR COALESCE(v_executor_superuser,false))
+    OR NOT COALESCE(v_rls,false)
     OR COALESCE(v_force_rls,true) OR v_storage_tables<>8 OR v_rls_tables<>8
     OR v_existing_policy_count<>6
     OR v_existing_policy_digest<>'73b4be5cc357949344792320ffff5dc1'
