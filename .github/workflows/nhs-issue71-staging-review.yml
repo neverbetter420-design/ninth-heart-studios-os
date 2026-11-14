@@ -26,6 +26,7 @@ on:
       - 'docs/security/issue71-stage-storage-policy-proposal.sql'
       - 'docs/security/issue71-stage-storage-policy-rollback.sql'
       - 'docs/security/issue71-stage-storage-policy-review.md'
+      - 'docs/security/issue71-approved-storage-owner-handoff.md'
       - 'docs/security/issue71-stage-future-defaults-review.md'
       - 'docs/security/issue71-authorized-staging-public-acl-baseline.md'
       - 'docs/security/issue71-authorized-staging-public-freeze.sql'
