@@ -45,6 +45,47 @@ Each original policy must be preserved verbatim. Do not use a global
 `FOR ALL` restrictive policy: it would block `SELECT` and break
 the preview's intended file-reading UX.
 
+## Additional hard stop: policy DDL ownership (2026-11-14, SELECT-only)
+
+The connected staging SQL executor is **`postgres`**, a **non-superuser**.
+The actual `storage.objects` owner is **`supabase_storage_admin`**.
+`postgres` is **not** a member of that owner role, cannot inherit its
+owner privileges, and cannot `SET ROLE` to it. This was observed with
+`current_user`, `rolsuper`, `pg_has_role` and `pg_class.relowner`
+using SELECT-only catalog queries against the staging project ID.
+
+PostgreSQL requires table ownership (or superuser authority) to add,
+alter, or remove table RLS policies. **The current connector therefore
+cannot execute this proposed CREATE POLICY or its DROP POLICY rollback.**
+Treat the present executor as an additional **NO-GO**, even if the owner
+separately authorizes the three policy definitions. Do not work around
+it by changing table ownership, granting privileged role membership,
+running as service-role, resetting database passwords, or altering
+platform-managed Storage grants.
+
+The source proposal and inverse now explicitly **abort in their
+preflight DO block** when the executor does not equal the Storage
+table owner and is not a superuser. The corresponding SELECT-only
+readiness report includes `executor_role`,
+`owner_policy_ddl_ready`, and `api_role_storage_policy_guard_ready`.
+The last staging run returned:
+
+- `executor_role=postgres`
+- `storage_objects_owner=supabase_storage_admin`
+- `executor_superuser=false`
+- `owner_policy_ddl_ready=false`
+- `reserved_policy_names=0`
+- `api_role_storage_policy_guard_ready=false`
+
+**Required future dependency:** a qualified operator with a supported,
+authorized, owner-capable Storage policy workflow must independently
+review the complete SQL and exact rollback, under separately scoped
+staging approval. That workflow is not available through the current
+`postgres` connector. No policy has been installed.
+
+PostgreSQL ownership reference:
+https://www.postgresql.org/docs/17/ddl-rowsecurity.html
+
 ## Narrow candidate, separate approval required
 
 `docs/security/issue71-stage-storage-policy-proposal.sql` is an
