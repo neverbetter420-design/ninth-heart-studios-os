@@ -419,3 +419,71 @@
     outline-offset:1px;
   }
 }
+
+
+/* FULL-PAGE NHS ART CONTINUITY · owner-requested design correction.
+ * The old fixed room photo filled only the viewport; full-page captures then
+ * fell into a flat dark sheet. Paint an uninterrupted, non-repeating branded
+ * botanical/silver atmosphere on the entire main shell while keeping ONE
+ * sharp, stationary photo above it as the content scrolls. No image is
+ * distorted with background-size:100% 100%; cover preserves its aspect.
+ * Original official NHS mark still comes from the existing room header.
+ */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
+  background-color:#080918;
+  background-image:
+    linear-gradient(180deg,rgba(5,5,16,.57),rgba(8,7,24,.53) 30%,rgba(7,9,25,.68) 64%,rgba(5,7,18,.80)),
+    url("/visuals/nhs-wallpaper-velvet.svg"),
+    url("/visuals/nhs-room-velvet-oracle.svg"),
+    radial-gradient(ellipse at 84% 58%,rgba(73,91,181,.25),transparent 58%),
+    radial-gradient(ellipse at 13% 79%,rgba(132,49,112,.23),transparent 54%),
+    linear-gradient(148deg,#080919,#151025 49%,#070a1b);
+  background-size:
+    100% 100%,
+    min(1480px,106vw) auto,
+    min(970px,78vw) auto,
+    100% 100%,100% 100%,100% 100%;
+  background-position:
+    center,
+    right -40px bottom -30px,
+    left -180px top 43%,
+    center,center,center;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100vh;
+  height:100lvh;
+  background-color:#080918;
+  background-image:
+    linear-gradient(103deg,rgba(4,5,16,.86),rgba(5,6,18,.69) 37%,rgba(6,7,20,.34) 76%,rgba(5,6,18,.55)),
+    var(--nhs-cinematic-room-photo),
+    linear-gradient(148deg,#070817,#151028 60%,#080a1b);
+  background-size:100% 100%,cover,100% 100%;
+  background-position:center,center,center;
+  background-repeat:no-repeat;
+}
+/* The fixed scene is visible at every scroll position; the authored NHS
+ * SVG layers continue through the full document in long-page captures.
+ * No card or section receives a second, competing wallpaper. */
+@media(max-width:740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
+    background-size:100% 100%,880px auto,570px auto,100% 100%,100% 100%,100% 100%;
+    background-position:center,right -300px bottom -20px,left -255px top 45%,center,center,center;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
+    background-position:center,right 37% center,center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
+    background:Canvas;
+    color:CanvasText;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
+    display:none;
+    background-image:none;
+  }
+}
