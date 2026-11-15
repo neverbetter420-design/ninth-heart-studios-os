@@ -5,6 +5,7 @@ import { displayProgress, formatProjectDate, projectDueState } from "@/lib/proje
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import { LivingStudioHub } from "./LivingStudioHub";
+import { LivingAtelierPulseDock } from "./LivingAtelierPulseDock";
 import { NocturneStudioArt } from "./NocturneStudioArt";
 import { PriorityHalo, type HaloAction } from "./PriorityHalo";
 
@@ -91,7 +92,7 @@ export async function Dashboard() {
 
   return (
     <div className="content-wrap nocturne-command-center velvet-atelier-pilot">
-      <header className="nocturne-overview">
+      <header className="nocturne-overview" id="nhs-observatory">
         <div className="nocturne-welcome-copy">
           <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
           <h2>Your studio, <em>in focus.</em></h2>
@@ -107,6 +108,7 @@ export async function Dashboard() {
       </header>
 
       <div className="nhs-command-surface">
+      <LivingAtelierPulseDock />
       <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
 
       <section className="dashboard-grid" aria-label="Studio priorities and projects">
