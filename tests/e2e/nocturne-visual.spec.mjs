@@ -909,9 +909,13 @@ test("Client Sanctuary has genuine blue-rose art and glass without changing the 
   const controls = compass.getByRole("button");
   await expect(controls).toHaveCount(3);
   await expect(controls.first()).toHaveAttribute("aria-pressed", "true");
-  await controls.nth(1).click();
-  await expect(controls.nth(1)).toHaveAttribute("aria-pressed", "true");
-  await expect(compass.getByRole("progressbar")).toBeVisible();
+  await expect(controls.nth(1)).toHaveAttribute("aria-pressed", "false");
+  await expect(controls.nth(2)).toHaveAttribute("aria-pressed", "false");
+  for (const control of await controls.all()) {
+    expect((await control.boundingBox()).height, "Compass touch target").toBeGreaterThanOrEqual(44);
+  }
+  // This gallery uses static server-rendered HTML with JavaScript disabled;
+  // interaction state changes are verified separately in the hydrated app.
   // At smaller widths the approved sculpture recedes and controls stay reachable.
   for (const width of [1440, 740, 390, 320]) {
     await page.setViewportSize({width,height:850});
