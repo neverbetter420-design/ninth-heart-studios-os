@@ -1,4 +1,5 @@
 import { readFileSync, existsSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { resolve, dirname } from "node:path";
 import { createRequire } from "node:module";
 import vm from "node:vm";
@@ -8,10 +9,15 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner", "nocturne-muse-ai", "nocturne-project-guide", "velvet-atelier-admin-pilot", "open-plan", "nhs-room-editorial", "visual-first"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner", "nocturne-muse-ai", "nocturne-project-guide", "velvet-atelier-admin-pilot", "open-plan", "nhs-room-editorial", "visual-first", "living-atelier-pulse-dock"];
 // The visual suite denies network access, so embed only these two local, vetted
 // decorative assets. This allows screenshots to show the same artwork as the app.
-const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg", "nhs-dark-rose-photographic.webp", "nhs-room-electric-oracle.svg", "nhs-room-rose-reliquary.svg", "nhs-room-artist-atelier.svg", "nhs-room-archive-seal.svg", "nhs-room-velvet-oracle.svg", "nhs-room-private-atelier.svg", "nhs-wallpaper-electric.svg", "nhs-wallpaper-rose.svg", "nhs-wallpaper-artist.svg", "nhs-wallpaper-archive.svg", "nhs-wallpaper-velvet.svg", "nhs-wallpaper-private.svg", "nhs-scene-electric.webp", "nhs-scene-rose.webp", "nhs-scene-artist.webp", "nhs-scene-archive.webp", "nhs-scene-velvet.webp", "nhs-scene-private.webp"]);
+const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg", "nhs-dark-rose-photographic.webp", "nhs-room-electric-oracle.svg", "nhs-room-rose-reliquary.svg", "nhs-room-artist-atelier.svg", "nhs-room-archive-seal.svg", "nhs-room-velvet-oracle.svg", "nhs-room-private-atelier.svg", "nhs-wallpaper-electric.svg", "nhs-wallpaper-rose.svg", "nhs-wallpaper-artist.svg", "nhs-wallpaper-archive.svg", "nhs-wallpaper-velvet.svg", "nhs-wallpaper-private.svg", "nhs-scene-electric.webp", "nhs-scene-rose.webp", "nhs-scene-artist.webp", "nhs-scene-archive.webp", "nhs-scene-velvet.webp", "nhs-scene-private.webp", "nhs-living-atelier-observatory.webp"]);
+// This new decorative background is owner-approved and is embedded locally
+// only when the exact committed image matches its source SHA-256.
+const approvedArtworkHashes = new Map([
+  ["nhs-living-atelier-observatory.webp", "e5130cae5a1a8d30e6b2c0a09cd59d6350a36f278240f5f55480fc850a0c0284"],
+]);
 const built = process.env.NHS_VISUAL_BUILT_CSS === "1";
 const chunks = resolve(root, ".next/static/chunks");
 function builtStyles() {
@@ -43,6 +49,10 @@ export const previewCSS = (sourceCSS + (built
   .replace(/url\(["']?\/visuals\/([a-z0-9-]+\.(?:svg|webp))["']?\)/g, (original, filename) => {
     if (!approvedArtwork.has(filename)) throw new Error(`Unapproved visual asset: ${filename}`);
     const asset = readFileSync(resolve(root, "public/visuals", filename));
+    const expectedHash = approvedArtworkHashes.get(filename);
+    if (expectedHash && createHash("sha256").update(asset).digest("hex") !== expectedHash) {
+      throw new Error(`STOP: approved image changed: ${filename}`);
+    }
     return filename.endsWith(".webp")
       ? `url("data:image/webp;base64,${asset.toString("base64")}")`
       : `url("data:image/svg+xml,${encodeURIComponent(asset.toString("utf8"))}")`;
