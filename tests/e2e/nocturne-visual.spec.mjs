@@ -19,40 +19,46 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
-test("Muse NHS backdrop fills the full scroll while the original room image stays fixed", async ({ page }) => {
+test("Muse NHS decoration flows through the entire scrollable page instead of staying fixed at the top", async ({ page }) => {
   await show(page, "admin", "populated", "muse");
   const main = page.locator(".main-shell");
-  const muse = page.locator("#workspace-content .muse-workroom");
-  await expect(muse).toBeVisible();
+  await expect(page.locator("#workspace-content .muse-workroom")).toBeVisible();
   await expect(page.locator(".nhs-room-identity")).toHaveAttribute("data-room", "velvet");
   for (const width of [1440, 740, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(() => scrollTo(0, 0));
     const art = await main.evaluate((el) => {
-      const backing = getComputedStyle(el);
-      const photo = getComputedStyle(el, "::before");
+      const stage = getComputedStyle(el);
+      const decoration = getComputedStyle(el, "::before");
       const rect = el.getBoundingClientRect();
       return {
-        backingImage: backing.backgroundImage,
-        photoImage: photo.backgroundImage,
-        photoSize: photo.backgroundSize,
-        photoPosition: photo.position,
+        artImage: decoration.backgroundImage,
+        repeat: decoration.backgroundRepeat,
+        attachment: decoration.backgroundAttachment,
+        position: decoration.position,
+        imageSize: decoration.backgroundSize,
+        decorationHeight: Number.parseFloat(decoration.height),
         backdropHeight: rect.height,
         backdropWidth: rect.width,
+        stageColor: stage.backgroundColor,
       };
     });
-    // Native room SVG artwork spans the scrollable surface; the original
-    // NHS photographic layer stays viewport-anchored and aspect-safe.
-    expect(art.backingImage).toContain("data:image/svg+xml");
-    expect(art.photoImage).toContain("data:image/webp;base64");
-    expect(art.photoSize).toContain("cover");
-    expect(art.photoPosition).toBe("fixed");
+    // The actual room photo and the NHS botanical/silver SVGs now scroll
+    // with the whole main-shell. Only the wallpaper layer repeats down-page.
+    expect(art.artImage).toContain("data:image/svg+xml");
+    expect(art.artImage).toContain("data:image/webp;base64");
+    expect(art.repeat).toBe("no-repeat, no-repeat, repeat-y, no-repeat, no-repeat");
+    expect(art.attachment).not.toContain("fixed");
+    expect(art.position).toBe("absolute");
+    expect(art.imageSize).toContain("auto");
     expect(art.backdropHeight).toBeGreaterThan(900);
+    expect(Math.abs(art.decorationHeight - art.backdropHeight)).toBeLessThanOrEqual(2);
     expect(art.backdropWidth).toBeGreaterThanOrEqual(width);
     expect(await page.evaluate(() => document.documentElement.scrollWidth),
-      "Muse image should not create horizontal overflow at " + width).toBeLessThanOrEqual(width);
+      "Muse must not overflow at " + width + "px").toBeLessThanOrEqual(width);
     await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
-    expect(await main.evaluate((el) => getComputedStyle(el).backgroundImage))
-      .toContain("data:image/svg+xml");
+    expect(await main.evaluate(el => getComputedStyle(el, "::before").backgroundRepeat))
+      .toContain("repeat-y");
   }
 });
 
@@ -834,9 +840,12 @@ test("The shared atmosphere carries across every admin and client destination", 
       if (room === "observatory" && view === "home") {
         expect(stageBackground,"Command Center must retain its original photograph").toContain("webp");
       } else if (room !== "observatory") {
-        expect(stageBackground,`${view} must use a fixed cinematic room photograph`).toContain("data:image/webp;base64");
+        expect(stageBackground,`${view} must retain its cinematic NHS room photograph`).toContain("data:image/webp;base64");
         await expect(page.locator(".main-shell")).toHaveCSS("position","relative");
-        expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position)).toBe("fixed");
+        // Muse uses owner-requested full-page scrolling wallpaper; all other
+        // rooms retain their established fixed-photography presentation.
+        expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position))
+          .toBe(view === "muse" ? "absolute" : "fixed");
       }
       if (role === "admin") {
         expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundColor.match(/\d+/g).slice(0,3).map(Number).every(v=>v<32))).toBe(true);
