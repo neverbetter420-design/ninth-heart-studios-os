@@ -26,19 +26,26 @@ imported.
   progress, activity states, existing original logo and photographic
   artwork. No new images were generated or substituted.
 
-## Background placement, when exact approved uploads are available
+## Background placement: original uploads verified; repo transfer pending
 
-The uploaded NHS Image 01 (magenta roses and silver currents) is the
-approved Command Center atmosphere. Preserve its original crop and
-details, focusing artwork away from live content. Keep a dark scrim on
-the central reading area, not a flat replacement background. The
-original logo remains at `/brand/nhs-original-logo.webp`.
+Exact user-uploaded NHS Image 01 (magenta roses and silver currents) and
+Image 05 (cobalt/silver rose) have now been identified and visually verified.
+High-quality optimized WebP delivery files have been prepared from those
+original files, without changing the source PNGs. The verified names,
+dimensions, source SHA hashes, delivery SHA hashes and exact intended
+repository locations are in `docs/design/living-atelier-asset-manifest.md`.
 
-**Do not** treat an image description, thumbnail, approximate online
-image, or generated replacement as the actual background asset. Exact
-uploaded image bytes must be reviewed and intentionally added to the
-repository before wiring that image into the CSS. The existing
-photographic artwork remains until that separate asset-integration step.
+**Neither WebP binary has been committed to this GitHub branch.**
+The Observatory CSS now provides an optional, explicitly unset image-url
+custom property with the old photographic art as fallback across all
+three desktop/mobile background layers. Enable the approved image
+**only after** the file lands in the reviewed repo path and its hash
+passes verification, then perform visual tests. Do not use any generated
+substitute, thumbnail, or external URL as the final asset.
+
+Keep artwork away from live content; add a dark scrim only when needed
+for readability rather than replacing the atmosphere with a flat panel.
+The original logo remains at `/brand/nhs-original-logo.webp`.
 
 ## Deferred design milestones
 
