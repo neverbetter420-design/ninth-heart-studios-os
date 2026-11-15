@@ -19,6 +19,43 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
+test("Muse NHS backdrop fills the full scroll while the original room image stays fixed", async ({ page }) => {
+  await show(page, "admin", "populated", "muse");
+  const main = page.locator(".main-shell");
+  const muse = page.locator("#workspace-content .muse-workroom");
+  await expect(muse).toBeVisible();
+  await expect(page.locator(".nhs-room-identity")).toHaveAttribute("data-room", "velvet");
+  for (const width of [1440, 740, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const art = await main.evaluate((el) => {
+      const backing = getComputedStyle(el);
+      const photo = getComputedStyle(el, "::before");
+      const rect = el.getBoundingClientRect();
+      return {
+        backingImage: backing.backgroundImage,
+        photoImage: photo.backgroundImage,
+        photoSize: photo.backgroundSize,
+        photoPosition: photo.position,
+        backdropHeight: rect.height,
+        backdropWidth: rect.width,
+      };
+    });
+    // Native room SVG artwork spans the scrollable surface; the original
+    // NHS photographic layer stays viewport-anchored and aspect-safe.
+    expect(art.backingImage).toContain("data:image/svg+xml");
+    expect(art.photoImage).toContain("data:image/webp;base64");
+    expect(art.photoSize).toContain("cover");
+    expect(art.photoPosition).toBe("fixed");
+    expect(art.backdropHeight).toBeGreaterThan(900);
+    expect(art.backdropWidth).toBeGreaterThanOrEqual(width);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth),
+      "Muse image should not create horizontal overflow at " + width).toBeLessThanOrEqual(width);
+    await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+    expect(await main.evaluate((el) => getComputedStyle(el).backgroundImage))
+      .toContain("data:image/svg+xml");
+  }
+});
+
 test("Muse keeps focus, drafting and saved work separate across narrow screens", async ({ page }) => {
   test.setTimeout(90000);
   for (const scenario of ["normal", "long", "empty", "error", "risk-error", "drafts-error", "preview", "invalid-target", "email-configured", "risk-order"]) {
