@@ -421,60 +421,61 @@
 }
 
 
-/* FULL-PAGE NHS ART CONTINUITY · owner-requested design correction.
- * The old fixed room photo filled only the viewport; full-page captures then
- * fell into a flat dark sheet. Paint an uninterrupted, non-repeating branded
- * botanical/silver atmosphere on the entire main shell while keeping ONE
- * sharp, stationary photo above it as the content scrolls. No image is
- * distorted with background-size:100% 100%; cover preserves its aspect.
- * Original official NHS mark still comes from the existing room header.
+/* FULL-SCROLL NHS WALLPAPER · user-approved correction.
+ * The artwork belongs to the document, NOT a fixed viewport/header.
+ * Its original NHS botanical/sculptural SVGs extend down the long page
+ * as a scroll-flowing vertical composition; the existing approved velvet
+ * photo appears only once near the beginning. All images keep aspect ratio.
+ * Nothing is painted onto the form controls or duplicated on each card.
  */
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
+  position:relative;
+  isolation:isolate;
+  min-height:100dvh;
   background-color:#080918;
-  background-image:
-    linear-gradient(180deg,rgba(5,5,16,.57),rgba(8,7,24,.53) 30%,rgba(7,9,25,.68) 64%,rgba(5,7,18,.80)),
-    url("/visuals/nhs-wallpaper-velvet.svg"),
-    url("/visuals/nhs-room-velvet-oracle.svg"),
-    radial-gradient(ellipse at 84% 58%,rgba(73,91,181,.25),transparent 58%),
-    radial-gradient(ellipse at 13% 79%,rgba(132,49,112,.23),transparent 54%),
-    linear-gradient(148deg,#080919,#151025 49%,#070a1b);
-  background-size:
-    100% 100%,
-    min(1480px,106vw) auto,
-    min(970px,78vw) auto,
-    100% 100%,100% 100%,100% 100%;
-  background-position:
-    center,
-    right -40px bottom -30px,
-    left -180px top 43%,
-    center,center,center;
+  background-image:linear-gradient(175deg,#080918,#151025 45%,#070a1b);
+  background-size:100% 100%;
   background-repeat:no-repeat;
 }
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
-  position:fixed;
+  /* Override the previous global fixed/100lvh pseudo-element so it has the
+     SAME height as the entire scrollable main-shell, not just one screen. */
+  position:absolute;
   inset:0;
   width:100%;
-  height:100vh;
-  height:100lvh;
-  background-color:#080918;
+  height:100%;
+  min-height:100%;
+  background-color:transparent;
   background-image:
-    linear-gradient(103deg,rgba(4,5,16,.86),rgba(5,6,18,.69) 37%,rgba(6,7,20,.34) 76%,rgba(5,6,18,.55)),
+    linear-gradient(105deg,rgba(4,5,17,.85),rgba(5,7,19,.69) 39%,rgba(6,8,22,.46) 73%,rgba(5,6,18,.65)),
+    url("/visuals/nhs-room-velvet-oracle.svg"),
+    url("/visuals/nhs-wallpaper-velvet.svg"),
     var(--nhs-cinematic-room-photo),
-    linear-gradient(148deg,#070817,#151028 60%,#080a1b);
-  background-size:100% 100%,cover,100% 100%;
-  background-position:center,center,center;
-  background-repeat:no-repeat;
+    linear-gradient(175deg,#080918,#151025 45%,#070a1b);
+  background-size:
+    100% 100%,
+    min(970px,78vw) auto,
+    min(1480px,106vw) auto,
+    min(1650px,110vw) auto,
+    100% 100%;
+  background-position:
+    center,
+    left -145px center,
+    right -40px top,
+    right top,
+    center;
+  /* The botanical wallpaper continues down the entire scroll.
+     The sculptural oracle breaks the pattern mid-page; the photo is not
+     repeated or pinned, and neither is squashed to 100% 100%. */
+  background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;
+  background-attachment:scroll;
+  pointer-events:none;
 }
-/* The fixed scene is visible at every scroll position; the authored NHS
- * SVG layers continue through the full document in long-page captures.
- * No card or section receives a second, competing wallpaper. */
 @media(max-width:740px) {
-  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
-    background-size:100% 100%,880px auto,570px auto,100% 100%,100% 100%,100% 100%;
-    background-position:center,right -300px bottom -20px,left -255px top 45%,center,center,center;
-  }
   .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
-    background-position:center,right 37% center,center;
+    background-size:100% 100%,570px auto,880px auto,840px auto,100% 100%;
+    background-position:center,left -245px center,right -300px top,right -275px top,center;
+    background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;
   }
 }
 @media(prefers-contrast:more),(forced-colors:active) {
