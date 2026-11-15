@@ -36,6 +36,7 @@ import "./open-plan.css";
 import "./nhs-room-editorial.css";
 import "./visual-first.css";
 import "./living-atelier-pulse-dock.css";
+import "./living-atelier-client-sanctuary.css";
 
 const headingFont = Cinzel({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-cinzel", display: "swap" });
 const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
