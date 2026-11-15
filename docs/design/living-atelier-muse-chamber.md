@@ -28,30 +28,34 @@ Image #18 artwork for a future Muse introduction is **not yet integrated
 as a source-verified repository asset**; do not substitute an image query,
 generated replica or other artwork to suggest that it is.
 
-## Full-page NHS artwork correction (owner feedback)
+## Full-scroll NHS artwork correction (latest owner feedback)
 
-The original Muse screenshot showed the photographic backdrop in the first
-viewport, but the longer sections appeared almost flat black in full-page
-captures. The app deliberately keeps the room photo stationary while the
-content scrolls, so simply setting the image to a page-height
-`background-size: 100% 100%` would distort the rose/chrome artwork.
+**The owner does not want a stationary image anchored at the top of the
+viewport.** It should be part of the whole scrolling page.
 
-The scoped design layer now paints **continuous page-height atmosphere** with
-the **existing original NHS** `nhs-wallpaper-velvet.svg` and
-`nhs-room-velvet-oracle.svg` artwork, plus understated violet/cobalt/magenta
-smoke. It preserves the original `nhs-scene-velvet.webp` as a fixed,
-aspect-preserving `cover` image, giving the live app one coherent, stationary
-room as its interactive content scrolls. No images are duplicated inside
-content cards. The original official logo remains unchanged.
+The earlier full-page attempt left a viewport-fixed photographic
+`::before` layer over the page-wide decoration. The corrected **Muse-only**
+layer replaces that fixed pseudo-element with `position:absolute` and
+`height:100%` relative to the complete `.main-shell`, so imagery scrolls
+naturally with the document from welcome area to saved drafts.
 
-This correction is restricted to the Admin Muse Velvet Chamber only.
-The Observatory and Client Sanctuary retain their previous design/background
-behavior. On narrow screens the same original artwork is repositioned, not
-recreated or stretched; high-contrast modes remove decorative backdrops.
+It uses **existing NHS assets only**: the original
+`nhs-wallpaper-velvet.svg` forms an aspect-correct, vertically repeating
+botanical backdrop for the full page; `nhs-room-velvet-oracle.svg` is a
+single sculptural detail in the center; the existing
+`nhs-scene-velvet.webp` photograph appears once in the upper composition
+and **scrolls away normally**. Decorative imagery is never stretched to
+`background-size:100% 100%`; only the scrims/color layers fill the document
+geometry. This avoids a fixed top picture and avoids flat black lower sections.
+
+Desktop and 740/390/320px responsive rules preserve readable text and
+unclipped content, while high-contrast modes suppress decorative layers.
+The original official NHS logo, content, interactions, and existing Admin
+and Client rooms remain untouched. No new or substitute artwork was made.
 
 The assigned **#18 Muse original upload** is still not conclusively mapped to
 an exact repo binary. It is **not** silently substituted; integrating it
-will require verifying its original bytes and owner-approved placement first.
+requires original-byte verification and separate design approval.
 
 ## Functionality stays as-is
 
