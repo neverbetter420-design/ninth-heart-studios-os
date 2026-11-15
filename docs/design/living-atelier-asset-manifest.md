@@ -28,7 +28,13 @@ The repo now includes the standard-library-only Python helper
 ```bash
 python3 scripts/import-living-atelier-assets.py /path/to/NHS_Living_Atelier_Approved_Backgrounds.zip
 python3 scripts/import-living-atelier-assets.py /path/to/NHS_Living_Atelier_Approved_Backgrounds.zip --apply
+python3 scripts/import-living-atelier-assets.py /path/to/NHS_Living_Atelier_Approved_Backgrounds.zip --apply --activate-observatory
 ```
+
+The third command is the one-step **approved artwork activation**, enabled only
+after checksum validation and only on the exact draft branch. It installs both
+verified images, then adds a single scoped CSS declaration for the Observatory.
+It does **not** activate the Client Sanctuary image or modify the client portal.
 
 This executes **locally in a checked-out copy of the draft design branch**.
 The script verifies the exact archive hash, three expected filenames,
@@ -48,7 +54,10 @@ the images inside it. The draft's SHA-256 CI gate rejects altered binaries.
 
 **Until the files are actually committed**, the approved-artwork CSS
 variable remains unset and the current Observatory artwork stays active.
-Adding both files alone does not authorize Client Sanctuary visual changes.
+Running the last command prepares the scoped CSS and exact binaries in
+the local working tree, but **does not push or deploy them**. Review the
+changed paths and commit to this draft branch separately. Adding both
+files alone does not authorize Client Sanctuary visual changes.
 
 ## Integration controls
 
