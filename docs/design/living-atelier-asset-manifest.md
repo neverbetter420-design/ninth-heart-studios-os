@@ -1,6 +1,6 @@
 # NHS OS | Living Atelier original-asset handoff
 
-**Status:** Exact uploads verified and optimized. **Binary assets are not yet committed to the repository.** This is a source-only review, not a claim that the new atmosphere is already visible in deployed NHS OS.
+**Status:** Both exact approved WebP assets are committed to the draft design branch, and the Admin Observatory uses Image 01 through its scoped CSS custom property. **Not deployed or published.** Client Sanctuary Image 05 is stored only and has not been activated.
 
 ## Approved source mapping
 
@@ -52,18 +52,13 @@ WebP files through **Add file → Upload files** in `public/visuals` on
 this same draft branch. Do not upload the ZIP as if Next.js could serve
 the images inside it. The draft's SHA-256 CI gate rejects altered binaries.
 
-**Until the files are actually committed**, the approved-artwork CSS
-variable remains unset and the current Observatory artwork stays active.
-Running the last command prepares the scoped CSS and exact binaries in
-the local working tree, but **does not push or deploy them**. Review the
-changed paths and commit to this draft branch separately. Adding both
-files alone does not authorize Client Sanctuary visual changes.
+**Current draft-branch state:** both approved WebP binaries are now present and have been verified against the original local WebP SHA-256 and Git blob SHA-1 values. The Observatory CSS variable is active only within the Admin Observatory selector. None of this is deployed; there is no Client Sanctuary background change.
 
 ## Integration controls
 
 1. Review the actual WebP assets visually. Upload the two reviewed binary files to the exact repository paths above on this **draft** design branch, through a separately supported file-upload workflow. Do **not** use a generated substitute, stock asset, or a URL to an unapproved external site.
-2. The Observatory's `app/nocturne-dark-rose-cinematic.css` now supports an optional `--nhs-observatory-approved-artwork` URL custom property for its three desktop/mobile background layers. It is intentionally **unset** until the exact WebP binary is in the repository. Existing `/visuals/nhs-dark-rose-photographic.webp` remains the fallback.
-3. After the Observatory WebP is committed and hash-verified, set `--nhs-observatory-approved-artwork: url("/visuals/nhs-living-atelier-observatory.webp")` **only** in the scoped Admin Observatory selector. Then validate desktop/mobile crops and readability against the approved concept. Avoid copying a double-darkened overlay, raising opacities without review, or replacing other rooms.
+2. The Observatory's `app/nocturne-dark-rose-cinematic.css` now supports an optional `--nhs-observatory-approved-artwork` URL custom property for its three desktop/mobile background layers. It has now been **set only for the Admin Observatory** after exact Git blob and source-file verification. Existing `/visuals/nhs-dark-rose-photographic.webp` remains the fallback.
+3. The Observatory WebP is committed and hash-verified, and the CSS custom property is set **only** in the scoped Admin Observatory selector. Validate actual desktop/mobile cropping and readability against the approved concept before approving a deployment. Avoid copying a double-darkened overlay, raising opacities without review, or replacing other rooms.
 4. Client Sanctuary artwork is **prepared but unintegrated**. It requires a separate client-specific composition and isolation review before setting any client Portal background.
 5. Verify image load, no broken assets, original NHS logo, keyboard navigation, 44px touch controls, read-only data states, reduced motion, and Chromium accessibility tests after each asset integration.
 
