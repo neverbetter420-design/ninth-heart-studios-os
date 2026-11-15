@@ -196,7 +196,7 @@ console.log("PASS: Living Atelier Ninth Pulse is linked, responsive and keyboard
 
 // Living Atelier approved artwork: exact source provenance and no fake deployment claim.
 const artworkManifest = source("docs/design/living-atelier-asset-manifest.md");
-assert.match(artworkManifest, /Exact uploads verified and optimized/);
+assert.match(artworkManifest, /Image 01 · Velvet Observatory/);
 // The manifest may advance from "pending" to "committed" after the exact
 // delivery bytes land. Never make CI depend on an outdated status sentence.
 assert.match(artworkManifest, /public\/visuals\/nhs-living-atelier-observatory\.webp/);
