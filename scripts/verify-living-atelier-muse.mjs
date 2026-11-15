@@ -57,11 +57,14 @@ assert.deepEqual(brandedUrls, [
 for (const asset of brandedUrls) {
   assert.match(read("public" + asset), /<svg\s/);
 }
-assert.match(css, /FULL-PAGE NHS ART CONTINUITY/);
-assert.match(css, /background-size:100% 100%,cover,100% 100%/);
-assert.match(css, /position:fixed/);
-assert.match(css, /height:100lvh/);
-assert.match(css, /background-repeat:no-repeat/);
+assert.match(css, /FULL-SCROLL NHS WALLPAPER/);
+assert.match(css, /position:absolute;/);
+assert.match(css, /height:100%;/);
+assert.match(css, /background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;/);
+assert.match(css, /background-attachment:scroll;/);
+assert.match(css, /var\(--nhs-cinematic-room-photo\)/);
+assert.doesNotMatch(css, /position:fixed;|height:100lvh;|background-attachment:fixed/,
+  "Muse artwork must scroll with the document, never stay pinned to the viewport");
 assert.match(css, /background:Canvas/);
 for (const required of [
   ".nhs-muse-room-dock", ".studio-focus", ".studio-intelligence-grid",
