@@ -10,6 +10,7 @@
  * Keep artwork behind the interface and never compromise legibility.
  */
 .app-shell.nhs-theme-admin:has(.nhs-room-identity[data-room="observatory"]) {
+  --nhs-observatory-approved-artwork: url("/visuals/nhs-living-atelier-observatory.webp");
   --nocturne-rule: rgba(220,207,223,.19);
   background:
     radial-gradient(ellipse at 95% 11%,rgba(113,27,53,.16),transparent 48%),
@@ -22,9 +23,9 @@
 }
 /* A diffuse backdrop supports the dashboard, instead of another rectangular card.
  * The photographic layer is dark, low-opacity and never receives interactions.
- * The optional image custom property is deliberately UNSET until an approved
- * source-uploaded file lands in the repo. All three desktop/mobile layers
- * preserve the existing photographic fallback without missing-file requests. */
+ * The approved uploaded Observatory WebP is now committed and exact-blob verified.
+ * All three desktop/mobile layers use the scoped custom property, while keeping
+ * the original photographic fallback if the property is unset later. */
 .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center::before {
   content:"";
   position:absolute;
