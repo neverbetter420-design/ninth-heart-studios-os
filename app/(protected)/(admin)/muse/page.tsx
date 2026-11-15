@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AtelierSymbol } from "@/components/AtelierSymbol";
+import { MuseRoomDock } from "@/components/MuseRoomDock";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -292,11 +293,7 @@ export default async function MusePage({
           Studio settings ↗
         </Link>
       </header>
-      <nav className="management-destinations nhs-visual-links" aria-label="Muse destinations">
-        <a href="#muse-focus"><AtelierSymbol name="spark" size={20} /> Studio focus</a>
-        <a href="#muse-compose"><AtelierSymbol name="rose" size={20} /> Write a draft</a>
-        <a href="#muse-saved"><AtelierSymbol name="key" size={20} /> Saved drafts</a>
-      </nav>
+      <MuseRoomDock />
       <section
         id="muse-focus"
         aria-label="Top recommendation"
