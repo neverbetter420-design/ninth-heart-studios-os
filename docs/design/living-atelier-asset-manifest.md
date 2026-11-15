@@ -15,6 +15,41 @@ Both originals are **1672×941 PNGs**. The supplied WebP delivery copies were ex
 
 The original PNGs were not modified or replaced. The WebP copies are compressed delivery derivatives, **not** lossless copies. Preserve originals outside the deployment bundle for future re-optimization.
 
+## Verified ZIP and fail-closed import
+
+The previously prepared archive `NHS_Living_Atelier_Approved_Backgrounds.zip`
+has SHA-256 `23f7482faf09c015a140a53ed6335d1fafb029a9919d00505262557545758e0f`.
+The downloaded package must match exactly before import. Its individual
+WebP files and `manifest.json` also have pinned checksums.
+
+The repo now includes the standard-library-only Python helper
+`scripts/import-living-atelier-assets.py` with an explicit dry-run default:
+
+```bash
+python3 scripts/import-living-atelier-assets.py /path/to/NHS_Living_Atelier_Approved_Backgrounds.zip
+python3 scripts/import-living-atelier-assets.py /path/to/NHS_Living_Atelier_Approved_Backgrounds.zip --apply
+```
+
+This executes **locally in a checked-out copy of the draft design branch**.
+The script verifies the exact archive hash, three expected filenames,
+manifest and WebP hashes, avoids path traversal/symlinks, and refuses to
+overwrite images whose bytes differ. Its `--self-test` runs in source-only
+GitHub CI without needing access to the uploaded image ZIP.
+
+After running with `--apply`, the exact files appear under
+`public/visuals` in that working copy. They **do not automatically
+upload to GitHub**. Review the file changes and commit them to
+`design/living-atelier-observatory-pulse-20261114` only, never production.
+
+If using GitHub's web editor instead, unzip locally and upload the two
+WebP files through **Add file → Upload files** in `public/visuals` on
+this same draft branch. Do not upload the ZIP as if Next.js could serve
+the images inside it. The draft's SHA-256 CI gate rejects altered binaries.
+
+**Until the files are actually committed**, the approved-artwork CSS
+variable remains unset and the current Observatory artwork stays active.
+Adding both files alone does not authorize Client Sanctuary visual changes.
+
 ## Integration controls
 
 1. Review the actual WebP assets visually. Upload the two reviewed binary files to the exact repository paths above on this **draft** design branch, through a separately supported file-upload workflow. Do **not** use a generated substitute, stock asset, or a URL to an unapproved external site.
