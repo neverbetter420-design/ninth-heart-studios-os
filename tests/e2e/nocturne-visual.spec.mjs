@@ -885,11 +885,43 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   }
 });
 
-test("client portal uses dark open space while retaining the admin project palette", async ({ page }) => {
+test("Client Sanctuary has genuine blue-rose art and glass without changing the admin project palette", async ({ page }) => {
   await show(page, "client", "populated", "home");
-  await expect(page.locator(".atelier-home .atelier-hero")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-  expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage)).toContain("data:image/webp;base64");
-  await expect(page.locator(".atelier-home .atelier-feature-project")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  const shell = page.locator(".app-shell.nhs-theme-client");
+  const hero = page.locator(".atelier-home .nhs-color-hero");
+  const project = page.locator(".atelier-home .atelier-feature-project");
+  const compass = page.locator(".atelier-home .nhs-atelier-compass");
+  await expect(shell).toBeVisible();
+  await expect(hero).toBeVisible();
+  await expect(project).toBeVisible();
+  await expect(compass).toBeVisible();
+  // One approved image is embedded by the isolated reviewer behind the room,
+  // not duplicated inside project panels. The source guard pins the SHA-256.
+  const background = await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
+  expect(background).toContain("data:image/webp;base64");
+  expect(background).toContain("gradient");
+  expect(await hero.evaluate(el=>getComputedStyle(el).backgroundImage)).toContain("gradient");
+  const border = await project.evaluate(el=>getComputedStyle(el).borderTopWidth);
+  expect(Number.parseFloat(border)).toBeGreaterThan(0);
+  const projectArtwork = await project.evaluate(el=>getComputedStyle(el).backgroundImage);
+  expect(projectArtwork).toContain("gradient");
+  expect(projectArtwork).not.toContain("data:image/webp;base64");
+  const controls = compass.getByRole("button");
+  await expect(controls).toHaveCount(3);
+  await expect(controls.first()).toHaveAttribute("aria-pressed", "true");
+  await expect(controls.nth(1)).toHaveAttribute("aria-pressed", "false");
+  await expect(controls.nth(2)).toHaveAttribute("aria-pressed", "false");
+  for (const control of await controls.all()) {
+    expect((await control.boundingBox()).height, "Compass touch target").toBeGreaterThanOrEqual(44);
+  }
+  // This gallery uses static server-rendered HTML with JavaScript disabled;
+  // interaction state changes are verified separately in the hydrated app.
+  // At smaller widths the approved sculpture recedes and controls stay reachable.
+  for (const width of [1440, 740, 390, 320]) {
+    await page.setViewportSize({width,height:850});
+    const scrollWidth = await page.evaluate(()=>document.documentElement.scrollWidth);
+    expect(scrollWidth, "Client Sanctuary horizontal overflow at " + width + "px").toBeLessThanOrEqual(width);
+  }
   await show(page, "admin", "populated", "project");
   await expect(page.locator(".studio-workspace-admin")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 });
