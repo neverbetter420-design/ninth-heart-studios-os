@@ -28,6 +28,31 @@ Image #18 artwork for a future Muse introduction is **not yet integrated
 as a source-verified repository asset**; do not substitute an image query,
 generated replica or other artwork to suggest that it is.
 
+## Full-page NHS artwork correction (owner feedback)
+
+The original Muse screenshot showed the photographic backdrop in the first
+viewport, but the longer sections appeared almost flat black in full-page
+captures. The app deliberately keeps the room photo stationary while the
+content scrolls, so simply setting the image to a page-height
+`background-size: 100% 100%` would distort the rose/chrome artwork.
+
+The scoped design layer now paints **continuous page-height atmosphere** with
+the **existing original NHS** `nhs-wallpaper-velvet.svg` and
+`nhs-room-velvet-oracle.svg` artwork, plus understated violet/cobalt/magenta
+smoke. It preserves the original `nhs-scene-velvet.webp` as a fixed,
+aspect-preserving `cover` image, giving the live app one coherent, stationary
+room as its interactive content scrolls. No images are duplicated inside
+content cards. The original official logo remains unchanged.
+
+This correction is restricted to the Admin Muse Velvet Chamber only.
+The Observatory and Client Sanctuary retain their previous design/background
+behavior. On narrow screens the same original artwork is repositioned, not
+recreated or stretched; high-contrast modes remove decorative backdrops.
+
+The assigned **#18 Muse original upload** is still not conclusively mapped to
+an exact repo binary. It is **not** silently substituted; integrating it
+will require verifying its original bytes and owner-approved placement first.
+
 ## Functionality stays as-is
 
 - The existing `/muse` server page still calls `requireAdmin()`,
