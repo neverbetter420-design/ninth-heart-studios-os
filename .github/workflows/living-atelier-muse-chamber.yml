@@ -1,0 +1,59 @@
+name: NHS Living Atelier Muse Velvet Chamber design QA
+
+# Design-only validation. No preview publishing, DB migrations or AI activation.
+on:
+  pull_request:
+    paths:
+      - 'components/MuseRoomDock.tsx'
+      - 'app/(protected)/(admin)/muse/page.tsx'
+      - 'app/living-atelier-muse-chamber.css'
+      - 'app/layout.tsx'
+      - 'scripts/verify-living-atelier-muse.mjs'
+      - 'scripts/verify-living-atelier-client-sanctuary.mjs'
+      - 'scripts/verify-velvet-atelier-pilot.mjs'
+      - 'tests/helpers/nocturne-render.mjs'
+      - 'docs/design/living-atelier-muse-chamber.md'
+      - '.github/workflows/living-atelier-muse-chamber.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  muse-design-only:
+    name: Muse anchors, admin guard, TypeScript and Next build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NHS_APP_URL: https://example.invalid
+      MUSE_AI_ENABLED: 'false'
+      MUSE_PROJECT_GUIDE_ENABLED: 'false'
+    steps:
+      - name: Checkout with no saved credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Verify Muse section links, scope and disabled AI guard
+        run: node scripts/verify-living-atelier-muse.mjs
+      - name: Recheck Observatory and Client Sanctuary source guards
+        run: |
+          node scripts/verify-velvet-atelier-pilot.mjs
+          node scripts/verify-living-atelier-client-sanctuary.mjs
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build with inert test configuration
+        run: npm run build
+      - name: Record no-deploy checks
+        run: |
+          echo "Muse-only visual contracts, TypeScript and Next build checked with AI flags off." >> "$GITHUB_STEP_SUMMARY"
+          echo "No deployment, client data edits or feature activation performed." >> "$GITHUB_STEP_SUMMARY"
