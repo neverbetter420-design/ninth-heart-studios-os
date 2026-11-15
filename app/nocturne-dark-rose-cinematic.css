@@ -21,7 +21,10 @@
   isolation:isolate;
 }
 /* A diffuse backdrop supports the dashboard, instead of another rectangular card.
- * The photographic layer is dark, low-opacity and never receives interactions. */
+ * The photographic layer is dark, low-opacity and never receives interactions.
+ * The optional image custom property is deliberately UNSET until an approved
+ * source-uploaded file lands in the repo. All three desktop/mobile layers
+ * preserve the existing photographic fallback without missing-file requests. */
 .app-shell:has(.nhs-room-identity[data-room="observatory"]) .nocturne-command-center::before {
   content:"";
   position:absolute;
@@ -31,7 +34,7 @@
   background:
     linear-gradient(180deg,rgba(3,3,9,.16),rgba(3,3,9,.82) 48%,#030309 94%),
     linear-gradient(90deg,rgba(3,3,9,.85),rgba(3,3,9,.1) 68%,rgba(3,3,9,.5)),
-    url("/visuals/nhs-dark-rose-photographic.webp");
+    var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"));
   background-position:center,center,right top;
   background-size:100% 100%,100% 100%,min(1150px,110vw) auto;
   background-repeat:no-repeat;
@@ -49,7 +52,7 @@
   background-color:transparent;
   background-image:
     linear-gradient(90deg,rgba(3,3,9,.96),rgba(3,3,9,.55) 53%,rgba(3,3,9,.07) 93%),
-    url("/visuals/nhs-dark-rose-photographic.webp");
+    var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"));
   background-size:100% 100%,min(1030px,92vw) auto;
   background-position:center,right center;
   background-repeat:no-repeat;
@@ -192,7 +195,7 @@
     padding:18px 8px 28px;
     background-image:
       linear-gradient(95deg,rgba(3,3,9,.93),rgba(3,3,9,.82) 50%,rgba(3,3,9,.42) 90%),
-      url("/visuals/nhs-dark-rose-photographic.webp");
+      var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"));
     background-size:100% 100%,540px auto;
     background-position:center,right -245px center;
   }
