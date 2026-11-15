@@ -155,3 +155,38 @@ for (const selector of [
 assert.match(editorial, /prefers-reduced-motion/);
 assert.match(editorial, /forced-colors:active/);
 console.log("PASS: shared editorial continuity guard covers deep Admin and Client Portal screens");
+
+
+// Living Atelier increment: functional glass shortcuts, not decorative buttons.
+// Keep the existing original logo, server data sources, and Admin-only scope.
+const pulse = source("components/LivingAtelierPulseDock.tsx");
+const pulseCss = source("app/living-atelier-pulse-dock.css");
+assert.match(dashboard, /import \{ LivingAtelierPulseDock \}/);
+assert.match(dashboard, /<LivingAtelierPulseDock \/>/);
+assert.match(dashboard, /<header className="nocturne-overview" id="nhs-observatory">/);
+for (const id of [
+  "nhs-observatory", "nocturne-actions-title",
+  "nocturne-projects-title", "nocturne-activity-title"
+]) {
+  assert.ok(pulse.includes('id: "' + id + '"'), "Pulse shortcut lacks " + id);
+  assert.ok(dashboard.includes('id="' + id + '"'), "Existing section anchor not found: " + id);
+}
+assert.match(pulse, /aria-label="Ninth Pulse: Command Center shortcuts"/);
+assert.match(pulse, /aria-current=\{activeId === id \? "location" : undefined\}/);
+assert.match(pulse, /IntersectionObserver/);
+assert.match(pulse, /observer\.disconnect\(\)/);
+assert.match(pulse, /onClick=\{\(\) => setActiveId\(id\)\}/);
+assert.match(pulse, /href="\/leads#quick-capture"/);
+assert.match(pulse, /<AtelierSymbol name=\{symbol\}/);
+assert.doesNotMatch(pulse, /from\s+["']@\/lib\/supabase|\.from\(|fetch\(|\.insert\(|\.update\(|\.delete\(/,
+  "The navigation rail must not introduce data reads or mutations");
+assert.ok(layout.indexOf('import "./living-atelier-pulse-dock.css";') >
+  layout.indexOf('import "./visual-first.css";'), "Pulse styles must be loaded last");
+for (const marker of [
+  ".velvet-atelier-pilot .nhs-pulse-dock",
+  "position: sticky", "backdrop-filter",
+  "focus-visible", "aria-current", "max-width: 680px",
+  "prefers-reduced-motion: reduce", "prefers-reduced-transparency: reduce",
+  "forced-colors: active"
+]) assert.ok(pulseCss.includes(marker), "Missing Pulse UI safety: " + marker);
+console.log("PASS: Living Atelier Ninth Pulse is linked, responsive and keyboard/motion safe; no backend changes");
