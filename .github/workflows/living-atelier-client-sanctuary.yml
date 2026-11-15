@@ -1,0 +1,57 @@
+name: NHS Living Atelier Client Sanctuary design QA
+
+# Source-only isolated Client Portal pilot; deliberately no deployments or secrets.
+on:
+  pull_request:
+    paths:
+      - 'app/living-atelier-client-sanctuary.css'
+      - 'app/layout.tsx'
+      - 'components/portal/AtelierCompass.tsx'
+      - 'app/(protected)/portal/page.tsx'
+      - 'tests/helpers/nocturne-render.mjs'
+      - 'scripts/verify-living-atelier-client-sanctuary.mjs'
+      - 'scripts/verify-velvet-atelier-pilot.mjs'
+      - 'docs/design/living-atelier-client-sanctuary.md'
+      - 'public/visuals/nhs-living-atelier-client-sanctuary.webp'
+      - '.github/workflows/living-atelier-client-sanctuary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-safety:
+    name: Client-only glass, source guard, TypeScript and Next build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+      NHS_APP_URL: https://example.invalid
+      MUSE_AI_ENABLED: 'false'
+      MUSE_PROJECT_GUIDE_ENABLED: 'false'
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install pinned dependencies
+        run: npm ci
+      - name: Verify exact artwork, client scope and role guard
+        run: node scripts/verify-living-atelier-client-sanctuary.mjs
+      - name: Recheck existing Admin visual contracts
+        run: node scripts/verify-velvet-atelier-pilot.mjs
+      - name: Type-check
+        run: npm run typecheck
+      - name: Build isolated Next.js app without publishing
+        run: npm run build
+      - name: Record non-deploying checks
+        run: |
+          echo "Client Sanctuary source guards, TypeScript and build completed; no deployment or hosted data changes." >> "$GITHUB_STEP_SUMMARY"
+          echo "Visual acceptance and hosted Auth/storage gates remain separate." >> "$GITHUB_STEP_SUMMARY"
