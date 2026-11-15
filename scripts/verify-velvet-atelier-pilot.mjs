@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 const source = (path) => readFileSync(path, "utf8");
 const dashboard = source("components/Dashboard.tsx");
@@ -191,3 +192,24 @@ for (const marker of [
   "forced-colors: active"
 ]) assert.ok(pulseCss.includes(marker), "Missing Pulse UI safety: " + marker);
 console.log("PASS: Living Atelier Ninth Pulse is linked, responsive and keyboard/motion safe; no backend changes");
+
+
+// Living Atelier approved artwork: exact source provenance and no fake deployment claim.
+const artworkManifest = source("docs/design/living-atelier-asset-manifest.md");
+assert.match(artworkManifest, /Exact uploads verified and optimized/);
+assert.match(artworkManifest, /Binary assets are not yet committed/);
+const originalPhotoFallback = 'var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"))';
+assert.equal(originalCss.split(originalPhotoFallback).length - 1, 3,
+  "All three responsive background layers must retain the existing original-art fallback");
+for (const [path, digest] of [
+  ["public/visuals/nhs-living-atelier-observatory.webp", "e5130cae5a1a8d30e6b2c0a09cd59d6350a36f278240f5f55480fc850a0c0284"],
+  ["public/visuals/nhs-living-atelier-client-sanctuary.webp", "b0b259d26af5ac7d8ff07dbdc1c65fb5b517ad6856b8f9ec74ff1d10182ed9d6"],
+]) {
+  assert.ok(artworkManifest.includes(digest), "Untracked approved delivery checksum");
+  if (existsSync(path)) {
+    const actual = createHash("sha256").update(readFileSync(path)).digest("hex");
+    assert.equal(actual, digest, "An unapproved image was substituted at " + path);
+  } else {
+    console.log("PENDING: exact approved binary image not committed yet: " + path);
+  }
+}
