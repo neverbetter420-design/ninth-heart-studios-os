@@ -6,6 +6,13 @@ on:
   pull_request:
     paths:
       - 'components/Dashboard.tsx'
+      - 'components/LivingAtelierPulseDock.tsx'
+      - 'app/living-atelier-pulse-dock.css'
+      - 'app/nocturne-dark-rose-cinematic.css'
+      - 'docs/design/living-atelier-asset-manifest.md'
+      - 'docs/design/living-atelier-observatory-pulse.md'
+      - 'scripts/import-living-atelier-assets.py'
+      - 'public/visuals/nhs-living-atelier-*.webp'
       - 'components/LivingStudioHub.tsx'
       - 'components/AtelierSymbol.tsx'
       - 'app/layout.tsx'
@@ -43,6 +50,8 @@ jobs:
           cache: npm
       - name: Install pinned dependencies
         run: npm ci
+      - name: Test approved artwork ZIP importer without writing assets
+        run: python3 scripts/import-living-atelier-assets.py --self-test
       - name: Check approved Admin pilot contracts
         run: node scripts/verify-velvet-atelier-pilot.mjs
       - name: Type-check

@@ -1,0 +1,191 @@
+/*
+ * NHS OS: The Living Atelier | Ninth Pulse.
+ * Scoped to the approved Admin Observatory pilot only.
+ * Purely navigational: no permissions, data access, or global layout changes.
+ */
+.velvet-atelier-pilot .nhs-pulse-dock {
+  position: sticky;
+  top: calc(72px + env(safe-area-inset-top, 0px));
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: clamp(5px, .8vw, 11px);
+  width: max-content;
+  max-width: 100%;
+  min-height: 58px;
+  margin: -10px 0 22px auto;
+  padding: 7px 10px;
+  border: 1px solid rgba(211, 204, 240, .30);
+  border-radius: 999px;
+  color: #f6f1fa;
+  background: linear-gradient(115deg, rgba(29, 23, 47, .94), rgba(9, 14, 31, .95) 62%, rgba(32, 19, 44, .94));
+  box-shadow: 0 12px 42px rgba(0, 0, 9, .32), inset 0 1px 0 rgba(239, 230, 255, .14);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  backdrop-filter: blur(22px) saturate(130%);
+  isolation: isolate;
+}
+.velvet-atelier-pilot .nhs-pulse-dock::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(105deg, rgba(245, 129, 194, .09), transparent 43%, rgba(77, 120, 255, .11));
+  pointer-events: none;
+}
+.velvet-atelier-pilot .nhs-pulse-dock__signature {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(246, 98, 172, .26), rgba(78, 49, 129, .07) 75%);
+}
+.velvet-atelier-pilot .nhs-pulse-dock__heartbeat {
+  width: 11px;
+  height: 11px;
+  border: 1px solid #f2a9d3;
+  border-radius: 50%;
+  background: #f18ec3;
+  box-shadow: 0 0 0 5px rgba(216, 77, 156, .09), 0 0 18px rgba(244, 112, 192, .42);
+  animation: nhs-pulse-living 3.4s ease-in-out infinite;
+}
+@keyframes nhs-pulse-living {
+  0%, 100% { box-shadow: 0 0 0 5px rgba(216, 77, 156, .09), 0 0 12px rgba(244, 112, 192, .18); }
+  45% { box-shadow: 0 0 0 8px rgba(216, 77, 156, .04), 0 0 20px rgba(244, 112, 192, .42); }
+}
+.velvet-atelier-pilot .nhs-pulse-dock__name {
+  color: #e7c0d9;
+  font-size: 9px;
+  letter-spacing: .14em;
+  font-weight: 750;
+}
+.velvet-atelier-pilot .nhs-pulse-dock__destinations {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+.velvet-atelier-pilot .nhs-pulse-dock__destination,
+.velvet-atelier-pilot .nhs-pulse-dock__capture {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #e6dfea;
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: transform .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+.velvet-atelier-pilot .nhs-pulse-dock__glyph {
+  display: inline-flex;
+  color: #cbbce1;
+}
+.velvet-atelier-pilot .nhs-pulse-dock__destination[aria-current="location"] {
+  border-color: rgba(244, 165, 214, .42);
+  color: #fff4fa;
+  background: linear-gradient(110deg, rgba(133, 45, 103, .40), rgba(59, 71, 138, .28));
+  box-shadow: inset 0 1px 0 rgba(255, 225, 249, .12);
+}
+.velvet-atelier-pilot .nhs-pulse-dock__destination[aria-current="location"] .nhs-pulse-dock__glyph {
+  color: #ffc3e5;
+}
+.velvet-atelier-pilot .nhs-pulse-dock__capture {
+  border-color: rgba(150, 171, 242, .46);
+  color: #fbf7ff;
+  background: linear-gradient(115deg, rgba(84, 73, 155, .66), rgba(130, 55, 116, .65));
+}
+.velvet-atelier-pilot .nhs-pulse-dock__capture > span:first-child {
+  font-size: 21px;
+  font-weight: 300;
+  line-height: .7;
+}
+.velvet-atelier-pilot .nhs-pulse-dock__divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(220, 212, 239, .24);
+  flex: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .velvet-atelier-pilot .nhs-pulse-dock :is(.nhs-pulse-dock__destination, .nhs-pulse-dock__capture):hover {
+    transform: translateY(-2px);
+    background-color: rgba(158, 127, 199, .24);
+    border-color: rgba(210, 194, 239, .58);
+  }
+}
+.velvet-atelier-pilot .nhs-pulse-dock :is(a):focus-visible {
+  outline: 3px solid #b7c8ff;
+  outline-offset: 3px;
+}
+.velvet-atelier-pilot :is(#nhs-observatory, #nocturne-actions-title, #nocturne-projects-title, #nocturne-activity-title) {
+  scroll-margin-top: 155px;
+}
+@media (max-width: 1040px) {
+  .velvet-atelier-pilot .nhs-pulse-dock { gap: 5px; }
+  .velvet-atelier-pilot .nhs-pulse-dock__name { display: none; }
+  .velvet-atelier-pilot .nhs-pulse-dock__destination { padding-inline: 9px; }
+}
+@media (max-width: 680px) {
+  .velvet-atelier-pilot .nhs-pulse-dock {
+    position: relative;
+    top: auto;
+    width: 100%;
+    justify-content: space-between;
+    min-height: 54px;
+    margin: 0 0 22px;
+    padding: 6px;
+  }
+  .velvet-atelier-pilot .nhs-pulse-dock__signature,
+  .velvet-atelier-pilot .nhs-pulse-dock__divider { display: none; }
+  .velvet-atelier-pilot .nhs-pulse-dock__destinations {
+    flex: 1 1 auto;
+    justify-content: space-around;
+  }
+  .velvet-atelier-pilot .nhs-pulse-dock__destination {
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    min-height: 46px;
+    padding: 5px 4px;
+    font-size: 9px;
+  }
+  .velvet-atelier-pilot .nhs-pulse-dock__capture {
+    flex: none;
+    min-height: 44px;
+    padding-inline: 10px;
+    font-size: 10px;
+  }
+}
+@media (max-width: 350px) {
+  .velvet-atelier-pilot .nhs-pulse-dock__capture > span:last-child { display: none; }
+  .velvet-atelier-pilot .nhs-pulse-dock__capture { width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .velvet-atelier-pilot .nhs-pulse-dock__heartbeat { animation: none; }
+  .velvet-atelier-pilot .nhs-pulse-dock :is(.nhs-pulse-dock__destination, .nhs-pulse-dock__capture) {
+    transition: none;
+  }
+  .velvet-atelier-pilot .nhs-pulse-dock :is(.nhs-pulse-dock__destination, .nhs-pulse-dock__capture):hover {
+    transform: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .velvet-atelier-pilot .nhs-pulse-dock {
+    background: #111329;
+    border-color: #9d9ebb;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .velvet-atelier-pilot .nhs-pulse-dock__destination[aria-current="location"] {
+    border-color: currentColor;
+  }
+}

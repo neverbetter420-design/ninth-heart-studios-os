@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 const source = (path) => readFileSync(path, "utf8");
 const dashboard = source("components/Dashboard.tsx");
@@ -39,9 +40,10 @@ assert.match(glyphs, /focusable="false"/);
 
 // A late imported, opt-in layer, not another global site repaint.
 const cssImports = layout.match(/import "\.\/[^"]+\.css";/g) || [];
-assert.equal(cssImports.at(-3), 'import "./open-plan.css";');
-assert.equal(cssImports.at(-2), 'import "./nhs-room-editorial.css";');
-assert.equal(cssImports.at(-1), 'import "./visual-first.css";');
+assert.equal(cssImports.at(-4), 'import "./open-plan.css";');
+assert.equal(cssImports.at(-3), 'import "./nhs-room-editorial.css";');
+assert.equal(cssImports.at(-2), 'import "./visual-first.css";');
+assert.equal(cssImports.at(-1), 'import "./living-atelier-pulse-dock.css";');
 assert.match(source("app/nhs-room-editorial.css"), /nhs-theme-admin/);
 const visualFirst = source("app/visual-first.css");
 assert.match(visualFirst, /\.nhs-prospect-research/);
@@ -155,3 +157,75 @@ for (const selector of [
 assert.match(editorial, /prefers-reduced-motion/);
 assert.match(editorial, /forced-colors:active/);
 console.log("PASS: shared editorial continuity guard covers deep Admin and Client Portal screens");
+
+
+// Living Atelier increment: functional glass shortcuts, not decorative buttons.
+// Keep the existing original logo, server data sources, and Admin-only scope.
+const pulse = source("components/LivingAtelierPulseDock.tsx");
+const pulseCss = source("app/living-atelier-pulse-dock.css");
+assert.match(dashboard, /import \{ LivingAtelierPulseDock \}/);
+assert.match(dashboard, /<LivingAtelierPulseDock \/>/);
+assert.match(dashboard, /<header className="nocturne-overview" id="nhs-observatory">/);
+for (const id of [
+  "nhs-observatory", "nocturne-actions-title",
+  "nocturne-projects-title", "nocturne-activity-title"
+]) {
+  assert.ok(pulse.includes('id: "' + id + '"'), "Pulse shortcut lacks " + id);
+  assert.ok(dashboard.includes('id="' + id + '"'), "Existing section anchor not found: " + id);
+}
+assert.match(pulse, /aria-label="Ninth Pulse: Command Center shortcuts"/);
+assert.match(pulse, /aria-current=\{activeId === id \? "location" : undefined\}/);
+assert.match(pulse, /IntersectionObserver/);
+assert.match(pulse, /observer\.disconnect\(\)/);
+assert.match(pulse, /onClick=\{\(\) => setActiveId\(id\)\}/);
+assert.match(pulse, /href="\/leads#quick-capture"/);
+assert.match(pulse, /<AtelierSymbol name=\{symbol\}/);
+assert.doesNotMatch(pulse, /from\s+["']@\/lib\/supabase|\.from\(|fetch\(|\.insert\(|\.update\(|\.delete\(/,
+  "The navigation rail must not introduce data reads or mutations");
+assert.ok(layout.indexOf('import "./living-atelier-pulse-dock.css";') >
+  layout.indexOf('import "./visual-first.css";'), "Pulse styles must be loaded last");
+for (const marker of [
+  ".velvet-atelier-pilot .nhs-pulse-dock",
+  "position: sticky", "backdrop-filter",
+  "focus-visible", "aria-current", "max-width: 680px",
+  "prefers-reduced-motion: reduce", "prefers-reduced-transparency: reduce",
+  "forced-colors: active"
+]) assert.ok(pulseCss.includes(marker), "Missing Pulse UI safety: " + marker);
+console.log("PASS: Living Atelier Ninth Pulse is linked, responsive and keyboard/motion safe; no backend changes");
+
+
+// Living Atelier approved artwork: exact source provenance and no fake deployment claim.
+const artworkManifest = source("docs/design/living-atelier-asset-manifest.md");
+assert.match(artworkManifest, /Image 01 · Velvet Observatory/);
+// The manifest may advance from "pending" to "committed" after the exact
+// delivery bytes land. Never make CI depend on an outdated status sentence.
+assert.match(artworkManifest, /public\/visuals\/nhs-living-atelier-observatory\.webp/);
+assert.match(artworkManifest, /public\/visuals\/nhs-living-atelier-client-sanctuary\.webp/);
+const originalPhotoFallback = 'var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"))';
+assert.equal(originalCss.split(originalPhotoFallback).length - 1, 3,
+  "All three responsive background layers must retain the existing original-art fallback");
+for (const [path, digest] of [
+  ["public/visuals/nhs-living-atelier-observatory.webp", "e5130cae5a1a8d30e6b2c0a09cd59d6350a36f278240f5f55480fc850a0c0284"],
+  ["public/visuals/nhs-living-atelier-client-sanctuary.webp", "b0b259d26af5ac7d8ff07dbdc1c65fb5b517ad6856b8f9ec74ff1d10182ed9d6"],
+]) {
+  assert.ok(artworkManifest.includes(digest), "Untracked approved delivery checksum");
+  if (existsSync(path)) {
+    const actual = createHash("sha256").update(readFileSync(path)).digest("hex");
+    assert.equal(actual, digest, "An unapproved image was substituted at " + path);
+  } else {
+    console.log("PENDING: exact approved binary image not committed yet: " + path);
+  }
+}
+
+// The immersive Observatory may only activate after the exact approved binary
+// is present. Otherwise the existing original artwork must keep rendering.
+const approvedArtworkDeclaration = '--nhs-observatory-approved-artwork: url("/visuals/nhs-living-atelier-observatory.webp")';
+if (originalCss.includes(approvedArtworkDeclaration)) {
+  const expectedPath = "public/visuals/nhs-living-atelier-observatory.webp";
+  assert.ok(existsSync(expectedPath),
+    "STOP: Observatory artwork CSS activated before the verified WebP was committed");
+  const digest = createHash("sha256")
+    .update(readFileSync(expectedPath)).digest("hex");
+  assert.equal(digest, "e5130cae5a1a8d30e6b2c0a09cd59d6350a36f278240f5f55480fc850a0c0284",
+    "STOP: active Observatory artwork differs from the approved uploaded file");
+}
