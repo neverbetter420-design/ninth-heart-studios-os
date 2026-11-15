@@ -26,7 +26,7 @@ imported.
   progress, activity states, existing original logo and photographic
   artwork. No new images were generated or substituted.
 
-## Background placement: original uploads verified; repo transfer pending
+## Background placement: approved WebP committed and activated in draft
 
 Exact user-uploaded NHS Image 01 (magenta roses and silver currents) and
 Image 05 (cobalt/silver rose) have now been identified and visually verified.
@@ -35,13 +35,7 @@ original files, without changing the source PNGs. The verified names,
 dimensions, source SHA hashes, delivery SHA hashes and exact intended
 repository locations are in `docs/design/living-atelier-asset-manifest.md`.
 
-**Neither WebP binary has been committed to this GitHub branch.**
-The Observatory CSS now provides an optional, explicitly unset image-url
-custom property with the old photographic art as fallback across all
-three desktop/mobile background layers. Enable the approved image
-**only after** the file lands in the reviewed repo path and its hash
-passes verification, then perform visual tests. Do not use any generated
-substitute, thumbnail, or external URL as the final asset.
+Both approved WebP binaries have now been committed to this **draft design branch** and verified against the exact source files and their Git blob SHA-1. The Observatory image-url CSS custom property is now active only for the Admin Observatory. The original photographic image remains a fallback across all three desktop/mobile background layers. The Client Sanctuary asset is stored but **not used in client-facing CSS**. Desktop/mobile rendered acceptance and release verification are separate pending gates; no deployment has occurred.
 
 Keep artwork away from live content; add a dark scrim only when needed
 for readability rather than replacing the atmosphere with a flat panel.
