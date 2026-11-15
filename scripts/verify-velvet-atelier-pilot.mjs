@@ -197,7 +197,10 @@ console.log("PASS: Living Atelier Ninth Pulse is linked, responsive and keyboard
 // Living Atelier approved artwork: exact source provenance and no fake deployment claim.
 const artworkManifest = source("docs/design/living-atelier-asset-manifest.md");
 assert.match(artworkManifest, /Exact uploads verified and optimized/);
-assert.match(artworkManifest, /Binary assets are not yet committed/);
+// The manifest may advance from "pending" to "committed" after the exact
+// delivery bytes land. Never make CI depend on an outdated status sentence.
+assert.match(artworkManifest, /public\/visuals\/nhs-living-atelier-observatory\.webp/);
+assert.match(artworkManifest, /public\/visuals\/nhs-living-atelier-client-sanctuary\.webp/);
 const originalPhotoFallback = 'var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"))';
 assert.equal(originalCss.split(originalPhotoFallback).length - 1, 3,
   "All three responsive background layers must retain the existing original-art fallback");
@@ -212,4 +215,17 @@ for (const [path, digest] of [
   } else {
     console.log("PENDING: exact approved binary image not committed yet: " + path);
   }
+}
+
+// The immersive Observatory may only activate after the exact approved binary
+// is present. Otherwise the existing original artwork must keep rendering.
+const approvedArtworkDeclaration = '--nhs-observatory-approved-artwork: url("/visuals/nhs-living-atelier-observatory.webp")';
+if (originalCss.includes(approvedArtworkDeclaration)) {
+  const expectedPath = "public/visuals/nhs-living-atelier-observatory.webp";
+  assert.ok(existsSync(expectedPath),
+    "STOP: Observatory artwork CSS activated before the verified WebP was committed");
+  const digest = createHash("sha256")
+    .update(readFileSync(expectedPath)).digest("hex");
+  assert.equal(digest, "e5130cae5a1a8d30e6b2c0a09cd59d6350a36f278240f5f55480fc850a0c0284",
+    "STOP: active Observatory artwork differs from the approved uploaded file");
 }
