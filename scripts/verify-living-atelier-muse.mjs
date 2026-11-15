@@ -47,8 +47,22 @@ const roomScope = ".app-shell.nhs-theme-admin.nhs-open-plan";
 assert.ok(css.includes(roomScope), "Muse treatment must be restricted to Admin");
 assert.ok(css.includes('data-room="velvet"'), "Muse must stay in its designated velvet room");
 assert.ok(css.includes("#workspace-content .muse-workroom"), "Muse styles must stay on the Muse page");
-assert.doesNotMatch(css, /nhs-theme-client|@import|https?:\/\/|url\(/,
-  "The Muse visual layer must not repaint the Client Portal or inject unapproved images");
+assert.doesNotMatch(css, /nhs-theme-client|@import|https?:\/\//,
+  "Muse styling must never repaint the Client Portal or request external images");
+const brandedUrls = [...css.matchAll(/url\("([^"]+)"\)/g)].map((m) => m[1]).sort();
+assert.deepEqual(brandedUrls, [
+  "/visuals/nhs-room-velvet-oracle.svg",
+  "/visuals/nhs-wallpaper-velvet.svg",
+], "Only the two existing NHS velvet SVG assets are permitted as long-page backing");
+for (const asset of brandedUrls) {
+  assert.match(read("public" + asset), /<svg\s/);
+}
+assert.match(css, /FULL-PAGE NHS ART CONTINUITY/);
+assert.match(css, /background-size:100% 100%,cover,100% 100%/);
+assert.match(css, /position:fixed/);
+assert.match(css, /height:100lvh/);
+assert.match(css, /background-repeat:no-repeat/);
+assert.match(css, /background:Canvas/);
 for (const required of [
   ".nhs-muse-room-dock", ".studio-focus", ".studio-intelligence-grid",
   ".studio-compose", ".studio-writing-grid", ".studio-saved",
