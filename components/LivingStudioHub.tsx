@@ -81,7 +81,7 @@ export function LivingStudioHub({
 
       <aside className="living-status" aria-label="Current studio status">
         <span className="living-status__eyebrow">Studio Pulse</span>
-        <div className="nhs-command-pulse-dial" aria-label="Recent project progress">
+        <div className="nhs-command-pulse-dial" aria-hidden="true">
           <div className="nhs-command-pulse-dial__ring" aria-hidden="true" style={{ "--nhs-pulse-fill": `${recentProgress ?? 0}%` } as CSSProperties}>
             <div className="nhs-command-pulse-dial__core">
               <strong>{recentProgress === null ? "—" : `${recentProgress}%`}</strong>
