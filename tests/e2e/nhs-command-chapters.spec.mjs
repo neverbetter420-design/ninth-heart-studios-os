@@ -24,6 +24,7 @@ test("approved Command Center chapters use a real content boundary, fixed crossf
       const work = document.querySelector('[data-nhs-command-scene="workroom"]');
       const shell = document.querySelector(".main-shell");
       const after = getComputedStyle(shell, "::after");
+      const legacy = getComputedStyle(document.querySelector(".nocturne-command-center"), "::before");
       return {
         heroBottom: hero.getBoundingClientRect().bottom,
         dividerTop: divider.getBoundingClientRect().top,
@@ -33,6 +34,9 @@ test("approved Command Center chapters use a real content boundary, fixed crossf
         backgroundSize: after.backgroundSize,
         backgroundOpacity: after.opacity,
         chapterFallbackArtwork: getComputedStyle(shell, "::before").backgroundImage,
+        legacyOverlayContent: legacy.content,
+        legacyOverlayImage: legacy.backgroundImage,
+        heroPaddingTop: getComputedStyle(hero).paddingTop,
         heroBorderWidth: getComputedStyle(hero).borderTopWidth,
         heroBackground: getComputedStyle(hero).backgroundImage,
         docWidth: document.documentElement.scrollWidth
@@ -49,6 +53,11 @@ test("approved Command Center chapters use a real content boundary, fixed crossf
     expect(geometry.chapterFallbackArtwork).toContain("radial-gradient");
     expect(geometry.heroBorderWidth).toBe("0px");
     expect(geometry.heroBackground).toBe("none");
+    expect(geometry.legacyOverlayContent).toBe("none");
+    expect(geometry.legacyOverlayImage).toBe("none");
+    if (width <= 740) {
+      expect(Number.parseFloat(geometry.heroPaddingTop), "mobile chapter should not have oversized empty top gutter").toBeLessThanOrEqual(44);
+    }
     expect(geometry.docWidth).toBeLessThanOrEqual(width);
 
     // Preview is static SSR. Simulate the client hook's attribute assignment
