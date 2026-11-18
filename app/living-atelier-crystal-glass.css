@@ -1,0 +1,147 @@
+/*
+ * NHS OS | Living Atelier · Crystal Glass
+ * Opt-in visual layer on the draft branch. No route, data or permission changes.
+ * Translucent glass should reveal the complete fixed NHS room artwork.
+ * Leave open editorial lists alone; only existing interface instruments get glass.
+ */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) {
+  --nhs-crystal-fill: linear-gradient(
+    127deg,
+    rgba(38, 31, 64, .24) 0%,
+    rgba(9, 14, 34, .18) 55%,
+    rgba(47, 25, 61, .22) 100%
+  );
+  --nhs-crystal-line: rgba(218, 207, 248, .30);
+  --nhs-crystal-shadow: inset 0 1px 0 rgba(255, 255, 255, .16),
+                        0 16px 48px rgba(0, 0, 0, .10);
+  --nhs-crystal-blur: blur(28px) saturate(145%);
+}
+
+/* Observatory: keep the editorial, asymmetric layout, but the existing
+ * work instruments are now light, high-blur glass rather than solid cards. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center
+:is(.metric-card, .action-panel, .project-panel, .nocturne-activity, .nocturne-insights) {
+  background: var(--nhs-crystal-fill);
+  border: 1px solid var(--nhs-crystal-line);
+  box-shadow: var(--nhs-crystal-shadow);
+  -webkit-backdrop-filter: var(--nhs-crystal-blur);
+  backdrop-filter: var(--nhs-crystal-blur);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center :is(.metric-card, .action-panel, .project-panel) {
+  border-radius: 23px 9px 24px 9px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .metric-card:first-child {
+  padding-left: clamp(10px, 2.1vw, 30px);
+}
+
+/* Muse: preserve two open intelligence lanes. Only the writing, focus, saved
+ * and navigation instruments get the new translucent treatment. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"])
+#workspace-content .muse-workroom
+:is(.nhs-muse-room-dock, .studio-focus, .studio-compose, .studio-saved, .studio-writing-note) {
+  background: var(--nhs-crystal-fill);
+  border-color: var(--nhs-crystal-line);
+  box-shadow: var(--nhs-crystal-shadow);
+  -webkit-backdrop-filter: var(--nhs-crystal-blur);
+  backdrop-filter: var(--nhs-crystal-blur);
+}
+
+/* Documents and editing fields stay more opaque so typed content is legible.
+ * This does not affect the frosted transparency of the outer glass. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"])
+#workspace-content .muse-workroom .studio-compose :is(input, select, textarea) {
+  background: rgba(8, 13, 30, .68);
+  border-color: rgba(213, 200, 253, .46);
+  color: #fcf8ff;
+}
+
+/* Remaining admin rooms: just their existing working instruments, never
+ * transparent document rows, client data or the overall page container. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity:not([data-room="observatory"]))
+#workspace-content
+:is(.scanner-controls, .scanner-glass-discovery, .lead-capture-card,
+    .management-client-context, .nocturne-create-panel[open],
+    .studio-project-settings, .studio-account, .studio-controls,
+    .paperwork-form, .pipeline-phase) {
+  background: var(--nhs-crystal-fill);
+  border-color: var(--nhs-crystal-line);
+  box-shadow: var(--nhs-crystal-shadow);
+  -webkit-backdrop-filter: var(--nhs-crystal-blur);
+  backdrop-filter: var(--nhs-crystal-blur);
+}
+
+/* Client Sanctuary: a barely tinted, frosted welcome with the original
+ * background visible, plus translucent journey and shortcut instruments. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.atelier-home.nhs-color-studio)
+#workspace-content .atelier-home.nhs-color-studio .nhs-color-hero {
+  background-color: rgba(7, 10, 26, .10);
+  background-image: linear-gradient(
+    110deg,
+    rgba(7, 11, 28, .15),
+    rgba(9, 12, 31, .23) 45%,
+    rgba(9, 11, 26, .36)
+  ) !important;
+  border-color: var(--nhs-crystal-line);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+.app-shell.nhs-theme-client.nhs-open-plan:has(.atelier-home.nhs-color-studio)
+#workspace-content .atelier-home.nhs-color-studio
+:is(.atelier-feature-project, .nhs-atelier-compass, .atelier-destination, .nhs-portal-glance > span) {
+  background: var(--nhs-crystal-fill);
+  border-color: var(--nhs-crystal-line);
+  box-shadow: var(--nhs-crystal-shadow);
+  -webkit-backdrop-filter: var(--nhs-crystal-blur);
+  backdrop-filter: var(--nhs-crystal-blur);
+}
+
+/* Existing deep client portal instruments get the same treatment.
+ * Resource and project rows remain unboxed and fully readable. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"])
+#workspace-content :is(.panel, .detail-panel, .form-fill-card, .contract-card, .studio-project-settings) {
+  background: var(--nhs-crystal-fill);
+  border-color: var(--nhs-crystal-line);
+  box-shadow: var(--nhs-crystal-shadow);
+  -webkit-backdrop-filter: var(--nhs-crystal-blur);
+  backdrop-filter: var(--nhs-crystal-blur);
+}
+
+/* Browser capability fallback: prefer readable fields over fake glass. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-crystal-fill: linear-gradient(120deg, rgba(12, 16, 37, .84), rgba(17, 15, 37, .86));
+  }
+}
+
+/* Respect users who explicitly request less transparency or high contrast. */
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-crystal-fill: linear-gradient(130deg, #11182d, #171427);
+    --nhs-crystal-blur: none;
+  }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.atelier-home.nhs-color-studio)
+  #workspace-content .atelier-home.nhs-color-studio .nhs-color-hero {
+    background: #10172c !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-crystal-fill: Canvas;
+    --nhs-crystal-line: CanvasText;
+    --nhs-crystal-shadow: none;
+    --nhs-crystal-blur: none;
+  }
+  .app-shell.nhs-theme-client.nhs-open-plan:has(.atelier-home.nhs-color-studio)
+  #workspace-content .atelier-home.nhs-color-studio .nhs-color-hero {
+    background: Canvas !important;
+    color: CanvasText;
+    border-color: CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
