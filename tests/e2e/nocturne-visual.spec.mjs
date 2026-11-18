@@ -19,7 +19,7 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
-test("Muse NHS decoration flows through the entire scrollable page instead of staying fixed at the top", async ({ page }) => {
+test("Muse NHS room remains fixed behind scrolling content at desktop and phone widths", async ({ page }) => {
   await show(page, "admin", "populated", "muse");
   const main = page.locator(".main-shell");
   await expect(page.locator("#workspace-content .muse-workroom")).toBeVisible();
@@ -28,46 +28,55 @@ test("Muse NHS decoration flows through the entire scrollable page instead of st
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => scrollTo(0, 0));
     const art = await main.evaluate((el) => {
-      const stage = getComputedStyle(el);
       const decoration = getComputedStyle(el, "::before");
-      const rect = el.getBoundingClientRect();
       return {
         artImage: decoration.backgroundImage,
         repeat: decoration.backgroundRepeat,
         attachment: decoration.backgroundAttachment,
         position: decoration.position,
+        positionImage: decoration.backgroundPosition,
         imageSize: decoration.backgroundSize,
         decorationHeight: Number.parseFloat(decoration.height),
-        backdropHeight: rect.height,
-        backdropWidth: rect.width,
-        stageColor: stage.backgroundColor,
+        pointerEvents: decoration.pointerEvents,
+        animation: decoration.animationName,
       };
     });
-    // The actual room photo and the NHS botanical/silver SVGs now scroll
-    // with the whole main-shell. Only the wallpaper layer repeats down-page.
     expect(art.artImage).toContain("data:image/svg+xml");
     expect(art.artImage).toContain("data:image/webp;base64");
-    expect(art.repeat).toBe("no-repeat, no-repeat, repeat-y, no-repeat, no-repeat");
+    // The artwork and both NHS flourishes are one stationary composition.
+    expect(art.repeat).toBe("no-repeat, no-repeat, no-repeat, no-repeat, no-repeat");
     expect(art.attachment).not.toContain("fixed");
-    expect(art.position).toBe("absolute");
-    // Chromium resolves CSS min(... ) auto background sizes to pixel widths.
-    // Only gradients may fill both axes; all three artwork layers must remain
-    // width-constrained with intrinsic, unforced heights.
-    const sizes = art.imageSize.split(",").map((part) => part.trim());
+    expect(art.position).toBe("fixed");
+    expect(art.pointerEvents).toBe("none");
+    expect(art.animation).toBe("none");
+    expect(Math.abs(art.decorationHeight - 900)).toBeLessThanOrEqual(2);
+    const sizes = art.imageSize.split(",").map(part => part.trim());
     expect(sizes).toHaveLength(5);
     expect(sizes[0]).toBe("100% 100%");
     expect(sizes[4]).toBe("100% 100%");
-    for (const size of sizes.slice(1, 4)) {
-      expect(size, "Artwork must not stretch both dimensions").toMatch(/^\d+(?:\.\d+)?px(?: auto)?$/);
-    }
-    expect(art.backdropHeight).toBeGreaterThan(900);
-    expect(Math.abs(art.decorationHeight - art.backdropHeight)).toBeLessThanOrEqual(2);
-    expect(art.backdropWidth).toBeGreaterThanOrEqual(width);
+    for (const size of sizes.slice(1, 3))
+      expect(size, "Decorative ornaments must preserve proportions").toMatch(/^\d+(?:\.\d+)?px(?: auto)?$/);
+    expect(sizes[3]).toBe("cover");
     expect(await page.evaluate(() => document.documentElement.scrollWidth),
       "Muse must not overflow at " + width + "px").toBeLessThanOrEqual(width);
+
     await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
-    expect(await main.evaluate(el => getComputedStyle(el, "::before").backgroundRepeat))
-      .toContain("repeat-y");
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    const after = await main.evaluate(el => {
+      const layer = getComputedStyle(el, "::before");
+      return {
+        artImage: layer.backgroundImage,
+        repeat: layer.backgroundRepeat,
+        attachment: layer.backgroundAttachment,
+        position: layer.position,
+        positionImage: layer.backgroundPosition,
+        imageSize: layer.backgroundSize,
+        decorationHeight: Number.parseFloat(layer.height),
+        pointerEvents: layer.pointerEvents,
+        animation: layer.animationName,
+      };
+    });
+    expect(after, "Room scene must stay stable as content moves").toEqual(art);
   }
 });
 
