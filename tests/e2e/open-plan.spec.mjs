@@ -315,7 +315,14 @@ test("all cinematic rooms stay fixed while glass content scrolls above",async ({
       const layers=before.size.split(",").map(x=>x.trim());
       expect(layers[room === "velvet" ? 3 : 1], room + " photo must preserve its entire border").toBe("contain");
       expect(Number.parseFloat(before.viewportHeight)).toBeGreaterThanOrEqual(518);
-      expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
+      if (room === "observatory") {
+        // This chapter's approved raw art is not committed yet. Refuse to
+        // mistake the rejected photographic wallpaper for the intended frame.
+        expect(before.backgroundImage).not.toContain("data:image/webp;base64");
+        expect(before.backgroundImage).toContain("radial-gradient");
+      } else {
+        expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
+      }
       expect(before.animation).toBe("none");
       expect(before.transform).toBe("none");
       expect(before.pointerEvents).toBe("none");
