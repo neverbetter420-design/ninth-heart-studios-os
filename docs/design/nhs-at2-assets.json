@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created": "2026-11-17",
-  "zip_sha256": "a995f44e317837dc0b1aeff76d740f4210c7cf19d94878273b6a197942d36204",
+  "zip_sha256": "e127a162b78f4c2573c741fbbbcfd7c07bf84b1e4816d4d6d787003fe54cd764",
   "state": "DRAFT ONLY: images not in repository and no production/staging deployment",
   "rules": [
     "Preserve the existing NHS logo and old scene assets",
