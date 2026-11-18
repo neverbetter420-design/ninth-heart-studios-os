@@ -200,3 +200,124 @@
     text-shadow: none;
   }
 }
+
+
+/*
+ * NHS CHAPTER REFINEMENT 02 · draft-only, 2026-11-18
+ * This override deliberately stops displaying the rejected AT2 Observatory
+ * wallpaper. The SHA-locked Chapter I desktop/portrait binaries are NOT in
+ * this repo, so an older, locally available NHS photograph is an explicit
+ * temporary fallback, never an assertion of owner-approved visual parity.
+ *
+ * When verified background-only files arrive, set:
+ *   --nhs-command-chapter-i-desktop: url("/visuals/<verified-desktop>.webp");
+ *   --nhs-command-chapter-i-mobile: url("/visuals/<verified-mobile>.webp");
+ * without changing this source or stretching portrait art to fit landscape.
+ * The Chapter II image hook remains --nhs-command-chapter-ii-image above.
+ */
+
+/* Keep the entire framing visible in a stationary backdrop, independently
+   of AT2's rejected --nhs-at2-room-photo selector. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
+  background-image:
+    linear-gradient(105deg, rgba(3, 4, 13, .53), rgba(4, 5, 19, .31) 46%, rgba(3, 7, 23, .47)),
+    var(--nhs-command-chapter-i-desktop, url("/visuals/nhs-dark-rose-photographic.webp")),
+    linear-gradient(145deg, #050512, #100b25 55%, #040715);
+  background-color: #050512;
+  background-position: center, center, center;
+  background-size: 100% 100%, contain, 100% 100%;
+  background-repeat: no-repeat;
+  transform: none;
+}
+
+/* No nested, opaque hero rectangle over the decorative chapter framing.
+   Local scrims protect text; the actual ornament remains at the viewport edge. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy {
+  padding: clamp(13px, 1.6vw, 24px);
+  border-radius: 20px 8px 20px 8px;
+  background: linear-gradient(100deg, rgba(3, 5, 17, .63), rgba(5, 6, 19, .31) 74%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .living-status {
+  background: linear-gradient(135deg, rgba(28, 17, 45, .23), rgba(5, 11, 29, .22));
+  border-color: rgba(221, 194, 237, .31);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
+}
+
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center [data-nhs-command-scene="workroom"] > .dashboard-grid {
+  row-gap: clamp(18px, 2.9vw, 40px);
+}
+
+/* The silver filigree break is a transition in the actual narrative, not a
+   timed second wallpaper or an artificial 50% page-scroll event. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider {
+  scroll-margin-top: 110px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider__crest {
+  border-radius: 5px 1px 5px 1px;
+  box-shadow: 0 0 0 4px rgba(8, 7, 21, .48), 0 0 27px rgba(165, 87, 228, .30);
+}
+
+@media (max-width: 740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
+    background-image:
+      linear-gradient(180deg, rgba(3, 4, 15, .44), rgba(5, 4, 18, .24) 46%, rgba(3, 6, 19, .51)),
+      var(--nhs-command-chapter-i-mobile, var(--nhs-command-chapter-i-desktop, url("/visuals/nhs-dark-rose-photographic.webp"))),
+      linear-gradient(145deg, #050512, #100b25 55%, #040715);
+    background-position: center, center, center;
+    background-size: 100% 100%, contain, 100% 100%;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+    padding-top: clamp(50px, 9svh, 90px);
+    padding-inline: 8px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy {
+    padding: 16px 13px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider {
+    scroll-margin-top: 92px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview
+  :is(.nocturne-welcome-copy, .living-status) {
+    background: #101124;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (forced-colors: active), (prefers-contrast: more) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview
+  :is(.nocturne-welcome-copy, .living-status) {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
