@@ -43,6 +43,18 @@
 4. This approval applies to the **Command Center** and its two-chapter pattern, not automatically to every other room. Preserve their unique identities.
 5. When first wiring the structure, a subtle, coordinated *gradient placeholder* is acceptable for Chapter II while artwork is missing, but **must not be represented as the approved finished second image**.
 
+## Implementation checkpoint · November 18, 2026
+
+Draft PR #80 now includes a further scoped Command Center refinement, without merging or deploying:
+
+- `app/nhs-command-chapters.css` overrides the rejected AT2 Observatory wallpaper in the actual viewport layer. Until the two exact Chapter I owner-approved image binaries can be imported and SHA-verified, it displays the established existing NHS photo as a **temporary fallback**. It is not the approved new background.
+- The hero's redundant surrounding frame and heavy full-hero gradient are removed; a translucent, localized text scrim and 28px Studio Pulse glass preserve practical readability without burying the artwork.
+- The CSS provides separate desktop and mobile Chapter I image slots, each with fixed center / `contain` / `no-repeat`, plus the existing independent Chapter II image slot and ~800ms section-linked fade. New Chapter II art is **not** installed or accepted.
+- `tests/e2e/nhs-command-chapters.spec.mjs` checks the real section boundary, fixed-image containment, borderless stage, absence of horizontal overflow and reduced-motion behavior. `scripts/verify-velvet-atelier-pilot.mjs` now recognizes the approved Chapter I semantic scene marker while preserving its exact anchor check.
+- GitHub CI was triggered on the existing draft head; a passing source/TypeScript guard must not be confused with visual acceptance. Authenticated or locally rendered 1440, 1024, 768, 390 and 320px screenshots, real custom-font rendering, browser QA, and owner review remain required.
+
+**Still blocking visual signoff:** exact desktop portrait/landscape art import, independently approved Chapter II background-only art in two aspect ratios, screenshots of the actual responsive app, and full independent test results. No production release authority has been granted.
+
 ## Acceptance checklist
 - [x] Concept approved by owner
 - [x] Exact reference image identified and fingerprinted
