@@ -758,13 +758,13 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(shell).toHaveCount(1);
       const hero = page.locator(heroSelector);
       await expect(hero).toBeVisible();
-      const heroImage = await hero.evaluate((el,isClient)=>isClient ? getComputedStyle(document.querySelector(".main-shell"),"::before").backgroundImage : getComputedStyle(el).backgroundImage,role==="client");
+      const heroImage = await hero.evaluate(() => getComputedStyle(document.querySelector(".main-shell"), "::before").backgroundImage);
       if (role === "admin") expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/webp;base64");
       else expect(heroImage, "Client arrival keeps photographic atmosphere").toContain("data:image/webp;base64");
       // The percent-encoded SVG includes literal parentheses from gradient functions.
       // Capture the complete quoted CSS URL; ending at the first ")" corrupts the image.
       const decoded = await hero.evaluate(async (el,isClient) => {
-        const source = isClient ? getComputedStyle(document.querySelector(".main-shell"),"::before").backgroundImage : getComputedStyle(el).backgroundImage;
+        const source = getComputedStyle(document.querySelector(".main-shell"), "::before").backgroundImage;
         const match = source.match(/url\(["'](data:image\/(?:svg\+xml|webp)[^"']+)["']\)/);
         if (!match) return false;
         const artwork = new Image();
@@ -918,19 +918,22 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   await expect(work).toBeVisible();
   // The approved cinematic layout is open and atmospheric, not a photo
   // inside one rectangle above another giant opaque dashboard box.
-  const cinematicArtwork = await hero.evaluate(el=>getComputedStyle(el).backgroundImage);
-  expect(cinematicArtwork.includes("data:image/webp;base64") || cinematicArtwork.includes("nhs-dark-rose-photographic.webp")).toBe(true);
-  await expect(hero).toHaveCSS("border-top-width", "0px");
+  const cinematicArtwork = await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
+  expect(cinematicArtwork).toContain("data:image/webp;base64");
+  expect(Number.parseFloat(await hero.evaluate(el=>getComputedStyle(el).borderTopWidth))).toBeGreaterThan(0);
   await expect(work).toHaveCSS("border-top-width", "0px");
-  // The approved Living Dashboard replaces three framed cards with unboxed,
-  // real-data readouts and an accessible circular navigation hub.
-  const studio = work.locator(".living-studio");
+  // Reference composition: hero-integrated real-data Studio Pulse and
+  // four icon-based functional destinations, not the old 620px orbital stage.
+  const studio = hero.locator(".living-studio");
   const instruments = studio.locator(".living-status__metric");
   const hub = studio.getByRole("navigation", { name: "Studio command hub" });
   await expect(studio).toBeVisible();
   await expect(instruments).toHaveCount(3);
   await expect(instruments.first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(studio).toContainText("Active Leads");
+  await expect(studio.locator(".nhs-command-pulse-dial__core strong")).toHaveText("45%");
+  await expect(studio.locator(".living-status__eyebrow")).toHaveText("Studio Pulse");
+  await expect(hero.locator(".nocturne-welcome-copy h2")).toHaveText("The Command Center");
   await expect(hub.getByRole("link")).toHaveCount(4);
   for (const [label, href] of [["Leads", "/leads"], ["Projects", "/projects"], ["Clients", "/clients"], ["Opportunities", "/opportunities"]]) {
     await expect(hub.getByRole("link", { name: label })).toHaveAttribute("href", href);
@@ -1132,15 +1135,14 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
     }
     for (const width of [1440, 1024, 760, 430, 390, 375, 320]) {
       await page.setViewportSize({ width, height: 900 });
-      // A real layout change: the orbital navigation is the large left-hand
-      // centerpiece, with the editorial introduction and data to its right.
+      // Reference-locked layout: headline left, real Studio Pulse right,
+      // luminous room-action strip underneath both on desktop.
       if (width >= 1024) {
         const orbitBox = await studio.locator(".living-orbit").boundingBox();
-        const introBox = await studio.locator(".living-studio__intro").boundingBox();
+        const heroCopyBox = await page.locator(".nocturne-welcome-copy").boundingBox();
         const statusBox = await studio.locator(".living-status").boundingBox();
-        expect(orbitBox.x + orbitBox.width).toBeLessThan(introBox.x);
-        expect(statusBox.x).toBeGreaterThan(orbitBox.x + orbitBox.width);
-        expect(statusBox.y).toBeGreaterThan(introBox.y);
+        expect(statusBox.x).toBeGreaterThan(heroCopyBox.x + 100);
+        expect(orbitBox.y).toBeGreaterThan(statusBox.y + 70);
         expect(orbitBox.width).toBeGreaterThan(350);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `Living Dashboard ${scenario} overflows at ${width}px`).toBeLessThanOrEqual(width);
