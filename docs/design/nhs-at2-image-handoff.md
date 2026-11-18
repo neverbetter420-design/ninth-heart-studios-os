@@ -43,12 +43,15 @@ Dry-run checks the exact archive and all 8 images without writing. The second co
 
 1. Keep the actual original NHS logo asset unchanged. Embedded branded lettering in images 6/7 is decorative and may be visually cropped on mobile.
 2. Integrate one room at a time, never with a global background override. The approved Observatory/Client Sanctuary/Muse source-only pilots and their current fallbacks must remain untouched until explicit visual approval to change a named room.
-3. Use document-scrolling decorative composition rather than a viewport-fixed image. Do not stretch photo width and height independently. Constrain image dimensions with `background-size: cover` for hero art or `auto` for wallpaper plus calculated responsive positioning, reviewed at 1440, 1024, 740, 390 and 320px.
+3. **Keep each room's background stationary at viewport height while all glass panels, workspaces, forms, and section content scroll above it**, matching the NHS website behavior confirmed on November 17. Never tile wallpaper down the document or pin art only to the header. Use a single passive fixed scenic layer (not `background-attachment:fixed`); preserve image proportions with `cover` for photos or `auto` for ornaments. Review crops at 1440, 1024, 740, 390 and 320px.
 4. Preserve readable data in smoked-glass scrims, route/role isolation, non-text-overlap, original navigation and all manual action confirmations. No repeated images across room identities.
 5. Run exact-head source/TypeScript/build, Playwright desktop/mobile, local authorization suites, privacy checks and screenshot approval. Current stacked branch lineage is PR #79 → #78 → #77; this new change should remain its own draft.
 6. No staging or production deploy, Cloudflare config change, Supabase/Auth/Storage/ACL mutation, AI enablement, paid scan/outreach or auto-send. Staging Storage issue #71 remains independent.
 
 ## Current completion states
+
+- [x] Fixed-scene source behavior implemented for Muse and Admin Observatory; original artwork remains the fallback
+- [x] Offline review preview corrected to use a stationary artwork layer
 
 - [x] Source files inspected and dimensions verified
 - [x] Eight WebP derivatives generated without resizing; original JPEGs archived
