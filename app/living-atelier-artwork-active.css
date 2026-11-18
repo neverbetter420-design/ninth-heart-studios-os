@@ -1,0 +1,107 @@
+/*
+ * NHS OS | The Ninth Atelier · VERIFIED WEBP ROOM ACTIVATION
+ * Draft branch only, November 18, 2026.
+ *
+ * All referenced NHS AT2 photos were imported by the exact SHA-256-verified
+ * asset handoff. One passive viewport-fixed photo layer per room.
+ * backgrounds remain centered + contain (NEVER cover/crop/stretch), the
+ * current glass/content scrolls OVER them; original NHS logo unchanged.
+ *
+ * This is not a staging/production deploy or database change. The two
+ * alternate entrance compositions intentionally remain in the asset library.
+ */
+
+/* Admin Observatory: its own original skull/key composition. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) {
+  --nhs-at2-room-photo: url("/visuals/nhs-at2-command-center.webp");
+}
+
+/* Muse's fixed velvet chamber. No duplicate wallpaper on its panels. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) {
+  --nhs-at2-room-photo: url("/visuals/nhs-at2-muse-chamber.webp");
+}
+
+/* Each of these is independently scoped to its existing room identity.
+ * Rose/Archive keep their already approved art until a distinct new design
+ * is separately selected rather than copying an image into every room. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {
+  --nhs-cinematic-room-photo: url("/visuals/nhs-at2-project-pipeline.webp");
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {
+  --nhs-cinematic-room-photo: url("/visuals/nhs-at2-workspace-floral.webp");
+}
+
+/* Client Sanctuary homepage ONLY, not unrelated client deep routes. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]):has(.atelier-home.nhs-color-studio) {
+  --nhs-cinematic-room-photo: url("/visuals/nhs-at2-client-sanctuary.webp");
+}
+
+/* Private sign-in: desktop branded welcome, portrait mobile welcome.
+ * The brand image is decorative scenery, NEVER the functional NHS logo.
+ * No auth state, form action or validation logic is changed. */
+main.auth-shell:has(.auth-card .auth-form input[name="password"]) {
+  position: relative;
+  isolation: isolate;
+  background-color: #060713;
+}
+main.auth-shell:has(.auth-card .auth-form input[name="password"])::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #060713;
+  background-image:
+    linear-gradient(110deg, rgba(3, 4, 14, .62), rgba(4, 5, 17, .28), rgba(4, 5, 17, .66)),
+    url("/visuals/nhs-at2-brand-welcome.webp"),
+    linear-gradient(155deg, #080917, #101227 54%, #080817);
+  background-size: 100% 100%, contain, 100% 100%;
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+  transform: none;
+  animation: none;
+}
+main.auth-shell:has(.auth-card .auth-form input[name="password"]) > .auth-card {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(128deg, rgba(28, 24, 47, .22), rgba(6, 11, 28, .26));
+  border: 1px solid rgba(224, 211, 251, .30);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 22px 70px rgba(0, 0, 0, .14);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
+}
+main.auth-shell:has(.auth-card .auth-form input[name="password"]) .auth-card h1 {
+  font-family: "NHS Single Ghost Local", var(--font-cinzel), Georgia, serif;
+  font-weight: 400;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 740px) {
+  main.auth-shell:has(.auth-card .auth-form input[name="password"])::before {
+    background-image:
+      linear-gradient(110deg, rgba(3, 4, 14, .68), rgba(4, 5, 17, .22), rgba(4, 5, 17, .67)),
+      url("/visuals/nhs-at2-mobile-welcome.webp"),
+      linear-gradient(155deg, #080917, #101227 54%, #080817);
+    background-size: 100% 100%, contain, 100% 100%;
+    background-position: center, center, center;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  main.auth-shell:has(.auth-card .auth-form input[name="password"]) > .auth-card {
+    background: #111827;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (prefers-contrast: more), (forced-colors: active) {
+  main.auth-shell:has(.auth-card .auth-form input[name="password"])::before {
+    display: none;
+  }
+  main.auth-shell:has(.auth-card .auth-form input[name="password"]) > .auth-card {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
