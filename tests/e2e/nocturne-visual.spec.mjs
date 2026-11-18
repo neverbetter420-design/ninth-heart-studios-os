@@ -1289,3 +1289,49 @@ test("NHS typography maps Single Ghost headers and Anger Styles titles without c
     }
   }
 });
+
+
+test("Verified NHS AT2 room artwork stays fixed, full-frame and separate per room", async ({ page }) => {
+  const cases = [
+    ["admin", "home", "observatory", "--nhs-at2-room-photo"],
+    ["admin", "muse", "velvet", "--nhs-at2-room-photo"],
+    ["admin", "pipeline", "artist", "--nhs-cinematic-room-photo"],
+    ["admin", "scanner", "electric", "--nhs-cinematic-room-photo"],
+    ["client", "home", "private", "--nhs-cinematic-room-photo"],
+  ];
+  for (const width of [1440, 740, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const seen = new Set();
+    for (const [role, view, room, property] of cases) {
+      await show(page, role, "populated", view);
+      await expect(page.locator(".nhs-room-identity")).toHaveAttribute("data-room", room);
+      const art = await page.locator(".app-shell").evaluate((el, prop) =>
+        getComputedStyle(el).getPropertyValue(prop).trim(), property);
+      expect(art, room + " has the imported SHA-pinned WebP").toContain("data:image/webp;base64,");
+      seen.add(art);
+      const shell = page.locator(".main-shell");
+      const before = await shell.evaluate(el => {
+        const s = getComputedStyle(el, "::before");
+        return {
+          position: s.position,
+          repeat: s.backgroundRepeat,
+          size: s.backgroundSize,
+          image: s.backgroundImage,
+          pointerEvents: s.pointerEvents,
+        };
+      });
+      expect(before.position, room + " photo remains pinned").toBe("fixed");
+      expect(before.pointerEvents, room + " photo does not block controls").toBe("none");
+      expect(before.repeat, room + " must not tile").not.toContain("repeat-y");
+      expect(before.size.split(",").map(x => x.trim()),
+        room + " must fit the entire image without cutting borders").toContain("contain");
+      expect(before.image, room + " uses imported image").toContain("data:image/webp;base64,");
+      await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+      const after = await shell.evaluate(el => getComputedStyle(el, "::before").backgroundImage);
+      expect(after, room + " art must remain stable while content scrolls").toBe(before.image);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth),
+        room + " must not overflow at " + width + "px").toBeLessThanOrEqual(width);
+    }
+    expect(seen.size, "All five active studio rooms use different background images").toBe(cases.length);
+  }
+});
