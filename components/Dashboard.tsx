@@ -5,6 +5,7 @@ import { displayProgress, formatProjectDate, projectDueState } from "@/lib/proje
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import { LivingStudioHub } from "./LivingStudioHub";
+import { CommandChapterAtmosphere } from "./CommandChapterAtmosphere";
 import { LivingAtelierPulseDock } from "./LivingAtelierPulseDock";
 import { NocturneStudioArt } from "./NocturneStudioArt";
 import { PriorityHalo, type HaloAction } from "./PriorityHalo";
@@ -93,7 +94,8 @@ export async function Dashboard() {
 
   return (
     <div className="content-wrap nocturne-command-center velvet-atelier-pilot">
-      <header className="nocturne-overview" id="nhs-observatory">
+      <CommandChapterAtmosphere />
+      <header className="nocturne-overview" id="nhs-observatory" data-nhs-command-scene="welcome">
         <div className="nocturne-welcome-copy">
           <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
           <h2>The <em>Command Center</em></h2>
@@ -112,7 +114,14 @@ export async function Dashboard() {
         <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
       </header>
 
-      <div className="nhs-command-surface" id="nhs-command-surface">
+      <div className="nhs-command-chapter-divider" id="nhs-command-chapter-ii" role="group" aria-labelledby="nhs-command-chapter-heading">
+        <div className="nhs-command-chapter-divider__crest" aria-hidden="true"><span>✦</span></div>
+        <p className="nhs-command-chapter-divider__eyebrow">Chapter II</p>
+        <h2 id="nhs-command-chapter-heading">The Working Atelier</h2>
+        <p className="nhs-command-chapter-divider__subline">Projects · Priorities · Operations</p>
+      </div>
+
+      <div className="nhs-command-surface" id="nhs-command-surface" data-nhs-command-scene="workroom">
       <LivingAtelierPulseDock />
 
 
