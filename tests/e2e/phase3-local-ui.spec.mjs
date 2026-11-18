@@ -309,7 +309,8 @@ test.describe("Disposable local Supabase client portal decisions and messages", 
         }
       }
       await adminPage.goto("/");
-      await expect(adminPage.getByRole("heading", { name: "Your studio, in focus." })).toBeVisible();
+      // Home was visually redesigned without changing admin authentication.
+      await expect(adminPage.getByRole("heading", { name: "The Command Center" })).toBeVisible();
       await captureReviewScreen(adminPage, "design-preview/nocturne-admin-home-" + previewSuffix + ".png");
 
       // Exercise the redesigned lead forms against this disposable database.
