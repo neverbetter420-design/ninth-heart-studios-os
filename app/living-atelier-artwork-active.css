@@ -3,7 +3,7 @@
  * Draft branch only, November 18, 2026.
  *
  * All referenced NHS AT2 photos were imported by the exact SHA-256-verified
- * asset handoff. One passive viewport-fixed photo layer per room.
+ * asset handoff. The owner's review rejected this design.\n * One passive viewport-fixed photo layer per room.
  * backgrounds remain centered + contain (NEVER cover/crop/stretch), the
  * current glass/content scrolls OVER them; original NHS logo unchanged.
  *
@@ -24,9 +24,8 @@
 /* Each of these is independently scoped to its existing room identity.
  * Rose/Archive keep their already approved art until a distinct new design
  * is separately selected rather than copying an image into every room. */
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {
-  --nhs-cinematic-room-photo: url("/visuals/nhs-at2-project-pipeline.webp");
-}
+/* Artist's Atelier: original NHS art-scene background remains active.
+ * Rejected medical/DNA artwork has been removed and must not return. */
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {
   --nhs-cinematic-room-photo: url("/visuals/nhs-at2-workspace-floral.webp");
 }
