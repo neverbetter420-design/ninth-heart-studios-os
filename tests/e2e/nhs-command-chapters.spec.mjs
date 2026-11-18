@@ -32,6 +32,9 @@ test("approved Command Center chapters use a real content boundary, fixed crossf
         backgroundFixed: after.position,
         backgroundSize: after.backgroundSize,
         backgroundOpacity: after.opacity,
+        chapterFallbackArtwork: getComputedStyle(shell, "::before").backgroundImage,
+        heroBorderWidth: getComputedStyle(hero).borderTopWidth,
+        heroBackground: getComputedStyle(hero).backgroundImage,
         docWidth: document.documentElement.scrollWidth
       };
     });
@@ -40,6 +43,11 @@ test("approved Command Center chapters use a real content boundary, fixed crossf
     expect(geometry.backgroundFixed).toBe("fixed");
     expect(geometry.backgroundSize).toContain("contain");
     expect(geometry.backgroundOpacity).toBe("0");
+    // The previous rejected AT2 Observatory photo is no longer rendered.
+    // The known NHS fallback is temporary until the hash-locked art arrives.
+    expect(geometry.chapterFallbackArtwork).toContain("data:image/webp");
+    expect(geometry.heroBorderWidth).toBe("0px");
+    expect(geometry.heroBackground).toBe("none");
     expect(geometry.docWidth).toBeLessThanOrEqual(width);
 
     // Preview is static SSR. Simulate the client hook's attribute assignment
@@ -48,4 +56,7 @@ test("approved Command Center chapters use a real content boundary, fixed crossf
     await expect.poll(() => page.locator(".main-shell").evaluate(el => getComputedStyle(el, "::after").opacity)).toBe("1");
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
   }
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const duration = await page.locator(".main-shell").evaluate(el => getComputedStyle(el, "::after").transitionDuration);
+  expect(duration).toBe("0s");
 });
