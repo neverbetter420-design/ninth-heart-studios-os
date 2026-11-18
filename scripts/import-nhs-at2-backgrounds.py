@@ -24,7 +24,7 @@ def sha(data: bytes) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("archive", type=Path, help="Exact NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip")
+    parser.add_argument("archive", type=Path, help="Exact NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip")
     parser.add_argument("--apply", action="store_true", help="Write vetted WebP assets on the designated draft branch only")
     args = parser.parse_args()
 
@@ -40,30 +40,31 @@ def main() -> None:
         names = [entry.filename for entry in entries]
         expected = {"manifest.json", "README.md", "preview/index.html"}
         expected.update("app/" + a["file"] for a in files)
-        expected.add("reserve/" + approved["reserve"]["file"])
         expected.update("sources/" + str(a["id"]).zfill(2) + "-" + a["source"] for a in files)
-        expected.add("sources/09-" + approved["reserve"]["source"])
         if len(names) != len(set(names)) or set(names) != expected:
             raise SystemExit("STOP: unexpected, duplicated or missing archive members")
         if any(entry.is_dir() or stat.S_ISLNK(entry.external_attr >> 16) for entry in entries):
             raise SystemExit("STOP: directory or symlink archive entries not accepted")
         package_manifest = json.loads(archive.read("manifest.json"))
-        if len(package_manifest.get("items", [])) != 9:
+        if len(package_manifest.get("items", [])) != 8:
             raise SystemExit("STOP: package manifest is incomplete")
         for a in files:
             entry = next((i for i in package_manifest["items"] if i["id"] == a["id"]), None)
             if not entry or entry["webp_file"] != "app/" + a["file"] or entry["webp_sha256"] != a["sha256"]:
                 raise SystemExit("STOP: archive mapping does not match pinned GitHub manifest")
+            original_name = "sources/" + str(a["id"]).zfill(2) + "-" + a["source"]
+            source_entry = package_manifest["items"][a["id"]-1]
+            original_data = archive.read(original_name)
+            if (source_entry.get("source_file") != a["source"] or
+                len(original_data) != source_entry.get("source_bytes") or
+                sha(original_data) != source_entry.get("source_sha256")):
+                raise SystemExit("STOP: original image changed: " + a["source"])
             binary = archive.read("app/" + a["file"])
             if len(binary) != a["bytes"] or sha(binary) != a["sha256"]:
                 raise SystemExit("STOP: image size/checksum mismatch: " + a["file"])
             target = dest_dir / a["file"]
             if target.exists() and sha(target.read_bytes()) != a["sha256"]:
                 raise SystemExit("STOP: existing destination differs: " + str(target))
-        # Verify the reserved healthcare artwork but never import it.
-        reserved = approved["reserve"]
-        if sha(archive.read("reserve/" + reserved["file"])) != reserved["sha256"]:
-            raise SystemExit("STOP: reserved image checksum mismatch")
         if not args.apply:
             print("DRY RUN PASS: exact archive and 8 app images verified; no files written")
             return
