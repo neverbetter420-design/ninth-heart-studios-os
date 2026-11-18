@@ -919,7 +919,10 @@ test("Midnight Observatory uses a borderless scene and readable NHS glass instru
   // The approved cinematic layout is open and atmospheric, not a photo
   // inside one rectangle above another giant opaque dashboard box.
   const cinematicArtwork = await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
-  expect(cinematicArtwork).toContain("data:image/webp;base64");
+  // The approved border artwork has not been imported yet. The temporary
+  // atmospheric fallback must never be the rejected Observatory photograph.
+  expect(cinematicArtwork).not.toContain("data:image/webp;base64");
+  expect(cinematicArtwork).toContain("radial-gradient");
   // The approved two-chapter design deliberately removes the second frame.
   await expect(hero).toHaveCSS("border-top-width", "0px");
   await expect(hero).toHaveCSS("background-image", "none");
