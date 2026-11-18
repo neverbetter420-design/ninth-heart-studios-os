@@ -759,8 +759,12 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       const hero = page.locator(heroSelector);
       await expect(hero).toBeVisible();
       const heroImage = await hero.evaluate(() => getComputedStyle(document.querySelector(".main-shell"), "::before").backgroundImage);
-      if (role === "admin") expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/webp;base64");
-      else expect(heroImage, "Client arrival keeps photographic atmosphere").toContain("data:image/webp;base64");
+      if (role === "admin") {
+        expect(heroImage, "Observatory must not restore rejected photography at " + width).not.toContain("data:image/");
+        expect(heroImage, "Observatory interim atmosphere must remain visible").toContain("radial-gradient");
+      } else {
+        expect(heroImage, "Client arrival keeps photographic atmosphere").toContain("data:image/webp;base64");
+      }
       // The percent-encoded SVG includes literal parentheses from gradient functions.
       // Capture the complete quoted CSS URL; ending at the first ")" corrupts the image.
       const decoded = await hero.evaluate(async (el,isClient) => {
@@ -772,7 +776,9 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
         await artwork.decode();
         return artwork.naturalWidth > 0 && artwork.naturalHeight > 0;
       },role==="client");
-      expect(decoded, role + " entrance artwork").toBe(true);
+      // Only the client entrance currently has approved image bytes.
+      // Observatory intentionally has no photo URL until source signoff.
+      expect(decoded, role + " entrance image state").toBe(role === "client");
       await expect(page.locator(".nhs-room-brand img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
@@ -854,7 +860,12 @@ test("The shared atmosphere carries across every admin and client destination", 
       // scrolling main-shell background anymore.
       const stageBackground = await page.locator(".main-shell").evaluate(el =>
         getComputedStyle(el, "::before").backgroundImage);
-      expect(stageBackground,`${view} must retain its original NHS room photograph`).toContain("data:image/webp;base64");
+      if (role === "admin" && room === "observatory") {
+        expect(stageBackground, "Observatory must exclude retired photo").not.toContain("data:image/");
+        expect(stageBackground).toContain("radial-gradient");
+      } else {
+        expect(stageBackground,`${view} must retain its original NHS room photograph`).toContain("data:image/webp;base64");
+      }
       await expect(page.locator(".main-shell")).toHaveCSS("position", "relative");
       expect(await page.locator(".main-shell").evaluate(el => {
         const layer = getComputedStyle(el, "::before");
@@ -1028,7 +1039,12 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       const position=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position);
       expect(position,room+" must keep backdrop stationary").toBe("fixed");
       expect(back,room+" "+size+" background").toContain("gradient");
-      if (role === "admin") expect(back, room+" should keep the same photographic Dark Rose brand").toContain("webp");
+      if (room === "observatory") {
+        expect(back, "Observatory awaits exact approved art, not retired photography").not.toContain("webp");
+        expect(back).toContain("radial-gradient");
+      } else if (role === "admin") {
+        expect(back, room + " retains its existing distinct atmosphere").toContain("webp");
+      }
       if(size==="desktop")roomAccents.add(accent);
       const screenWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
       expect(screenWidth,room+" "+size+" horizontal overflow").toBeLessThanOrEqual(width);
@@ -1307,7 +1323,8 @@ test("NHS typography maps Single Ghost headers and Anger Styles titles without c
 test("Verified NHS AT2 room artwork stays fixed, full-frame and separate per room", async ({ page }) => {
   test.setTimeout(180000);
   const cases = [
-    ["admin", "home", "observatory", "--nhs-at2-room-photo"],
+    // Observatory is covered by the two-chapter suite instead: its old
+    // imported image is intentionally not the active background.
     ["admin", "muse", "velvet", "--nhs-at2-room-photo"],
     ["admin", "pipeline", "artist", "--nhs-cinematic-room-photo"],
     ["admin", "scanner", "electric", "--nhs-cinematic-room-photo"],
@@ -1346,6 +1363,6 @@ test("Verified NHS AT2 room artwork stays fixed, full-frame and separate per roo
       expect(await page.evaluate(() => document.documentElement.scrollWidth),
         room + " must not overflow at " + width + "px").toBeLessThanOrEqual(width);
     }
-    expect(seen.size, "All five active studio rooms use different background images").toBe(cases.length);
+    expect(seen.size, "Every artwork-backed room uses a distinct imported image").toBe(cases.length);
   }
 });
