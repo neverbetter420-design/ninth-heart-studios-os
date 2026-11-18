@@ -1,0 +1,490 @@
+/*
+ * NHS OS | Living Atelier Muse Chamber · source-only visual pilot.
+ * Admin Muse / velvet room ONLY. Keep existing real projects, lead rankings,
+ * composer, saved drafts and explicit-send safeguards unchanged.
+ * Existing NHS velvet room background stays until the exact owner-approved
+ * Muse artwork is transferred and individually reviewed.
+ */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content .muse-workroom {
+  --muse-glass:rgba(18,19,39,.78);
+  --muse-stroke:rgba(205,189,240,.32);
+  --muse-ink:#f9f3ff;
+  --muse-soft:#d5cee9;
+  --muse-cobalt:#a1bcff;
+  --muse-violet:#d6b1ff;
+  --muse-magenta:#f4a6d9;
+  isolation:isolate;
+  position:relative;
+  min-width:0;
+  padding-bottom:clamp(68px,9vw,130px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content .muse-workroom > .management-heading {
+  position:relative;
+  min-height:clamp(240px,27vw,370px);
+  align-items:flex-end;
+  padding:clamp(32px,5vw,76px) clamp(16px,3vw,46px) clamp(34px,5vw,58px);
+  margin-bottom:12px;
+  border-bottom:1px solid rgba(209,197,237,.25);
+  border-radius:0;
+  overflow:hidden;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content .muse-workroom > .management-heading::after {
+  content:"";
+  position:absolute;
+  right:clamp(12px,9vw,152px);
+  top:16%;
+  width:clamp(95px,14vw,185px);
+  aspect-ratio:1;
+  border:1px solid rgba(160,170,241,.28);
+  border-radius:50%;
+  background:radial-gradient(circle at 48% 44%,rgba(111,64,162,.17),rgba(35,46,112,.08) 48%,transparent 72%);
+  box-shadow:0 0 0 18px rgba(84,77,153,.045),0 0 0 47px rgba(85,92,163,.025),0 0 65px rgba(103,88,203,.16);
+  pointer-events:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content .muse-workroom > .management-heading :is(h2,em) {
+  position:relative;
+  z-index:1;
+  text-wrap:balance;
+  text-shadow:0 6px 34px rgba(1,2,14,.7);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content .muse-workroom > .management-heading h2 em {
+  color:#dcbbff;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]) #workspace-content .muse-workroom > .management-heading .page-description {
+  max-width:46ch;
+  color:#e2dced;
+}
+/* Section-aware links remain native anchors before hydration. */
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock {
+  position:sticky;
+  top:calc(66px + env(safe-area-inset-top,0px));
+  z-index:12;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:clamp(7px,1.4vw,18px);
+  width:max-content;
+  max-width:100%;
+  min-height:62px;
+  margin:0 0 clamp(26px,3.2vw,46px) auto;
+  padding:7px 11px;
+  border:1px solid rgba(210,199,245,.37);
+  border-radius:999px;
+  color:var(--muse-ink);
+  background:linear-gradient(115deg,rgba(35,22,54,.92),rgba(10,17,35,.95) 61%,rgba(30,27,56,.90));
+  box-shadow:inset 0 1px 0 rgba(248,226,255,.16),0 13px 38px rgba(1,3,15,.32);
+  -webkit-backdrop-filter:blur(24px) saturate(130%);
+  backdrop-filter:blur(24px) saturate(130%);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__beacon {
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  color:#f1aee2;
+  border:1px solid rgba(233,161,215,.35);
+  background:radial-gradient(circle,rgba(211,73,157,.27),rgba(83,67,166,.08));
+  box-shadow:0 0 17px rgba(220,79,166,.2);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__links {
+  display:flex;
+  align-items:center;
+  gap:3px;
+  min-width:0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:44px;
+  padding:9px clamp(10px,1.2vw,16px);
+  border:1px solid transparent;
+  border-radius:999px;
+  color:#e4def1;
+  font-size:12px;
+  font-weight:600;
+  text-decoration:none;
+  white-space:nowrap;
+  transition:background-color .2s ease,border-color .2s ease,transform .2s ease;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link > svg {
+  flex:none;
+  color:#c3b3ed;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link[aria-current="location"] {
+  border-color:rgba(229,183,237,.48);
+  color:#fff7ff;
+  background:linear-gradient(120deg,rgba(135,55,132,.35),rgba(61,80,170,.29));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link[aria-current="location"] > svg {
+  color:#f4b6e7;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__endmark {
+  padding-inline:8px;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.14em;
+  white-space:nowrap;
+  color:#bfc8ee;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom :is(#muse-focus,#muse-compose,#muse-saved,#stale) {
+  scroll-margin-top:160px;
+}
+/* One decision instrument, not six competing dashboard cards. */
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus {
+  position:relative;
+  overflow:hidden;
+  max-width:100%;
+  min-height:235px;
+  padding:clamp(26px,3.5vw,52px);
+  margin-bottom:clamp(34px,5vw,74px);
+  border:1px solid rgba(221,182,237,.37);
+  border-radius:40px 10px 38px 12px;
+  background:
+    radial-gradient(ellipse at 94% 12%,rgba(113,67,169,.22),transparent 50%),
+    linear-gradient(118deg,rgba(38,29,58,.89),rgba(12,18,37,.89) 72%,rgba(15,20,42,.86));
+  box-shadow:inset 0 1px 0 rgba(242,222,255,.13),0 24px 72px rgba(1,3,13,.23);
+  -webkit-backdrop-filter:blur(22px) saturate(125%);
+  backdrop-filter:blur(22px) saturate(125%);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus::after {
+  content:"";
+  position:absolute;
+  top:-84px;
+  right:-45px;
+  width:250px;
+  height:250px;
+  border-radius:50%;
+  border:1px solid rgba(163,184,255,.16);
+  box-shadow:0 0 0 25px rgba(157,160,251,.027),0 0 0 60px rgba(226,129,205,.02);
+  pointer-events:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus :is(h3,.eyebrow,.studio-focus-why,.management-primary-link) {
+  position:relative;
+  z-index:1;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus h3 {
+  max-width:22ch;
+  font-size:clamp(27px,3.7vw,46px);
+  line-height:1.2;
+  color:#fcf5ff;
+  text-wrap:balance;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus :is(p,.studio-focus-why) {
+  color:var(--muse-soft);
+  max-width:65ch;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus-why {
+  border-left:2px solid rgba(190,155,244,.56);
+  padding-left:18px;
+  gap:5px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus-why strong {
+  color:#ead0fa;
+}
+/* Two open analysis lanes; rows are measured, not little boxes. */
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-intelligence-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(28px,4.8vw,75px);
+  padding:0;
+  margin-bottom:clamp(26px,4vw,60px);
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-intelligence-grid > section {
+  min-width:0;
+  padding-top:15px;
+  border-top:1px solid rgba(177,162,236,.44);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-insight-row {
+  position:relative;
+  padding:clamp(18px,2.5vw,26px) clamp(8px,1vw,15px);
+  border-bottom:1px solid rgba(202,189,232,.24);
+  background:transparent;
+  box-shadow:none;
+  transition:background-color .2s ease;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-row-heading {
+  align-items:center;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-insight-row h4 {
+  font-size:clamp(19px,2vw,25px);
+  color:var(--muse-ink);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-status {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:28px;
+  padding:4px 10px;
+  border:1px solid rgba(189,172,242,.34);
+  border-radius:999px;
+  background:rgba(31,32,63,.64);
+  color:#e1d3f6;
+  letter-spacing:.02em;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-insight-row[data-risk="critical"] .studio-status {
+  border-color:rgba(246,156,174,.55);
+  color:#ffc9d7;
+  background:rgba(94,32,57,.5);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-insight-row[data-risk="high"] .studio-status {
+  border-color:rgba(232,185,137,.5);
+  color:#ffe0c0;
+  background:rgba(76,49,35,.55);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom :is(.studio-intelligence-grid p,.studio-intelligence-grid li,.studio-intelligence-grid .management-help) {
+  color:#d2cee0;
+  line-height:1.7;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-disclosure {
+  border-top:1px solid rgba(205,186,233,.29);
+  border-bottom:1px solid rgba(205,186,233,.29);
+  margin-bottom:clamp(32px,5vw,65px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-disclosure > summary {
+  min-height:72px;
+  color:#f3e8fa;
+}
+/* One full writing desk, one lighter context note. Native forms remain native. */
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-compose {
+  padding:clamp(24px,3.8vw,53px);
+  border:1px solid rgba(180,196,252,.35);
+  border-radius:14px 44px 14px 40px;
+  background:
+    radial-gradient(ellipse at 100% 0,rgba(66,89,185,.23),transparent 51%),
+    linear-gradient(125deg,rgba(19,29,55,.87),rgba(27,19,47,.9));
+  box-shadow:inset 0 1px 0 rgba(229,239,255,.13),0 25px 70px rgba(1,3,14,.23);
+  -webkit-backdrop-filter:blur(20px);
+  backdrop-filter:blur(20px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-writing-grid {
+  grid-template-columns:minmax(0,1.55fr) minmax(220px,.65fr);
+  gap:clamp(22px,3.5vw,52px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-compose .paperwork-form {
+  border:0;
+  border-radius:0;
+  background:transparent;
+  padding:0;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-compose :is(input,select,textarea) {
+  color:#f5f1ff;
+  border-color:rgba(187,200,250,.44);
+  background:rgba(8,14,31,.8);
+  border-radius:12px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-writing-note {
+  align-self:start;
+  padding:clamp(20px,2.5vw,30px);
+  border:1px solid rgba(201,177,243,.23);
+  border-radius:31px 8px 27px 8px;
+  background:rgba(25,25,49,.6);
+  box-shadow:inset 0 1px 0 rgba(234,224,255,.06);
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-saved {
+  padding:clamp(23px,3vw,40px);
+  margin-top:clamp(30px,5vw,68px);
+  border:1px solid rgba(194,181,230,.28);
+  border-radius:36px 9px 33px 9px;
+  background:linear-gradient(115deg,rgba(24,23,49,.7),rgba(10,17,32,.71));
+  box-shadow:inset 0 1px 0 rgba(244,237,255,.08);
+  -webkit-backdrop-filter:blur(19px);
+  backdrop-filter:blur(19px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-saved-draft > summary {
+  min-height:82px;
+  color:#f3e6ff;
+  border-bottom-color:rgba(203,186,242,.25);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-saved-draft > summary strong {
+  color:#f8f1ff;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom :is(.management-text-link,.management-primary-link,.studio-saved-draft summary):focus-visible,
+.app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link:focus-visible {
+  outline:3px solid #b9d2ff;
+  outline-offset:3px;
+}
+@media(hover:hover) and (pointer:fine) {
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link:hover {
+    transform:translateY(-2px);
+    border-color:rgba(189,176,237,.55);
+    background:rgba(118,101,188,.17);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-insight-row:hover {
+    background:rgba(126,109,189,.09);
+  }
+}
+@media(max-width:1050px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__endmark {
+    display:none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-writing-grid {
+    grid-template-columns:minmax(0,1fr);
+  }
+}
+@media(max-width:720px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom > .management-heading {
+    min-height:240px;
+    padding-inline:14px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom > .management-heading::after {
+    width:100px;
+    right:15px;
+    opacity:.45;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock {
+    position:relative;
+    top:auto;
+    width:100%;
+    gap:6px;
+    padding:6px;
+    margin:0 0 28px;
+    min-height:56px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__beacon {
+    display:none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__links {
+    width:100%;
+    justify-content:space-around;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link {
+    flex:1 1 0;
+    min-width:0;
+    gap:4px;
+    padding:7px 3px;
+    flex-direction:column;
+    font-size:10px;
+    text-align:center;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-intelligence-grid {
+    grid-template-columns:minmax(0,1fr);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-focus,
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-compose,
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .studio-saved {
+    border-radius:27px 9px 28px 9px;
+    padding:clamp(17px,4.3vw,30px);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom :is(#muse-focus,#muse-compose,#muse-saved,#stale) {
+    scroll-margin-top:30px;
+  }
+}
+@media(max-width:370px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link {
+    font-size:9px;
+    padding-inline:2px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom :is(.nhs-muse-room-dock__link,.studio-insight-row) {
+    transition:none;
+    animation:none;
+    transform:none;
+  }
+}
+@media(prefers-reduced-transparency:reduce) {
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom :is(.nhs-muse-room-dock,.studio-focus,.studio-compose,.studio-saved,.studio-writing-note) {
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    background:#14172c;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom :is(.nhs-muse-room-dock,.studio-focus,.studio-compose,.studio-saved,.studio-writing-note,.nhs-muse-room-dock__link) {
+    background:Canvas;
+    background-image:none;
+    color:CanvasText;
+    border:1px solid CanvasText;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    box-shadow:none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan #workspace-content .muse-workroom .nhs-muse-room-dock__link[aria-current="location"] {
+    outline:2px solid Highlight;
+    outline-offset:1px;
+  }
+}
+
+
+/* FULL-SCROLL NHS WALLPAPER · user-approved correction.
+ * The artwork belongs to the document, NOT a fixed viewport/header.
+ * Its original NHS botanical/sculptural SVGs extend down the long page
+ * as a scroll-flowing vertical composition; the existing approved velvet
+ * photo appears only once near the beginning. All images keep aspect ratio.
+ * Nothing is painted onto the form controls or duplicated on each card.
+ */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
+  position:relative;
+  isolation:isolate;
+  min-height:100dvh;
+  background-color:#080918;
+  background-image:linear-gradient(175deg,#080918,#151025 45%,#070a1b);
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
+  /* Override the previous global fixed/100lvh pseudo-element so it has the
+     SAME height as the entire scrollable main-shell, not just one screen. */
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  min-height:100%;
+  background-color:transparent;
+  background-image:
+    linear-gradient(105deg,rgba(4,5,17,.85),rgba(5,7,19,.69) 39%,rgba(6,8,22,.46) 73%,rgba(5,6,18,.65)),
+    url("/visuals/nhs-room-velvet-oracle.svg"),
+    url("/visuals/nhs-wallpaper-velvet.svg"),
+    var(--nhs-cinematic-room-photo),
+    linear-gradient(175deg,#080918,#151025 45%,#070a1b);
+  background-size:
+    100% 100%,
+    min(970px,78vw) auto,
+    min(1480px,106vw) auto,
+    min(1650px,110vw) auto,
+    100% 100%;
+  background-position:
+    center,
+    left -145px center,
+    right -40px top,
+    right top,
+    center;
+  /* The botanical wallpaper continues down the entire scroll.
+     The sculptural oracle breaks the pattern mid-page; the photo is not
+     repeated or pinned, and neither is squashed to 100% 100%. */
+  background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;
+  background-attachment:scroll;
+  pointer-events:none;
+}
+@media(max-width:740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
+    background-size:100% 100%,570px auto,880px auto,840px auto,100% 100%;
+    background-position:center,left -245px center,right -300px top,right -275px top,center;
+    background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
+    background:Canvas;
+    color:CanvasText;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
+    display:none;
+    background-image:none;
+  }
+}

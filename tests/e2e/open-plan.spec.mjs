@@ -282,7 +282,7 @@ test("real studio metrics have quiet icon instruments, without fake actions or m
   }
 });
 
-test("cinematic room photos remain locked to the viewport while content scrolls",async ({page})=>{
+test("cinematic rooms stay fixed except the user-approved full-scroll Muse artwork",async ({page})=>{
   const cases=[
     ["admin","leads","electric"],["admin","clients","rose"],["admin","pipeline","artist"],
     ["admin","contracts","archive"],["admin","muse","velvet"],["client","home","private"]
@@ -295,11 +295,16 @@ test("cinematic room photos remain locked to the viewport while content scrolls"
       const before=await scene.evaluate(el=>{
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
-          positionImage:layer.backgroundPosition,animation:layer.animationName,
-          transform:layer.transform,pointerEvents:layer.pointerEvents,
-          viewportHeight:layer.height};
+          positionImage:layer.backgroundPosition,backgroundRepeat:layer.backgroundRepeat,
+          animation:layer.animationName,transform:layer.transform,
+          pointerEvents:layer.pointerEvents,viewportHeight:layer.height};
       });
-      expect(before.position,room+" photo should be fixed").toBe("fixed");
+      expect(before.position,room+" should use its agreed scroll behavior")
+        .toBe(room === "velvet" ? "absolute" : "fixed");
+      if (room === "velvet") {
+        expect(before.backgroundRepeat).toContain("repeat-y");
+        expect(Number.parseFloat(before.viewportHeight)).toBeGreaterThanOrEqual(520);
+      }
       expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
       expect(before.animation).toBe("none");
       expect(before.transform).toBe("none");
@@ -312,11 +317,11 @@ test("cinematic room photos remain locked to the viewport while content scrolls"
       const after=await scene.evaluate(el=>{
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
-          positionImage:layer.backgroundPosition,animation:layer.animationName,
-          transform:layer.transform,pointerEvents:layer.pointerEvents,
-          viewportHeight:layer.height};
+          positionImage:layer.backgroundPosition,backgroundRepeat:layer.backgroundRepeat,
+          animation:layer.animationName,transform:layer.transform,
+          pointerEvents:layer.pointerEvents,viewportHeight:layer.height};
       });
-      expect(after,room+" wallpaper must stay fixed after page scroll").toEqual(before);
+      expect(after,room+" artwork must retain its intended positioning after scrolling").toEqual(before);
       await page.evaluate(()=>{
         window.scrollTo(0,0);
         document.documentElement.style.minHeight="";
