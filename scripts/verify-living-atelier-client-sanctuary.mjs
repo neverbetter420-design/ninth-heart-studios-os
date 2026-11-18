@@ -33,13 +33,14 @@ for (const marker of [
 ]) assert.ok(css.includes(marker), "Missing design/accessibility guard: " + marker);
 
 const imports = layout.match(/import "\.\/[^"]+\.css";/g) ?? [];
-assert.deepEqual(imports.slice(-5), [
+assert.deepEqual(imports.slice(-6), [
   'import "./visual-first.css";',
   'import "./living-atelier-pulse-dock.css";',
   'import "./living-atelier-client-sanctuary.css";',
   'import "./living-atelier-muse-chamber.css";',
   'import "./living-atelier-crystal-glass.css";',
-], "Client Sanctuary precedes Muse and the scoped final glass refinements");
+  'import "./living-atelier-typefaces.css";',
+], "Client Sanctuary precedes Muse and the last glass/typography refinements");
 
 assert.match(home, /await requireUser\(\)/);
 assert.match(home, /profile\.role !== "client"\) redirect\("\/"\)/);
