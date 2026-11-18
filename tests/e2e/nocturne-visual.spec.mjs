@@ -1224,3 +1224,39 @@ test("Each non-Observatory room has a different self-hosted photographic backdro
    expect(artworks.size,"Each room has its own scene, not a repeated crop").toBe(6);
  }
 });
+
+// The fixed NHS artwork must remain visible through frosted glass, not be
+// replaced by opaque dashboard boxes or duplicated inside their surfaces.
+test("Atelier crystal glass stays highly translucent and blurred in all three pilot rooms", async ({ page }) => {
+  const samples = [
+    ["admin", "home", ".nocturne-command-center .action-panel"],
+    ["admin", "muse", ".muse-workroom .studio-focus"],
+    ["client", "home", ".atelier-home .atelier-feature-project"],
+  ];
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 850 });
+    for (const [role, view, selector] of samples) {
+      await show(page, role, "populated", view);
+      const glass = page.locator(selector).first();
+      await expect(glass).toBeVisible();
+      const styles = await glass.evaluate(el => {
+        const css = getComputedStyle(el);
+        const bg = getComputedStyle(el.closest(".main-shell"), "::before");
+        return {
+          blur: css.backdropFilter || css.webkitBackdropFilter,
+          background: css.backgroundImage,
+          backgroundColor: css.backgroundColor,
+          fixedBackgroundPosition: bg.position,
+          fixedBackgroundSize: bg.backgroundSize,
+        };
+      });
+      expect(styles.blur, selector + " must actually frost what is behind it").toMatch(/blur\(28px\)/);
+      expect(styles.background, selector + " should have lightly tinted glass").toContain("gradient");
+      expect(styles.background, selector + " should not duplicate the room photo").not.toContain("data:image/webp");
+      expect(styles.fixedBackgroundPosition, selector + " must keep its room in place").toBe("fixed");
+      expect(styles.fixedBackgroundSize, selector + " must preserve all artwork edging").toContain("contain");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth),
+        selector + " must fit at " + width + "px").toBeLessThanOrEqual(width);
+    }
+  }
+});
