@@ -1,27 +1,9 @@
-# NHS OS · Draft artwork handoff
+# Draft artwork ZIP upload
 
-This folder is the **temporary drop-off** for the single approved ZIP:
+On the **existing** branch `design/nhs-at2-background-handoff-20261117`, upload the exact file `NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip` here using **Add file → Upload files**.
 
-`NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip`
+The draft-only GitHub Actions workflow will verify ZIP SHA-256 `79f78243792e92748fb04b28d4e1eac4d33f4158679020eef508c9590d524c51`, all eight source originals, all eight optimized WebPs, and the exact list of ZIP members. It rejects additional images.
 
-**Use only the GitHub branch** `design/nhs-at2-background-handoff-20261117`.
+If successful, it commits only eight verified `public/visuals/nhs-at2-*.webp` files and removes the temporary ZIP on the same draft branch. It does **not** activate artwork, merge, publish, deploy or touch backend data.
 
-Upload that exact ZIP into this folder via GitHub **Add file → Upload files**. The
-branch-only, path-scoped workflow `nhs-at2-import-draft.yml` will validate the
-archive SHA-256, all expected members, each app WebP SHA-256 and the excluded
-healthcare file. If validation succeeds, the workflow installs precisely eight
-WebP files into `public/visuals/`, then deletes the temporary ZIP from Git.
-
-This does **not** import a stylesheet, change a running website, merge PR #80,
-deploy to Cloudflare, modify Supabase, or activate paid features.
-
-After the import completes, review the actual images and source-only render
-before enabling the staged mapping at
-`docs/design/nhs-at2-staged-room-map.css`. Import is not visual approval.
-
-The ZIP itself should never remain in the final source history except the
-initial temporary upload commit. Its original JPEG sources and the reserved
-healthcare image are deliberately not copied to the app.
-
-If automation is unavailable, use the manual import commands in
-`docs/design/nhs-at2-image-handoff.md`. Never substitute lookalike images.
+Every artwork is **fully contained, never cropped**; the background remains stationary while glass content scrolls over it. The manual dry-run and design review are documented in `docs/design/nhs-at2-image-handoff.md`.
