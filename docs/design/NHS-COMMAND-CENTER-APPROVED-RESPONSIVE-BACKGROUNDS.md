@@ -6,6 +6,8 @@
 **Desktop companion:** OWNER-PROVIDED MATCHING LANDSCAPE REFERENCE · paired with selected mobile design; app visual QA pending
 **Implementation/deployment:** NOT ACTIVATED. Draft-only decision record; PR #80 is still VISUAL REWORK REQUIRED / DO NOT MERGE.
 
+**Latest architectural direction:** The owner additionally approved a full **two-chapter Command Center mockup** on November 18, 2026. See [NHS-OS-APPROVED-CINEMATIC-TWO-CHAPTER-COMMAND-CENTER.md](NHS-OS-APPROVED-CINEMATIC-TWO-CHAPTER-COMMAND-CENTER.md). The mobile/desktop backgrounds documented here are **Chapter I**; the lower Working Atelier requires a distinct but related **Chapter II** backdrop. The lower-image asset is not approved/generated/installed yet, and the composite mockup is not acceptable wallpaper.
+
 ## Mobile: selected visual (user upload in Nov 18 conversation)
 
 Reference: **The last owner-uploaded portrait image**, featuring:
