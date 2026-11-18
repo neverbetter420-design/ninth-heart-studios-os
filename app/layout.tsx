@@ -38,6 +38,7 @@ import "./visual-first.css";
 import "./living-atelier-pulse-dock.css";
 import "./living-atelier-client-sanctuary.css";
 import "./living-atelier-muse-chamber.css";
+import "./living-atelier-crystal-glass.css";
 
 const headingFont = Cinzel({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-cinzel", display: "swap" });
 const bodyFont = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans", display: "swap" });
