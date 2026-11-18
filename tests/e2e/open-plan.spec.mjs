@@ -184,14 +184,21 @@ test("seven NHS rooms display distinct local background scenes without replacing
     const backgrounds = new Set();
     for (const [role,view,room] of cases) {
       await show(page,role,view,"populated");
-      const image = await page.locator(".main-shell").evaluate((el,isObservatory) => isObservatory ? getComputedStyle(el).backgroundImage : getComputedStyle(el,"::before").backgroundImage,room === "observatory");
-      expect(image, room + " must have a local image background").toMatch(/data:image\/(?:svg\+xml|webp)/);
+      const image = await page.locator(".main-shell").evaluate(el => getComputedStyle(el,"::before").backgroundImage);
+      if (room === "observatory") {
+        // Await the exact owner-approved Chapter I background binaries;
+        // the rejected old photograph must not masquerade as accepted art.
+        expect(image, "Observatory must not render retired wallpaper").not.toContain("data:image/");
+        expect(image).toContain("radial-gradient");
+      } else {
+        expect(image, room + " must have a local image background").toMatch(/data:image\/(?:svg\+xml|webp)/);
+      }
       backgrounds.add(image);
       await expect(page.locator(".nhs-sidebar,.navigation-shell,.nhs-mobile-quicknav")).toHaveCount(0);
       await bounds(page);
       await page.screenshot({path:`design-preview/open-plan/wallpaper-${room}-${width}.png`});
     }
-    expect(backgrounds.size, "every one of the seven rooms must have different artwork").toBe(7);
+    expect(backgrounds.size, "Every room needs a distinct atmosphere even before Observatory art approval").toBe(7);
   }
 });
 
@@ -232,8 +239,17 @@ test("eye-comfort room lighting dims photography but not working controls", asyn
       await bounds(page);
     }
     await show(page,"admin","home","populated");
-    const hero=await page.locator(".nocturne-overview").first().evaluate(el=>getComputedStyle(el).backgroundImage);
-    expect(hero).toContain("linear-gradient");
+    // Chapter I artwork is framed by the fixed viewport, not painted into
+    // another rectangular hero. Localized glass behind the heading protects copy.
+    const composition = await page.locator(".nocturne-overview").first().evaluate(el => ({
+      hero: getComputedStyle(el).backgroundImage,
+      scrim: getComputedStyle(el.querySelector(".nocturne-welcome-copy")).backgroundImage,
+      fixed: getComputedStyle(el.closest(".main-shell"), "::before").backgroundImage,
+    }));
+    expect(composition.hero).toBe("none");
+    expect(composition.scrim).toContain("linear-gradient");
+    expect(composition.fixed, "Unapproved Observatory photograph must remain removed").not.toContain("data:image/");
+    expect(composition.fixed).toContain("radial-gradient");
     await bounds(page);
   }
 });
@@ -282,10 +298,10 @@ test("real studio metrics have quiet icon instruments, without fake actions or m
   }
 });
 
-test("cinematic rooms stay fixed except the user-approved full-scroll Muse artwork",async ({page})=>{
+test("all cinematic rooms stay fixed while glass content scrolls above",async ({page})=>{
   const cases=[
     ["admin","leads","electric"],["admin","clients","rose"],["admin","pipeline","artist"],
-    ["admin","contracts","archive"],["admin","muse","velvet"],["client","home","private"]
+    ["admin","contracts","archive"],["admin","muse","velvet"],["client","home","private"],["admin","home","observatory"]
   ];
   for(const width of [1440,390]) {
     await page.setViewportSize({width,height:520});
@@ -296,16 +312,25 @@ test("cinematic rooms stay fixed except the user-approved full-scroll Muse artwo
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
           positionImage:layer.backgroundPosition,backgroundRepeat:layer.backgroundRepeat,
+          size:layer.backgroundSize,
           animation:layer.animationName,transform:layer.transform,
           pointerEvents:layer.pointerEvents,viewportHeight:layer.height};
       });
-      expect(before.position,room+" should use its agreed scroll behavior")
-        .toBe(room === "velvet" ? "absolute" : "fixed");
-      if (room === "velvet") {
-        expect(before.backgroundRepeat).toContain("repeat-y");
-        expect(Number.parseFloat(before.viewportHeight)).toBeGreaterThanOrEqual(520);
+      expect(before.position, room + " must keep its scene behind scrolling content").toBe("fixed");
+      expect(before.backgroundRepeat, room + " must not tile artwork").not.toContain("repeat-y");
+      // Every room photograph must fit in the available viewport; a cover crop
+      // cuts off the ornate frame on portrait phones and square tablets.
+      const layers=before.size.split(",").map(x=>x.trim());
+      expect(layers[room === "velvet" ? 3 : 1], room + " photo must preserve its entire border").toBe("contain");
+      expect(Number.parseFloat(before.viewportHeight)).toBeGreaterThanOrEqual(518);
+      if (room === "observatory") {
+        // This chapter's approved raw art is not committed yet. Refuse to
+        // mistake the rejected photographic wallpaper for the intended frame.
+        expect(before.backgroundImage).not.toContain("data:image/webp;base64");
+        expect(before.backgroundImage).toContain("radial-gradient");
+      } else {
+        expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
       }
-      expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
       expect(before.animation).toBe("none");
       expect(before.transform).toBe("none");
       expect(before.pointerEvents).toBe("none");
@@ -318,6 +343,7 @@ test("cinematic rooms stay fixed except the user-approved full-scroll Muse artwo
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
           positionImage:layer.backgroundPosition,backgroundRepeat:layer.backgroundRepeat,
+          size:layer.backgroundSize,
           animation:layer.animationName,transform:layer.transform,
           pointerEvents:layer.pointerEvents,viewportHeight:layer.height};
       });

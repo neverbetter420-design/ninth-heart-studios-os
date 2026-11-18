@@ -114,6 +114,15 @@ jobs:
       - name: Test navigation in desktop and mobile Chromium
         run: npx playwright test
 
+      - name: Upload small NHS AT2 owner screenshot gallery
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nhs-at2-owner-gallery
+          path: design-preview/nhs-at2-owner-gallery/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Upload failure screenshots and traces
         if: always()
         uses: actions/upload-artifact@v4

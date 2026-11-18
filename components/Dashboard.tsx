@@ -5,6 +5,7 @@ import { displayProgress, formatProjectDate, projectDueState } from "@/lib/proje
 import { findStaleLeads, recommendNextAction } from "@/lib/muse";
 import { createClient } from "@/lib/supabase/server";
 import { LivingStudioHub } from "./LivingStudioHub";
+import { CommandChapterAtmosphere } from "./CommandChapterAtmosphere";
 import { LivingAtelierPulseDock } from "./LivingAtelierPulseDock";
 import { NocturneStudioArt } from "./NocturneStudioArt";
 import { PriorityHalo, type HaloAction } from "./PriorityHalo";
@@ -77,6 +78,7 @@ export async function Dashboard() {
     { label: "Active Leads", value: leadsUnavailable ? "—" : String(rankedLeads.length), detail: leadsUnavailable ? "Data unavailable" : `${repliesNeeded} ${repliesNeeded === 1 ? "reply" : "replies"} needed`, tone: "violet" as const },
     { label: "Waiting on Me", value: leadsUnavailable ? "—" : String(waitingOnMe), detail: leadsUnavailable ? "Data unavailable" : `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
     { label: "Total Projects", value: projectCountError || projectCount === null ? "—" : String(projectCount), detail: projectCountError || projectCount === null ? "Data unavailable" : "Across your studio", tone: "cyan" as const },
+    { label: "Next Actions", value: leadsUnavailable ? "—" : String(nextActions.length), detail: leadsUnavailable ? "Data unavailable" : "Ranked priorities", tone: "silver" as const },
   ];
 
   const passages: readonly { href: string; label: string; symbol: AtelierSymbolName; tone: string }[] = [
@@ -92,12 +94,16 @@ export async function Dashboard() {
 
   return (
     <div className="content-wrap nocturne-command-center velvet-atelier-pilot">
-      <header className="nocturne-overview" id="nhs-observatory">
+      <CommandChapterAtmosphere />
+      <header className="nocturne-overview" id="nhs-observatory" data-nhs-command-scene="welcome">
         <div className="nocturne-welcome-copy">
           <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
-          <h2>Your studio, <em>in focus.</em></h2>
-          <p className="page-description">The work that matters, in one view.</p>
-          <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
+          <h2>The <em>Command Center</em></h2>
+          <p className="page-description">Operations, projects, and studio control.</p>
+          <div className="nhs-command-welcome-actions">
+            <a className="nhs-command-entry" href="#nhs-command-surface">Studio overview <span aria-hidden="true">↗</span></a>
+            <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
+          </div>
         </div>
         <NocturneStudioArt />
         <div className="velvet-hero-amulets" aria-hidden="true">
@@ -105,11 +111,19 @@ export async function Dashboard() {
           <span><AtelierSymbol name="rose" size={18} /></span>
           <span><AtelierSymbol name="key" size={18} /></span>
         </div>
+        <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
       </header>
 
-      <div className="nhs-command-surface">
+      <div className="nhs-command-chapter-divider" id="nhs-command-chapter-ii" role="group" aria-labelledby="nhs-command-chapter-heading">
+        <div className="nhs-command-chapter-divider__crest" aria-hidden="true"><span>✦</span></div>
+        <p className="nhs-command-chapter-divider__eyebrow">Chapter II</p>
+        <h2 id="nhs-command-chapter-heading">The Working Atelier</h2>
+        <p className="nhs-command-chapter-divider__subline">Projects · Priorities · Operations</p>
+      </div>
+
+      <div className="nhs-command-surface" id="nhs-command-surface" data-nhs-command-scene="workroom">
       <LivingAtelierPulseDock />
-      <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
+
 
       <section className="dashboard-grid" aria-label="Studio priorities and projects">
         <section className="panel action-panel" aria-labelledby="nocturne-actions-title">

@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 const root = resolve(import.meta.dirname, "../..");
 const require = createRequire(import.meta.url);
-const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner", "nocturne-muse-ai", "nocturne-project-guide", "velvet-atelier-admin-pilot", "open-plan", "nhs-room-editorial", "visual-first", "living-atelier-pulse-dock", "living-atelier-client-sanctuary", "living-atelier-muse-chamber"];
+const styles = ["globals", "phase2", "phase3", "phase4", "phase7", "scanner", "navigation", "nocturne", "nocturne-phase3", "nocturne-command", "nocturne-priority-halo", "atelier-studio", "nocturne-leads", "nocturne-management", "nocturne-documents", "nocturne-studio", "nocturne-radar", "nocturne-atmosphere", "soft-welcome", "atelier-color-story", "nocturne-soft-atelier", "seven-rooms", "nocturne-dark-rose", "nocturne-rooms-refined", "nocturne-atelier-compass", "nocturne-dark-rose-cinematic", "nocturne-dark-rose-everywhere", "nocturne-room-environments", "nocturne-scanner", "nocturne-muse-ai", "nocturne-project-guide", "velvet-atelier-admin-pilot", "open-plan", "nhs-room-editorial", "visual-first", "living-atelier-pulse-dock", "living-atelier-client-sanctuary", "living-atelier-muse-chamber", "living-atelier-crystal-glass", "living-atelier-typefaces", "living-atelier-artwork-active", "nhs-command-reference-stage", "nhs-command-chapters"];
 // The visual suite denies network access, so embed only these two local, vetted
 // decorative assets. This allows screenshots to show the same artwork as the app.
 const approvedArtwork = new Set(["nocturne-floral-arch.svg", "atelier-botanical-arch.svg", "nhs-dark-rose-photographic.webp", "nhs-room-electric-oracle.svg", "nhs-room-rose-reliquary.svg", "nhs-room-artist-atelier.svg", "nhs-room-archive-seal.svg", "nhs-room-velvet-oracle.svg", "nhs-room-private-atelier.svg", "nhs-wallpaper-electric.svg", "nhs-wallpaper-rose.svg", "nhs-wallpaper-artist.svg", "nhs-wallpaper-archive.svg", "nhs-wallpaper-velvet.svg", "nhs-wallpaper-private.svg", "nhs-scene-electric.webp", "nhs-scene-rose.webp", "nhs-scene-artist.webp", "nhs-scene-archive.webp", "nhs-scene-velvet.webp", "nhs-scene-private.webp", "nhs-living-atelier-observatory.webp", "nhs-living-atelier-client-sanctuary.webp"]);
@@ -19,6 +19,21 @@ const approvedArtworkHashes = new Map([
   ["nhs-living-atelier-observatory.webp", "e5130cae5a1a8d30e6b2c0a09cd59d6350a36f278240f5f55480fc850a0c0284"],
   ["nhs-living-atelier-client-sanctuary.webp", "b0b259d26af5ac7d8ff07dbdc1c65fb5b517ad6856b8f9ec74ff1d10182ed9d6"],
 ]);
+// The newly imported eight NHS scenes have been verified by the draft importer.
+// Never blindly embed files from CSS: source preview uses the pinned manifest
+// hashes, a strict name pattern, and exactly eight reviewed filenames.
+const at2Assets = JSON.parse(readFileSync(resolve(root, "docs/design/nhs-at2-assets.json"), "utf8"));
+if (at2Assets.assets?.length !== 7 || "reserve" in at2Assets) {
+  throw new Error("STOP: approved NHS AT2 image manifest must have exactly seven non-medical app images");
+}
+for (const { file, sha256 } of at2Assets.assets) {
+  if (!/^nhs-at2-[a-z0-9-]+\.webp$/.test(file) || !/^[0-9a-f]{64}$/.test(sha256)) {
+    throw new Error("STOP: invalid NHS AT2 image declaration: " + file);
+  }
+  if (file === "nhs-at2-project-pipeline.webp") throw new Error("STOP: rejected medical artwork returned");
+  approvedArtwork.add(file);
+  approvedArtworkHashes.set(file, sha256);
+}
 const built = process.env.NHS_VISUAL_BUILT_CSS === "1";
 const chunks = resolve(root, ".next/static/chunks");
 function builtStyles() {

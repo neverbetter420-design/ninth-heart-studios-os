@@ -1,0 +1,1286 @@
+/*
+ * NHS OS / The Ninth Atelier / COMMAND CENTER · REFERENCE-LOCKED REBUILD 01
+ *
+ * Reference: user-approved "Ninth Heart Studios OS Dashboard Collection".
+ * Changes only the Admin Observatory (home), not Leads, clients, Muse or portal.
+ * Scene is one fixed, fully contained viewport image on .main-shell::before.
+ * Real business data/actions remain in Dashboard + LivingStudioHub.
+ *
+ * Layout contract:
+ *   (left) hero title + CTAs    (right) frosted Studio Pulse ring + real metrics
+ *   (bottom) four luminous icon-first passages to existing app destinations
+ * Below stage: compact, offset-priority floating-glass dashboard/work panels.
+ */
+
+/* Distinct cinematic gallery stage, never an image duplicated on every card. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center.velvet-atelier-pilot {
+  --nhs-ref-pink: #fa65a9;
+  --nhs-ref-blue: #6c9aff;
+  --nhs-ref-silver: #e5dbef;
+  --nhs-ref-line: rgba(245, 192, 226, .39);
+  --nhs-ref-sheen: inset 0 1px 0 rgba(255, 255, 255, .17), 0 22px 62px rgba(1, 0, 13, .24);
+  color: #f8f3fb;
+}
+
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(310px, 400px);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: clamp(22px, 4vw, 66px);
+  min-height: clamp(420px, 31vw, 490px);
+  margin: 0 0 clamp(19px, 3vw, 38px);
+  padding: clamp(26px, 2.6vw, 43px) clamp(23px, 3.8vw, 60px) 130px;
+  border: 1px solid rgba(240, 179, 221, .29);
+  border-radius: 26px 12px 30px 12px;
+  background-color: rgba(4, 5, 15, .11);
+  background-image:
+    linear-gradient(100deg, rgba(3, 4, 13, .89) 0%, rgba(3, 4, 14, .64) 31%, rgba(4, 6, 19, .14) 57%, rgba(6, 5, 19, .57) 85%, rgba(6, 5, 19, .72) 100%),
+    radial-gradient(ellipse at 68% 24%, rgba(156, 38, 119, .15), transparent 66%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: var(--nhs-ref-sheen);
+  overflow: visible;
+}
+
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  max-width: 520px;
+  min-width: 0;
+  margin: clamp(10px, 1.7vw, 28px) 0 0;
+  padding: 0;
+  z-index: 3;
+  text-align: left;
+}
+
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy > .eyebrow {
+  font: 700 clamp(10px, .77vw, 12px)/1.5 var(--nhs-font-reading, system-ui);
+  color: #f6e6f1;
+  text-transform: uppercase;
+  letter-spacing: .26em;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .8);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy h2 {
+  max-width: 13ch;
+  margin: 16px 0 12px;
+  font-family: var(--nhs-font-display, Georgia, serif) !important;
+  font-size: clamp(42px, 4.3vw, 75px);
+  line-height: 1.03;
+  font-weight: 400;
+  letter-spacing: -.018em;
+  color: #fff9ff;
+  text-shadow: 0 3px 25px rgba(0, 0, 0, .72);
+  text-wrap: balance;
+  overflow-wrap: normal;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy h2 em {
+  display: block;
+  color: var(--nhs-ref-pink);
+  font-family: var(--nhs-font-display, Georgia, serif) !important;
+  font-style: italic;
+  letter-spacing: -.018em;
+  text-shadow: 0 0 30px rgba(253, 65, 159, .17);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .page-description {
+  max-width: 33ch;
+  margin: 15px 0 21px;
+  color: #f3e8f2;
+  font: 400 clamp(13px, 1.05vw, 16px)/1.55 var(--nhs-font-reading, system-ui);
+  text-shadow: 0 2px 15px rgba(0, 0, 0, .75);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-welcome-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-entry {
+  display: inline-flex;
+  gap: 18px;
+  justify-content: center;
+  align-items: center;
+  min-height: 45px;
+  padding: 10px 21px;
+  border: 1px solid rgba(255, 152, 207, .79);
+  border-radius: 999px;
+  color: #fff6fd;
+  font: 600 12px/1.2 var(--nhs-font-reading, system-ui);
+  text-decoration: none;
+  background: linear-gradient(100deg, rgba(54, 12, 43, .29), rgba(10, 9, 32, .28));
+  box-shadow: 0 0 17px rgba(255, 31, 135, .33), inset 0 0 13px rgba(238, 107, 194, .18);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-capture {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 13px;
+  margin: 0;
+  border: 1px solid rgba(215, 190, 235, .29);
+  border-radius: 999px;
+  color: #f9e8fa;
+  font: 500 12px/1.2 var(--nhs-font-reading, system-ui);
+  background: rgba(11, 11, 25, .16);
+  text-decoration: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-entry:hover,
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-capture:hover {
+  border-color: #ffb6d8;
+  background-color: rgba(60, 23, 62, .28);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-entry:focus-visible,
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-capture:focus-visible {
+  outline: 3px solid #a6baff;
+  outline-offset: 3px;
+}
+
+/* Original decorative SVG becomes a subtle floating metallic flourish.
+ * Main room artwork is the existing fixed WebP, not copied into this panel. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .nocturne-studio-art {
+  position: absolute;
+  inset: 13% 28% auto auto;
+  width: min(39%, 480px);
+  z-index: 0;
+  pointer-events: none;
+  opacity: .16;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .velvet-hero-amulets {
+  z-index: 1;
+  inset: auto auto 150px 45%;
+  opacity: .55;
+}
+
+/* Studio Hub is inside the hero, not a second 620px-tall orbital page. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview > .living-studio {
+  position: static;
+  z-index: 3;
+  display: block;
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-height: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview > .living-studio .living-studio__intro {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* Pulse: real server-derived progress in a luminous dial + honest live metrics. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .living-status {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  grid-template-rows: auto minmax(132px, auto) auto;
+  gap: 9px 12px;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: clamp(16px, 1.7vw, 21px);
+  border: 1px solid rgba(241, 175, 214, .54);
+  border-radius: 24px 10px 24px 10px;
+  color: #f9f2fe;
+  background: linear-gradient(125deg, rgba(39, 23, 51, .23), rgba(6, 12, 31, .16) 62%, rgba(32, 20, 43, .25));
+  box-shadow: 0 13px 35px rgba(0, 0, 0, .21), inset 0 1px 0 rgba(255, 255, 255, .19), 0 0 25px rgba(219, 74, 167, .10);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
+  text-align: left;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__eyebrow {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  color: #fff3fe;
+  font-family: var(--nhs-font-title, Georgia, serif) !important;
+  font-size: clamp(19px, 1.7vw, 25px);
+  font-weight: 400;
+  letter-spacing: .015em;
+  text-transform: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-pulse-dial {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-pulse-dial__ring {
+  --nhs-pulse-fill: 0%;
+  width: min(100%, 129px);
+  aspect-ratio: 1;
+  padding: 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(from -90deg, #527dff 0%, #fb4eaa var(--nhs-pulse-fill), rgba(217, 201, 249, .16) var(--nhs-pulse-fill), rgba(217, 201, 249, .16) 100%);
+  box-shadow: 0 0 30px rgba(221, 67, 172, .21), inset 0 0 14px rgba(10, 9, 22, .33);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-pulse-dial__core {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: #0c0c20;
+  border: 1px solid rgba(225, 184, 235, .25);
+  box-shadow: inset 0 4px 15px rgba(2, 3, 12, .66);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-pulse-dial__core strong {
+  font: 400 clamp(25px, 2.3vw, 37px)/1.08 var(--nhs-font-title, Georgia, serif);
+  color: #fff7ff;
+  letter-spacing: -.02em;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-pulse-dial__core > span {
+  max-width: 75px;
+  color: #ddd1eb;
+  font: 500 9px/1.25 var(--nhs-font-reading, system-ui);
+  text-align: center;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__metrics {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__metric {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 7px;
+  align-items: center;
+  min-height: 37px;
+  margin: 0;
+  padding: 5px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(220, 199, 242, .19);
+  background: transparent;
+  box-shadow: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__metric:last-child { border-bottom: 0; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__metric dt {
+  color: #f0e7f6;
+  font: 500 11px/1.3 var(--nhs-font-reading, system-ui);
+  letter-spacing: 0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__metric dd {
+  display: flex;
+  align-items: baseline;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  min-width: 0;
+  text-align: right;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__metric dd strong {
+  color: #fff3fd;
+  font: 400 20px/1 var(--nhs-font-title, Georgia, serif);
+  align-self: end;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__metric dd span {
+  max-width: 110px;
+  color: #cfc6e0;
+  font: 400 9px/1.25 var(--nhs-font-reading, system-ui);
+  text-align: right;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__progress {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin: 0;
+  padding-top: 6px;
+  border-top: 1px solid rgba(216, 189, 231, .18);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__progress-heading {
+  color: #e6def1;
+  font-size: 10px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-status__progress small { font-size: 9px; }
+
+/* Four familiar, functional studio destinations in one band of luminous
+ * glass icon instruments, matching the approved visual reference. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-overview .living-orbit {
+  position: absolute;
+  inset: auto clamp(23px, 3.8vw, 60px) 19px clamp(23px, 3.8vw, 60px);
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: clamp(9px, 1.2vw, 20px);
+  width: auto;
+  height: auto;
+  min-height: 100px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  aspect-ratio: auto;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__ring,
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__core {
+  display: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__link {
+  position: static;
+  transform: none !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  min-height: 93px;
+  padding: 13px 15px;
+  border: 1px solid rgba(247, 172, 217, .45);
+  border-radius: 18px 8px 18px 8px;
+  background: linear-gradient(125deg, rgba(27, 20, 43, .19), rgba(5, 10, 27, .21));
+  box-shadow: 0 14px 24px rgba(0, 1, 10, .22), inset 0 1px 0 rgba(255, 255, 255, .11);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
+  color: #fff1fc;
+  text-decoration: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__symbol {
+  display: grid;
+  place-items: center;
+  flex: 0 0 47px;
+  width: 47px;
+  height: 47px;
+  color: #ff97cb;
+  border: 1px solid rgba(250, 139, 201, .25);
+  border-radius: 13px;
+  background: rgba(26, 13, 44, .18);
+  box-shadow: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__link--cobalt .living-orbit__symbol { color: #90c4ff; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__link--silver .living-orbit__symbol { color: #f0dce9; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__link--violet .living-orbit__symbol { color: #d0a1fe; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__label {
+  font: 500 clamp(11px, .96vw, 13px)/1.3 var(--nhs-font-reading, system-ui);
+  letter-spacing: .012em;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__link:hover {
+  border-color: rgba(255, 182, 226, .93);
+  background: linear-gradient(135deg, rgba(70, 26, 83, .29), rgba(9, 17, 44, .26));
+  box-shadow: 0 0 24px rgba(243, 63, 153, .24), inset 0 1px 0 rgba(255, 255, 255, .19);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .living-orbit__link:focus-visible {
+  outline: 3px solid #b4c9ff;
+  outline-offset: 3px;
+}
+
+/* The real priority/project content becomes a compact asymmetric gallery of
+ * floating instruments instead of a long duplicate command center intro. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-surface {
+  margin: 0;
+  padding: 2px 0 70px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(0, .84fr);
+  align-items: start;
+  gap: clamp(16px, 2.7vw, 38px);
+  margin: clamp(12px, 2vw, 22px) 0 clamp(22px, 4vw, 40px);
+  padding: 0;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .dashboard-grid > :is(.action-panel, .project-panel) {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(219, 184, 230, .25);
+  border-radius: 22px 9px 23px 9px;
+  background: linear-gradient(140deg, rgba(21, 16, 38, .20), rgba(8, 11, 29, .18));
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .12), inset 0 1px 0 rgba(250, 232, 255, .11);
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .dashboard-grid > .project-panel {
+  margin-top: clamp(18px, 3vw, 39px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .panel-heading h3,
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-activity-heading h3 {
+  font-family: var(--nhs-font-title, Georgia, serif) !important;
+  font-weight: 400;
+  font-size: clamp(18px, 1.6vw, 25px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nocturne-activity {
+  padding: clamp(20px, 2.5vw, 33px);
+  border: 1px solid rgba(218, 180, 230, .24);
+  border-radius: 9px 24px 9px 24px;
+  background: linear-gradient(135deg, rgba(30, 19, 43, .19), rgba(5, 10, 29, .18));
+  -webkit-backdrop-filter: blur(28px);
+  backdrop-filter: blur(28px);
+}
+
+/* Tablet: Pulse under heading, all four room destinations remain functional. */
+@media (max-width: 1020px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview {
+    grid-template-columns: minmax(0, 1fr) minmax(270px, .9fr);
+    min-height: 480px;
+    padding-bottom: 132px;
+    column-gap: 16px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-status {
+    display: block;
+    padding: 16px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial { float: left; margin: 9px 14px 5px 0; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial__ring { width: 93px; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metrics { display: block; margin-top: 8px; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__progress { clear: both; padding-top: 9px; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__link { gap: 9px; padding: 10px; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__symbol { flex-basis: 38px; width: 38px; height: 38px; }
+}
+@media (max-width: 740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+    min-height: 0;
+    padding: 24px 18px 22px;
+    border-radius: 18px 7px 18px 7px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy {
+    flex: none;
+    width: 100%;
+    max-width: none;
+    margin: 4px 0 0;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .nocturne-welcome-copy h2 {
+    font-size: clamp(36px, 9.4vw, 57px);
+    line-height: 1.07;
+    max-width: 16ch;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview > .living-studio {
+    flex: none;
+    width: 100%;
+    min-height: 0;
+    margin: 7px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 13px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-status {
+    order: 1;
+    display: grid;
+    grid-template-columns: minmax(112px, .7fr) minmax(0, 1.3fr);
+    grid-template-rows: auto 1fr auto;
+    gap: 9px;
+    min-height: 0;
+    padding: 17px 14px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__eyebrow { grid-column: 1/-1; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial { float: none; margin: 0; grid-column: 1; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial__ring { width: min(100%, 118px); }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metrics { display: flex; grid-column: 2; margin: 0; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__progress { grid-column: 1/-1; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit {
+    position: relative;
+    inset: auto;
+    order: 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    height: auto;
+    margin: 0;
+    min-height: 0;
+    gap: 10px;
+    z-index: 4;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__link {
+    min-height: 86px;
+    padding: 10px 8px;
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__symbol { width: 41px; height: 41px; flex: 0 0 41px; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .dashboard-grid { grid-template-columns: 1fr; gap: 17px; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .dashboard-grid > .project-panel { margin-top: 0; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .velvet-hero-amulets,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-studio-art { display: none; }
+}
+@media (max-width: 365px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status { display: block; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial { float: left; margin-right: 12px; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metrics { display: block; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__progress { clear: both; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__label { white-space: normal; overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__link,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .dashboard-grid > :is(.action-panel, .project-panel) {
+    background: #101328;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+@media (forced-colors: active), (prefers-contrast: more) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__link,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .dashboard-grid > :is(.action-panel, .project-panel) {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial__ring { background: CanvasText; }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial__core { background: Canvas; color: CanvasText; }
+}
+
+
+/* The owner's approved reference also features a slim dark Atelier
+ * navigation rail, with the original logo and a glowing current-room marker. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) .nhs-context-bar {
+  border-bottom: 1px solid rgba(236, 153, 211, .31);
+  background: linear-gradient(98deg, rgba(6, 6, 17, .76), rgba(16, 12, 28, .57) 48%, rgba(6, 6, 19, .79));
+  box-shadow: 0 5px 27px rgba(0, 0, 0, .22);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) .nhs-context-bar .nhs-room-identity {
+  padding: 9px 17px;
+  border: 1px solid rgba(255, 136, 204, .65);
+  border-radius: 999px;
+  color: #fff2fb;
+  background: linear-gradient(100deg, rgba(70, 19, 63, .31), rgba(21, 11, 47, .35));
+  box-shadow: inset 0 0 10px rgba(254, 106, 194, .16), 0 0 20px rgba(246, 56, 150, .19);
+  text-shadow: 0 0 15px rgba(255, 123, 197, .30);
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) .nhs-room-brand > span {
+  font-family: var(--nhs-font-display, Georgia, serif);
+  font-weight: 400;
+}
+@media (max-width: 740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) .nhs-context-bar {
+    padding-inline: 13px;
+  }
+}
+
+
+/* PATCH: real screenshot review found the legacy Hub's relative positioning
+ * was anchoring the icon strip inside the Pulse area, not to the hero's foot.
+ * It also let floating status metrics force a 372px layout on a 320px phone.
+ * These are actual layout fixes, not relaxed assertions or hidden overflow.
+ */
+@media (min-width: 741px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview > .living-studio {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+    isolation: auto;
+  }
+
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-status {
+    position: absolute;
+    inset: clamp(25px, 2.6vw, 43px) clamp(23px, 3.8vw, 60px) auto auto;
+    width: min(400px, calc(50% - 15px));
+    max-width: 100%;
+    pointer-events: auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-orbit {
+    position: absolute;
+    inset: auto clamp(23px, 3.8vw, 60px) 19px clamp(23px, 3.8vw, 60px);
+    width: auto;
+    height: auto;
+    margin: 0;
+    pointer-events: auto;
+  }
+}
+@media (min-width: 741px) and (max-width: 1020px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-status {
+    width: min(310px, calc(50% - 8px));
+  }
+}
+@media (max-width: 740px) {
+  /* Normal flow is nonnegotiable on phones: title, Pulse, then 2x2 actions. */
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview > .living-studio {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    max-width: 100%;
+    flex: 0 1 auto;
+    margin: 0;
+    padding: 0;
+    gap: 16px;
+    isolation: auto;
+    pointer-events: auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-status {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 16px;
+    gap: 14px;
+    float: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__eyebrow {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial {
+    grid-column: 1;
+    grid-row: auto;
+    float: none;
+    justify-self: center;
+    width: 100%;
+    max-width: 135px;
+    margin: 0 auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial__ring {
+    width: min(100%, 128px);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metrics {
+    grid-column: 1;
+    grid-row: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    float: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metric {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 0;
+    width: 100%;
+    min-height: 65px;
+    margin: 0;
+    padding: 8px 9px;
+    border: 1px solid rgba(240, 177, 224, .23);
+    border-radius: 11px;
+    background: rgba(12, 10, 29, .14);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metric dt {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metric dd {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    width: 100%;
+    margin: 3px 0 0;
+    padding: 0;
+    text-align: left;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metric dd strong {
+    align-self: flex-start;
+    font-size: 20px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metric dd span {
+    display: block;
+    max-width: 100%;
+    text-align: left;
+    font-size: 9px;
+    overflow-wrap: anywhere;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__progress {
+    grid-column: 1;
+    grid-row: auto;
+    clear: both;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-orbit {
+    position: static;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    gap: 10px;
+    pointer-events: auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nocturne-overview .living-orbit__link {
+    position: static;
+    transform: none !important;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    min-height: 88px;
+    padding: 10px 6px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-orbit__label {
+    white-space: normal;
+    font-size: 11px;
+    line-height: 1.3;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 365px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-pulse-dial {
+    float: none;
+    margin: 0 auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .living-status__progress {
+    clear: both;
+    grid-column: 1;
+  }
+}
+
+
+/* ROOT-CAUSE FIX, verified by live Chromium computed-layout audit:
+ * 320px used to render header grid columns [0px,310px], because the
+ * high-specificity desktop stage beat the narrow flex rule. On desktop,
+ * grid placement constrained the absolute Hub to the right grid CELL,
+ * turning a 400px Pulse panel into a ~212px column with clipped metrics.
+ *
+ * Match the owner's approved visual hierarchy with BOTH grid scope and
+ * responsive layout anchored at the same selector specificity.
+ * No overflow clipping or masking is used to conceal broken layout. */
+@media (min-width: 741px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview > .living-studio {
+    position: absolute;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    inset: 0;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    display: block;
+    padding: 0;
+    margin: 0;
+    isolation: auto;
+    pointer-events: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .living-status {
+    position: absolute;
+    grid-column: auto;
+    grid-row: auto;
+    inset: clamp(25px,2.6vw,43px) clamp(23px,3.8vw,60px) auto auto;
+    width: min(400px, calc(50% - 15px));
+    max-width: 100%;
+    min-width: 0;
+    pointer-events: auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .living-orbit {
+    position: absolute;
+    grid-column: auto;
+    grid-row: auto;
+    inset: auto clamp(23px,3.8vw,60px) 19px clamp(23px,3.8vw,60px);
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    pointer-events: auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .living-status__metrics {
+    width: 100%;
+    min-width: 0;
+  }
+}
+@media (min-width: 741px) and (max-width: 1020px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .living-status {
+    width: min(310px, calc(50% - 8px));
+  }
+}
+@media (max-width: 740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+    grid-template-rows: none;
+    align-items: stretch;
+    gap: 17px;
+    min-width: 0;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    padding: 24px 18px 22px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .nocturne-welcome-copy {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+    grid-column: auto;
+    grid-row: auto;
+    align-self: stretch;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .nocturne-welcome-copy h2 {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: clamp(34px,8.6vw,57px);
+    line-height: 1.1;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview > .living-studio {
+    position: relative;
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    grid-column: auto;
+    grid-row: auto;
+    align-self: stretch;
+    inset: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    gap: 16px;
+    pointer-events: auto;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .living-status {
+    position: relative;
+    inset: auto;
+    align-self: stretch;
+    grid-column: auto;
+    grid-row: auto;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    float: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .living-orbit {
+    position: static;
+    grid-column: auto;
+    grid-row: auto;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    height: auto;
+    padding: 0;
+  }
+}
+
+
+/* Desktop final correction: an absolutely positioned CSS grid child with
+ * explicit grid-column/grid-row gets positioned relative to its assigned
+ * GRID AREA, not the whole hero. The diagnostic screenshot exposed the
+ * shortcuts squeezed into that grid area, over the title and Pulse.
+ * Clear the grid placement and use auto inset stretching so the Hub's
+ * containing block is the entire ornamental hero instead. */
+@media (min-width: 741px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview > .living-studio {
+    position: absolute;
+    grid-column: auto;
+    grid-row: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    inset: 0;
+    width: auto;
+    height: auto;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    isolation: auto;
+    pointer-events: none;
+  }
+}
+
+/* Editorial mobile refinement after screenshot review, November 18.
+ * The background is already fixed on the app shell: no photo is duplicated
+ * inside the hero; favor open composition over stacked rectangles. */
+@media (max-width: 740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+    gap: 12px;
+    padding: 18px 12px 16px;
+    margin-bottom: 13px;
+    border: 0;
+    border-top: 1px solid rgba(232, 152, 218, .27);
+    border-radius: 0;
+    background-image: linear-gradient(105deg, rgba(5, 5, 17, .55), rgba(5, 7, 20, .12) 67%, rgba(5, 6, 20, .35));
+    background-color: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .nocturne-welcome-copy {
+    margin: 0;
+    padding-inline: 4px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-welcome-copy > .eyebrow {
+    font-size: 9px;
+    letter-spacing: .16em;
+    max-width: 33ch;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .nocturne-welcome-copy h2 {
+    max-width: 18ch;
+    margin: 8px 0 6px;
+    font-size: clamp(31px, 8.1vw, 45px);
+    line-height: 1.06;
+    letter-spacing: -.014em;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-welcome-copy .page-description {
+    font-size: 12px;
+    margin: 8px 0 11px;
+    line-height: 1.4;
+    max-width: 35ch;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nhs-command-welcome-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nhs-command-entry {
+    min-height: 40px;
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-capture {
+    min-height: 39px;
+    padding: 7px 9px;
+    font-size: 10px;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    text-decoration: underline;
+    text-decoration-color: rgba(229, 191, 236, .55);
+    text-underline-offset: 4px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview > .living-studio {
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+  }
+  /* One compact frosted instrument, not another square card within the hero. */
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview .living-status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(105px, 124px);
+    grid-template-rows: auto auto auto;
+    gap: 8px 12px;
+    align-items: center;
+    padding: 12px 13px 13px;
+    border-color: rgba(238, 179, 224, .30);
+    border-radius: 16px 6px 16px 6px;
+    background: linear-gradient(130deg, rgba(25, 17, 44, .18), rgba(9, 10, 31, .16));
+    -webkit-backdrop-filter: blur(28px) saturate(145%);
+    backdrop-filter: blur(28px) saturate(145%);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status__eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    font-size: clamp(18px, 5.4vw, 24px);
+    line-height: 1.12;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nhs-command-pulse-dial {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    justify-self: end;
+    margin: 0;
+    width: min(100%, 116px);
+    max-width: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nhs-command-pulse-dial__ring {
+    width: 100%;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status__metrics {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 10px;
+    margin: 0;
+    padding: 4px 0 0;
+    border: 0;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status__metric {
+    min-height: 54px;
+    padding: 6px 0;
+    border: 0;
+    border-bottom: 1px solid rgba(224, 189, 235, .19);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status__metric dd strong {
+    font-size: 19px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status__progress {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    margin: 1px 0 0;
+    padding-top: 6px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-orbit__link {
+    min-height: 70px;
+    padding: 8px 5px;
+    gap: 5px;
+    border-color: rgba(222, 172, 230, .28);
+    background: linear-gradient(120deg, rgba(22, 17, 40, .13), rgba(9, 12, 29, .10));
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-orbit__symbol {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border: 0;
+    background: transparent;
+  }
+}
+@media (max-width: 365px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 108px;
+    padding: 11px 11px 12px;
+    gap: 6px 9px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status__metrics {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 8px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nhs-command-pulse-dial {
+    float: none;
+    grid-column: 2;
+    grid-row: 1 / 3;
+    margin: 0;
+    max-width: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .living-status__progress {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+}

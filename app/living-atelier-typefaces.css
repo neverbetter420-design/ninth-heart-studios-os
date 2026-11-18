@@ -1,0 +1,109 @@
+/*
+ * NHS OS | The Ninth Atelier typography preview
+ *
+ * Owner-supplied local font metadata:
+ * - "SingleGhost regular" (PostScript: SingleGhostregular) for HERO/PAGE HEADERS
+ * - "Anger Styles" (PostScript: AngerStylesRegular) for SECTION/CARD TITLES
+ * - DM Sans remains body, form, navigation and data text.
+ *
+ * LOCAL-ONLY PREVIEW. No font files are bundled, fetched or redistributed.
+ * Deployment as self-hosted @font-face requires separate, confirmed
+ * commercial/web embedding permissions for BOTH typefaces.
+ */
+@font-face {
+  font-family: "NHS Single Ghost Local";
+  src: local("SingleGhost regular"), local("SingleGhostregular");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "NHS Anger Styles Local";
+  src: local("Anger Styles"), local("AngerStylesRegular");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+.app-shell.nhs-open-plan:has(.nhs-room-identity) {
+  --nhs-font-display: "NHS Single Ghost Local", var(--font-cinzel), Georgia, serif;
+  --nhs-font-title: "NHS Anger Styles Local", var(--font-cinzel), Georgia, serif;
+  --nhs-font-reading: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+}
+
+/* Large identity and page/room headlines: Single Ghost. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity)
+:is(.brand-lockup h1, .nocturne-overview h2, .nocturne-welcome-copy h2,
+    .page-header h1, .page-header h2, .management-heading h1, .management-heading h2,
+    .lead-editorial-heading h2, .nhs-color-hero h2, .atelier-hero h2,
+    .atelier-collection-heading h2, .muse-hero h2, .muse-hero h3) {
+  font-family: var(--nhs-font-display) !important;
+  font-style: normal;
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1.16;
+  letter-spacing: .015em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* The smaller feature, instrument and collection titles: Anger Styles.
+ * Keep numbers, controls, statuses, eyebrow labels and paragraphs readable. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(.panel-heading h3, .panel-heading h4,
+    .management-section-heading h3, .management-section-heading h4,
+    .studio-row-heading h3, .studio-row-heading h4,
+    .atelier-section-heading h3, .atelier-section-heading h4,
+    .atelier-resource-group-heading h3, .atelier-resource-group-heading h4,
+    .studio-focus h3, .studio-compose h3, .studio-saved h3,
+    .nocturne-activity h3, .nocturne-insights h3,
+    .action-panel h3, .project-panel h3,
+    .atelier-feature-project h3, .nhs-atelier-compass h3,
+    .atelier-destination strong, .module-card h3, .module-hero h3) {
+  font-family: var(--nhs-font-title) !important;
+  font-style: normal;
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1.24;
+  letter-spacing: .005em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* Never apply either decorative font to editable fields, real records,
+ * long explanations or metric values. */
+.app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+:is(input, textarea, select, button, label, .metric-card strong,
+    .paperwork-row, .lead-inbox-row, .management-client-row,
+    .atelier-resource-row, .atelier-project-row,
+    .nhs-message-full, .studio-draft-body) {
+  font-family: var(--nhs-font-reading);
+}
+
+/* On compact screens, avoid enormous title glyphs and clipping. */
+@media (max-width: 740px) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity)
+  :is(.nocturne-overview h2, .nocturne-welcome-copy h2, .page-header h2,
+      .management-heading h2, .nhs-color-hero h2, .atelier-hero h2) {
+    font-size: clamp(28px, 7.2vw, 43px);
+    line-height: 1.2;
+    letter-spacing: .008em;
+  }
+}
+@media (max-width: 390px) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) #workspace-content
+  :is(.panel-heading h3, .studio-focus h3, .management-section-heading h3,
+      .atelier-feature-project h3, .nhs-atelier-compass h3) {
+    font-size: clamp(17px, 5vw, 24px);
+  }
+}
+
+/* Accessibility: preserve controls, spacing and system fonts in forced colors.
+ * Local display-font usage is optional for a given browser, never required
+ * to understand the product. */
+@media (forced-colors: active) {
+  .app-shell.nhs-open-plan:has(.nhs-room-identity) {
+    --nhs-font-display: Georgia, serif;
+    --nhs-font-title: Georgia, serif;
+  }
+}

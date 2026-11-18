@@ -189,3 +189,63 @@
     border-color: currentColor;
   }
 }
+
+
+/* FIXED OBSERVATORY ROOM CANVAS · November 17 owner direction.
+ * The approved Observatory artwork remains a stationary full-viewport room
+ * behind scrolling Command Center widgets. No parallax, duplicated card
+ * wallpaper, interaction interception, or background stretching.
+ * The complete original frame is always visible; unused viewport space\n * remains midnight black rather than zooming/cropping its ornate edges.\n * --nhs-at2-room-photo is opt-in only after verified binary import.
+ */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell {
+  position:relative;
+  isolation:isolate;
+  min-height:100dvh;
+  background-color:#050512;
+  background-image:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100vh;
+  height:100lvh;
+  z-index:0;
+  pointer-events:none;
+  background-color:#050512;
+  background-image:
+    linear-gradient(103deg,rgba(3,4,13,.88),rgba(3,4,13,.65) 40%,rgba(3,4,13,.48) 80%,rgba(3,4,13,.76)),
+    var(--nhs-at2-room-photo, var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"))),
+    linear-gradient(135deg,#050512,#131023 55%,#050512);
+  background-position:center,center,center;
+  background-size:100% 100%,contain,100% 100%;
+  background-repeat:no-repeat;
+  background-attachment:scroll;
+  transform:none;
+  animation:none;
+  transition:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell > .nhs-context-bar {
+  position:relative;
+  z-index:40;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell > #workspace-content {
+  position:relative;
+  z-index:1;
+}
+@media(max-width:740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
+    background-position:center,center,center;
+  }
+}
+@media(prefers-contrast:more),(forced-colors:active) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell {
+    background:Canvas;
+    color:CanvasText;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
+    display:none;
+    background-image:none;
+  }
+}

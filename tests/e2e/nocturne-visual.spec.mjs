@@ -19,7 +19,7 @@ async function contrast(locator, backgroundSelector) {
   }, backgroundSelector);
 }
 
-test("Muse NHS decoration flows through the entire scrollable page instead of staying fixed at the top", async ({ page }) => {
+test("Muse NHS room remains fixed behind scrolling content at desktop and phone widths", async ({ page }) => {
   await show(page, "admin", "populated", "muse");
   const main = page.locator(".main-shell");
   await expect(page.locator("#workspace-content .muse-workroom")).toBeVisible();
@@ -28,46 +28,55 @@ test("Muse NHS decoration flows through the entire scrollable page instead of st
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => scrollTo(0, 0));
     const art = await main.evaluate((el) => {
-      const stage = getComputedStyle(el);
       const decoration = getComputedStyle(el, "::before");
-      const rect = el.getBoundingClientRect();
       return {
         artImage: decoration.backgroundImage,
         repeat: decoration.backgroundRepeat,
         attachment: decoration.backgroundAttachment,
         position: decoration.position,
+        positionImage: decoration.backgroundPosition,
         imageSize: decoration.backgroundSize,
         decorationHeight: Number.parseFloat(decoration.height),
-        backdropHeight: rect.height,
-        backdropWidth: rect.width,
-        stageColor: stage.backgroundColor,
+        pointerEvents: decoration.pointerEvents,
+        animation: decoration.animationName,
       };
     });
-    // The actual room photo and the NHS botanical/silver SVGs now scroll
-    // with the whole main-shell. Only the wallpaper layer repeats down-page.
     expect(art.artImage).toContain("data:image/svg+xml");
     expect(art.artImage).toContain("data:image/webp;base64");
-    expect(art.repeat).toBe("no-repeat, no-repeat, repeat-y, no-repeat, no-repeat");
+    // The artwork and both NHS flourishes are one stationary composition.
+    expect(art.repeat).toBe("no-repeat, no-repeat, no-repeat, no-repeat, no-repeat");
     expect(art.attachment).not.toContain("fixed");
-    expect(art.position).toBe("absolute");
-    // Chromium resolves CSS min(... ) auto background sizes to pixel widths.
-    // Only gradients may fill both axes; all three artwork layers must remain
-    // width-constrained with intrinsic, unforced heights.
-    const sizes = art.imageSize.split(",").map((part) => part.trim());
+    expect(art.position).toBe("fixed");
+    expect(art.pointerEvents).toBe("none");
+    expect(art.animation).toBe("none");
+    expect(Math.abs(art.decorationHeight - 900)).toBeLessThanOrEqual(2);
+    const sizes = art.imageSize.split(",").map(part => part.trim());
     expect(sizes).toHaveLength(5);
     expect(sizes[0]).toBe("100% 100%");
     expect(sizes[4]).toBe("100% 100%");
-    for (const size of sizes.slice(1, 4)) {
-      expect(size, "Artwork must not stretch both dimensions").toMatch(/^\d+(?:\.\d+)?px(?: auto)?$/);
-    }
-    expect(art.backdropHeight).toBeGreaterThan(900);
-    expect(Math.abs(art.decorationHeight - art.backdropHeight)).toBeLessThanOrEqual(2);
-    expect(art.backdropWidth).toBeGreaterThanOrEqual(width);
+    for (const size of sizes.slice(1, 3))
+      expect(size, "Decorative ornaments must preserve proportions").toMatch(/^\d+(?:\.\d+)?px(?: auto)?$/);
+    expect(sizes[3]).toBe("contain");
     expect(await page.evaluate(() => document.documentElement.scrollWidth),
       "Muse must not overflow at " + width + "px").toBeLessThanOrEqual(width);
+
     await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
-    expect(await main.evaluate(el => getComputedStyle(el, "::before").backgroundRepeat))
-      .toContain("repeat-y");
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    const after = await main.evaluate(el => {
+      const layer = getComputedStyle(el, "::before");
+      return {
+        artImage: layer.backgroundImage,
+        repeat: layer.backgroundRepeat,
+        attachment: layer.backgroundAttachment,
+        position: layer.position,
+        positionImage: layer.backgroundPosition,
+        imageSize: layer.backgroundSize,
+        decorationHeight: Number.parseFloat(layer.height),
+        pointerEvents: layer.pointerEvents,
+        animation: layer.animationName,
+      };
+    });
+    expect(after, "Room scene must stay stable as content moves").toEqual(art);
   }
 });
 
@@ -749,13 +758,17 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
       await expect(shell).toHaveCount(1);
       const hero = page.locator(heroSelector);
       await expect(hero).toBeVisible();
-      const heroImage = await hero.evaluate((el,isClient)=>isClient ? getComputedStyle(document.querySelector(".main-shell"),"::before").backgroundImage : getComputedStyle(el).backgroundImage,role==="client");
-      if (role === "admin") expect(heroImage, role + " welcome artwork at " + width).toContain("data:image/webp;base64");
-      else expect(heroImage, "Client arrival keeps photographic atmosphere").toContain("data:image/webp;base64");
+      const heroImage = await hero.evaluate(() => getComputedStyle(document.querySelector(".main-shell"), "::before").backgroundImage);
+      if (role === "admin") {
+        expect(heroImage, "Observatory must not restore rejected photography at " + width).not.toContain("data:image/");
+        expect(heroImage, "Observatory interim atmosphere must remain visible").toContain("radial-gradient");
+      } else {
+        expect(heroImage, "Client arrival keeps photographic atmosphere").toContain("data:image/webp;base64");
+      }
       // The percent-encoded SVG includes literal parentheses from gradient functions.
       // Capture the complete quoted CSS URL; ending at the first ")" corrupts the image.
       const decoded = await hero.evaluate(async (el,isClient) => {
-        const source = isClient ? getComputedStyle(document.querySelector(".main-shell"),"::before").backgroundImage : getComputedStyle(el).backgroundImage;
+        const source = getComputedStyle(document.querySelector(".main-shell"), "::before").backgroundImage;
         const match = source.match(/url\(["'](data:image\/(?:svg\+xml|webp)[^"']+)["']\)/);
         if (!match) return false;
         const artwork = new Image();
@@ -763,7 +776,9 @@ test("Decorative welcome artwork stays in the entrance, not over working surface
         await artwork.decode();
         return artwork.naturalWidth > 0 && artwork.naturalHeight > 0;
       },role==="client");
-      expect(decoded, role + " entrance artwork").toBe(true);
+      // Only the client entrance currently has approved image bytes.
+      // Observatory intentionally has no photo URL until source signoff.
+      expect(decoded, role + " entrance image state").toBe(role === "client");
       await expect(page.locator(".nhs-room-brand img")).toHaveJSProperty("naturalWidth", 160);
       const work = page.locator(workSelector);
       await expect(work).toBeVisible();
@@ -840,22 +855,26 @@ test("The shared atmosphere carries across every admin and client destination", 
       await show(page, role, "populated", view);
       await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", "dark");
       const room = await page.locator(".nhs-room-identity").getAttribute("data-room");
-      const stageBackground = await page.locator(".main-shell").evaluate((el,currentRoom) =>
-        currentRoom === "observatory"
-          ? getComputedStyle(el).backgroundImage
-          : getComputedStyle(el,"::before").backgroundImage,room);
-      // Observatory contains both the photographic Command Center homepage and
-      // subordinate Settings/Automations views with an intentionally quiet ink stage.
-      if (room === "observatory" && view === "home") {
-        expect(stageBackground,"Command Center must retain its original photograph").toContain("webp");
-      } else if (room !== "observatory") {
-        expect(stageBackground,`${view} must retain its cinematic NHS room photograph`).toContain("data:image/webp;base64");
-        await expect(page.locator(".main-shell")).toHaveCSS("position","relative");
-        // Muse uses owner-requested full-page scrolling wallpaper; all other
-        // rooms retain their established fixed-photography presentation.
-        expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position))
-          .toBe(view === "muse" ? "absolute" : "fixed");
+      // Every room now uses one viewport-fixed, passive photo layer,
+      // including the Observatory. No room photograph belongs to the
+      // scrolling main-shell background anymore.
+      const stageBackground = await page.locator(".main-shell").evaluate(el =>
+        getComputedStyle(el, "::before").backgroundImage);
+      if (role === "admin" && room === "observatory") {
+        expect(stageBackground, "Observatory must exclude retired photo").not.toContain("data:image/");
+        expect(stageBackground).toContain("radial-gradient");
+      } else {
+        expect(stageBackground,`${view} must retain its original NHS room photograph`).toContain("data:image/webp;base64");
       }
+      await expect(page.locator(".main-shell")).toHaveCSS("position", "relative");
+      expect(await page.locator(".main-shell").evaluate(el => {
+        const layer = getComputedStyle(el, "::before");
+        return { position: layer.position, pointerEvents: layer.pointerEvents, repeat: layer.backgroundRepeat };
+      }), `${view} must have a stationary, non-interactive background`).toMatchObject({
+        position: "fixed", pointerEvents: "none",
+      });
+      expect(await page.locator(".main-shell").evaluate(el =>
+        getComputedStyle(el, "::before").backgroundRepeat), `${view} must not tile its photograph`).not.toContain("repeat-y");
       if (role === "admin") {
         expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundColor.match(/\d+/g).slice(0,3).map(Number).every(v=>v<32))).toBe(true);
       }
@@ -902,7 +921,7 @@ test("NHS relationship Atelier shares the dark editorial work canvas", async ({ 
   }
 });
 
-test("Midnight Observatory uses NHS black glass and rose-accented welcome", async ({ page }) => {
+test("Midnight Observatory uses a borderless scene and readable NHS glass instruments", async ({ page }) => {
   await show(page, "admin", "populated", "home");
   const hero = page.locator(".nocturne-command-center .nocturne-overview");
   const work = page.locator(".nocturne-command-center .nhs-command-surface");
@@ -910,19 +929,33 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   await expect(work).toBeVisible();
   // The approved cinematic layout is open and atmospheric, not a photo
   // inside one rectangle above another giant opaque dashboard box.
-  const cinematicArtwork = await hero.evaluate(el=>getComputedStyle(el).backgroundImage);
-  expect(cinematicArtwork.includes("data:image/webp;base64") || cinematicArtwork.includes("nhs-dark-rose-photographic.webp")).toBe(true);
+  const cinematicArtwork = await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
+  // The approved border artwork has not been imported yet. The temporary
+  // atmospheric fallback must never be the rejected Observatory photograph.
+  expect(cinematicArtwork).not.toContain("data:image/webp;base64");
+  expect(cinematicArtwork).toContain("radial-gradient");
+  // The approved two-chapter design deliberately removes the second frame.
   await expect(hero).toHaveCSS("border-top-width", "0px");
+  await expect(hero).toHaveCSS("background-image", "none");
+  const copyScrim = await hero.locator(".nocturne-welcome-copy").evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(copyScrim).toContain("linear-gradient");
   await expect(work).toHaveCSS("border-top-width", "0px");
-  // The approved Living Dashboard replaces three framed cards with unboxed,
-  // real-data readouts and an accessible circular navigation hub.
-  const studio = work.locator(".living-studio");
+  // Reference composition: hero-integrated real-data Studio Pulse and
+  // four icon-based functional destinations, not the old 620px orbital stage.
+  const studio = hero.locator(".living-studio");
   const instruments = studio.locator(".living-status__metric");
   const hub = studio.getByRole("navigation", { name: "Studio command hub" });
   await expect(studio).toBeVisible();
-  await expect(instruments).toHaveCount(3);
-  await expect(instruments.first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(instruments).toHaveCount(4);
+  const instrumentAlpha = await instruments.first().evaluate(el => {
+    const value = getComputedStyle(el).backgroundColor;
+    return value === "rgba(0, 0, 0, 0)" ? 0 : Number(value.match(/rgba?\([^)]*,\s*([\d.]+)\)/)?.[1] ?? 1);
+  });
+  expect(instrumentAlpha, "Studio Pulse data remains readable over very transparent glass").toBeLessThanOrEqual(.25);
   await expect(studio).toContainText("Active Leads");
+  await expect(studio.locator(".nhs-command-pulse-dial__core strong")).toHaveText("45%");
+  await expect(studio.locator(".living-status__eyebrow")).toHaveText("Studio Pulse");
+  await expect(hero.locator(".nocturne-welcome-copy h2")).toHaveText("The Command Center");
   await expect(hub.getByRole("link")).toHaveCount(4);
   for (const [label, href] of [["Leads", "/leads"], ["Projects", "/projects"], ["Clients", "/clients"], ["Opportunities", "/opportunities"]]) {
     await expect(hub.getByRole("link", { name: label })).toHaveAttribute("href", href);
@@ -1002,9 +1035,16 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       await expect(roomIdentity).toHaveAttribute("data-room",room);
       if (width > 430) await expect(roomIdentity).toBeVisible();
       expect(await page.locator(".app-shell").evaluate(el=>getComputedStyle(el).getPropertyValue("--room-accent").trim())).toBe(accent);
-      const back=await page.locator(".main-shell").evaluate((el,isObservatory)=>isObservatory?getComputedStyle(el).backgroundImage:getComputedStyle(el,"::before").backgroundImage,room==="observatory");
+      const back=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
+      const position=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position);
+      expect(position,room+" must keep backdrop stationary").toBe("fixed");
       expect(back,room+" "+size+" background").toContain("gradient");
-      if (role === "admin") expect(back, room+" should keep the same photographic Dark Rose brand").toContain("webp");
+      if (room === "observatory") {
+        expect(back, "Observatory awaits exact approved art, not retired photography").not.toContain("webp");
+        expect(back).toContain("radial-gradient");
+      } else if (role === "admin") {
+        expect(back, room + " retains its existing distinct atmosphere").toContain("webp");
+      }
       if(size==="desktop")roomAccents.add(accent);
       const screenWidth=await page.evaluate(()=>document.documentElement.scrollWidth);
       expect(screenWidth,room+" "+size+" horizontal overflow").toBeLessThanOrEqual(width);
@@ -1122,15 +1162,14 @@ test("Living Dashboard remains usable in empty, populated, narrow and reduced-mo
     }
     for (const width of [1440, 1024, 760, 430, 390, 375, 320]) {
       await page.setViewportSize({ width, height: 900 });
-      // A real layout change: the orbital navigation is the large left-hand
-      // centerpiece, with the editorial introduction and data to its right.
+      // Reference-locked layout: headline left, real Studio Pulse right,
+      // luminous room-action strip underneath both on desktop.
       if (width >= 1024) {
         const orbitBox = await studio.locator(".living-orbit").boundingBox();
-        const introBox = await studio.locator(".living-studio__intro").boundingBox();
+        const heroCopyBox = await page.locator(".nocturne-welcome-copy").boundingBox();
         const statusBox = await studio.locator(".living-status").boundingBox();
-        expect(orbitBox.x + orbitBox.width).toBeLessThan(introBox.x);
-        expect(statusBox.x).toBeGreaterThan(orbitBox.x + orbitBox.width);
-        expect(statusBox.y).toBeGreaterThan(introBox.y);
+        expect(statusBox.x).toBeGreaterThan(heroCopyBox.x + 100);
+        expect(orbitBox.y).toBeGreaterThan(statusBox.y + 70);
         expect(orbitBox.width).toBeGreaterThan(350);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth), `Living Dashboard ${scenario} overflows at ${width}px`).toBeLessThanOrEqual(width);
@@ -1213,4 +1252,117 @@ test("Each non-Observatory room has a different self-hosted photographic backdro
    }
    expect(artworks.size,"Each room has its own scene, not a repeated crop").toBe(6);
  }
+});
+
+// The fixed NHS artwork must remain visible through frosted glass, not be
+// replaced by opaque dashboard boxes or duplicated inside their surfaces.
+test("Atelier crystal glass stays highly translucent and blurred in all three pilot rooms", async ({ page }) => {
+  const samples = [
+    ["admin", "home", ".nocturne-command-center .action-panel"],
+    ["admin", "muse", ".muse-workroom .studio-focus"],
+    ["client", "home", ".atelier-home .atelier-feature-project"],
+  ];
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 850 });
+    for (const [role, view, selector] of samples) {
+      await show(page, role, "populated", view);
+      const glass = page.locator(selector).first();
+      await expect(glass).toBeVisible();
+      const styles = await glass.evaluate(el => {
+        const css = getComputedStyle(el);
+        const bg = getComputedStyle(el.closest(".main-shell"), "::before");
+        return {
+          blur: css.backdropFilter || css.webkitBackdropFilter,
+          background: css.backgroundImage,
+          backgroundColor: css.backgroundColor,
+          fixedBackgroundPosition: bg.position,
+          fixedBackgroundSize: bg.backgroundSize,
+        };
+      });
+      expect(styles.blur, selector + " must actually frost what is behind it").toMatch(/blur\(28px\)/);
+      expect(styles.background, selector + " should have lightly tinted glass").toContain("gradient");
+      expect(styles.background, selector + " should not duplicate the room photo").not.toContain("data:image/webp");
+      expect(styles.fixedBackgroundPosition, selector + " must keep its room in place").toBe("fixed");
+      expect(styles.fixedBackgroundSize, selector + " must preserve all artwork edging").toContain("contain");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth),
+        selector + " must fit at " + width + "px").toBeLessThanOrEqual(width);
+    }
+  }
+});
+
+
+test("NHS typography maps Single Ghost headers and Anger Styles titles without changing body text", async ({ page }) => {
+  const scenes = [
+    ["admin", "home", ".nocturne-overview h2", ".nocturne-command-center .action-panel h3"],
+    ["admin", "muse", ".muse-workroom > .management-heading h2", ".muse-workroom .studio-focus h3"],
+    ["client", "home", ".atelier-home .nhs-color-hero h2", ".atelier-home .atelier-feature-project h3"],
+  ];
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [role, view, headerSelector, titleSelector] of scenes) {
+      await show(page, role, "populated", view);
+      const header = page.locator(headerSelector).first();
+      const title = page.locator(titleSelector).first();
+      await expect(header).toBeVisible();
+      await expect(title).toBeVisible();
+      const headerFamily = await header.evaluate(el => getComputedStyle(el).fontFamily);
+      const titleFamily = await title.evaluate(el => getComputedStyle(el).fontFamily);
+      expect(headerFamily, role + "/" + view + " display header").toContain("NHS Single Ghost Local");
+      expect(titleFamily, role + "/" + view + " section title").toContain("NHS Anger Styles Local");
+      // This is a CSS family-mapping assertion; local font installation
+      // and commercial web-embedding license are separate prerequisites.
+      const bodyFamily = await page.locator("body").evaluate(el => getComputedStyle(el).fontFamily);
+      expect(bodyFamily).toContain("DM Sans");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth),
+        "Typography must not overflow at " + width + "px").toBeLessThanOrEqual(width);
+    }
+  }
+});
+
+
+test("Verified NHS AT2 room artwork stays fixed, full-frame and separate per room", async ({ page }) => {
+  test.setTimeout(180000);
+  const cases = [
+    // Observatory is covered by the two-chapter suite instead: its old
+    // imported image is intentionally not the active background.
+    ["admin", "muse", "velvet", "--nhs-at2-room-photo"],
+    ["admin", "pipeline", "artist", "--nhs-cinematic-room-photo"],
+    ["admin", "scanner", "electric", "--nhs-cinematic-room-photo"],
+    ["client", "home", "private", "--nhs-cinematic-room-photo"],
+  ];
+  for (const width of [1440, 740, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const seen = new Set();
+    for (const [role, view, room, property] of cases) {
+      await show(page, role, "populated", view);
+      await expect(page.locator(".nhs-room-identity")).toHaveAttribute("data-room", room);
+      const art = await page.locator(".app-shell").evaluate((el, prop) =>
+        getComputedStyle(el).getPropertyValue(prop).trim(), property);
+      expect(art, room + " has the imported SHA-pinned WebP").toContain("data:image/webp;base64,");
+      seen.add(art);
+      const shell = page.locator(".main-shell");
+      const before = await shell.evaluate(el => {
+        const s = getComputedStyle(el, "::before");
+        return {
+          position: s.position,
+          repeat: s.backgroundRepeat,
+          size: s.backgroundSize,
+          image: s.backgroundImage,
+          pointerEvents: s.pointerEvents,
+        };
+      });
+      expect(before.position, room + " photo remains pinned").toBe("fixed");
+      expect(before.pointerEvents, room + " photo does not block controls").toBe("none");
+      expect(before.repeat, room + " must not tile").not.toContain("repeat-y");
+      expect(before.size.split(",").map(x => x.trim()),
+        room + " must fit the entire image without cutting borders").toContain("contain");
+      expect(before.image, room + " uses imported image").toContain("data:image/webp;base64,");
+      await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+      const after = await shell.evaluate(el => getComputedStyle(el, "::before").backgroundImage);
+      expect(after, room + " art must remain stable while content scrolls").toBe(before.image);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth),
+        room + " must not overflow at " + width + "px").toBeLessThanOrEqual(width);
+    }
+    expect(seen.size, "Every artwork-backed room uses a distinct imported image").toBe(cases.length);
+  }
 });

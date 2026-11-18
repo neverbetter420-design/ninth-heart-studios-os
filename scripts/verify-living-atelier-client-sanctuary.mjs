@@ -26,19 +26,24 @@ assert.doesNotMatch(css, /nhs-theme-admin|https?:\/\/|@import|position:\s*fixed/
 assert.ok(css.includes('--nhs-cinematic-room-photo: url("/visuals/nhs-living-atelier-client-sanctuary.webp")'));
 for (const marker of [
   "atelier-feature-project", "nhs-atelier-compass", "atelier-destination-grid",
-  "atelier-hero-copy", "background-position:center,left center,center",
+  "atelier-hero-copy", "background-position:center,center,center",
   "min-height:44px", "focus-visible", "max-width:740px",
   "prefers-reduced-motion:reduce", "prefers-reduced-transparency:reduce",
   "prefers-contrast:more", "forced-colors:active", "background-image:none !important"
 ]) assert.ok(css.includes(marker), "Missing design/accessibility guard: " + marker);
 
 const imports = layout.match(/import "\.\/[^"]+\.css";/g) ?? [];
-assert.deepEqual(imports.slice(-4), [
+assert.deepEqual(imports.slice(-9), [
   'import "./visual-first.css";',
   'import "./living-atelier-pulse-dock.css";',
   'import "./living-atelier-client-sanctuary.css";',
   'import "./living-atelier-muse-chamber.css";',
-], "Client Sanctuary CSS must stay after the established art and Pulse layers, with Muse last");
+  'import "./living-atelier-crystal-glass.css";',
+  'import "./living-atelier-typefaces.css";',
+  'import "./living-atelier-artwork-active.css";',
+  'import "./nhs-command-reference-stage.css";',
+  'import "./nhs-command-chapters.css";',
+], "Client Sanctuary CSS remains isolated; reference stage targets Admin Observatory only");
 
 assert.match(home, /await requireUser\(\)/);
 assert.match(home, /profile\.role !== "client"\) redirect\("\/"\)/);

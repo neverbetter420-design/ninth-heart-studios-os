@@ -21,8 +21,8 @@
     linear-gradient(102deg,rgba(5,8,21,.38),rgba(5,8,21,.58) 37%,rgba(5,8,21,.90) 63%,rgba(5,8,21,.95)),
     var(--nhs-cinematic-room-photo),
     linear-gradient(140deg,#050814,#0b1328 60%,#050814);
-  background-position:center,left center,center;
-  background-size:100% 100%,cover,100% 100%;
+  background-position:center,center,center;
+  background-size:100% 100%,contain,100% 100%;
   background-repeat:no-repeat;
 }
 .app-shell.nhs-theme-client.nhs-open-plan #workspace-content .atelier-home.nhs-color-studio {
@@ -233,8 +233,8 @@
       linear-gradient(180deg,rgba(5,8,21,.43),rgba(5,8,21,.78) 39%,rgba(5,8,21,.95) 73%),
       var(--nhs-cinematic-room-photo),
       linear-gradient(140deg,#050814,#10172b);
-    background-position:center,left top,center;
-    background-size:100% 100%,auto 88vh,100% 100%;
+    background-position:center,center,center;
+    background-size:100% 100%,contain,100% 100%;
   }
   .app-shell.nhs-theme-client.nhs-open-plan #workspace-content .atelier-home.nhs-color-studio .nhs-color-hero {
     display:flex;

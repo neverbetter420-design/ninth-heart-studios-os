@@ -1,0 +1,105 @@
+{
+  "version": 2,
+  "created": "2026-11-17",
+  "state": "DESIGN REJECTED: Seven retained original WebPs; medical-style pipeline image permanently excluded from draft. No merge or deployment allowed.",
+  "rules": [
+    "Preserve the existing NHS logo and old scene assets",
+    "Only these eight image compositions are in the app pack; reject all other binaries",
+    "Draft visual activation allowed only for local screenshot/QA review; do not deploy before authentic responsive visual approval",
+    "Do not use brand-wordmark images as substitute logos",
+    "No new backend access, billing, scanning, AI, or outreach",
+    "Fit entire artwork frame into each viewport (background-size: contain); never crop decorative edges",
+    "Old eight-image ZIP retired; do not upload or run obsolete importer again",
+    "No visual changes may be presented as approved without matching the approved NHS OS Dashboard Collection reference"
+  ],
+  "assets": [
+    {
+      "id": 1,
+      "file": "nhs-at2-mobile-welcome.webp",
+      "sha256": "be906d35e4a2934fd58b89c89624060ece115e7eb58a1e879c9be33873fee961",
+      "bytes": 217818,
+      "role": "mobile sign-in",
+      "position": "center center",
+      "source": "4E4FDF0A-8102-45BF-9740-E6A7741E17B2.jpeg",
+      "fit": "contain"
+    },
+    {
+      "id": 2,
+      "file": "nhs-at2-command-center.webp",
+      "sha256": "d3695e2c2f671b5590b7ce8dbc42d200ae93befcb11aebd9656cad5c01e0e9b1",
+      "bytes": 162262,
+      "role": "admin command center",
+      "position": "center center",
+      "source": "D674621A-DDF9-414C-84D0-C36326354EA2.jpeg",
+      "fit": "contain"
+    },
+    {
+      "id": 3,
+      "file": "nhs-at2-muse-chamber.webp",
+      "sha256": "0e654e2d7e7494baa7dd48dbdc969080f3809cf91f5bdfc106c355c9a7cbcfee",
+      "bytes": 168356,
+      "role": "muse creative studio",
+      "position": "center center",
+      "source": "374A30D6-6E0C-463C-9C8A-69E5E1866CC9.jpeg",
+      "fit": "contain"
+    },
+    {
+      "id": 5,
+      "file": "nhs-at2-client-sanctuary.webp",
+      "sha256": "cac09c2c3d49fc5e81997ba02e1ce477abfcdb15feea53765309eaa1a9eaac94",
+      "bytes": 123608,
+      "role": "client sanctuary alternate",
+      "position": "center center",
+      "source": "F1EED929-B496-4EE2-972B-8A59C22C749A.jpeg",
+      "fit": "contain"
+    },
+    {
+      "id": 6,
+      "file": "nhs-at2-brand-welcome.webp",
+      "sha256": "0d9fe96beec86b88150a0a59d77eac9fc7ac816f4a78ba27ec3ebb65b69d3371",
+      "bytes": 160642,
+      "role": "branded welcome, not official logo",
+      "position": "center center",
+      "source": "D57FA1BD-97B0-426E-A056-F19FD281FDFE.jpeg",
+      "fit": "contain"
+    },
+    {
+      "id": 7,
+      "file": "nhs-at2-admin-entrance.webp",
+      "sha256": "0793b2e523ace776d58c0bc25d1672c72f8291a4d6ce6bac408cdf9293e8a75b",
+      "bytes": 166126,
+      "role": "admin entrance alternate, not official logo",
+      "position": "center center",
+      "source": "94C6BDC2-3288-421B-BC82-DCB64F361ED9.jpeg",
+      "fit": "contain"
+    },
+    {
+      "id": 8,
+      "file": "nhs-at2-workspace-floral.webp",
+      "sha256": "9e01940ec1e2d614f0c222de9b17d38813e2dd7a13415bdc8cc24f7972b921d9",
+      "bytes": 228300,
+      "role": "leads forms contracts workroom atmosphere",
+      "position": "center center",
+      "source": "A09F91B6-6DF9-4B6A-8C65-C338D58FAE1B.jpeg",
+      "fit": "contain"
+    }
+  ],
+  "fit_policy": "fixed viewport background, 100% image visible with contain, no-repeat and dark letterboxing; foreground scrolls independently",
+  "active_rooms": [
+    "Admin Observatory (visually unapproved)",
+    "Muse Studio (visually unapproved)",
+    "Electric Lead Intelligence (visually unapproved)",
+    "Client Sanctuary home (visually unapproved)"
+  ],
+  "active_auth": [
+    "Branded desktop sign-in",
+    "Portrait mobile sign-in"
+  ],
+  "staged_assets": [
+    "nhs-at2-admin-entrance.webp"
+  ],
+  "excluded_files": [
+    "nhs-at2-project-pipeline.webp"
+  ],
+  "retired_zip_sha256": "79f78243792e92748fb04b28d4e1eac4d33f4158679020eef508c9590d524c51"
+}

@@ -1,0 +1,36 @@
+name: NHS OS narrow-phone overflow diagnostic (draft only)
+
+on:
+  push:
+    branches:
+      - design/nhs-at2-background-handoff-20261117
+    paths:
+      - 'tests/diagnostics/nhs-command-overflow.mjs'
+      - 'app/nhs-command-reference-stage.css'
+      - '.github/workflows/nhs-command-overflow-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  narrow-phone-diagnostic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false @playwright/test@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Diagnose 320px Command Center layout with synthetic fixtures
+        run: node tests/diagnostics/nhs-command-overflow.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nhs-command-narrow-overflow-diagnostic
+          path: design-preview/nhs-command-diagnostic/
+          retention-days: 2
+          if-no-files-found: ignore

@@ -1,0 +1,44 @@
+/*
+ * NHS OS | THE NINTH ATELIER · STAGED ROOM MAP (REVIEW ONLY)
+ * ARCHIVAL MAPPING ONLY: the verified binary import has completed.
+ * The reviewed active version is app/living-atelier-artwork-active.css.
+ * Do not import this archived duplicate or publish it separately.
+ *
+ * The visual contract is: ONE STATIONARY viewport background per room;
+ * every interface pane and form scrolls ABOVE it. Image fit is CONTAIN,\n * centered without zooming or cutting ornamental edges. Never apply artwork
+ * as an individual card background. No parallax, repeated tiling or motion.
+ */
+
+/* 2: Main Admin Observatory; original confirmed Observatory stays as fallback. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) {
+  --nhs-at2-room-photo:url("/visuals/nhs-at2-command-center.webp");
+}
+
+/* 3: Muse: original existing silver/velvet scene stays as fallback. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) {
+  --nhs-at2-room-photo:url("/visuals/nhs-at2-muse-chamber.webp");
+}
+
+/* Pipeline: the medical-themed artwork was rejected and removed. Use the existing Artist's Atelier scene until a faithful replacement is approved. */
+
+/* 8: Electric Lead Intelligence/Scanner; original rose and archive rooms stay distinct. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {
+  --nhs-cinematic-room-photo:url("/visuals/nhs-at2-workspace-floral.webp");
+}
+
+/* 5: Client Sanctuary, on home only, never admin or unrelated client deep pages. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]):has(.atelier-home.nhs-color-studio) {
+  --nhs-cinematic-room-photo:url("/visuals/nhs-at2-client-sanctuary.webp");
+}
+
+/*
+ * Images 1, 6, 7:
+ * - 1 nhs-at2-mobile-welcome.webp -> portrait sign-in after route QA
+ * - 6 nhs-at2-brand-welcome.webp -> branded welcome transition, not logo
+ * - 7 nhs-at2-admin-entrance.webp -> optional admin entrance ceremony
+ * Only after the relevant unauthenticated routes and layouts are inspected.
+ *
+ * This review collection contains exactly eight NHS background images.
+ * Preserve existing client auth, RLS, Supabase roles, original NHS logo and live
+ * dashboard data remain unchanged.
+ */
