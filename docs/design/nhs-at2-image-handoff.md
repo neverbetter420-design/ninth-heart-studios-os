@@ -1,65 +1,49 @@
-# NHS OS | Website-to-app artwork handoff · November 17, 2026
+# NHS OS · The Ninth Atelier | Eight full-frame backgrounds
 
-**Status: REVIEW PREPARATION ONLY. No image binary committed, no CSS activated, no deployment.**
+**Status:** Draft design only. New image binaries not yet imported or activated in the app. No production changes.
 
-This document captures the nine current-chat JPEG uploads, their original byte checksums and optimized WebP derivatives in the downloadable archive `NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip`. The ZIP preview now pins its background to the viewport while the foreground scrolls. The complete derivative SHA-256 and byte-size allowlist is in [nhs-at2-assets.json](./nhs-at2-assets.json).
+## Approved visual rule
+Each room has one stationary viewport-height background; glass panels and app content scroll normally over it. **Every piece of the decorative border must remain in frame**, on desktop and mobile. Use centered `background-size: contain`, `no-repeat`, and an obsidian canvas for any remaining space. Never crop with `cover`, enlarge beyond the viewport, stretch nonproportionally, or repeat the image down the page. On phones, landscape images will appear smaller so the edges remain visible.
 
-## New design candidates
+## Exact eight images
+| ID | Placement | Asset |
+| --- | --- | --- |
+| 1 | Mobile welcome / sign-in | `nhs-at2-mobile-welcome.webp` |
+| 2 | Admin Observatory | `nhs-at2-command-center.webp` |
+| 3 | Muse Creative Studio | `nhs-at2-muse-chamber.webp` |
+| 4 | Project Pipeline | `nhs-at2-project-pipeline.webp` |
+| 5 | Client Sanctuary | `nhs-at2-client-sanctuary.webp` |
+| 6 | Branded welcome | `nhs-at2-brand-welcome.webp` |
+| 7 | Admin entrance | `nhs-at2-admin-entrance.webp` |
+| 8 | Leads / Forms workspace | `nhs-at2-workspace-floral.webp` |
 
-| Original upload order | Room candidate | Optimized app filename | Review notes |
-| --- | --- | --- | --- |
-| 1 | Mobile sign-in | `nhs-at2-mobile-welcome.webp` | Portrait-only; preserve moon/key and dark login center |
-| 2 | Admin Command Center | `nhs-at2-command-center.webp` | Skull/key on left, open right workspace; test 320px crop |
-| 3 | Muse Creative Studio | `nhs-at2-muse-chamber.webp` | Dramatic upper/right sculpture; open left text area |
-| 4 | Project Pipeline | `nhs-at2-project-pipeline.webp` | Restrained center suited to timelines and action rails |
-| 5 | Client Sanctuary alternate | `nhs-at2-client-sanctuary.webp` | Rose left; **do not silently replace the previously approved blue-rose client image** |
-| 6 | Branded welcome/transition | `nhs-at2-brand-welcome.webp` | Contains illustrative NHS lettering, not the official logo |
-| 7 | Admin entrance alternate | `nhs-at2-admin-entrance.webp` | Contains illustrative NHS lettering, not the official logo |
-| 8 | Everyday workspace (Leads/Forms/Contracts) | `nhs-at2-workspace-floral.webp` | Dark open center; use on one distinct room, not every route |
-| 9 | Reserve only | `nhs-at2-healthcare-reserve.webp` | Contains medical/healthcare iconography and DNA; **do not ship with NHS OS** |
+There are exactly **eight** user-selected source JPEGs and eight optimized WebPs. The blue medical composition is not part of this package, manifest, preview, staging plan, or imported-app allowlist. No extra imagery is retained.
 
-These are candidate assignments, not authorization to replace older art. All seven landscape candidates are 1536×864 and the portrait image is 732×1536. The WebP derivatives preserve dimensions and composition and use quality 90 (lossy). All original JPEGs are included unchanged in the ZIP's `sources/` directory.
+## Handoff archive
+- Filename: `NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip`
+- SHA-256: `79f78243792e92748fb04b28d4e1eac4d33f4158679020eef508c9590d524c51`
+- Entries: 8 WebPs in `app/`, 8 unchanged original JPEGs in `sources/`, `manifest.json`, `preview/index.html`, `README.md`. No other files.
+- Source and WebP checksums pinned in `docs/design/nhs-at2-assets.json`; optional local importer verifies every original and derivative before writing.
+- Preview is an offline synthetic interface, *not* the actual NHS app. Its backdrop stays fixed while the UI scrolls.
 
-## Exact reviewed package
+## Draft-only import
+Check out branch `design/nhs-at2-background-handoff-20261117`, or select that branch in GitHub, and upload **only the exact ZIP** to `assets/handoff/` via **Add file → Upload files**. Workflow `.github/workflows/nhs-at2-import-draft.yml` verifies the ZIP, rejects extra files, installs eight image WebPs in `public/visuals/`, and removes the temporary archive from Git. It does not activate CSS, merge or deploy.
 
-- ZIP filename: `NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip`
-- ZIP SHA-256: `e127a162b78f4c2573c741fbbbcfd7c07bf84b1e4816d4d6d787003fe54cd764`
-- Contains: `app/` (8 opt-in WebP candidates), `reserve/` (healthcare), `sources/` (all 9 JPEG originals), `manifest.json`, `preview/index.html`, and `README.md`
-- `preview/index.html` runs fully offline with synthetic data. It illustrates a stationary artwork backdrop and scrolling dark glass, not the real app; no customer/API data is involved.
-- Treat the pack as a handoff artifact, not an installed app resource.
-
-## Import procedure after review
-
-Only within branch `design/nhs-at2-background-handoff-20261117`:
-
+CLI dry-run alternative:
 ```bash
-python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip
-python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip --apply
+python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip
+python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip --apply
 ```
+`--apply` requires this exact draft branch, imports local binaries only, and does not commit or deploy.
 
-Dry-run checks the exact archive and all 8 images without writing. The second command is **optional and not yet run**; it copies the eight verified WebPs into `public/visuals/` in the locally checked-out draft branch. It does not commit, create a PR, activate CSS, merge or deploy. GitHub's text-file write connector cannot transfer this session's binary image bytes into the repository; use the supported local import + Git commit workflow or the GitHub **Upload files** UI, on this exact draft branch only. Review the eight files and checksums before any commit. Never upload the reserved healthcare file to the app.
+## Acceptance gates
+- [x] Exactly eight images; no unwanted extra composition anywhere in the pack.
+- [x] All source JPEGs preserved byte-for-byte, WebPs verified by SHA-256.
+- [x] Fixed room layers updated from `cover` to `contain` for Observatory, Muse, Client Sanctuary and shared room environments.
+- [x] Browser test expectations updated to require a contained photograph in each room at desktop and phone sizes.
+- [ ] Actual new binaries imported to GitHub draft.
+- [ ] Real app desktop/tablet/phone screenshots reviewed for *complete* border, backdrop stability, legibility, accessibility and no horizontal overflow.
+- [ ] Exact-head CI green and owner approves artwork activation.
+- [ ] Release review and deployment (NOT authorized).
 
-## Implementation contracts after upload (separate approval)
-
-1. Keep the actual original NHS logo asset unchanged. Embedded branded lettering in images 6/7 is decorative and may be visually cropped on mobile.
-2. Integrate one room at a time, never with a global background override. The approved Observatory/Client Sanctuary/Muse source-only pilots and their current fallbacks must remain untouched until explicit visual approval to change a named room.
-3. **Keep each room's background stationary at viewport height while all glass panels, workspaces, forms, and section content scroll above it**, matching the NHS website behavior confirmed on November 17. Never tile wallpaper down the document or pin art only to the header. Use a single passive fixed scenic layer (not `background-attachment:fixed`); preserve image proportions with `cover` for photos or `auto` for ornaments. Review crops at 1440, 1024, 740, 390 and 320px.
-4. Preserve readable data in smoked-glass scrims, route/role isolation, non-text-overlap, original navigation and all manual action confirmations. No repeated images across room identities.
-5. Run exact-head source/TypeScript/build, Playwright desktop/mobile, local authorization suites, privacy checks and screenshot approval. Current stacked branch lineage is PR #79 → #78 → #77; this new change should remain its own draft.
-6. No staging or production deploy, Cloudflare config change, Supabase/Auth/Storage/ACL mutation, AI enablement, paid scan/outreach or auto-send. Staging Storage issue #71 remains independent.
-
-## Current completion states
-
-- [x] Fixed-scene source behavior implemented for Muse and Admin Observatory; original artwork remains the fallback
-- [x] Offline review preview corrected to use a stationary artwork layer
-
-- [x] Source files inspected and dimensions verified
-- [x] Eight WebP derivatives generated without resizing; original JPEGs archived
-- [x] Each package entry SHA-256 pinned
-- [x] Local importer dry-run passed against exact ZIP
-- [x] Offline sample preview packaged
-- [x] Source-only draft branch with importer + manifest
-- [ ] Import binaries into GitHub draft branch
-- [ ] Integrate scoped visual CSS and capture review images
-- [ ] Obtain actual owner desktop/mobile visual acceptance
-- [ ] Merge / publish (not authorized)
+Preserve existing NHS logo, app functionality, user permissions, client data, Supabase Storage, Auth/RLS, Muse AI settings and all outbound-service safety boundaries. **Do not activate a new photo URL before its verified binary is present.**
