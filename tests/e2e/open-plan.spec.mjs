@@ -232,8 +232,16 @@ test("eye-comfort room lighting dims photography but not working controls", asyn
       await bounds(page);
     }
     await show(page,"admin","home","populated");
-    const hero=await page.locator(".nocturne-overview").first().evaluate(el=>getComputedStyle(el).backgroundImage);
-    expect(hero).toContain("linear-gradient");
+    // Chapter I artwork is framed by the fixed viewport, not painted into
+    // another rectangular hero. Localized glass behind the heading protects copy.
+    const composition = await page.locator(".nocturne-overview").first().evaluate(el => ({
+      hero: getComputedStyle(el).backgroundImage,
+      scrim: getComputedStyle(el.querySelector(".nocturne-welcome-copy")).backgroundImage,
+      fixed: getComputedStyle(el.closest(".main-shell"), "::before").backgroundImage,
+    }));
+    expect(composition.hero).toBe("none");
+    expect(composition.scrim).toContain("linear-gradient");
+    expect(composition.fixed).toContain("data:image/webp");
     await bounds(page);
   }
 });
