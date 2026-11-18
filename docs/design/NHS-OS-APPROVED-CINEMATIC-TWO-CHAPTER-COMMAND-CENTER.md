@@ -47,13 +47,24 @@
 
 Draft PR #80 now includes a further scoped Command Center refinement, without merging or deploying:
 
-- `app/nhs-command-chapters.css` overrides the rejected AT2 Observatory wallpaper in the actual viewport layer. Until the two exact Chapter I owner-approved image binaries can be imported and SHA-verified, it displays the established existing NHS photo as a **temporary fallback**. It is not the approved new background.
+- `app/nhs-command-chapters.css` overrides the rejected AT2 Observatory wallpaper in the actual viewport layer. An additional legacy `.nocturne-command-center::before` photo was suppressed after screenshot review. Until the two exact owner-approved Chapter I image binaries are imported and SHA-verified, the page uses a subdued **gradient-only temporary fallback**, not rejected art and not the approved finished background.
 - The hero's redundant surrounding frame and heavy full-hero gradient are removed; a translucent, localized text scrim and 28px Studio Pulse glass preserve practical readability without burying the artwork.
 - The CSS provides separate desktop and mobile Chapter I image slots, each with fixed center / `contain` / `no-repeat`, plus the existing independent Chapter II image slot and ~800ms section-linked fade. New Chapter II art is **not** installed or accepted.
 - `tests/e2e/nhs-command-chapters.spec.mjs` checks the real section boundary, fixed-image containment, borderless stage, absence of horizontal overflow and reduced-motion behavior. `scripts/verify-velvet-atelier-pilot.mjs` now recognizes the approved Chapter I semantic scene marker while preserving its exact anchor check.
 - GitHub CI was triggered on the existing draft head; a passing source/TypeScript guard must not be confused with visual acceptance. Authenticated or locally rendered 1440, 1024, 768, 390 and 320px screenshots, real custom-font rendering, browser QA, and owner review remain required.
 
-**Still blocking visual signoff:** exact desktop portrait/landscape art import, independently approved Chapter II background-only art in two aspect ratios, screenshots of the actual responsive app, and full independent test results. No production release authority has been granted.
+### Exact Chapter I import gate · follow-up on November 18
+
+A source-only validator \`scripts/verify-nhs-command-art.mjs\` runs from the draft PR's \`.github/workflows/verify.yml\`. It permits the current **both-files-absent** gradient state, but refuses a single image, mismatched SHA-256, incorrect PNG dimensions, or CSS activation before both approved binaries are available. Once both images are installed, activation is mandatory and must use the matching scoped CSS variables. This is not owner visual approval or permission to publish.
+
+Copy the *exact, unchanged original PNG bytes* to these paths, after authorized source-file access is available:
+
+- \`public/visuals/nhs-command-chapter-i-desktop.png\` · 1672 × 941 · SHA-256 \`e7e59728a863cf96287109481e04653654aa6d9c5104a4a96b45172be8ee5411\`
+- \`public/visuals/nhs-command-chapter-i-mobile.png\` · 942 × 1670 · SHA-256 \`700e06d16362e15d3a10500acedf5470d2d1011e6883126ec45e816bb3c0866e\`
+
+Do **not** resize, optimize, recolor, screenshot, recreate or convert the source files before this identity check. After both pass, add scoped declarations to \`app/nhs-command-chapters.css\` for \`--nhs-command-chapter-i-desktop\` and \`--nhs-command-chapter-i-mobile\`, using their respective URLs. The fixed wallpaper already consumes those variables using \`contain\` and \`no-repeat\`. Then update the preview's allowlisted images/SHAs and test assertions to validate the installed art rather than the explicit absent-art fallback.
+
+**Still blocking visual signoff:** exact desktop/portrait binaries, separate approved Chapter II background-only art in two aspect ratios, screenshots of the actual responsive app that match the owner's reference, and independent visual approval. No production release authority has been granted.
 
 ## Acceptance checklist
 - [x] Concept approved by owner
