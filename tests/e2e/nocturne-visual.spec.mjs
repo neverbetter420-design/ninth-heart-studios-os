@@ -849,22 +849,21 @@ test("The shared atmosphere carries across every admin and client destination", 
       await show(page, role, "populated", view);
       await expect(page.locator(`.nhs-theme-${role}`)).toHaveCSS("color-scheme", "dark");
       const room = await page.locator(".nhs-room-identity").getAttribute("data-room");
-      const stageBackground = await page.locator(".main-shell").evaluate((el,currentRoom) =>
-        currentRoom === "observatory"
-          ? getComputedStyle(el).backgroundImage
-          : getComputedStyle(el,"::before").backgroundImage,room);
-      // Observatory contains both the photographic Command Center homepage and
-      // subordinate Settings/Automations views with an intentionally quiet ink stage.
-      if (room === "observatory" && view === "home") {
-        expect(stageBackground,"Command Center must retain its original photograph").toContain("webp");
-      } else if (room !== "observatory") {
-        expect(stageBackground,`${view} must retain its cinematic NHS room photograph`).toContain("data:image/webp;base64");
-        await expect(page.locator(".main-shell")).toHaveCSS("position","relative");
-        // Muse uses owner-requested full-page scrolling wallpaper; all other
-        // rooms retain their established fixed-photography presentation.
-        expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position))
-          .toBe(view === "muse" ? "absolute" : "fixed");
-      }
+      // Every room now uses one viewport-fixed, passive photo layer,
+      // including the Observatory. No room photograph belongs to the
+      // scrolling main-shell background anymore.
+      const stageBackground = await page.locator(".main-shell").evaluate(el =>
+        getComputedStyle(el, "::before").backgroundImage);
+      expect(stageBackground,`${view} must retain its original NHS room photograph`).toContain("data:image/webp;base64");
+      await expect(page.locator(".main-shell")).toHaveCSS("position", "relative");
+      expect(await page.locator(".main-shell").evaluate(el => {
+        const layer = getComputedStyle(el, "::before");
+        return { position: layer.position, pointerEvents: layer.pointerEvents, repeat: layer.backgroundRepeat };
+      }), `${view} must have a stationary, non-interactive background`).toMatchObject({
+        position: "fixed", pointerEvents: "none",
+      });
+      expect(await page.locator(".main-shell").evaluate(el =>
+        getComputedStyle(el, "::before").backgroundRepeat), `${view} must not tile its photograph`).not.toContain("repeat-y");
       if (role === "admin") {
         expect(await page.locator(".main-shell").evaluate(el=>getComputedStyle(el).backgroundColor.match(/\d+/g).slice(0,3).map(Number).every(v=>v<32))).toBe(true);
       }
@@ -1011,7 +1010,9 @@ test("Seven studio rooms are distinct, readable and captured at desktop and phon
       await expect(roomIdentity).toHaveAttribute("data-room",room);
       if (width > 430) await expect(roomIdentity).toBeVisible();
       expect(await page.locator(".app-shell").evaluate(el=>getComputedStyle(el).getPropertyValue("--room-accent").trim())).toBe(accent);
-      const back=await page.locator(".main-shell").evaluate((el,isObservatory)=>isObservatory?getComputedStyle(el).backgroundImage:getComputedStyle(el,"::before").backgroundImage,room==="observatory");
+      const back=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
+      const position=await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").position);
+      expect(position,room+" must keep backdrop stationary").toBe("fixed");
       expect(back,room+" "+size+" background").toContain("gradient");
       if (role === "admin") expect(back, room+" should keep the same photographic Dark Rose brand").toContain("webp");
       if(size==="desktop")roomAccents.add(accent);
