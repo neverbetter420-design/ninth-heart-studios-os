@@ -2,7 +2,7 @@
 
 **Status: REVIEW PREPARATION ONLY. No image binary committed, no CSS activated, no deployment.**
 
-This document captures the nine current-chat JPEG uploads, their original byte checksums and optimized WebP derivatives in the downloadable archive `NHS_OS_Atelier_Backgrounds_2026-11-17.zip`. The complete derivative SHA-256 and byte-size allowlist is in [nhs-at2-assets.json](./nhs-at2-assets.json).
+This document captures the nine current-chat JPEG uploads, their original byte checksums and optimized WebP derivatives in the downloadable archive `NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip`. The ZIP preview now pins its background to the viewport while the foreground scrolls. The complete derivative SHA-256 and byte-size allowlist is in [nhs-at2-assets.json](./nhs-at2-assets.json).
 
 ## New design candidates
 
@@ -22,10 +22,10 @@ These are candidate assignments, not authorization to replace older art. All sev
 
 ## Exact reviewed package
 
-- ZIP filename: `NHS_OS_Atelier_Backgrounds_2026-11-17.zip`
-- ZIP SHA-256: `a995f44e317837dc0b1aeff76d740f4210c7cf19d94878273b6a197942d36204`
+- ZIP filename: `NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip`
+- ZIP SHA-256: `e127a162b78f4c2573c741fbbbcfd7c07bf84b1e4816d4d6d787003fe54cd764`
 - Contains: `app/` (8 opt-in WebP candidates), `reserve/` (healthcare), `sources/` (all 9 JPEG originals), `manifest.json`, `preview/index.html`, and `README.md`
-- `preview/index.html` runs fully offline with synthetic data. It illustrates dark scrims and glass, not the real app; no customer/API data is involved.
+- `preview/index.html` runs fully offline with synthetic data. It illustrates a stationary artwork backdrop and scrolling dark glass, not the real app; no customer/API data is involved.
 - Treat the pack as a handoff artifact, not an installed app resource.
 
 ## Import procedure after review
@@ -33,8 +33,8 @@ These are candidate assignments, not authorization to replace older art. All sev
 Only within branch `design/nhs-at2-background-handoff-20261117`:
 
 ```bash
-python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_Backgrounds_2026-11-17.zip
-python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_Backgrounds_2026-11-17.zip --apply
+python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip
+python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip --apply
 ```
 
 Dry-run checks the exact archive and all 8 images without writing. The second command is **optional and not yet run**; it copies the eight verified WebPs into `public/visuals/` in the locally checked-out draft branch. It does not commit, create a PR, activate CSS, merge or deploy. GitHub's text-file write connector cannot transfer this session's binary image bytes into the repository; use the supported local import + Git commit workflow or the GitHub **Upload files** UI, on this exact draft branch only. Review the eight files and checksums before any commit. Never upload the reserved healthcare file to the app.
