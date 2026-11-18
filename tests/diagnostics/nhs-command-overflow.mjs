@@ -31,12 +31,22 @@ try {
       });
       const h=document.querySelector(".nocturne-overview h2");
       const hs=h?getComputedStyle(h):null;
-      return {vw,docWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,innerWidth:innerWidth,
+      const measured = [".nocturne-overview", ".nocturne-overview > .living-studio", ".nocturne-welcome-copy", ".living-status", ".living-orbit", ".nhs-command-surface"].map(selector => {
+        const node = document.querySelector(selector);
+        if (!node) return {selector,found:false};
+        const box=node.getBoundingClientRect(),style=getComputedStyle(node),p=node.offsetParent;
+        return {selector,box:{left:box.left,top:box.top,width:box.width,height:box.height,right:box.right,bottom:box.bottom},
+          styles:{position:style.position,display:style.display,gridColumn:style.gridColumn,gridRow:style.gridRow,
+            grid:style.gridTemplateColumns,width:style.width,height:style.height,inset:style.inset,margin:style.margin,padding:style.padding},
+          offsetParent:p?{className:String(p.className||""),width:p.getBoundingClientRect().width,height:p.getBoundingClientRect().height}:null};
+      });
+      return {measured,vw,docWidth:document.documentElement.scrollWidth,bodyWidth:document.body.scrollWidth,innerWidth:innerWidth,
         heading:h?{display:hs.display,visibility:hs.visibility,opacity:hs.opacity,rect:(()=>{const r=h.getBoundingClientRect();return [r.x,r.y,r.width,r.height]})(),text:h.textContent?.slice(0,80)}:null,
         overflowers:hits.filter(x=>x.rect[2]>0).sort((a,b)=>b.rect[1]-a.rect[1]).slice(0,40)};
     });
     console.log("NHS_320_DIAGNOSTIC "+JSON.stringify({width,...audit}));
     writeFileSync("design-preview/nhs-command-diagnostic/"+width+"-audit.json",JSON.stringify(audit,null,2));
+    writeFileSync("design-preview/nhs-command-diagnostic/"+width+"-snapshot.html",await page.content());
     await page.screenshot({path:"design-preview/nhs-command-diagnostic/"+width+".png",fullPage:false,animations:"disabled"});
   }
   await page.close();
