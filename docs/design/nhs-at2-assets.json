@@ -2,11 +2,11 @@
   "version": 1,
   "created": "2026-11-17",
   "zip_sha256": "79f78243792e92748fb04b28d4e1eac4d33f4158679020eef508c9590d524c51",
-  "state": "DRAFT ONLY: images not in repository and no production/staging deployment",
+  "state": "DRAFT PR #80: all eight hash-verified images committed to public/visuals; five protected room mappings and desktop/mobile sign-in scenes active only in draft CSS; no deployment",
   "rules": [
     "Preserve the existing NHS logo and old scene assets",
     "Only these eight image compositions are in the app pack; reject all other binaries",
-    "Do not activate a room before authentic responsive visual review",
+    "Draft visual activation allowed only for local screenshot/QA review; do not deploy before authentic responsive visual approval",
     "Do not use brand-wordmark images as substitute logos",
     "No new backend access, billing, scanning, AI, or outreach",
     "Fit entire artwork frame into each viewport (background-size: contain); never crop decorative edges"
@@ -93,5 +93,19 @@
       "fit": "contain"
     }
   ],
-  "fit_policy": "fixed viewport background, 100% image visible with contain, no-repeat and dark letterboxing; foreground scrolls independently"
+  "fit_policy": "fixed viewport background, 100% image visible with contain, no-repeat and dark letterboxing; foreground scrolls independently",
+  "active_rooms": [
+    "Admin Observatory",
+    "Muse Creative Studio",
+    "Project Pipeline",
+    "Electric Lead Intelligence",
+    "Client Sanctuary home"
+  ],
+  "active_auth": [
+    "Branded desktop sign-in",
+    "Portrait mobile sign-in"
+  ],
+  "staged_assets": [
+    "nhs-at2-admin-entrance.webp"
+  ]
 }
