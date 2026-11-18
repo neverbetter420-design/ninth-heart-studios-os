@@ -77,6 +77,7 @@ export async function Dashboard() {
     { label: "Active Leads", value: leadsUnavailable ? "—" : String(rankedLeads.length), detail: leadsUnavailable ? "Data unavailable" : `${repliesNeeded} ${repliesNeeded === 1 ? "reply" : "replies"} needed`, tone: "violet" as const },
     { label: "Waiting on Me", value: leadsUnavailable ? "—" : String(waitingOnMe), detail: leadsUnavailable ? "Data unavailable" : `${inboundRisk} inbound SLA risk`, tone: "pink" as const },
     { label: "Total Projects", value: projectCountError || projectCount === null ? "—" : String(projectCount), detail: projectCountError || projectCount === null ? "Data unavailable" : "Across your studio", tone: "cyan" as const },
+    { label: "Next Actions", value: leadsUnavailable ? "—" : String(nextActions.length), detail: leadsUnavailable ? "Data unavailable" : "Ranked priorities", tone: "silver" as const },
   ];
 
   const passages: readonly { href: string; label: string; symbol: AtelierSymbolName; tone: string }[] = [
