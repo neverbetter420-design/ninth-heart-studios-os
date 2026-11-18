@@ -57,14 +57,17 @@ assert.deepEqual(brandedUrls, [
 for (const asset of brandedUrls) {
   assert.match(read("public" + asset), /<svg\s/);
 }
-assert.match(css, /FULL-SCROLL NHS WALLPAPER/);
-assert.match(css, /position:absolute;/);
-assert.match(css, /height:100%;/);
-assert.match(css, /background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;/);
+assert.match(css, /FIXED NHS ROOM CANVAS/);
+assert.match(css, /position:fixed;/);
+assert.match(css, /height:100lvh;/);
+assert.match(css, /background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat;/);
 assert.match(css, /background-attachment:scroll;/);
-assert.match(css, /var\(--nhs-cinematic-room-photo\)/);
-assert.doesNotMatch(css, /position:fixed;|height:100lvh;|background-attachment:fixed/,
-  "Muse artwork must scroll with the document, never stay pinned to the viewport");
+assert.match(css, /var\(--nhs-at2-room-photo, var\(--nhs-cinematic-room-photo\)\)/);
+assert.match(css, /pointer-events:none;/);
+assert.match(css, /z-index:0;/);
+assert.match(css, /#workspace-content\s*\{\s*position:relative;\s*z-index:1;/);
+assert.doesNotMatch(css, /background-attachment:fixed;|repeat-y/,
+  "The Muse artwork must stay on a single fixed viewport canvas, not tile or scroll with cards");
 assert.match(css, /background:Canvas/);
 for (const required of [
   ".nhs-muse-room-dock", ".studio-focus", ".studio-intelligence-grid",
