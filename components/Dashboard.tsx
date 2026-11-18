@@ -95,9 +95,12 @@ export async function Dashboard() {
       <header className="nocturne-overview" id="nhs-observatory">
         <div className="nocturne-welcome-copy">
           <p className="eyebrow">Command Center <span aria-hidden="true">/</span> Ninth Heart Studios</p>
-          <h2>Your studio, <em>in focus.</em></h2>
-          <p className="page-description">The work that matters, in one view.</p>
-          <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
+          <h2>The <em>Command Center</em></h2>
+          <p className="page-description">Operations, projects, and studio control.</p>
+          <div className="nhs-command-welcome-actions">
+            <a className="nhs-command-entry" href="#nhs-command-surface">Studio overview <span aria-hidden="true">↗</span></a>
+            <Link className="nocturne-capture" href="/leads#quick-capture">Capture a lead <span aria-hidden="true">↗</span></Link>
+          </div>
         </div>
         <NocturneStudioArt />
         <div className="velvet-hero-amulets" aria-hidden="true">
@@ -105,11 +108,12 @@ export async function Dashboard() {
           <span><AtelierSymbol name="rose" size={18} /></span>
           <span><AtelierSymbol name="key" size={18} /></span>
         </div>
+        <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
       </header>
 
-      <div className="nhs-command-surface">
+      <div className="nhs-command-surface" id="nhs-command-surface">
       <LivingAtelierPulseDock />
-      <LivingStudioHub passages={passages} metrics={metrics} projects={projects} projectsUnavailable={projectsUnavailable} />
+
 
       <section className="dashboard-grid" aria-label="Studio priorities and projects">
         <section className="panel action-panel" aria-labelledby="nocturne-actions-title">
