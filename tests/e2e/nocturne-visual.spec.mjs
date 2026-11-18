@@ -50,7 +50,16 @@ test("Muse NHS decoration flows through the entire scrollable page instead of st
     expect(art.repeat).toBe("no-repeat, no-repeat, repeat-y, no-repeat, no-repeat");
     expect(art.attachment).not.toContain("fixed");
     expect(art.position).toBe("absolute");
-    expect(art.imageSize).toContain("auto");
+    // Chromium resolves CSS min(... ) auto background sizes to pixel widths.
+    // Only gradients may fill both axes; all three artwork layers must remain
+    // width-constrained with intrinsic, unforced heights.
+    const sizes = art.imageSize.split(",").map((part) => part.trim());
+    expect(sizes).toHaveLength(5);
+    expect(sizes[0]).toBe("100% 100%");
+    expect(sizes[4]).toBe("100% 100%");
+    for (const size of sizes.slice(1, 4)) {
+      expect(size, "Artwork must not stretch both dimensions").toMatch(/^\d+(?:\.\d+)?px(?: auto)?$/);
+    }
     expect(art.backdropHeight).toBeGreaterThan(900);
     expect(Math.abs(art.decorationHeight - art.backdropHeight)).toBeLessThanOrEqual(2);
     expect(art.backdropWidth).toBeGreaterThanOrEqual(width);
@@ -1196,7 +1205,10 @@ test("Each non-Observatory room has a different self-hosted photographic backdro
      const matches=[...stage.matchAll(new RegExp("data:image/webp;base64,([A-Za-z0-9+/=]+)", "g"))];
      expect(matches.length,name+" must have one photographic source").toBe(1);
      artworks.add(matches[0][1]);
-     expect(stage).not.toContain("data:image/svg+xml");
+     // Muse uses two approved, local NHS SVGs plus its unique WebP photo;
+     // the other rooms are deliberately photo-only.
+     const svgLayers = [...stage.matchAll(/data:image\/svg\+xml/g)].length;
+     expect(svgLayers, name + " decorative SVG layer count").toBe(name === "velvet" ? 2 : 0);
      expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
    }
    expect(artworks.size,"Each room has its own scene, not a repeated crop").toBe(6);
