@@ -174,7 +174,8 @@ const pulse = source("components/LivingAtelierPulseDock.tsx");
 const pulseCss = source("app/living-atelier-pulse-dock.css");
 assert.match(dashboard, /import \{ LivingAtelierPulseDock \}/);
 assert.match(dashboard, /<LivingAtelierPulseDock \/>/);
-assert.match(dashboard, /<header className="nocturne-overview" id="nhs-observatory">/);
+// The semantic Observatory anchor survives the approved Chapter I scene marker.
+assert.match(dashboard, /<header className="nocturne-overview" id="nhs-observatory" data-nhs-command-scene="welcome">/);
 for (const id of [
   "nhs-observatory", "nocturne-actions-title",
   "nocturne-projects-title", "nocturne-activity-title"
