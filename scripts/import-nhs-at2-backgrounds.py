@@ -24,7 +24,7 @@ def sha(data: bytes) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("archive", type=Path, help="Exact NHS_OS_Atelier_Backgrounds_2026-11-17.zip")
+    parser.add_argument("archive", type=Path, help="Exact NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip")
     parser.add_argument("--apply", action="store_true", help="Write vetted WebP assets on the designated draft branch only")
     args = parser.parse_args()
 
