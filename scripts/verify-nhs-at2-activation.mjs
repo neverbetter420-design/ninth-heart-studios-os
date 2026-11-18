@@ -9,8 +9,8 @@ const active = read("app/living-atelier-artwork-active.css");
 const root = read("app/layout.tsx");
 const appShell = read("components/AppShell.tsx");
 
-assert.equal(manifest.assets.length, 8, "Only eight selected NHS backgrounds are permitted");
-assert.equal(new Set(manifest.assets.map(a => a.file)).size, 8);
+assert.equal(manifest.assets.length, 7, "Only seven non-medical NHS AT2 backgrounds are retained");
+assert.equal(new Set(manifest.assets.map(a => a.file)).size, 7);
 assert.equal(Object.hasOwn(manifest, "reserve"), false, "No excluded image in manifest");
 for (const entry of manifest.assets) {
   assert.match(entry.file, /^nhs-at2-[a-z0-9-]+\.webp$/);
@@ -25,7 +25,6 @@ for (const entry of manifest.assets) {
 const expectedActive = [
   ["observatory", "nhs-at2-command-center.webp"],
   ["velvet", "nhs-at2-muse-chamber.webp"],
-  ["artist", "nhs-at2-project-pipeline.webp"],
   ["electric", "nhs-at2-workspace-floral.webp"],
   ["private", "nhs-at2-client-sanctuary.webp"],
 ];
@@ -33,6 +32,11 @@ for (const [room, file] of expectedActive) {
   assert.ok(active.includes('data-room="' + room + '"'), "Room not scoped: " + room);
   assert.equal(active.split('url("/visuals/' + file + '")').length - 1, 1, "Incorrect or repeated room art: " + file);
 }
+assert.equal(existsSync("public/visuals/nhs-at2-project-pipeline.webp"), false,
+  "Medical-style Pipeline image must be physically absent");
+assert.doesNotMatch(active, /nhs-at2-project-pipeline\.webp/, "Rejected medical artwork must not activate");
+assert.match(read("app/nhs-room-editorial.css"), /nhs-scene-artist\.webp/,
+  "Artist's Atelier must keep original artistic scene until approved replacement");
 assert.match(active, /data-room="private"[^}]*:has\(\.atelier-home\.nhs-color-studio\)/,
   "Client artwork must not bleed into other private routes");
 assert.match(active, /\.muse-workroom/, "Muse artwork must target the Muse page");
@@ -75,4 +79,4 @@ assert.match(appShell, /<RoomIdentity role=\{role\}/);
 assert.match(read("components/RoomNavigation.tsx"), /nhs-original-logo\.webp/,
   "The original NHS logo must not be replaced");
 
-console.log("PASS: eight exact SHA-verified images, scoped fixed full-frame room activation, glass and fonts untouched, sign-in portrait only on mobile, original logo retained. DRAFT only.");
+console.log("PASS: seven non-medical SHA-verified images, scoped fixed full-frame room activation, glass and fonts untouched, sign-in portrait only on mobile, original logo retained. DRAFT only.");
