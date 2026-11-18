@@ -90,3 +90,10 @@ requires original-byte verification and separate design approval.
 **Release gate:** This is a third stacked **draft PR**, not an approval
 to merge or publish anything. Existing staging Storage permission gate
 remains separate and unresolved.
+
+
+## Superseding owner correction · November 17, 2026
+
+The owner clarified the intended website-like behavior: **the background artwork must remain fixed/stationary while the app content scrolls over it**. This replaces the November 15 request for an image that scrolls with document height. The CSS in this draft now pins Muse's original NHS photograph and two ornaments on one viewport-sized fixed layer, with no repeated tiling and no image pasted onto cards. The original scene remains until the November 17 uploaded replacement artwork can be safely verified and imported.
+
+The approved visual behavior is a stable room, moving glass content and readable dark scrims; no animation or parallax. New Muse background assets are **not yet imported or activated**, and visual sign-off remains pending. Earlier full-scroll descriptions on this page record historical work and are superseded here.
