@@ -421,61 +421,63 @@
 }
 
 
-/* FULL-SCROLL NHS WALLPAPER · user-approved correction.
- * The artwork belongs to the document, NOT a fixed viewport/header.
- * Its original NHS botanical/sculptural SVGs extend down the long page
- * as a scroll-flowing vertical composition; the existing approved velvet
- * photo appears only once near the beginning. All images keep aspect ratio.
- * Nothing is painted onto the form controls or duplicated on each card.
+/* FIXED NHS ROOM CANVAS · owner correction, November 17.
+ * The room atmosphere stays pinned to the viewport like the website;
+ * every Muse form, timeline and glass panel scrolls above it.
+ * Exactly one original NHS photo; no image is distorted, repeated down
+ * the page, or pasted into each card. Keep two original silver/botanical
+ * ornaments in this room until the source-verified new artwork is imported.
  */
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell {
   position:relative;
   isolation:isolate;
   min-height:100dvh;
   background-color:#080918;
-  background-image:linear-gradient(175deg,#080918,#151025 45%,#070a1b);
-  background-size:100% 100%;
-  background-repeat:no-repeat;
+  background-image:none;
 }
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
-  /* Override the previous global fixed/100lvh pseudo-element so it has the
-     SAME height as the entire scrollable main-shell, not just one screen. */
-  position:absolute;
+  content:"";
+  position:fixed;
   inset:0;
   width:100%;
-  height:100%;
-  min-height:100%;
-  background-color:transparent;
+  height:100vh;
+  height:100lvh;
+  min-height:0;
+  z-index:0;
+  pointer-events:none;
+  background-color:#080918;
   background-image:
-    linear-gradient(105deg,rgba(4,5,17,.85),rgba(5,7,19,.69) 39%,rgba(6,8,22,.46) 73%,rgba(5,6,18,.65)),
+    linear-gradient(105deg,rgba(4,5,17,.86),rgba(5,7,19,.72) 39%,rgba(6,8,22,.50) 73%,rgba(5,6,18,.72)),
     url("/visuals/nhs-room-velvet-oracle.svg"),
     url("/visuals/nhs-wallpaper-velvet.svg"),
-    var(--nhs-cinematic-room-photo),
+    var(--nhs-at2-room-photo, var(--nhs-cinematic-room-photo)),
     linear-gradient(175deg,#080918,#151025 45%,#070a1b);
   background-size:
     100% 100%,
     min(970px,78vw) auto,
     min(1480px,106vw) auto,
-    min(1650px,110vw) auto,
+    cover,
     100% 100%;
-  background-position:
-    center,
-    left -145px center,
-    right -40px top,
-    right top,
-    center;
-  /* The botanical wallpaper continues down the entire scroll.
-     The sculptural oracle breaks the pattern mid-page; the photo is not
-     repeated or pinned, and neither is squashed to 100% 100%. */
-  background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;
+  background-position:center,left -145px center,right -40px center,center,center;
+  background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat;
   background-attachment:scroll;
-  pointer-events:none;
+  transform:none;
+  animation:none;
+  transition:none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell > .nhs-context-bar {
+  position:relative;
+  z-index:40;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell > #workspace-content {
+  position:relative;
+  z-index:1;
 }
 @media(max-width:740px) {
   .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
-    background-size:100% 100%,570px auto,880px auto,840px auto,100% 100%;
-    background-position:center,left -245px center,right -300px top,right -275px top,center;
-    background-repeat:no-repeat,no-repeat,repeat-y,no-repeat,no-repeat;
+    background-size:100% 100%,570px auto,880px auto,cover,100% 100%;
+    background-position:center,left -245px center,right -300px center,center,center;
+    background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat;
   }
 }
 @media(prefers-contrast:more),(forced-colors:active) {
