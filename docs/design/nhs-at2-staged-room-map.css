@@ -4,7 +4,7 @@
  * exact SHA-256 verification in public/visuals and the owner approves crops.
  *
  * The visual contract is: ONE STATIONARY viewport background per room;
- * every interface pane and form scrolls ABOVE it. Never apply the artwork
+ * every interface pane and form scrolls ABOVE it. Image fit is CONTAIN,\n * centered without zooming or cutting ornamental edges. Never apply artwork
  * as an individual card background. No parallax, repeated tiling or motion.
  */
 
@@ -40,7 +40,7 @@
  * - 7 nhs-at2-admin-entrance.webp -> optional admin entrance ceremony
  * Only after the relevant unauthenticated routes and layouts are inspected.
  *
- * Image 9 healthcare is reserved and must NEVER be imported to NHS OS.
- * Existing client auth, RLS, Supabase roles, original NHS logo and live
+ * This review collection contains exactly eight NHS background images.
+ * Preserve existing client auth, RLS, Supabase roles, original NHS logo and live
  * dashboard data remain unchanged.
  */
