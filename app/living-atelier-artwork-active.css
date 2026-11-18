@@ -7,8 +7,8 @@
  * backgrounds remain centered + contain (NEVER cover/crop/stretch), the
  * current glass/content scrolls OVER them; original NHS logo unchanged.
  *
- * This is not a staging/production deploy or database change. The two
- * alternate entrance compositions intentionally remain in the asset library.
+ * This is not a staging/production deploy or database change. The separate
+ * admin-entrance alternate intentionally remains in the asset library.
  */
 
 /* Admin Observatory: its own original skull/key composition. */
