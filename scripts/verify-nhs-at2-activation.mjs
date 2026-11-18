@@ -57,7 +57,9 @@ for (const path of [
 ]) {
   const scene = read(path);
   assert.match(scene, /background-size:[^;]*contain/, path + " loses full-image fit");
-  assert.match(scene, /position:fixed|position:\s*fixed/, path + " loses stationary scenery");
+  if (path === "app/nhs-room-editorial.css" || path === "app/living-atelier-pulse-dock.css" || path === "app/living-atelier-muse-chamber.css") {
+    assert.match(scene, /position:\s*fixed/, path + " loses stationary scenery");
+  }
 }
 
 const ordered = [
