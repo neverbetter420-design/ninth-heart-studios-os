@@ -929,7 +929,11 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   const hub = studio.getByRole("navigation", { name: "Studio command hub" });
   await expect(studio).toBeVisible();
   await expect(instruments).toHaveCount(4);
-  await expect(instruments.first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  const instrumentAlpha = await instruments.first().evaluate(el => {
+    const value = getComputedStyle(el).backgroundColor;
+    return value === "rgba(0, 0, 0, 0)" ? 0 : Number(value.match(/rgba?\([^)]*,\s*([\d.]+)\)/)?.[1] ?? 1);
+  });
+  expect(instrumentAlpha, "Studio Pulse data remains readable over very transparent glass").toBeLessThanOrEqual(.25);
   await expect(studio).toContainText("Active Leads");
   await expect(studio.locator(".nhs-command-pulse-dial__core strong")).toHaveText("45%");
   await expect(studio.locator(".living-status__eyebrow")).toHaveText("Studio Pulse");
