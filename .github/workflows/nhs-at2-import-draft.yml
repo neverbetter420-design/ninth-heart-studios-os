@@ -7,7 +7,7 @@ on:
     branches:
       - design/nhs-at2-background-handoff-20261117
     paths:
-      - assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip
+      - assets/handoff/NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip
   workflow_dispatch:
 
 permissions:
@@ -22,9 +22,9 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
-      ZIP: assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip
+      ZIP: assets/handoff/NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip
       EXPECTED_REF: refs/heads/design/nhs-at2-background-handoff-20261117
-      EXPECTED_ZIP_SHA256: e127a162b78f4c2573c741fbbbcfd7c07bf84b1e4816d4d6d787003fe54cd764
+      EXPECTED_ZIP_SHA256: 79f78243792e92748fb04b28d4e1eac4d33f4158679020eef508c9590d524c51
     steps:
       - name: Hard stop outside the exact draft branch
         shell: bash
@@ -64,8 +64,8 @@ jobs:
               data = (Path("public/visuals") / entry["file"]).read_bytes()
               assert len(data) == entry["bytes"]
               assert hashlib.sha256(data).hexdigest() == entry["sha256"]
-          assert not (Path("public/visuals") / m["reserve"]["file"]).exists(), "Healthcare image not allowed in NHS OS"
-          print("PASS: all eight exact binaries and reserve exclusion verified")
+          assert {p.name for p in Path("public/visuals").glob("nhs-at2-*.webp")} == set(names), "Only these exact 8 artworks are allowed"
+          print("PASS: all eight exact binaries and exact eight-image allowlist verified")
           PY
           git add -- \
             public/visuals/nhs-at2-mobile-welcome.webp \
@@ -82,7 +82,7 @@ jobs:
           changed = set(subprocess.check_output(
               ["git","diff","--cached","--name-only"], text=True).splitlines())
           expected = {
-              "assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip",
+              "assets/handoff/NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip",
               "public/visuals/nhs-at2-mobile-welcome.webp",
               "public/visuals/nhs-at2-command-center.webp",
               "public/visuals/nhs-at2-muse-chamber.webp",
@@ -93,7 +93,7 @@ jobs:
               "public/visuals/nhs-at2-workspace-floral.webp",
           }
           assert changed.issubset(expected), "Unexpected staged files; STOP"
-          assert "assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip" in changed
+          assert "assets/handoff/NHS_OS_Atelier_8_Full_Frame_2026-11-17.zip" in changed
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
