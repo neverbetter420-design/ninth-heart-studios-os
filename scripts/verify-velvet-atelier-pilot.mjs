@@ -40,13 +40,14 @@ assert.match(glyphs, /focusable="false"/);
 
 // A late imported, opt-in layer, not another global site repaint.
 const cssImports = layout.match(/import "\.\/[^"]+\.css";/g) || [];
-assert.equal(cssImports.at(-7), 'import "./open-plan.css";');
-assert.equal(cssImports.at(-6), 'import "./nhs-room-editorial.css";');
-assert.equal(cssImports.at(-5), 'import "./visual-first.css";');
-assert.equal(cssImports.at(-4), 'import "./living-atelier-pulse-dock.css";');
-assert.equal(cssImports.at(-3), 'import "./living-atelier-client-sanctuary.css";');
-assert.equal(cssImports.at(-2), 'import "./living-atelier-muse-chamber.css";');
-assert.equal(cssImports.at(-1), 'import "./living-atelier-crystal-glass.css";');
+assert.equal(cssImports.at(-8), 'import "./open-plan.css";');
+assert.equal(cssImports.at(-7), 'import "./nhs-room-editorial.css";');
+assert.equal(cssImports.at(-6), 'import "./visual-first.css";');
+assert.equal(cssImports.at(-5), 'import "./living-atelier-pulse-dock.css";');
+assert.equal(cssImports.at(-4), 'import "./living-atelier-client-sanctuary.css";');
+assert.equal(cssImports.at(-3), 'import "./living-atelier-muse-chamber.css";');
+assert.equal(cssImports.at(-2), 'import "./living-atelier-crystal-glass.css";');
+assert.equal(cssImports.at(-1), 'import "./living-atelier-typefaces.css";');
 assert.doesNotMatch(source("app/living-atelier-client-sanctuary.css"), /nhs-theme-admin/,
   "Client Sanctuary CSS must never select Admin screens");
 assert.match(source("app/nhs-room-editorial.css"), /nhs-theme-admin/);
