@@ -19,10 +19,7 @@
   --nhs-at2-room-photo:url("/visuals/nhs-at2-muse-chamber.webp");
 }
 
-/* 4: Project Pipeline, its own room (artist); retain current navigation and project data. */
-.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {
-  --nhs-cinematic-room-photo:url("/visuals/nhs-at2-project-pipeline.webp");
-}
+/* Pipeline: the medical-themed artwork was rejected and removed. Use the existing Artist's Atelier scene until a faithful replacement is approved. */
 
 /* 8: Electric Lead Intelligence/Scanner; original rose and archive rooms stay distinct. */
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {
