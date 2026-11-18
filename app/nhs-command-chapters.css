@@ -206,8 +206,9 @@
  * NHS CHAPTER REFINEMENT 02 · draft-only, 2026-11-18
  * This override deliberately stops displaying the rejected AT2 Observatory
  * wallpaper. The SHA-locked Chapter I desktop/portrait binaries are NOT in
- * this repo, so an older, locally available NHS photograph is an explicit
- * temporary fallback, never an assertion of owner-approved visual parity.
+ * this repo. Until those exact source bytes are imported, use only subdued
+ * pink/blue atmospheric gradients instead of a previously rejected photograph.
+ * This is an interim layout state, NOT an approved final background.
  *
  * When verified background-only files arrive, set:
  *   --nhs-command-chapter-i-desktop: url("/visuals/<verified-desktop>.webp");
@@ -221,11 +222,13 @@
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
   background-image:
     linear-gradient(105deg, rgba(3, 4, 13, .53), rgba(4, 5, 19, .31) 46%, rgba(3, 7, 23, .47)),
-    var(--nhs-command-chapter-i-desktop, url("/visuals/nhs-dark-rose-photographic.webp")),
+    var(--nhs-command-chapter-i-desktop, none),
+    radial-gradient(ellipse at 0% 31%, rgba(151, 26, 123, .16), transparent 47%),
+    radial-gradient(ellipse at 100% 66%, rgba(37, 68, 172, .19), transparent 46%),
     linear-gradient(145deg, #050512, #100b25 55%, #040715);
   background-color: #050512;
-  background-position: center, center, center;
-  background-size: 100% 100%, contain, 100% 100%;
+  background-position: center, center, center, center, center;
+  background-size: 100% 100%, contain, 100% 100%, 100% 100%, 100% 100%;
   background-repeat: no-repeat;
   transform: none;
 }
@@ -280,10 +283,12 @@
   .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
     background-image:
       linear-gradient(180deg, rgba(3, 4, 15, .44), rgba(5, 4, 18, .24) 46%, rgba(3, 6, 19, .51)),
-      var(--nhs-command-chapter-i-mobile, var(--nhs-command-chapter-i-desktop, url("/visuals/nhs-dark-rose-photographic.webp"))),
+      var(--nhs-command-chapter-i-mobile, var(--nhs-command-chapter-i-desktop, none)),
+      radial-gradient(ellipse at 0% 31%, rgba(151, 26, 123, .16), transparent 47%),
+      radial-gradient(ellipse at 100% 66%, rgba(37, 68, 172, .19), transparent 46%),
       linear-gradient(145deg, #050512, #100b25 55%, #040715);
-    background-position: center, center, center;
-    background-size: 100% 100%, contain, 100% 100%;
+    background-position: center, center, center, center, center;
+    background-size: 100% 100%, contain, 100% 100%, 100% 100%, 100% 100%;
   }
   .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
   #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
