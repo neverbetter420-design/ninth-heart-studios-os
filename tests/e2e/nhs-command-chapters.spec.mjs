@@ -43,9 +43,10 @@ test("approved Command Center chapters use a real content boundary, fixed crossf
     expect(geometry.backgroundFixed).toBe("fixed");
     expect(geometry.backgroundSize).toContain("contain");
     expect(geometry.backgroundOpacity).toBe("0");
-    // The previous rejected AT2 Observatory photo is no longer rendered.
-    // The known NHS fallback is temporary until the hash-locked art arrives.
-    expect(geometry.chapterFallbackArtwork).toContain("data:image/webp");
+    // Without a SHA-verified approved Chapter I image, the page must not
+    // silently display the old rejected flower/skull photograph.
+    expect(geometry.chapterFallbackArtwork).not.toContain("data:image/webp");
+    expect(geometry.chapterFallbackArtwork).toContain("radial-gradient");
     expect(geometry.heroBorderWidth).toBe("0px");
     expect(geometry.heroBackground).toBe("none");
     expect(geometry.docWidth).toBeLessThanOrEqual(width);
