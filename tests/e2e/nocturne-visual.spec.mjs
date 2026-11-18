@@ -910,7 +910,7 @@ test("NHS relationship Atelier shares the dark editorial work canvas", async ({ 
   }
 });
 
-test("Midnight Observatory uses NHS black glass and rose-accented welcome", async ({ page }) => {
+test("Midnight Observatory uses a borderless scene and readable NHS glass instruments", async ({ page }) => {
   await show(page, "admin", "populated", "home");
   const hero = page.locator(".nocturne-command-center .nocturne-overview");
   const work = page.locator(".nocturne-command-center .nhs-command-surface");
@@ -920,7 +920,11 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   // inside one rectangle above another giant opaque dashboard box.
   const cinematicArtwork = await page.locator(".main-shell").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
   expect(cinematicArtwork).toContain("data:image/webp;base64");
-  expect(Number.parseFloat(await hero.evaluate(el=>getComputedStyle(el).borderTopWidth))).toBeGreaterThan(0);
+  // The approved two-chapter design deliberately removes the second frame.
+  await expect(hero).toHaveCSS("border-top-width", "0px");
+  await expect(hero).toHaveCSS("background-image", "none");
+  const copyScrim = await hero.locator(".nocturne-welcome-copy").evaluate(el => getComputedStyle(el).backgroundImage);
+  expect(copyScrim).toContain("linear-gradient");
   await expect(work).toHaveCSS("border-top-width", "0px");
   // Reference composition: hero-integrated real-data Studio Pulse and
   // four icon-based functional destinations, not the old 620px orbital stage.
