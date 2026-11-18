@@ -81,13 +81,14 @@ for (const required of [
 assert.match(currentScene, /nhs-scene-velvet\.webp/,
   "The existing approved velvet-room artwork must stay available");
 const imports = layout.match(/import "\.\/[^"]+\.css";/g) ?? [];
-assert.deepEqual(imports.slice(-5), [
+assert.deepEqual(imports.slice(-6), [
   'import "./living-atelier-pulse-dock.css";',
   'import "./living-atelier-client-sanctuary.css";',
   'import "./living-atelier-muse-chamber.css";',
   'import "./living-atelier-crystal-glass.css";',
   'import "./living-atelier-typefaces.css";',
-], "Muse follows approved Admin/Client layers, with final glass/typography scoped");
+  'import "./living-atelier-artwork-active.css";',
+], "Muse keeps approved fixed-glass layout and verified room photography after typography");
 assert.match(concierge, /enabled = false/);
 assert.match(concierge, /previewOpen = false/);
 console.log("PASS: Muse Living Atelier glass/anchors preserve admin access, deterministic drafts, explicit send and disabled AI defaults");
