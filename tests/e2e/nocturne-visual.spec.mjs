@@ -56,7 +56,7 @@ test("Muse NHS room remains fixed behind scrolling content at desktop and phone 
     expect(sizes[4]).toBe("100% 100%");
     for (const size of sizes.slice(1, 3))
       expect(size, "Decorative ornaments must preserve proportions").toMatch(/^\d+(?:\.\d+)?px(?: auto)?$/);
-    expect(sizes[3]).toBe("cover");
+    expect(sizes[3]).toBe("contain");
     expect(await page.evaluate(() => document.documentElement.scrollWidth),
       "Muse must not overflow at " + width + "px").toBeLessThanOrEqual(width);
 
