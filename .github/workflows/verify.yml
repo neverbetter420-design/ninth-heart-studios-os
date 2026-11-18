@@ -46,6 +46,7 @@ jobs:
           npm run verify:phase3-security
           npm run verify:release-preflight
           node scripts/verify-nhs-at2-activation.mjs
+          node scripts/verify-nhs-command-art.mjs
       - name: Production build
         run: npm run build
 
