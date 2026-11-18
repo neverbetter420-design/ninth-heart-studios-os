@@ -81,7 +81,7 @@ for (const required of [
 assert.match(currentScene, /nhs-scene-velvet\.webp/,
   "The existing approved velvet-room artwork must stay available");
 const imports = layout.match(/import "\.\/[^"]+\.css";/g) ?? [];
-assert.deepEqual(imports.slice(-7), [
+assert.deepEqual(imports.slice(-8), [
   'import "./living-atelier-pulse-dock.css";',
   'import "./living-atelier-client-sanctuary.css";',
   'import "./living-atelier-muse-chamber.css";',
@@ -89,6 +89,7 @@ assert.deepEqual(imports.slice(-7), [
   'import "./living-atelier-typefaces.css";',
   'import "./living-atelier-artwork-active.css";',
   'import "./nhs-command-reference-stage.css";',
+  'import "./nhs-command-chapters.css";',
 ], "Muse retains its scoped atmosphere; the final reference stage affects the Observatory only");
 assert.match(concierge, /enabled = false/);
 assert.match(concierge, /previewOpen = false/);
