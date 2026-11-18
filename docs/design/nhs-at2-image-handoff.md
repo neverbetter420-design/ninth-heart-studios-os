@@ -1,6 +1,6 @@
 # NHS OS · The Ninth Atelier | Eight full-frame backgrounds
 
-**Status:** Draft design only. New image binaries not yet imported or activated in the app. No production changes.
+**Status:** Eight exact WebPs imported into draft; five protected room backgrounds plus desktop/mobile sign-in are activated in draft CSS only, pending real-app screenshot approval. No staging/production changes.
 
 ## Approved visual rule
 Each room has one stationary viewport-height background; glass panels and app content scroll normally over it. **Every piece of the decorative border must remain in frame**, on desktop and mobile. Use centered `background-size: contain`, `no-repeat`, and an obsidian canvas for any remaining space. Never crop with `cover`, enlarge beyond the viewport, stretch nonproportionally, or repeat the image down the page. On phones, landscape images will appear smaller so the edges remain visible.
@@ -41,9 +41,17 @@ python3 scripts/import-nhs-at2-backgrounds.py /path/to/NHS_OS_Atelier_8_Full_Fra
 - [x] All source JPEGs preserved byte-for-byte, WebPs verified by SHA-256.
 - [x] Fixed room layers updated from `cover` to `contain` for Observatory, Muse, Client Sanctuary and shared room environments.
 - [x] Browser test expectations updated to require a contained photograph in each room at desktop and phone sizes.
-- [ ] Actual new binaries imported to GitHub draft.
-- [ ] Real app desktop/tablet/phone screenshots reviewed for *complete* border, backdrop stability, legibility, accessibility and no horizontal overflow.
+- [x] Eight exact new WebP binaries imported to GitHub draft and SHA-256 verified
+- [ ] Real app desktop/tablet/phone screenshots reviewed for *complete* border, backdrop stability, legibility, accessibility and no horizontal overflow (activation is for review only)
 - [ ] Exact-head CI green and owner approves artwork activation.
 - [ ] Release review and deployment (NOT authorized).
 
 Preserve existing NHS logo, app functionality, user permissions, client data, Supabase Storage, Auth/RLS, Muse AI settings and all outbound-service safety boundaries. **Do not activate a new photo URL before its verified binary is present.**
+
+## Draft activation checkpoint · November 18, 2026
+
+The GitHub one-ZIP workflow passed and committed all eight exact WebPs in `public/visuals/`. The staged role-specific mappings are now active **only on draft PR #80** through `app/living-atelier-artwork-active.css`, imported after the existing crystal-glass and local-font preview layers. The verified scenes are Observatory, Muse, Pipeline, Electric Lead Intelligence and the Client Sanctuary homepage. The sign-in screen uses the branded welcome image on desktop and the portrait artwork on mobile. The separate admin entrance alternate remains deliberately unactivated; the existing Rose and Archive rooms keep their distinct approved scenes. The original NHS logo is unchanged.
+
+Asset-size and SHA-256 verification is included in `scripts/verify-nhs-at2-activation.mjs` and GitHub's `NHS OS verification` workflow. Playwright has a desktop/mobile test that checks scene uniqueness, one stationary viewport backdrop per room, `contain` image fitting, and no horizontal overflow. Exact-head CI, visual sign-off, real client-isolation acceptance, and any staging/production deployment remain independent gates.
+
+**Do not re-upload the ZIP**: the importer has already moved the verified WebPs into the draft. Future image changes must be reviewed as separate changes, never automatically published.
