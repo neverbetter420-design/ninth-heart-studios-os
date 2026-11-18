@@ -26,7 +26,7 @@ assert.doesNotMatch(css, /nhs-theme-admin|https?:\/\/|@import|position:\s*fixed/
 assert.ok(css.includes('--nhs-cinematic-room-photo: url("/visuals/nhs-living-atelier-client-sanctuary.webp")'));
 for (const marker of [
   "atelier-feature-project", "nhs-atelier-compass", "atelier-destination-grid",
-  "atelier-hero-copy", "background-position:center,left center,center",
+  "atelier-hero-copy", "background-position:center,center,center",
   "min-height:44px", "focus-visible", "max-width:740px",
   "prefers-reduced-motion:reduce", "prefers-reduced-transparency:reduce",
   "prefers-contrast:more", "forced-colors:active", "background-image:none !important"
