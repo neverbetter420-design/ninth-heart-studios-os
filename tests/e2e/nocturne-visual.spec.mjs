@@ -1260,3 +1260,32 @@ test("Atelier crystal glass stays highly translucent and blurred in all three pi
     }
   }
 });
+
+
+test("NHS typography maps Single Ghost headers and Anger Styles titles without changing body text", async ({ page }) => {
+  const scenes = [
+    ["admin", "home", ".nocturne-overview h2", ".nocturne-command-center .action-panel h3"],
+    ["admin", "muse", ".muse-workroom > .management-heading h2", ".muse-workroom .studio-focus h3"],
+    ["client", "home", ".atelier-home .nhs-color-hero h2", ".atelier-home .atelier-feature-project h3"],
+  ];
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const [role, view, headerSelector, titleSelector] of scenes) {
+      await show(page, role, "populated", view);
+      const header = page.locator(headerSelector).first();
+      const title = page.locator(titleSelector).first();
+      await expect(header).toBeVisible();
+      await expect(title).toBeVisible();
+      const headerFamily = await header.evaluate(el => getComputedStyle(el).fontFamily);
+      const titleFamily = await title.evaluate(el => getComputedStyle(el).fontFamily);
+      expect(headerFamily, role + "/" + view + " display header").toContain("NHS Single Ghost Local");
+      expect(titleFamily, role + "/" + view + " section title").toContain("NHS Anger Styles Local");
+      // This is a CSS family-mapping assertion; local font installation
+      // and commercial web-embedding license are separate prerequisites.
+      const bodyFamily = await page.locator("body").evaluate(el => getComputedStyle(el).fontFamily);
+      expect(bodyFamily).toContain("DM Sans");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth),
+        "Typography must not overflow at " + width + "px").toBeLessThanOrEqual(width);
+    }
+  }
+});
