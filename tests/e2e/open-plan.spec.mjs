@@ -184,7 +184,7 @@ test("seven NHS rooms display distinct local background scenes without replacing
     const backgrounds = new Set();
     for (const [role,view,room] of cases) {
       await show(page,role,view,"populated");
-      const image = await page.locator(".main-shell").evaluate((el,isObservatory) => isObservatory ? getComputedStyle(el).backgroundImage : getComputedStyle(el,"::before").backgroundImage,room === "observatory");
+      const image = await page.locator(".main-shell").evaluate(el => getComputedStyle(el,"::before").backgroundImage);
       expect(image, room + " must have a local image background").toMatch(/data:image\/(?:svg\+xml|webp)/);
       backgrounds.add(image);
       await expect(page.locator(".nhs-sidebar,.navigation-shell,.nhs-mobile-quicknav")).toHaveCount(0);
@@ -282,10 +282,10 @@ test("real studio metrics have quiet icon instruments, without fake actions or m
   }
 });
 
-test("cinematic rooms stay fixed except the user-approved full-scroll Muse artwork",async ({page})=>{
+test("all cinematic rooms stay fixed while glass content scrolls above",async ({page})=>{
   const cases=[
     ["admin","leads","electric"],["admin","clients","rose"],["admin","pipeline","artist"],
-    ["admin","contracts","archive"],["admin","muse","velvet"],["client","home","private"]
+    ["admin","contracts","archive"],["admin","muse","velvet"],["client","home","private"],["admin","home","observatory"]
   ];
   for(const width of [1440,390]) {
     await page.setViewportSize({width,height:520});
@@ -299,12 +299,9 @@ test("cinematic rooms stay fixed except the user-approved full-scroll Muse artwo
           animation:layer.animationName,transform:layer.transform,
           pointerEvents:layer.pointerEvents,viewportHeight:layer.height};
       });
-      expect(before.position,room+" should use its agreed scroll behavior")
-        .toBe(room === "velvet" ? "absolute" : "fixed");
-      if (room === "velvet") {
-        expect(before.backgroundRepeat).toContain("repeat-y");
-        expect(Number.parseFloat(before.viewportHeight)).toBeGreaterThanOrEqual(520);
-      }
+      expect(before.position, room + " must keep its scene behind scrolling content").toBe("fixed");
+      expect(before.backgroundRepeat, room + " must not tile artwork").not.toContain("repeat-y");
+      expect(Number.parseFloat(before.viewportHeight)).toBeGreaterThanOrEqual(518);
       expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
       expect(before.animation).toBe("none");
       expect(before.transform).toBe("none");
