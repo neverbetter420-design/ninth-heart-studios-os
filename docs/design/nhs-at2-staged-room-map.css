@@ -1,7 +1,8 @@
 /*
  * NHS OS | THE NINTH ATELIER · STAGED ROOM MAP (REVIEW ONLY)
- * DO NOT import this file into app/layout.tsx before all eight images pass
- * exact SHA-256 verification in public/visuals and the owner approves crops.
+ * ARCHIVAL MAPPING ONLY: the verified binary import has completed.
+ * The reviewed active version is app/living-atelier-artwork-active.css.
+ * Do not import this archived duplicate or publish it separately.
  *
  * The visual contract is: ONE STATIONARY viewport background per room;
  * every interface pane and form scrolls ABOVE it. Image fit is CONTAIN,\n * centered without zooming or cutting ornamental edges. Never apply artwork
