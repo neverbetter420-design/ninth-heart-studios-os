@@ -928,7 +928,7 @@ test("Midnight Observatory uses NHS black glass and rose-accented welcome", asyn
   const instruments = studio.locator(".living-status__metric");
   const hub = studio.getByRole("navigation", { name: "Studio command hub" });
   await expect(studio).toBeVisible();
-  await expect(instruments).toHaveCount(3);
+  await expect(instruments).toHaveCount(4);
   await expect(instruments.first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(studio).toContainText("Active Leads");
   await expect(studio.locator(".nhs-command-pulse-dial__core strong")).toHaveText("45%");
