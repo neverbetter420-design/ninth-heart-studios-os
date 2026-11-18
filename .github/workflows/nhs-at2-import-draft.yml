@@ -1,0 +1,106 @@
+# NHS OS · one-ZIP draft-only image handoff.
+# NEVER deploys, merges, edits hosted data or activates any CSS.
+name: NHS AT2 reviewed artwork handoff (draft only)
+
+on:
+  push:
+    branches:
+      - design/nhs-at2-background-handoff-20261117
+    paths:
+      - assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nhs-at2-verified-binary-import
+  cancel-in-progress: false
+
+jobs:
+  import-eight-reviewed-webps:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      ZIP: assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip
+      EXPECTED_REF: refs/heads/design/nhs-at2-background-handoff-20261117
+      EXPECTED_ZIP_SHA256: e127a162b78f4c2573c741fbbbcfd7c07bf84b1e4816d4d6d787003fe54cd764
+    steps:
+      - name: Hard stop outside the exact draft branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "$EXPECTED_REF"
+      - name: Checkout only this branch
+        uses: actions/checkout@v4
+        with:
+          ref: design/nhs-at2-background-handoff-20261117
+          persist-credentials: true
+          fetch-depth: 1
+      - name: Verify the exact ZIP before writing anything
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$ZIP"
+          echo "$EXPECTED_ZIP_SHA256  $ZIP" | sha256sum --check --status
+          python3 scripts/import-nhs-at2-backgrounds.py "$ZIP"
+      - name: Import exactly eight verified WebPs into draft working tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = design/nhs-at2-background-handoff-20261117
+          python3 scripts/import-nhs-at2-backgrounds.py "$ZIP" --apply
+      - name: Commit exact assets and remove temporary ZIP, never activate CSS
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          m = json.loads(Path("docs/design/nhs-at2-assets.json").read_text())
+          names = [entry["file"] for entry in m["assets"]]
+          assert len(names) == len(set(names)) == 8
+          for entry in m["assets"]:
+              data = (Path("public/visuals") / entry["file"]).read_bytes()
+              assert len(data) == entry["bytes"]
+              assert hashlib.sha256(data).hexdigest() == entry["sha256"]
+          assert not (Path("public/visuals") / m["reserve"]["file"]).exists(), "Healthcare image not allowed in NHS OS"
+          print("PASS: all eight exact binaries and reserve exclusion verified")
+          PY
+          git add -- \
+            public/visuals/nhs-at2-mobile-welcome.webp \
+            public/visuals/nhs-at2-command-center.webp \
+            public/visuals/nhs-at2-muse-chamber.webp \
+            public/visuals/nhs-at2-project-pipeline.webp \
+            public/visuals/nhs-at2-client-sanctuary.webp \
+            public/visuals/nhs-at2-brand-welcome.webp \
+            public/visuals/nhs-at2-admin-entrance.webp \
+            public/visuals/nhs-at2-workspace-floral.webp
+          git rm -- "$ZIP"
+          python3 - <<'PY'
+          import subprocess
+          changed = set(subprocess.check_output(
+              ["git","diff","--cached","--name-only"], text=True).splitlines())
+          expected = {
+              "assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip",
+              "public/visuals/nhs-at2-mobile-welcome.webp",
+              "public/visuals/nhs-at2-command-center.webp",
+              "public/visuals/nhs-at2-muse-chamber.webp",
+              "public/visuals/nhs-at2-project-pipeline.webp",
+              "public/visuals/nhs-at2-client-sanctuary.webp",
+              "public/visuals/nhs-at2-brand-welcome.webp",
+              "public/visuals/nhs-at2-admin-entrance.webp",
+              "public/visuals/nhs-at2-workspace-floral.webp",
+          }
+          assert changed.issubset(expected), "Unexpected staged files; STOP"
+          assert "assets/handoff/NHS_OS_Atelier_Backgrounds_FIXED_2026-11-17.zip" in changed
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "assets(draft): install eight checksum-verified NHS OS scenes"
+          git push origin "HEAD:design/nhs-at2-background-handoff-20261117"
+      - name: Explain intentional incomplete integration
+        run: |
+          echo "✅ Eight binary scenes committed to the draft branch only." >> "$GITHUB_STEP_SUMMARY"
+          echo "🔒 CSS mapping remains unimported; no deployment, database changes, or merge." >> "$GITHUB_STEP_SUMMARY"
+          echo "📸 Review actual responsive app screenshots before activating replacement artwork." >> "$GITHUB_STEP_SUMMARY"
