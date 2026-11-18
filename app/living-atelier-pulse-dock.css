@@ -195,7 +195,7 @@
  * The approved Observatory artwork remains a stationary full-viewport room
  * behind scrolling Command Center widgets. No parallax, duplicated card
  * wallpaper, interaction interception, or background stretching.
- * --nhs-at2-room-photo is opt-in only after verified binary import.
+ * The complete original frame is always visible; unused viewport space\n * remains midnight black rather than zooming/cropping its ornate edges.\n * --nhs-at2-room-photo is opt-in only after verified binary import.
  */
 .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell {
   position:relative;
@@ -219,7 +219,7 @@
     var(--nhs-at2-room-photo, var(--nhs-observatory-approved-artwork, url("/visuals/nhs-dark-rose-photographic.webp"))),
     linear-gradient(135deg,#050512,#131023 55%,#050512);
   background-position:center,center,center;
-  background-size:100% 100%,cover,100% 100%;
+  background-size:100% 100%,contain,100% 100%;
   background-repeat:no-repeat;
   background-attachment:scroll;
   transform:none;
@@ -236,7 +236,7 @@
 }
 @media(max-width:740px) {
   .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::before {
-    background-position:center,60% center,center;
+    background-position:center,center,center;
   }
 }
 @media(prefers-contrast:more),(forced-colors:active) {
