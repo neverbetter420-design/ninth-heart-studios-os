@@ -185,13 +185,20 @@ test("seven NHS rooms display distinct local background scenes without replacing
     for (const [role,view,room] of cases) {
       await show(page,role,view,"populated");
       const image = await page.locator(".main-shell").evaluate(el => getComputedStyle(el,"::before").backgroundImage);
-      expect(image, room + " must have a local image background").toMatch(/data:image\/(?:svg\+xml|webp)/);
+      if (room === "observatory") {
+        // Await the exact owner-approved Chapter I background binaries;
+        // the rejected old photograph must not masquerade as accepted art.
+        expect(image, "Observatory must not render retired wallpaper").not.toContain("data:image/");
+        expect(image).toContain("radial-gradient");
+      } else {
+        expect(image, room + " must have a local image background").toMatch(/data:image\/(?:svg\+xml|webp)/);
+      }
       backgrounds.add(image);
       await expect(page.locator(".nhs-sidebar,.navigation-shell,.nhs-mobile-quicknav")).toHaveCount(0);
       await bounds(page);
       await page.screenshot({path:`design-preview/open-plan/wallpaper-${room}-${width}.png`});
     }
-    expect(backgrounds.size, "every one of the seven rooms must have different artwork").toBe(7);
+    expect(backgrounds.size, "Every room needs a distinct atmosphere even before Observatory art approval").toBe(7);
   }
 });
 
@@ -241,7 +248,8 @@ test("eye-comfort room lighting dims photography but not working controls", asyn
     }));
     expect(composition.hero).toBe("none");
     expect(composition.scrim).toContain("linear-gradient");
-    expect(composition.fixed).toContain("data:image/webp");
+    expect(composition.fixed, "Unapproved Observatory photograph must remain removed").not.toContain("data:image/");
+    expect(composition.fixed).toContain("radial-gradient");
     await bounds(page);
   }
 });
