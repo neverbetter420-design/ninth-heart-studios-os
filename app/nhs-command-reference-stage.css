@@ -1064,3 +1064,32 @@
     padding: 0;
   }
 }
+
+
+/* Desktop final correction: an absolutely positioned CSS grid child with
+ * explicit grid-column/grid-row gets positioned relative to its assigned
+ * GRID AREA, not the whole hero. The diagnostic screenshot exposed the
+ * shortcuts squeezed into that grid area, over the title and Pulse.
+ * Clear the grid placement and use auto inset stretching so the Hub's
+ * containing block is the entire ornamental hero instead. */
+@media (min-width: 741px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview > .living-studio {
+    position: absolute;
+    grid-column: auto;
+    grid-row: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    inset: 0;
+    width: auto;
+    height: auto;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    isolation: auto;
+    pointer-events: none;
+  }
+}
