@@ -1,0 +1,46 @@
+/*
+ * NHS OS | THE NINTH ATELIER · STAGED ROOM MAP (REVIEW ONLY)
+ * DO NOT import this file into app/layout.tsx before all eight images pass
+ * exact SHA-256 verification in public/visuals and the owner approves crops.
+ *
+ * The visual contract is: ONE STATIONARY viewport background per room;
+ * every interface pane and form scrolls ABOVE it. Never apply the artwork
+ * as an individual card background. No parallax, repeated tiling or motion.
+ */
+
+/* 2: Main Admin Observatory; original confirmed Observatory stays as fallback. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) {
+  --nhs-at2-room-photo:url("/visuals/nhs-at2-command-center.webp");
+}
+
+/* 3: Muse: original existing silver/velvet scene stays as fallback. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) {
+  --nhs-at2-room-photo:url("/visuals/nhs-at2-muse-chamber.webp");
+}
+
+/* 4: Project Pipeline, its own room (artist); retain current navigation and project data. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="artist"]) {
+  --nhs-cinematic-room-photo:url("/visuals/nhs-at2-project-pipeline.webp");
+}
+
+/* 8: Electric Lead Intelligence/Scanner; original rose and archive rooms stay distinct. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="electric"]) {
+  --nhs-cinematic-room-photo:url("/visuals/nhs-at2-workspace-floral.webp");
+}
+
+/* 5: Client Sanctuary, on home only, never admin or unrelated client deep pages. */
+.app-shell.nhs-theme-client.nhs-open-plan:has(.nhs-room-identity[data-room="private"]):has(.atelier-home.nhs-color-studio) {
+  --nhs-cinematic-room-photo:url("/visuals/nhs-at2-client-sanctuary.webp");
+}
+
+/*
+ * Images 1, 6, 7:
+ * - 1 nhs-at2-mobile-welcome.webp -> portrait sign-in after route QA
+ * - 6 nhs-at2-brand-welcome.webp -> branded welcome transition, not logo
+ * - 7 nhs-at2-admin-entrance.webp -> optional admin entrance ceremony
+ * Only after the relevant unauthenticated routes and layouts are inspected.
+ *
+ * Image 9 healthcare is reserved and must NEVER be imported to NHS OS.
+ * Existing client auth, RLS, Supabase roles, original NHS logo and live
+ * dashboard data remain unchanged.
+ */
