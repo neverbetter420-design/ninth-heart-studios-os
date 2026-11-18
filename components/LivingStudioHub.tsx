@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { AtelierSymbol, type AtelierSymbolName } from "./AtelierSymbol";
 
 /** Presentation only. All values and destinations come from the existing server Dashboard. */
@@ -79,7 +80,15 @@ export function LivingStudioHub({
       </nav>
 
       <aside className="living-status" aria-label="Current studio status">
-        <span className="living-status__eyebrow">02 / Studio pulse</span>
+        <span className="living-status__eyebrow">Studio Pulse</span>
+        <div className="nhs-command-pulse-dial" aria-label="Recent project progress">
+          <div className="nhs-command-pulse-dial__ring" aria-hidden="true" style={{ "--nhs-pulse-fill": `${recentProgress ?? 0}%` } as CSSProperties}>
+            <div className="nhs-command-pulse-dial__core">
+              <strong>{recentProgress === null ? "—" : `${recentProgress}%`}</strong>
+              <span>Recent projects</span>
+            </div>
+          </div>
+        </div>
         <dl className="living-status__metrics">
           {metrics.map((metric) => (
             <div key={metric.label} className={`living-status__metric living-status__metric--${metric.tone}`}>
