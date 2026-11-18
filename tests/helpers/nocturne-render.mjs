@@ -27,7 +27,7 @@ if (at2Assets.assets?.length !== 8 || "reserve" in at2Assets) {
   throw new Error("STOP: approved NHS AT2 image manifest must have exactly eight app images");
 }
 for (const { file, sha256 } of at2Assets.assets) {
-  if (!/^nhs-at2-[a-z0-9-]+\\.webp$/.test(file) || !/^[0-9a-f]{64}$/.test(sha256)) {
+  if (!/^nhs-at2-[a-z0-9-]+\.webp$/.test(file) || !/^[0-9a-f]{64}$/.test(sha256)) {
     throw new Error("STOP: invalid NHS AT2 image declaration: " + file);
   }
   approvedArtwork.add(file);
