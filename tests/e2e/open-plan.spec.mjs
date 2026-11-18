@@ -296,11 +296,16 @@ test("all cinematic rooms stay fixed while glass content scrolls above",async ({
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
           positionImage:layer.backgroundPosition,backgroundRepeat:layer.backgroundRepeat,
+          size:layer.backgroundSize,
           animation:layer.animationName,transform:layer.transform,
           pointerEvents:layer.pointerEvents,viewportHeight:layer.height};
       });
       expect(before.position, room + " must keep its scene behind scrolling content").toBe("fixed");
       expect(before.backgroundRepeat, room + " must not tile artwork").not.toContain("repeat-y");
+      // Every room photograph must fit in the available viewport; a cover crop
+      // cuts off the ornate frame on portrait phones and square tablets.
+      const layers=before.size.split(",").map(x=>x.trim());
+      expect(layers[room === "velvet" ? 3 : 1], room + " photo must preserve its entire border").toBe("contain");
       expect(Number.parseFloat(before.viewportHeight)).toBeGreaterThanOrEqual(518);
       expect(before.backgroundImage,room+" photo should render").toContain("data:image/webp;base64");
       expect(before.animation).toBe("none");
@@ -315,6 +320,7 @@ test("all cinematic rooms stay fixed while glass content scrolls above",async ({
         const layer=getComputedStyle(el,"::before");
         return {position:layer.position,backgroundImage:layer.backgroundImage,
           positionImage:layer.backgroundPosition,backgroundRepeat:layer.backgroundRepeat,
+          size:layer.backgroundSize,
           animation:layer.animationName,transform:layer.transform,
           pointerEvents:layer.pointerEvents,viewportHeight:layer.height};
       });
