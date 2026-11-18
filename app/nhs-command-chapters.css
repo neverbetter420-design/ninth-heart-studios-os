@@ -1,0 +1,202 @@
+/*
+ * NHS OS · Owner-approved Cinematic Chapters
+ * Reference: approved two-chapter mockup, SHA-256
+ * d8d6ceabdeb8b36f783db5bf57d4444e3391821f60d7d03be54dd54516015c3c
+ *
+ * Scoped ONLY to the Command Center / Admin Observatory.
+ * The second chapter's image variable is intentionally UNSET until the
+ * background-only chapter-II artwork is made and approved. The initial
+ * implementation uses a dark violet / cobalt gradient atmosphere, never
+ * the composite screenshot with fabricated KPI/task values.
+ */
+
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #080719;
+  background-image:
+    linear-gradient(120deg, rgba(7, 4, 18, .50), rgba(15, 5, 28, .35) 42%, rgba(4, 8, 28, .37) 76%, rgba(4, 7, 19, .58)),
+    var(--nhs-command-chapter-ii-image, none),
+    radial-gradient(ellipse at 12% 37%, rgba(113, 27, 149, .32), transparent 48%),
+    radial-gradient(ellipse at 89% 62%, rgba(30, 76, 194, .29), transparent 45%),
+    linear-gradient(135deg, #080512, #150b2d 55%, #060918);
+  background-position: center;
+  background-size: 100% 100%, contain, 100% 100%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 800ms cubic-bezier(.2, .68, .25, 1);
+  transform: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan[data-nhs-command-chapter="2"]:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::after {
+  opacity: 1;
+}
+
+/* Content remains above both fixed atmospheric layers. All buttons,
+ * form fields and links stay interactive during/after the crossfade. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell > #workspace-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* One architecturally integrated chapter boundary. The central crystal
+ * is rendered in CSS rather than embedded in a new fake screenshot. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: clamp(18px, 3.5vw, 48px) 0 clamp(22px, 4vw, 52px);
+  padding: clamp(30px, 4vw, 58px) clamp(16px, 3vw, 46px) clamp(26px, 3vw, 42px);
+  text-align: center;
+  border: 0;
+  background: transparent;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider::before,
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  height: 1px;
+  width: min(38%, 420px);
+  background: linear-gradient(90deg, transparent, rgba(233, 94, 184, .54), rgba(210, 190, 236, .72));
+  pointer-events: none;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider::before { left: 0; }
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider::after {
+  right: 0;
+  transform: rotate(180deg);
+  background: linear-gradient(90deg, transparent, rgba(55, 112, 236, .58), rgba(210, 190, 236, .72));
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider__crest {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  transform: translateX(-50%) rotate(45deg);
+  border: 1px solid rgba(237, 195, 253, .84);
+  background: linear-gradient(140deg, rgba(139, 72, 231, .82), rgba(44, 18, 96, .77));
+  box-shadow: 0 0 21px rgba(208, 81, 240, .30);
+  color: #f7d5ff;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider__crest > span {
+  transform: rotate(-45deg);
+  font-size: 16px;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider__eyebrow {
+  margin: 10px 0 8px;
+  color: #d5cae7;
+  font: 600 11px/1.4 var(--nhs-font-reading, system-ui);
+  letter-spacing: .26em;
+  text-transform: uppercase;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider h2 {
+  margin: 0;
+  color: #fff1fb;
+  font-family: var(--nhs-font-display, Georgia, serif) !important;
+  font-size: clamp(29px, 3.6vw, 55px);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: .012em;
+  text-wrap: balance;
+  text-shadow: 0 3px 26px rgba(2, 2, 17, .62);
+  overflow-wrap: anywhere;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center .nhs-command-chapter-divider__subline {
+  margin: 10px 0 0;
+  color: #dfd4ee;
+  font: 500 11px/1.5 var(--nhs-font-reading, system-ui);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+/* In the working chapter the original live panels remain slightly
+ * asymmetrical and very transparent, not opaque boxed screenshots. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center [data-nhs-command-scene="workroom"] {
+  position: relative;
+  min-width: 0;
+  padding-top: 0;
+  background: transparent;
+}
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center [data-nhs-command-scene="workroom"]
+:is(.action-panel, .project-panel, .nocturne-activity, .nocturne-insights) {
+  -webkit-backdrop-filter: blur(28px) saturate(145%);
+  backdrop-filter: blur(28px) saturate(145%);
+}
+
+@media (max-width: 740px) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider {
+    margin: 14px 0 20px;
+    padding: 34px 8px 23px;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider::before,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider::after {
+    width: 33%;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider h2 {
+    font-size: clamp(27px, 7.8vw, 39px);
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider__subline {
+    letter-spacing: .075em;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::after {
+    transition: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center [data-nhs-command-scene="workroom"]
+  :is(.action-panel, .project-panel, .nocturne-activity, .nocturne-insights) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #111426;
+  }
+}
+@media (forced-colors: active), (prefers-contrast: more) {
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"]) > .main-shell::after {
+    display: none;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider::before,
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider::after {
+    background: CanvasText;
+  }
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center .nhs-command-chapter-divider h2 {
+    color: CanvasText;
+    text-shadow: none;
+  }
+}
