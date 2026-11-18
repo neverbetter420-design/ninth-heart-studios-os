@@ -23,13 +23,14 @@ const approvedArtworkHashes = new Map([
 // Never blindly embed files from CSS: source preview uses the pinned manifest
 // hashes, a strict name pattern, and exactly eight reviewed filenames.
 const at2Assets = JSON.parse(readFileSync(resolve(root, "docs/design/nhs-at2-assets.json"), "utf8"));
-if (at2Assets.assets?.length !== 8 || "reserve" in at2Assets) {
-  throw new Error("STOP: approved NHS AT2 image manifest must have exactly eight app images");
+if (at2Assets.assets?.length !== 7 || "reserve" in at2Assets) {
+  throw new Error("STOP: approved NHS AT2 image manifest must have exactly seven non-medical app images");
 }
 for (const { file, sha256 } of at2Assets.assets) {
   if (!/^nhs-at2-[a-z0-9-]+\.webp$/.test(file) || !/^[0-9a-f]{64}$/.test(sha256)) {
     throw new Error("STOP: invalid NHS AT2 image declaration: " + file);
   }
+  if (file === "nhs-at2-project-pipeline.webp") throw new Error("STOP: rejected medical artwork returned");
   approvedArtwork.add(file);
   approvedArtworkHashes.set(file, sha256);
 }
