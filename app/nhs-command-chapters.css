@@ -326,3 +326,26 @@
     backdrop-filter: none;
   }
 }
+
+
+/* NHS LEGACY SCENE SUPPRESSION · November 18 review
+ * An older nocturne-dark-rose-cinematic.css rule painted the retired rose
+ * photograph onto the Command Center's own ::before. Removing the image from
+ * main-shell::before alone was insufficient: screenshots still displayed it.
+ * Only that non-interactive duplicate photo layer is suppressed. The
+ * section-linked fixed Chapter I/II atmospheric layers remain functional. */
+.app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+#workspace-content .nocturne-command-center::before {
+  content: none;
+  display: none;
+  background-image: none;
+}
+
+@media (max-width: 740px) {
+  /* Leave space for future approved portrait artwork without forcing a
+     near-100px blank gap above the Command Center on narrow phones. */
+  .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="observatory"])
+  #workspace-content .nocturne-command-center.velvet-atelier-pilot .nocturne-overview {
+    padding-top: clamp(26px, 4svh, 44px);
+  }
+}
