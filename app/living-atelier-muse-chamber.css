@@ -424,7 +424,7 @@
 /* FIXED NHS ROOM CANVAS · owner correction, November 17.
  * The room atmosphere stays pinned to the viewport like the website;
  * every Muse form, timeline and glass panel scrolls above it.
- * Exactly one original NHS photo; no image is distorted, repeated down
+ * Exactly one original NHS photo fitted fully within the viewport,\n * including its frame edges; no image is distorted, repeated down
  * the page, or pasted into each card. Keep two original silver/botanical
  * ornaments in this room until the source-verified new artwork is imported.
  */
@@ -456,7 +456,7 @@
     100% 100%,
     min(970px,78vw) auto,
     min(1480px,106vw) auto,
-    cover,
+    contain,
     100% 100%;
   background-position:center,left -145px center,right -40px center,center,center;
   background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat;
@@ -475,7 +475,7 @@
 }
 @media(max-width:740px) {
   .app-shell.nhs-theme-admin.nhs-open-plan:has(.nhs-room-identity[data-room="velvet"]):has(#workspace-content .muse-workroom) > .main-shell::before {
-    background-size:100% 100%,570px auto,880px auto,cover,100% 100%;
+    background-size:100% 100%,570px auto,880px auto,contain,100% 100%;
     background-position:center,left -245px center,right -300px center,center,center;
     background-repeat:no-repeat,no-repeat,no-repeat,no-repeat,no-repeat;
   }
