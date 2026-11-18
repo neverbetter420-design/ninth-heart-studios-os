@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "created": "2026-11-17",
+  "zip_sha256": "a995f44e317837dc0b1aeff76d740f4210c7cf19d94878273b6a197942d36204",
+  "state": "DRAFT ONLY: images not in repository and no production/staging deployment",
+  "rules": [
+    "Preserve the existing NHS logo and old scene assets",
+    "Only eight app images are eligible for import; reserve stays out",
+    "Do not activate a room before authentic responsive visual review",
+    "Do not use brand-wordmark images as substitute logos",
+    "No new backend access, billing, scanning, AI, or outreach"
+  ],
+  "assets": [
+    {
+      "id": 1,
+      "file": "nhs-at2-mobile-welcome.webp",
+      "sha256": "be906d35e4a2934fd58b89c89624060ece115e7eb58a1e879c9be33873fee961",
+      "bytes": 217818,
+      "role": "mobile sign-in",
+      "position": "center top",
+      "source": "4E4FDF0A-8102-45BF-9740-E6A7741E17B2.jpeg"
+    },
+    {
+      "id": 2,
+      "file": "nhs-at2-command-center.webp",
+      "sha256": "d3695e2c2f671b5590b7ce8dbc42d200ae93befcb11aebd9656cad5c01e0e9b1",
+      "bytes": 162262,
+      "role": "admin command center",
+      "position": "center top",
+      "source": "D674621A-DDF9-414C-84D0-C36326354EA2.jpeg"
+    },
+    {
+      "id": 3,
+      "file": "nhs-at2-muse-chamber.webp",
+      "sha256": "0e654e2d7e7494baa7dd48dbdc969080f3809cf91f5bdfc106c355c9a7cbcfee",
+      "bytes": 168356,
+      "role": "muse creative studio",
+      "position": "right top",
+      "source": "374A30D6-6E0C-463C-9C8A-69E5E1866CC9.jpeg"
+    },
+    {
+      "id": 4,
+      "file": "nhs-at2-project-pipeline.webp",
+      "sha256": "1e03ebd8c2cde2dae4f6eb50b9c5b4870462528a1b10d1d71a5212e660ee798e",
+      "bytes": 131634,
+      "role": "project workspace",
+      "position": "left top",
+      "source": "A0905186-5D02-4C0D-B0B0-E23B154485D3.jpeg"
+    },
+    {
+      "id": 5,
+      "file": "nhs-at2-client-sanctuary.webp",
+      "sha256": "cac09c2c3d49fc5e81997ba02e1ce477abfcdb15feea53765309eaa1a9eaac94",
+      "bytes": 123608,
+      "role": "client sanctuary alternate",
+      "position": "left top",
+      "source": "F1EED929-B496-4EE2-972B-8A59C22C749A.jpeg"
+    },
+    {
+      "id": 6,
+      "file": "nhs-at2-brand-welcome.webp",
+      "sha256": "0d9fe96beec86b88150a0a59d77eac9fc7ac816f4a78ba27ec3ebb65b69d3371",
+      "bytes": 160642,
+      "role": "branded welcome, not official logo",
+      "position": "left center",
+      "source": "D57FA1BD-97B0-426E-A056-F19FD281FDFE.jpeg"
+    },
+    {
+      "id": 7,
+      "file": "nhs-at2-admin-entrance.webp",
+      "sha256": "0793b2e523ace776d58c0bc25d1672c72f8291a4d6ce6bac408cdf9293e8a75b",
+      "bytes": 166126,
+      "role": "admin entrance alternate, not official logo",
+      "position": "center top",
+      "source": "94C6BDC2-3288-421B-BC82-DCB64F361ED9.jpeg"
+    },
+    {
+      "id": 8,
+      "file": "nhs-at2-workspace-floral.webp",
+      "sha256": "9e01940ec1e2d614f0c222de9b17d38813e2dd7a13415bdc8cc24f7972b921d9",
+      "bytes": 228300,
+      "role": "leads forms contracts workroom atmosphere",
+      "position": "left top",
+      "source": "A09F91B6-6DF9-4B6A-8C65-C338D58FAE1B.jpeg"
+    }
+  ],
+  "reserve": {
+    "file": "nhs-at2-healthcare-reserve.webp",
+    "sha256": "041478d9dc61cdc4d8b8aac2613d370b2f05a72a21fb47eaef5a9f66aad48d0f",
+    "bytes": 148048,
+    "source": "3A02B7FE-2B92-40F4-8B19-8047478EC8EE.jpeg",
+    "reason": "contains healthcare-specific icons and DNA; do not ship with NHS OS"
+  }
+}
