@@ -3,7 +3,7 @@
 **Decision recorded:** November 18, 2026
 **Scope:** NHS OS Admin Observatory / Command Center only
 **Mobile art decision:** OWNER SELECTED AND LOCKED
-**Desktop companion:** NOT YET CREATED OR APPROVED
+**Desktop companion:** OWNER-PROVIDED MATCHING LANDSCAPE REFERENCE · paired with selected mobile design; app visual QA pending
 **Implementation/deployment:** NOT ACTIVATED. Draft-only decision record; PR #80 is still VISUAL REWORK REQUIRED / DO NOT MERGE.
 
 ## Mobile: selected visual (user upload in Nov 18 conversation)
@@ -19,9 +19,9 @@ Reference: **The last owner-uploaded portrait image**, featuring:
 
 This portrait reference was selected *after* earlier first-pass images were rejected. **This choice supersedes earlier mobile Command Center artwork candidates only.** It does not grant approval to the current dashboard's UI composition or to any other room.
 
-## Desktop: create a real companion composition, not a resized portrait
+## Desktop: owner-provided matching landscape composition
 
-**Target image size: 2560 × 1440 px (16:9)**. Treat it as a *new landscape composition* with the exact same visual DNA and lighting: matching metallic arch and decorative corner frame, small top-centered skull/key, chains/crystals, magenta left column, cobalt right column, and restrained two-corner rose placement.
+**Provided image:** `ChatGPT Image Nov 18, 2026, 04_32_45 AM.png`, actual raster 1672 × 941 px (near 16:9), SHA-256 `e7e59728a863cf96287109481e04653654aa6d9c5104a4a96b45172be8ee5411`. Companion to the locked owner-uploaded mobile reference `634f9f81-aaa2-437a-b538-90d899b5f376.png`, 942 × 1670 px, SHA-256 `700e06d16362e15d3a10500acedf5470d2d1011e6883126ec45e816bb3c0866e` (both checked against local uploaded bytes). The desktop composition carries the same skull/key and small violet crystal centerpiece, double-silver border and filigree corners, hanging chains, fuchsia-left and cobalt-right lighting, and strong dark central negative space. It places its main rose at the right side rather than exactly mirroring the mobile corner flowers, which is an appropriate landscape adaptation. **Recommended display size:** 2560 × 1440 px or serve the native 1672 × 941 raster as optimized WebP without distorting the aspect ratio.
 
 - Stretch the **arches horizontally by redesigning them**, not by stretching the mobile pixels.
 - Keep the upper key/sculpture **small**, near the top center, without colliding with top navigation.
@@ -42,4 +42,4 @@ This portrait reference was selected *after* earlier first-pass images were reje
 5. Get **separate owner approval of desktop and mobile app screenshots** before implementation is treated as complete.
 6. Do not deploy, merge PR #80, change Supabase/Auth/RLS or client records, or enable paid/automated workflows without explicit authorization.
 
-**Implementation reminder:** This is a source-of-truth design decision, not a claim that the uploaded portrait image is already tracked by GitHub or displayed in the real app.
+**Implementation reminder:** This records the actual owner-supplied landscape and portrait image hashes as a matched design pair. Their binaries are uploaded in conversation but are **not yet committed as new assets to GitHub or displayed in NHS OS**. Do not present either as production-active. Explicit visual app approval remains outstanding.
