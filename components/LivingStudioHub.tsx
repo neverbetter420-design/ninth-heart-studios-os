@@ -13,7 +13,7 @@ type StudioMetric = {
   label: string;
   value: string;
   detail: string;
-  tone: "violet" | "pink" | "cyan";
+  tone: "violet" | "pink" | "cyan" | "silver";
 };
 type StudioProject = { progress: number };
 
