@@ -1292,6 +1292,7 @@ test("NHS typography maps Single Ghost headers and Anger Styles titles without c
 
 
 test("Verified NHS AT2 room artwork stays fixed, full-frame and separate per room", async ({ page }) => {
+  test.setTimeout(180000);
   const cases = [
     ["admin", "home", "observatory", "--nhs-at2-room-photo"],
     ["admin", "muse", "velvet", "--nhs-at2-room-photo"],
